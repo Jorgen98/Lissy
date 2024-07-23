@@ -1,0 +1,4 @@
+development-processing-be:
+	docker compose --env-file ./env/.env up db-postgis db-stats --build
+development-ui:
+	docker compose --env-file ./env/.env up be-processing db-postgis db-stats --build

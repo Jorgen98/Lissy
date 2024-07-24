@@ -23,12 +23,22 @@ let server = app.listen(null, async () => {
     log('success', 'Processing service is running');
 })
 
+// Try to connect to DB and refresh net files
 server.on('listening', async () => {
     if (await dbPostGIS.connectToDB() && await dbStats.isDBConnected()) {
         log('success', 'DBs connected');
     } else {
         server.close(() => {
-            log('info', 'Can not established DBs connection, shutting down');
+            log('error', 'Can not established DBs connection, shutting down');
+            process.exit(0);
+        });
+    }
+
+    if (await dbPostGIS.reloadNetFiles()) {
+        log('success', 'Net files for routing are loaded');
+    } else {
+        server.close(() => {
+            log('error', 'Can not find new or load actual net files from DB, shutting down');
             process.exit(0);
         });
     }

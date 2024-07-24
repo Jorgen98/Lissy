@@ -2,14 +2,21 @@
  * DB PostGIS function file
  */
 
-const dotenv = require('dotenv');
 const Pool = require('pg').Pool;
+const dotenv = require('dotenv');
+
+const logService = require('./log.js');
 
 // .env file include
 dotenv.config();
 
+// Help function for log writing
+function log(type, msg) {
+    logService.write(process.env.DB_POSTGIS_MODULE_NAME, type, msg)
+}
+
 // PostGIS DB instant
-const db = new Pool({
+const db_postgis = new Pool({
     user: process.env.DB_POSTGIS_USER,
     host: process.env.DB_POSTGIS_HOST,
     database: process.env.DB_POSTGIS_DATABASE,
@@ -17,18 +24,14 @@ const db = new Pool({
     port: process.env.DB_POSTGIS_PORT
 });
 
-async function connect() {
+async function connectToDB() {
     try {
-        await db.connect();
-        return db;
+        await db_postgis.connect();
+        return true;
     } catch(error) {
-        console.log(error);
-        return null;
+        log('error', error);
+        return false;
     }
 }
 
-async function isDBConnected() {
-    return (await connect() !== null);
-}
-
-module.exports = { connect, isDBConnected }
+module.exports = { connectToDB }

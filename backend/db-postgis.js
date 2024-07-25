@@ -169,4 +169,28 @@ async function deleteNet(net) {
     }
 }
 
-module.exports = { connectToDB, reloadNetFiles }
+// Add new stop to DB, returns new id
+async function addStop(stop) {
+    try {
+        await db_postgis.query(`INSERT INTO stops (stop_name, latLng, zone_id, parent_station, wheelchair_boarding, is_active) VALUES ('${stop.stop_name}',
+            '{"type": "Point", "coordinates": [${stop.latLng}]}', ${stop.zone_id}, ${stop.parent_station}, ${stop.wheelchair_boarding}, true) RETURNING id`);
+        return id.rows[0];
+    } catch(error) {
+        log('error', error);
+        return null;
+    }
+}
+
+async function getActiveStops() {
+    let result;
+    try {
+        result = await db_postgis.query(`SELECT *, ST_AsGeoJSON(latLng) FROM stops WHERE is_active=true`);
+    } catch(error) {
+        log('error', error);
+        return null;
+    }
+
+    console.log(result.rows);
+}
+
+module.exports = { connectToDB, reloadNetFiles, addStop, getActiveStops }

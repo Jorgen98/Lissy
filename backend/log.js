@@ -13,8 +13,8 @@ const defColor = "\x1b[37m";
 // Module settings
 const modules = [
     {
-        name: process.env.DB_PROCESSING_MODULE_NAME,
-        label: process.env.DB_PROCESSING_MODULE_LABEL,
+        name: process.env.BE_PROCESSING_MODULE_NAME,
+        label: process.env.BE_PROCESSING_MODULE_LABEL,
         color: "\x1b[33m"
     },
     {

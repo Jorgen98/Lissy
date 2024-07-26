@@ -172,25 +172,81 @@ async function deleteNet(net) {
 // Add new stop to DB, returns new id
 async function addStop(stop) {
     try {
-        await db_postgis.query(`INSERT INTO stops (stop_name, latLng, zone_id, parent_station, wheelchair_boarding, is_active) VALUES ('${stop.stop_name}',
-            '{"type": "Point", "coordinates": [${stop.latLng}]}', ${stop.zone_id}, ${stop.parent_station}, ${stop.wheelchair_boarding}, true) RETURNING id`);
-        return id.rows[0];
+        let id = await db_postgis.query(`INSERT INTO stops (stop_id, stop_name, latLng, zone_id, parent_station, parent_station_id, wheelchair_boarding, is_active)
+            VALUES ('${stop.stop_id}', '${stop.stop_name}', '{"type": "Point", "coordinates": ${JSON.stringify(stop.latLng)}}', '${stop.zone_id}', '${stop.parent_station}',
+            ${stop.parent_station_id}, ${stop.wheelchair_boarding}, true) RETURNING id`);
+        return id.rows[0].id;
     } catch(error) {
         log('error', error);
         return null;
     }
 }
 
+// Get all stops used in actual transit system state
 async function getActiveStops() {
     let result;
     try {
-        result = await db_postgis.query(`SELECT *, ST_AsGeoJSON(latLng) FROM stops WHERE is_active=true`);
+        result = await db_postgis.query(`SELECT id, stop_id, stop_name, zone_id, parent_station,
+            wheelchair_boarding, ST_AsGeoJSON(latLng) FROM stops WHERE is_active=true`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    let output = {};
+
+    for (const row of result.rows) {
+        row['latLng'] = JSON.parse(row['st_asgeojson']).coordinates;
+        delete row['st_asgeojson'];
+        output[row['stop_id']] = row;
+    }
+
+    return output;
+}
+
+// Add new line to DB, returns new id
+async function addLine(line) {
+    try {
+        let id = await db_postgis.query(`INSERT INTO lines (route_id, agency_id, route_short_name, route_long_name,
+            route_type, route_color, route_text_color, day_time, is_active) VALUES ('${line.route_id}', '${line.agency_id}',
+            '${line.route_short_name}', '${line.route_long_name}', ${line.route_type}, '${line.route_color}', '${line.route_text_color}',
+            ${line.day_time}, true) RETURNING id`);
+        return id.rows[0].id;
     } catch(error) {
         log('error', error);
         return null;
     }
-
-    console.log(result.rows);
 }
 
-module.exports = { connectToDB, reloadNetFiles, addStop, getActiveStops }
+// Get all lines used in actual transit system state
+async function getActiveLines() {
+    let result;
+    try {
+        result = await db_postgis.query(`SELECT id, route_id, agency_id, route_short_name, route_long_name,
+            route_type, route_color, route_text_color, day_time FROM lines WHERE is_active=true`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    let output = {};
+
+    for (const row of result.rows) {
+        output[row['route_id']] = row;
+    }
+
+    return output;
+}
+
+// Send item to archive
+async function makeObjUnActive(id, type) {
+    try {
+        await db_postgis.query(`UPDATE ${type} SET is_active=false WHERE id='${id}'`);
+        return true;
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
+}
+
+module.exports = { connectToDB, reloadNetFiles, addStop, getActiveStops, addLine, getActiveLines, makeObjUnActive }

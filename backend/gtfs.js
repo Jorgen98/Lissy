@@ -16,8 +16,9 @@ const tmpFolderName = './gtfsFiles/'
 
 let todayServiceIDs = [];
 let useAllServices = false;
+let todayAgencyIds = {};
 let todayStopIds = {};
-let todayLineIds = {};
+let todayRouteIds = {};
 
 // .env file include
 dotenv.config();
@@ -93,6 +94,15 @@ async function unzipAndParseData(/*response*/) {
                             return;
                     }
 
+                    // Process agencies data
+                    log('info', 'Processing GTFS agencies data');
+                    if (!await getTodayAgencies(inputFiles.find((file) => { return file.path === 'agency.txt'}))) {
+                        log('error', 'GTFS agencies data are corrupted');
+                        fs.rmSync(tmpFolderName, { recursive: true });
+                        resolve(false);
+                        return;
+                    }
+
                     // Process stops data
                     log('info', 'Processing GTFS stops data');
                     if (!await getTodayStops(inputFiles.find((file) => { return file.path === 'stops.txt'}))) {
@@ -118,9 +128,9 @@ async function unzipAndParseData(/*response*/) {
                             }
                     }
 
-                    // Process lines data
-                    log('info', 'Processing GTFS lines data');
-                    if (!await getTodayLines(inputFiles.find((file) => { return file.path === 'routes.txt'}))) {
+                    // Process routes data
+                    log('info', 'Processing GTFS routes data');
+                    if (!await getTodayRoutes(inputFiles.find((file) => { return file.path === 'routes.txt'}))) {
                         log('error', 'GTFS routes data are corrupted');
                         fs.rmSync(tmpFolderName, { recursive: true });
                         resolve(false);
@@ -142,6 +152,75 @@ async function unzipAndParseData(/*response*/) {
     });
 }
 
+// Function for processing agency file
+async function getTodayAgencies(inputAgencyFile) {
+    if (inputAgencyFile?.data === undefined) {
+        return false;
+    }
+
+    let inputAgencyData = inputAgencyFile.data.toString().split('\n');
+    const header = inputAgencyData[0].split(',');
+    inputAgencyData.shift();
+
+    const agencyIdIdx = header.findIndex((item) => {return item.slice(1) === 'agency_id'});
+    const agencyNameIdx = header.findIndex((item) => {return item === 'agency_name'});
+    const agencyUrlIdx = header.findIndex((item) => {return item === 'agency_url'});
+    const agencyTimeZoneIdx = header.findIndex((item) => {return item === 'agency_timezone'});
+    const agencyLangIdx = header.findIndex((item) => {return item === 'agency_lang'});
+    const agencyPhoneIdx = header.findIndex((item) => {return item === 'agency_phone'});
+    const agencyFareIdx = header.findIndex((item) => {return item === 'agency_fare_url'});
+    const agencyEmailIdx = header.findIndex((item) => {return item === 'agency_email_url'});
+
+    if ((agencyNameIdx === -1 && agencyUrlIdx === -1) || agencyTimeZoneIdx === -1) {
+        return false;
+    }
+
+    let actualActiveAgencies = await dbPostGIS.getActiveAgencies();
+
+    // Process input zip data
+    // https://gtfs.org/schedule/reference/#agencytxt
+    for (const record of inputAgencyData) {
+        let decRecord = parseOneLineFromInputFile(record);
+
+        if (decRecord === undefined) {
+            continue;
+        }
+
+        let newAgency = {
+            id: null,
+            agency_id: decRecord[agencyIdIdx] ? decRecord[agencyIdIdx] : '',
+            agency_name: decRecord[agencyNameIdx] ? decRecord[agencyNameIdx] : '',
+            agency_url: decRecord[agencyUrlIdx] ? decRecord[agencyUrlIdx] : '',
+            agency_timezone: decRecord[agencyTimeZoneIdx] ? decRecord[agencyTimeZoneIdx] : '',
+            agency_lang: decRecord[agencyLangIdx] ? decRecord[agencyLangIdx] : '',
+            agency_phone: decRecord[agencyPhoneIdx] ? decRecord[agencyPhoneIdx] : '',
+            agency_fare_url: decRecord[agencyFareIdx] ? decRecord[agencyFareIdx] : '',
+            agency_email: decRecord[agencyEmailIdx] ? decRecord[agencyEmailIdx] : '',
+        }
+
+        let actualAgency = actualActiveAgencies[newAgency.agency_id];
+        newAgency.id = actualAgency?.id;
+        if (actualAgency === undefined || JSON.stringify(actualAgency) !== JSON.stringify(newAgency)) {
+                if (actualAgency !== undefined) {
+                    if (! await dbPostGIS.makeObjUnActive(actualActiveAgencies[newAgency.agency_id].id, 'agency')) {
+                        return false;
+                    }
+                }
+
+                todayAgencyIds[newAgency.agency_id] = await dbPostGIS.addAgency(newAgency);
+    
+                if (todayAgencyIds[newAgency.agency_id] === null) {
+                    return false;
+                }
+        } else {
+            todayAgencyIds[newAgency.agency_id] = actualAgency.id;
+        }
+    }
+
+    return true;
+}
+
+// Function for processing stops file
 async function getTodayStops(inputStopFile) {
     if (inputStopFile?.data === undefined) {
         return false;
@@ -150,6 +229,8 @@ async function getTodayStops(inputStopFile) {
     let inputStopData = inputStopFile.data.toString().split('\n');
     const header = inputStopData[0].split(',');
     inputStopData.shift();
+
+    // TO DO: Fill props
 
     const stopIdIdx = 0;
     const stopNameIdx = header.findIndex((item) => {return item === 'stop_name'});
@@ -234,6 +315,8 @@ async function inspectProcessedStop(stop, replace = false) {
     let actualStop = todayStopIds[stop.stop_id];
     let replaceChild = false;
 
+    // TO DO: id comparison
+
     if (actualStop === undefined ||
         actualStop.stop_id !== stop.stop_id ||
         actualStop.stop_name !== stop.stop_name ||
@@ -273,7 +356,100 @@ async function inspectProcessedStop(stop, replace = false) {
 }
 
 // Function for processing routes file
-async function getTodayLines(inputRoutesFile) {
+async function getTodayRoutes(inputRoutesFile) {
+    if (inputRoutesFile?.data === undefined) {
+        return false;
+    }
+
+    // TO DO: props, comparison, agency_id
+
+    let inputRoutesData = inputRoutesFile.data.toString().split('\n');
+    const header = inputRoutesData[0].split(',');
+    inputRoutesData.shift();
+
+    const routeIdIdx = 0;
+    const agencyIdIdx = header.findIndex((item) => {return item === 'agency_id'});
+    const routeShortNameIdx = header.findIndex((item) => {return item === 'route_short_name'});
+    const routeLongNameIdx = header.findIndex((item) => {return item === 'route_long_name'});
+    const routeTypeIdx = header.findIndex((item) => {return item === 'route_type'});
+    const routeColorIdx = header.findIndex((item) => {return item === 'route_color'});
+    const routeTextColorIdx = header.findIndex((item) => {return item === 'route_text_color'});
+
+    if ((routeLongNameIdx === -1 && routeShortNameIdx === -1) || routeTypeIdx === -1) {
+        return false;
+    }
+
+    let actualActiveRoutes = await dbPostGIS.getActiveRoutes();
+
+    // Process input zip data
+    // https://gtfs.org/schedule/reference/#routestxt
+    for (const record of inputRoutesData) {
+        let decRecord = parseOneLineFromInputFile(record);
+
+        if (decRecord === undefined) {
+            continue;
+        }
+
+        let newRoute = {
+            route_id: decRecord[routeIdIdx] ? decRecord[routeIdIdx] : '',
+            agency_id: decRecord[agencyIdIdx] ? decRecord[agencyIdIdx] : '',
+            route_short_name: decRecord[routeShortNameIdx] ? decRecord[routeShortNameIdx] : '',
+            route_long_name: decRecord[routeLongNameIdx] ? decRecord[routeLongNameIdx] : '',
+            route_type: decRecord[routeTypeIdx] ? parseInt(decRecord[routeTypeIdx]) : -1,
+            route_color: decRecord[routeColorIdx] ? decRecord[routeColorIdx] : 'FFFFFF',
+            route_text_color: decRecord[routeTextColorIdx] ? decRecord[routeTextColorIdx] : '000000',
+            day_time: null
+        }
+
+        if (process.env.BE_PROCESSING_ROUTES_DAY !== undefined && process.env.BE_PROCESSING_ROUTES_DAY !== '') {
+            if (decRecord[routeIdIdx].match(process.env.BE_PROCESSING_ROUTES_DAY)) {
+                newRoute.day_time = 0;
+            }
+        }
+        if (process.env.BE_PROCESSING_ROUTES_NIGHT !== undefined && process.env.BE_PROCESSING_ROUTES_NIGHT !== '') {
+            if (decRecord[routeIdIdx].match(process.env.BE_PROCESSING_ROUTES_NIGHT)) {
+                newRoute.day_time = 1;
+            }
+        }
+        if (process.env.BE_PROCESSING_ROUTES_DAY === undefined && process.env.BE_PROCESSING_ROUTES_NIGHT === undefined) {
+            newRoute.day_time = 0;
+        }
+
+        if (newRoute.day_time === null) {
+            continue;
+        }
+
+        let actualRoute = actualActiveRoutes[newRoute.route_id];
+        if (actualRoute === undefined ||
+            actualRoute.route_id !== newRoute.route_id ||
+            actualRoute.agency_id !== newRoute.agency_id ||
+            actualRoute.route_short_name !== newRoute.route_short_name ||
+            actualRoute.route_long_name !== newRoute.route_long_name ||
+            actualRoute.route_type !== newRoute.route_type ||
+            actualRoute.route_color !== newRoute.route_color ||
+            actualRoute.route_text_color !== newRoute.route_text_color ||
+            actualRoute.day_time !== newRoute.day_time) {
+                if (actualRoute !== undefined) {
+                    if (! await dbPostGIS.makeObjUnActive(actualActiveRoutes[newRoute.route_id].id, 'routes')) {
+                        return false;
+                    }
+                }
+    
+                todayRouteIds[newRoute.route_id] = await dbPostGIS.addRoute(newRoute);
+    
+                if (todayRouteIds[newRoute.route_id] === null) {
+                    return false;
+                }
+        } else {
+            todayRouteIds[newRoute.route_id] = actualRoute.id;
+        }
+    }
+
+    return true;
+}
+
+// Function for processing routes file
+async function getTodayTrips(inputRoutesFile) {
     if (inputRoutesFile?.data === undefined) {
         return false;
     }
@@ -294,10 +470,8 @@ async function getTodayLines(inputRoutesFile) {
         return false;
     }
 
-    let actualActiveLines = await dbPostGIS.getActiveLines();
-
     // Process input zip data
-    // https://gtfs.org/schedule/reference/#routestxt
+    // https://gtfs.org/schedule/reference/#stop_timestxt
     for (const record of inputRoutesData) {
         let decRecord = parseOneLineFromInputFile(record);
 
@@ -305,7 +479,7 @@ async function getTodayLines(inputRoutesFile) {
             continue;
         }
 
-        let newLine = {
+        let newRoute = {
             route_id: decRecord[routeIdIdx] ? decRecord[routeIdIdx] : '',
             agency_id: decRecord[agencyIdIdx] ? decRecord[agencyIdIdx] : '',
             route_short_name: decRecord[routeShortNameIdx] ? decRecord[routeShortNameIdx] : '',
@@ -316,48 +490,9 @@ async function getTodayLines(inputRoutesFile) {
             day_time: null
         }
 
-        if (process.env.BE_PROCESSING_LINES_DAY !== undefined && process.env.BE_PROCESSING_LINES_DAY !== '') {
-            if (decRecord[routeIdIdx].match(process.env.BE_PROCESSING_LINES_DAY)) {
-                newLine.day_time = 0;
-            }
-        }
-        if (process.env.BE_PROCESSING_LINES_NIGHT !== undefined && process.env.BE_PROCESSING_LINES_NIGHT !== '') {
-            if (decRecord[routeIdIdx].match(process.env.BE_PROCESSING_LINES_NIGHT)) {
-                newLine.day_time = 1;
-            }
-        }
-        if (process.env.BE_PROCESSING_LINES_DAY === undefined && process.env.BE_PROCESSING_LINES_NIGHT === undefined) {
-            newLine.day_time = 0;
-        }
+        console.log(decRecord)
 
-        if (newLine.day_time === null) {
-            continue;
-        }
-
-        let actualLine = actualActiveLines[newLine.route_id];
-        if (actualLine === undefined ||
-            actualLine.route_id !== newLine.route_id ||
-            actualLine.agency_id !== newLine.agency_id ||
-            actualLine.route_short_name !== newLine.route_short_name ||
-            actualLine.route_long_name !== newLine.route_long_name ||
-            actualLine.route_type !== newLine.route_type ||
-            actualLine.route_color !== newLine.route_color ||
-            actualLine.route_text_color !== newLine.route_text_color ||
-            actualLine.day_time !== newLine.day_time) {
-                if (actualLine !== undefined) {
-                    if (! await dbPostGIS.makeObjUnActive(actualActiveLines[newLine.route_id].id, 'lines')) {
-                        return false;
-                    }
-                }
-    
-                todayLineIds[newLine.route_id] = await dbPostGIS.addLine(newLine);
-    
-                if (todayLineIds[newLine.route_id] === null) {
-                    return false;
-                }
-        } else {
-            todayLineIds[newLine.route_id] = actualLine.id;
-        }
+        // TO DO
     }
 
     return true;

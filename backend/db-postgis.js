@@ -209,9 +209,11 @@ async function getActiveAgencies() {
 // Add new stop to DB, returns new id
 async function addStop(stop) {
     try {
-        let id = await db_postgis.query(`INSERT INTO stops (stop_id, stop_name, latLng, zone_id, parent_station, parent_station_id, wheelchair_boarding, is_active)
-            VALUES ('${stop.stop_id}', '${stop.stop_name}', '{"type": "Point", "coordinates": ${JSON.stringify(stop.latLng)}}', '${stop.zone_id}', '${stop.parent_station}',
-            ${stop.parent_station_id}, ${stop.wheelchair_boarding}, true) RETURNING id`);
+        let id = await db_postgis.query(`INSERT INTO stops (stop_id, stop_code, stop_name, tts_stop_name, stop_desc, latLng, zone_id, stop_url, location_type,
+            parent_station, parent_station_id, stop_timezone, wheelchair_boarding, level_id, level_id_id, platform_code, is_active)
+            VALUES ('${stop.stop_id}', '${stop.stop_code}', '${stop.stop_name}', '${stop.tts_stop_name}', '${stop.stop_desc}',
+            '{"type": "Point", "coordinates": ${JSON.stringify(stop.latLng)}}', '${stop.zone_id}', '${stop.stop_url}', ${stop.location_type}, '${stop.parent_station}',
+            ${stop.parent_station_id}, '${stop.stop_timezone}', ${stop.wheelchair_boarding}, '${stop.level_id}', ${stop.level_id_id}, '${stop.platform_code}', true) RETURNING id`);
         return id.rows[0].id;
     } catch(error) {
         log('error', error);
@@ -223,8 +225,9 @@ async function addStop(stop) {
 async function getActiveStops() {
     let result;
     try {
-        result = await db_postgis.query(`SELECT id, stop_id, stop_name, zone_id, parent_station,
-            wheelchair_boarding, ST_AsGeoJSON(latLng) FROM stops WHERE is_active=true`);
+        result = await db_postgis.query(`SELECT id, stop_id, stop_code, stop_name, tts_stop_name, stop_desc,
+            latLng, zone_id, stop_url, location_type, parent_station, parent_station_id, stop_timezone,
+            wheelchair_boarding, level_id, level_id_id, platform_code, ST_AsGeoJSON(latLng) FROM stops WHERE is_active=true`);
     } catch(error) {
         log('error', error);
         return [];
@@ -235,19 +238,22 @@ async function getActiveStops() {
     for (const row of result.rows) {
         row['latLng'] = JSON.parse(row['st_asgeojson']).coordinates;
         delete row['st_asgeojson'];
+        delete row['latlng'];
         output[row['stop_id']] = row;
     }
 
     return output;
 }
 
-// Add new line to DB, returns new id
-async function addRoute(line) {
+// Add new route to DB, returns new id
+async function addRoute(route) {
     try {
-        let id = await db_postgis.query(`INSERT INTO routes (route_id, agency_id, route_short_name, route_long_name,
-            route_type, route_color, route_text_color, day_time, is_active) VALUES ('${line.route_id}', '${line.agency_id}',
-            '${line.route_short_name}', '${line.route_long_name}', ${line.route_type}, '${line.route_color}', '${line.route_text_color}',
-            ${line.day_time}, true) RETURNING id`);
+        let id = await db_postgis.query(`INSERT INTO routes (route_id, agency_id, agency_id_id, route_short_name, route_long_name,
+            route_desc, route_type, route_url, route_color, route_text_color, route_sort_order, continuous_pickup,
+            continuous_drop_off, network_id, is_active) VALUES ('${route.route_id}', '${route.agency_id}', ${route.agency_id_id},
+            '${route.route_short_name}', '${route.route_long_name}', '${route.route_desc}', ${route.route_type},
+            '${route.route_url}', '${route.route_color}', '${route.route_text_color}', ${route.route_sort_order},
+             ${route.continuous_pickup}, ${route.continuous_drop_off}, '${route.network_id}',  true) RETURNING id`);
         return id.rows[0].id;
     } catch(error) {
         log('error', error);
@@ -259,8 +265,9 @@ async function addRoute(line) {
 async function getActiveRoutes() {
     let result;
     try {
-        result = await db_postgis.query(`SELECT id, route_id, agency_id, route_short_name, route_long_name,
-            route_type, route_color, route_text_color, day_time FROM routes WHERE is_active=true`);
+        result = await db_postgis.query(`SELECT id, route_id, agency_id, agency_id_id, route_short_name, route_long_name,
+            route_desc, route_type, route_url, route_color, route_text_color, route_sort_order, continuous_pickup,
+            continuous_drop_off, network_id FROM routes WHERE is_active=true`);
     } catch(error) {
         log('error', error);
         return [];
@@ -270,6 +277,42 @@ async function getActiveRoutes() {
 
     for (const row of result.rows) {
         output[row['route_id']] = row;
+    }
+
+    return output;
+}
+
+// Add new trip to DB, returns new id
+async function addTrip(trip) {
+    try {
+        let id = await db_postgis.query(`INSERT INTO trips (route_id, route_id_id, trip_id, trip_headsign,
+            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id, stops_info, stops, api,
+            is_active) VALUES ('${trip.route_id}',  ${trip.route_id_id}, '${trip.trip_id}', '${trip.trip_headsign}',
+            '${trip.trip_short_name}', ${trip.direction_id}, '${trip.block_id}', ${trip.wheelchair_accessible},
+            ${trip.bikes_allowed}, ${trip.shape_id}, array[${trip.stops_info}]::json[], '{${trip.stops}}', '${trip.api}', true) RETURNING id`);
+        return id.rows[0].id;
+    } catch(error) {
+        log('error', error);
+        return null;
+    }
+}
+
+// Get all trips used in actual transit system state
+async function getActiveTrips() {
+    let result;
+    try {
+        result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
+            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
+            stops_info, stops, api FROM trips WHERE is_active=true`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    let output = {};
+
+    for (const row of result.rows) {
+        output[row['trip_id']] = row;
     }
 
     return output;
@@ -287,4 +330,4 @@ async function makeObjUnActive(id, type) {
 }
 
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop,
-    getActiveStops, addRoute, getActiveRoutes, makeObjUnActive }
+    getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive }

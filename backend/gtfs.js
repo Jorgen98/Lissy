@@ -127,11 +127,23 @@ async function unzipAndParseData(/*response*/) {
                                 return;
                             }
                     }
-
+                    
                     // Process routes data
                     log('info', 'Processing GTFS routes data');
                     if (!await getTodayRoutes(inputFiles.find((file) => { return file.path === 'routes.txt'}))) {
                         log('error', 'GTFS routes data are corrupted');
+                        fs.rmSync(tmpFolderName, { recursive: true });
+                        resolve(false);
+                        return;
+                    }
+
+                    // Process stop_times & trips data
+                    // Process also api data, specific for Brno transit system
+                    log('info', 'Processing GTFS trips & stop_times data');
+                    if (!await getTodayTrips(inputFiles.find((file) => { return file.path === 'stop_times.txt'}),
+                        inputFiles.find((file) => { return file.path === 'api.txt'}),
+                        inputFiles.find((file) => { return file.path === 'trips.txt'}))) {
+                        log('error', 'GTFS trips & stop_times data are corrupted');
                         fs.rmSync(tmpFolderName, { recursive: true });
                         resolve(false);
                         return;
@@ -159,10 +171,10 @@ async function getTodayAgencies(inputAgencyFile) {
     }
 
     let inputAgencyData = inputAgencyFile.data.toString().split('\n');
-    const header = inputAgencyData[0].split(',');
+    const header = inputAgencyData[0].slice(1, inputAgencyData[0].length - 1).split(',');
     inputAgencyData.shift();
 
-    const agencyIdIdx = header.findIndex((item) => {return item.slice(1) === 'agency_id'});
+    const agencyIdIdx = header.findIndex((item) => {return item === 'agency_id'});
     const agencyNameIdx = header.findIndex((item) => {return item === 'agency_name'});
     const agencyUrlIdx = header.findIndex((item) => {return item === 'agency_url'});
     const agencyTimeZoneIdx = header.findIndex((item) => {return item === 'agency_timezone'});
@@ -227,20 +239,26 @@ async function getTodayStops(inputStopFile) {
     }
 
     let inputStopData = inputStopFile.data.toString().split('\n');
-    const header = inputStopData[0].split(',');
+    const header = inputStopData[0].slice(1, inputStopData[0].length - 1).split(',');
     inputStopData.shift();
 
-    // TO DO: Fill props
-
-    const stopIdIdx = 0;
+    const stopIdIdx = header.findIndex((item) => {return item === 'stop_id'});
+    const stopCodeIdx = header.findIndex((item) => {return item === 'stop_code'});
     const stopNameIdx = header.findIndex((item) => {return item === 'stop_name'});
+    const ttsStopNameIdx = header.findIndex((item) => {return item === 'tts_stop_name'});
+    const stopDescIdx = header.findIndex((item) => {return item === 'stop_desc'});
     const latIdx = header.findIndex((item) => {return item === 'stop_lat'});
     const lonIdx = header.findIndex((item) => {return item === 'stop_lon'});
     const zoneIdx = header.findIndex((item) => {return item === 'zone_id'});
+    const stopUrlIdx = header.findIndex((item) => {return item === 'stop_url'});
+    const locationTypeIdx = header.findIndex((item) => {return item === 'location_type'});
     const parentStationIdx = header.findIndex((item) => {return item === 'parent_station'});
+    const stopTimeZoneIdx = header.findIndex((item) => {return item === 'stop_timezone'});
     const wheelchairBoardingIdx = header.findIndex((item) => {return item === 'wheelchair_boarding'});
+    const levelIdIdx = header.findIndex((item) => {return item === 'level_id'});
+    const platformCodeIdx = header.findIndex((item) => {return item === 'platform_code'});
 
-    if (stopNameIdx === -1 || latIdx === -1 || lonIdx === -1) {
+    if (stopIdIdx === -1) {
         return false;
     }
 
@@ -263,13 +281,23 @@ async function getTodayStops(inputStopFile) {
         } catch (error) {}
 
         let newStop = {
+            id: null,
             stop_id: decRecord[stopIdIdx] ? decRecord[stopIdIdx] : '',
+            stop_code: decRecord[stopCodeIdx] ? decRecord[stopCodeIdx] : '',
             stop_name: decRecord[stopNameIdx] ? decRecord[stopNameIdx] : '',
-            latLng: newLatLng,
+            tts_stop_name: decRecord[ttsStopNameIdx] ? decRecord[ttsStopNameIdx] : '',
+            stop_desc: decRecord[stopDescIdx] ? decRecord[stopDescIdx] : '',
             zone_id: decRecord[zoneIdx] ? decRecord[zoneIdx] : '',
+            stop_url: decRecord[stopUrlIdx] ? decRecord[stopUrlIdx] : '',
+            location_type: parseInt(decRecord[locationTypeIdx]) ? parseInt(decRecord[locationTypeIdx]) : 0,
             parent_station: decRecord[parentStationIdx] ? decRecord[parentStationIdx] : '',
             parent_station_id: null,
+            stop_timezone: decRecord[stopTimeZoneIdx] ? decRecord[stopTimeZoneIdx] : '',
             wheelchair_boarding: parseInt(decRecord[wheelchairBoardingIdx]) ? parseInt(decRecord[wheelchairBoardingIdx]) : 0,
+            level_id: decRecord[levelIdIdx] ? decRecord[levelIdIdx] : '',
+            level_id_id: null,
+            platform_code: decRecord[platformCodeIdx] ? decRecord[platformCodeIdx] : '',
+            latLng: newLatLng,
             child_stops: []
         }
 
@@ -314,18 +342,14 @@ async function getTodayStops(inputStopFile) {
 async function inspectProcessedStop(stop, replace = false) {
     let actualStop = todayStopIds[stop.stop_id];
     let replaceChild = false;
+    stop.id = actualStop?.id;
 
-    // TO DO: id comparison
+    stop.parent_station_id = actualStop?.parent_station_id ? actualStop.parent_station_id : null;
+    let actualStopToCmp = actualStop ? JSON.parse(JSON.stringify(actualStop)) : undefined;
+    let stopToCmp = JSON.parse(JSON.stringify(stop));
+    delete stopToCmp['child_stops'];
 
-    if (actualStop === undefined ||
-        actualStop.stop_id !== stop.stop_id ||
-        actualStop.stop_name !== stop.stop_name ||
-        actualStop.latLng[0] !== stop.latLng[0] ||
-        actualStop.latLng[1] !== stop.latLng[1] ||
-        actualStop.zone_id !== stop.zone_id ||
-        actualStop.parent_station !== stop.parent_station ||
-        actualStop.wheelchair_boarding !== stop.wheelchair_boarding ||
-        replace) {
+    if (actualStop === undefined || JSON.stringify(actualStopToCmp) !== JSON.stringify(stopToCmp) || replace) {
             if (stop.parent_station !== '') {
                 stop.parent_station_id = todayStopIds[stop.parent_station];
             }
@@ -361,21 +385,25 @@ async function getTodayRoutes(inputRoutesFile) {
         return false;
     }
 
-    // TO DO: props, comparison, agency_id
-
     let inputRoutesData = inputRoutesFile.data.toString().split('\n');
-    const header = inputRoutesData[0].split(',');
+    const header = inputRoutesData[0].slice(1, inputRoutesData[0].length - 1).split(',');
     inputRoutesData.shift();
 
-    const routeIdIdx = 0;
+    const routeIdIdx = header.findIndex((item) => {return item === 'route_id'});
     const agencyIdIdx = header.findIndex((item) => {return item === 'agency_id'});
     const routeShortNameIdx = header.findIndex((item) => {return item === 'route_short_name'});
     const routeLongNameIdx = header.findIndex((item) => {return item === 'route_long_name'});
+    const routeDescIdx = header.findIndex((item) => {return item === 'route_desc'});
     const routeTypeIdx = header.findIndex((item) => {return item === 'route_type'});
+    const routeUrlIdx = header.findIndex((item) => {return item === 'route_url'});
     const routeColorIdx = header.findIndex((item) => {return item === 'route_color'});
     const routeTextColorIdx = header.findIndex((item) => {return item === 'route_text_color'});
+    const routeSortOrderIdx = header.findIndex((item) => {return item === 'route_sort_order'});
+    const continuousPickupIdx = header.findIndex((item) => {return item === 'continuous_pickup'});
+    const continuousDropOffIdx = header.findIndex((item) => {return item === 'continuous_drop_off'});
+    const networkIdIdx = header.findIndex((item) => {return item === 'network_id'});
 
-    if ((routeLongNameIdx === -1 && routeShortNameIdx === -1) || routeTypeIdx === -1) {
+    if (routeIdIdx === -1 || routeTypeIdx === -1) {
         return false;
     }
 
@@ -391,44 +419,35 @@ async function getTodayRoutes(inputRoutesFile) {
         }
 
         let newRoute = {
+            id: null,
             route_id: decRecord[routeIdIdx] ? decRecord[routeIdIdx] : '',
             agency_id: decRecord[agencyIdIdx] ? decRecord[agencyIdIdx] : '',
+            agency_id_id: null,
             route_short_name: decRecord[routeShortNameIdx] ? decRecord[routeShortNameIdx] : '',
             route_long_name: decRecord[routeLongNameIdx] ? decRecord[routeLongNameIdx] : '',
+            route_desc: decRecord[routeDescIdx] ? decRecord[routeDescIdx] : '',
             route_type: decRecord[routeTypeIdx] ? parseInt(decRecord[routeTypeIdx]) : -1,
+            route_url: decRecord[routeUrlIdx] ? decRecord[routeUrlIdx] : '',
             route_color: decRecord[routeColorIdx] ? decRecord[routeColorIdx] : 'FFFFFF',
             route_text_color: decRecord[routeTextColorIdx] ? decRecord[routeTextColorIdx] : '000000',
-            day_time: null
+            route_sort_order: decRecord[routeSortOrderIdx] ? parseInt(decRecord[routeSortOrderIdx]) : -1,
+            continuous_pickup: decRecord[continuousPickupIdx] ? parseInt(decRecord[continuousPickupIdx]) : 1,
+            continuous_drop_off: decRecord[continuousDropOffIdx] ? parseInt(decRecord[continuousDropOffIdx]) : 1,
+            network_id: decRecord[networkIdIdx] ? decRecord[networkIdIdx] : ''
         }
 
-        if (process.env.BE_PROCESSING_ROUTES_DAY !== undefined && process.env.BE_PROCESSING_ROUTES_DAY !== '') {
-            if (decRecord[routeIdIdx].match(process.env.BE_PROCESSING_ROUTES_DAY)) {
-                newRoute.day_time = 0;
+        if (process.env.BE_PROCESSING_ROUTES === undefined || process.env.BE_PROCESSING_ROUTES !== '') {
+            if (!decRecord[routeIdIdx].match(process.env.BE_PROCESSING_ROUTES)) {
+                continue;
             }
-        }
-        if (process.env.BE_PROCESSING_ROUTES_NIGHT !== undefined && process.env.BE_PROCESSING_ROUTES_NIGHT !== '') {
-            if (decRecord[routeIdIdx].match(process.env.BE_PROCESSING_ROUTES_NIGHT)) {
-                newRoute.day_time = 1;
-            }
-        }
-        if (process.env.BE_PROCESSING_ROUTES_DAY === undefined && process.env.BE_PROCESSING_ROUTES_NIGHT === undefined) {
-            newRoute.day_time = 0;
-        }
-
-        if (newRoute.day_time === null) {
-            continue;
+        } else {
+            continue
         }
 
         let actualRoute = actualActiveRoutes[newRoute.route_id];
-        if (actualRoute === undefined ||
-            actualRoute.route_id !== newRoute.route_id ||
-            actualRoute.agency_id !== newRoute.agency_id ||
-            actualRoute.route_short_name !== newRoute.route_short_name ||
-            actualRoute.route_long_name !== newRoute.route_long_name ||
-            actualRoute.route_type !== newRoute.route_type ||
-            actualRoute.route_color !== newRoute.route_color ||
-            actualRoute.route_text_color !== newRoute.route_text_color ||
-            actualRoute.day_time !== newRoute.day_time) {
+        newRoute.id = actualRoute?.id;
+        newRoute.agency_id_id = todayAgencyIds[newRoute.agency_id] ? todayAgencyIds[newRoute.agency_id] : null;
+        if (actualRoute === undefined || JSON.stringify(actualRoute) !== JSON.stringify(newRoute)) {
                 if (actualRoute !== undefined) {
                     if (! await dbPostGIS.makeObjUnActive(actualActiveRoutes[newRoute.route_id].id, 'routes')) {
                         return false;
@@ -449,50 +468,221 @@ async function getTodayRoutes(inputRoutesFile) {
 }
 
 // Function for processing routes file
-async function getTodayTrips(inputRoutesFile) {
-    if (inputRoutesFile?.data === undefined) {
+async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
+    if (inputStopTimesFile?.data === undefined) {
         return false;
     }
 
-    let inputRoutesData = inputRoutesFile.data.toString().split('\n');
-    const header = inputRoutesData[0].split(',');
-    inputRoutesData.shift();
+    // Prepare stop times data
+    let inputStopTimesData = inputStopTimesFile.data.toString().split('\n');
+    let header = inputStopTimesData[0].slice(1, inputStopTimesData[0].length - 1).split(',');
+    inputStopTimesData.shift();
 
-    const routeIdIdx = 0;
-    const agencyIdIdx = header.findIndex((item) => {return item === 'agency_id'});
-    const routeShortNameIdx = header.findIndex((item) => {return item === 'route_short_name'});
-    const routeLongNameIdx = header.findIndex((item) => {return item === 'route_long_name'});
-    const routeTypeIdx = header.findIndex((item) => {return item === 'route_type'});
-    const routeColorIdx = header.findIndex((item) => {return item === 'route_color'});
-    const routeTextColorIdx = header.findIndex((item) => {return item === 'route_text_color'});
+    const tripIdIdx = header.findIndex((item) => {return item === 'trip_id'});
+    const arrivalTimeIdx = header.findIndex((item) => {return item === 'arrival_time'});
+    const departureTimeIdx = header.findIndex((item) => {return item === 'departure_time'});
+    const stopIdx = header.findIndex((item) => {return item === 'stop_id'});
+    const locationGroupIdx = header.findIndex((item) => {return item === 'location_group_id'});
+    const locationIdx = header.findIndex((item) => {return item === 'location_id'});
+    const stopSequenceIdx = header.findIndex((item) => {return item === 'stop_sequence'});
+    const stopHeadsignIdx = header.findIndex((item) => {return item === 'stop_headsign'});
+    const startPickupDropOffWindowIdx = header.findIndex((item) => {return item === 'start_pickup_drop_off_window'});
+    const endPickupDropOffWindowIdx = header.findIndex((item) => {return item === 'end_pickup_drop_off_window'});
+    const pickupTypeIdx = header.findIndex((item) => {return item === 'pickup_type'});
+    const dropOffTypeIdx = header.findIndex((item) => {return item === 'drop_off_type'});
+    const continuousPickupIdx = header.findIndex((item) => {return item === 'continuous_pickup'});
+    const continuousDropOffIdx = header.findIndex((item) => {return item === 'continuous_drop_off'});
+    const shapeDistTraveledIdx = header.findIndex((item) => {return item === 'shape_dist_traveled'});
+    const timepointIdx = header.findIndex((item) => {return item === 'timepoint'});
+    const pickupBookingRuleIdIdx = header.findIndex((item) => {return item === 'pickup_booking_rule_id'});
+    const dropOffBookingRuleIdIdx = header.findIndex((item) => {return item === 'drop_off_booking_rule_id'});
 
-    if ((routeLongNameIdx === -1 && routeShortNameIdx === -1) || routeTypeIdx === -1) {
+    if (tripIdIdx === -1 || stopSequenceIdx === -1) {
         return false;
     }
 
-    // Process input zip data
+    actualStopTimes = {};
+
+    // Process input stop_times zip data
     // https://gtfs.org/schedule/reference/#stop_timestxt
-    for (const record of inputRoutesData) {
+    for (const record of inputStopTimesData) {
         let decRecord = parseOneLineFromInputFile(record);
 
         if (decRecord === undefined) {
             continue;
         }
 
-        let newRoute = {
-            route_id: decRecord[routeIdIdx] ? decRecord[routeIdIdx] : '',
-            agency_id: decRecord[agencyIdIdx] ? decRecord[agencyIdIdx] : '',
-            route_short_name: decRecord[routeShortNameIdx] ? decRecord[routeShortNameIdx] : '',
-            route_long_name: decRecord[routeLongNameIdx] ? decRecord[routeLongNameIdx] : '',
-            route_type: decRecord[routeTypeIdx] ? parseInt(decRecord[routeTypeIdx]) : -1,
-            route_color: decRecord[routeColorIdx] ? decRecord[routeColorIdx] : 'FFFFFF',
-            route_text_color: decRecord[routeTextColorIdx] ? decRecord[routeTextColorIdx] : '000000',
-            day_time: null
+        if (actualStopTimes[decRecord[tripIdIdx]] === undefined) {
+            actualStopTimes[decRecord[tripIdIdx]] = {
+                stops_info: [
+                    {
+                        aT: decRecord[arrivalTimeIdx] ? decRecord[arrivalTimeIdx] : '00:00:00',
+                        dT: decRecord[departureTimeIdx] ? decRecord[departureTimeIdx] : '00:00:00',
+                        stop_id: decRecord[stopIdx] ? decRecord[stopIdx] : '',
+                        stop_sequence: decRecord[stopSequenceIdx] ? parseInt(decRecord[stopSequenceIdx]) : -1,
+                        pickup_type: decRecord[pickupTypeIdx] ? parseInt(decRecord[pickupTypeIdx]) : 0,
+                        drop_off_type: decRecord[dropOffTypeIdx] ? parseInt(decRecord[dropOffTypeIdx]) : 0
+                    }
+                ],
+                stops: []
+            }
+        } else {
+            actualStopTimes[decRecord[tripIdIdx]].stops_info.push(
+                {
+                    aT: decRecord[arrivalTimeIdx] ? decRecord[arrivalTimeIdx] : '00:00:00',
+                    dT: decRecord[departureTimeIdx] ? decRecord[departureTimeIdx] : '00:00:00',
+                    stop_id: decRecord[stopIdx] ? decRecord[stopIdx] : '',
+                    stop_sequence: decRecord[stopSequenceIdx] ? parseInt(decRecord[stopSequenceIdx]) : -1,
+                    pickup_type: decRecord[pickupTypeIdx] ? parseInt(decRecord[pickupTypeIdx]) : 0,
+                    drop_off_type: decRecord[dropOffTypeIdx] ? parseInt(decRecord[dropOffTypeIdx]) : 0
+                }
+            )
+        }
+    }
+
+    for (let record in actualStopTimes) {
+        actualStopTimes[record].stops_info.sort((recA, recB) => {return recA.stop_sequence > recB.stop_sequence ? 1 : -1});
+
+        let startTime;
+        let idx = 0;
+        while (actualStopTimes[record].stops_info.length > idx) {
+            let stop = actualStopTimes[record].stops_info[idx];
+            if (idx === 0) {
+                startTime = parseTimeFromGTFS(actualStopTimes[record].stops_info[0].aT);
+                stop['aT'] = startTime.toLocaleTimeString();
+            } else {
+                stop['aT'] = Math.round((parseTimeFromGTFS(stop['aT']).valueOf() - startTime.valueOf()) / 1000);
+            }
+            stop['dT'] = Math.round((parseTimeFromGTFS(stop['dT']).valueOf() - startTime.valueOf()) / 1000);
+
+            if (todayStopIds[stop['stop_id']] === undefined) {
+                actualStopTimes[record].stops_info.splice(idx, 1);
+            } else {
+                actualStopTimes[record].stops.push(todayStopIds[stop['stop_id']]);
+                idx++;
+            }
+
+            delete stop['stop_id'];
+            delete stop['stop_sequence'];
+        }
+    }
+
+    actualApiEndpoints = {};
+
+    // Prepate API data, Brno transit system feature
+    if (inputApiFile) {
+        let inputApiData = inputApiFile.data.toString().split('\n');
+        inputApiData.shift();
+
+        for (const record of inputApiData) {
+            let decRecord = parseOneLineFromInputFile(record);
+
+            try {
+                decRecord = decRecord[0].split(' ');
+                decRecord[3] = decRecord[3].split('/')[1];
+                actualApiEndpoints[decRecord[5]] = decRecord[3];
+            } catch(error) {
+                continue;
+            }
+        }
+    }
+
+    // Parse input trip data
+    // https://gtfs.org/schedule/reference/#tripstxt
+    if (inputTripsFile?.data === undefined) {
+        return false;
+    }
+
+    let inputTripsData = inputTripsFile.data.toString().split('\n');
+    header = inputTripsData[0].slice(1, inputTripsData[0].length - 1).split(',');
+    inputTripsData.shift();
+
+    const routeIdIdx = header.findIndex((item) => {return item === 'route_id'});
+    const tripIdIdxTrips = header.findIndex((item) => {return item === 'trip_id'});
+    const serviceIdIdx = header.findIndex((item) => {return item === 'service_id'});
+    const tripHeadsignIdx = header.findIndex((item) => {return item === 'trip_headsign'});
+    const tripShortNameIdx = header.findIndex((item) => {return item === 'trip_short_name'});
+    const directionIdIdx = header.findIndex((item) => {return item === 'direction_id'});
+    const blockIdIdx = header.findIndex((item) => {return item === 'block_id'});
+    const wheelchairAccessibleIdx = header.findIndex((item) => {return item === 'wheelchair_accessible'});
+    const bikesAllowedIdx = header.findIndex((item) => {return item === 'bikes_allowed'});
+
+    if (routeIdIdx === -1 || serviceIdIdx === -1 || tripIdIdxTrips === -1) {
+        return false;
+    }
+
+    let actualTrips = await dbPostGIS.getActiveTrips();
+
+    for (const record of inputTripsData) {
+        let decRecord = parseOneLineFromInputFile(record);
+
+        if (decRecord === undefined || decRecord[routeIdIdx] === undefined || decRecord[tripIdIdxTrips] === undefined) {
+            continue;
         }
 
-        console.log(decRecord)
+        if (todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) === -1 || actualStopTimes[decRecord[tripIdIdxTrips]] === undefined ||
+            todayRouteIds[decRecord[routeIdIdx]] === undefined) {
+            continue;
+        }
+
+        let internTripId = `${decRecord[routeIdIdx]}?${actualStopTimes[decRecord[tripIdIdxTrips]].stops_info[0].aT}?${JSON.stringify(actualStopTimes[decRecord[tripIdIdxTrips]]?.stops)}`;
+
+        let newTrip = {
+            route_id: decRecord[routeIdIdx] ? decRecord[routeIdIdx] : '',
+            route_id_id: null,
+            trip_id: decRecord[tripIdIdxTrips] ? decRecord[tripIdIdxTrips] : '',
+            trip_headsign: decRecord[tripHeadsignIdx] ? decRecord[tripHeadsignIdx] : '',
+            trip_short_name: decRecord[tripShortNameIdx] ? decRecord[tripShortNameIdx] : '',
+            direction_id: decRecord[directionIdIdx] ? parseInt(decRecord[directionIdIdx]) : 0,
+            block_id: decRecord[blockIdIdx] ? decRecord[blockIdIdx] : '',
+            wheelchair_accessible: decRecord[wheelchairAccessibleIdx] ? parseInt(decRecord[wheelchairAccessibleIdx]) : 0,
+            bikes_allowed: decRecord[bikesAllowedIdx] ? parseInt(decRecord[bikesAllowedIdx]) : 0,
+            shape_id: null,
+            stops_info: actualStopTimes[decRecord[tripIdIdxTrips]].stops_info,
+            stops: actualStopTimes[decRecord[tripIdIdxTrips]].stops,
+            api: ''
+        }
+
+        let actualTrip = actualTrips[internTripId];
+        newTrip.route_id_id = actualTrip?.route_id_id ? actualTrip.route_id_id : null;
+        newTrip.shape_id = actualTrip?.shape_id ? actualTrip.shape_id : null;
+        newTrip.api = actualApiEndpoints[newTrip.trip_id] ? actualApiEndpoints[newTrip.trip_id] : null;
+        newTrip.trip_id = internTripId;
+
+        let actualTripToCmp = actualTrip ? JSON.parse(JSON.stringify(actualTrip)) : undefined;
+        let tripToCmp = JSON.parse(JSON.stringify(newTrip));
+
+        tripToCmp['stops_info'] = JSON.stringify(tripToCmp['stops_info']);
+        tripToCmp['stops'] = JSON.stringify(tripToCmp['stops']);
+        if (actualTripToCmp !== undefined) {
+            actualTripToCmp['stops_info'] = JSON.stringify(actualTripToCmp['stops_info'] ? actualTripToCmp['stops_info'] : undefined);
+            actualTripToCmp['stops'] = JSON.stringify(actualTripToCmp['stops'] ? actualTripToCmp['stops'] : undefined);
+            delete actualTripToCmp['id'];
+        }
+
+
+        if (actualTrip === undefined || JSON.stringify(actualTripToCmp) !== JSON.stringify(tripToCmp)) {
+            if (actualTrip !== undefined) {
+                if (! await dbPostGIS.makeObjUnActive(actualTrip.id, 'trips')) {
+                    return false;
+                }
+            }
+
+            newTrip.route_id_id = todayRouteIds[newTrip.route_id];
+
+            newTrip['stops_info'] = newTrip['stops_info'].map(value => `'${JSON.stringify(value)}'`);
+            let newTripId = await dbPostGIS.addTrip(newTrip);
+
+            if (newTripId === null) {
+                return false;
+            }
+
+            // TO DO
+            // Zarad trip do query na trasovanie
+        }
 
         // TO DO
+        // Vytvor zaznam v StatsDB, ktory neskor vyplnia spracovane data
     }
 
     return true;
@@ -585,6 +775,22 @@ function parseDateFromGTFS(input) {
         return new Date(input);
     } catch(error) {
         return new Date('1970-01-01');
+    }
+}
+
+// Try to parse time from GTFS input data
+function parseTimeFromGTFS(input) {
+    try {
+        if (parseInt(input.slice(0,2)) < 10) {
+            return new Date(`1970-01-01T0${input}`);
+        } else if (parseInt(input.slice(0,2)) > 24) {
+            input = `${(parseInt(input.slice(0,2)) - 24).toString()}:${input.slice(2,4)}:${input.slice(4,6)}`;
+            return new Date(`1970-01-02T${input}`);
+        } else {
+            return new Date(`1970-01-01T${input}`);
+        }
+    } catch(error) {
+        return new Date('1970-01-01T00:00:00');
     }
 }
 

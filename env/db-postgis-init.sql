@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS stops (id SERIAL PRIMARY KEY, stop_id TEXT, stop_code
 CREATE TABLE IF NOT EXISTS routes (id SERIAL PRIMARY KEY, route_id TEXT, agency_id TEXT, agency_id_id INT,
     CONSTRAINT agency_id_id FOREIGN KEY(agency_id_id) REFERENCES agency(id), route_short_name TEXT, route_long_name TEXT, route_desc TEXT, route_type INT,
     route_url TEXT, route_color TEXT, route_text_color TEXT, route_sort_order INT, continuous_pickup INT, continuous_drop_off INT, network_id TEXT, is_active BOOLEAN);
-CREATE TABLE IF NOT EXISTS shapes (id SERIAL PRIMARY KEY, geom GEOMETRY, route_type INT, is_active BOOLEAN);
+CREATE TABLE IF NOT EXISTS shapes (id SERIAL PRIMARY KEY, geom GEOMETRY, route_type TEXT, is_active BOOLEAN);
 CREATE TABLE IF NOT EXISTS trips (id SERIAL PRIMARY KEY, route_id TEXT, route_id_id INT, CONSTRAINT route_id_id FOREIGN KEY(route_id_id) REFERENCES routes(id), trip_id TEXT,
     trip_headsign TEXT, trip_short_name TEXT, direction_id INT, block_id TEXT, wheelchair_accessible INT, bikes_allowed INT,
     shape_id INT, CONSTRAINT shape_id FOREIGN KEY(shape_id) REFERENCES shapes(id), stops INT[], stops_info JSON[], api TEXT, is_active BOOLEAN);

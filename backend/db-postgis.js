@@ -102,7 +102,7 @@ async function scanDirectory(location) {
 async function reloadNet(net, inputData) {
     let acState;
     try {
-        acState = await db_postgis.query("SELECT COUNT(gid) FROM " + net);
+        acState = await db_postgis.query(`SELECT COUNT(gid) FROM ${net}`);
         acState = parseInt(acState.rows[0].count);
     } catch(error) {
         log('error', error);
@@ -161,7 +161,7 @@ async function reloadNet(net, inputData) {
 // Function for removing whole net
 async function deleteNet(net) {
     try {
-        await db_postgis.query("TRUNCATE TABLE " + net + " RESTART IDENTITY");
+        await db_postgis.query(`TRUNCATE TABLE ${net} RESTART IDENTITY`);
         return true;
     } catch(error) {
         log('error', error);
@@ -170,6 +170,48 @@ async function deleteNet(net) {
 
     // TO DO
     // Make shapes & trips inactive
+}
+
+// Function for return closes net points to provided stop position
+async function getPointsAroundStation(stopLatLng, layer, maxPointNum) {
+    let res;
+    try {
+        res = await db_postgis.query(`SELECT *, ST_AsGeoJSON(geom) FROM ${layer}
+            WHERE ST_DistanceSphere(geom, '${stopLatLng}') <= ${maxPointNum}`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    for (let row of res.rows) {
+        row['latLng'] = JSON.parse(row['st_asgeojson']).coordinates;
+        delete row['st_asgeojson'];
+        delete row['geom'];
+    }
+
+    return res.rows;
+}
+
+// Function for return only part of transit net around two points
+async function getSubNet(stopALatLng, stopBLatLng, transportMode, netRadius) {
+    let res;
+    let centerPoint = [Math.abs(stopALatLng.latLng[0] + stopALatLng.latLng[0]) / 2, Math.abs(stopALatLng.latLng[1] + stopBLatLng.latLng[1]) / 2];
+
+    try {
+        res = await db_postgis.query(`SELECT gid, conns, ST_AsGeoJSON(geom) FROM ${transportMode}
+            WHERE ST_DistanceSphere(geom, '{"type": "Point", "coordinates": ${JSON.stringify(centerPoint)}}')
+            <= ST_DistanceSpheroid('${stopALatLng.geom}', '{"type": "Point", "coordinates": ${JSON.stringify(centerPoint)}}') * ${netRadius}`);
+    } catch(error) {
+        log('error', error);
+        return {};
+    }
+
+    let output = {};
+    for (let row of res.rows) {
+        output[row.gid] = {'pos': JSON.parse(row['st_asgeojson']).coordinates, 'conns': row.conns};
+    }
+
+    return output;
 }
 
 // Add new agency to DB, returns new id
@@ -240,6 +282,37 @@ async function getActiveStops() {
         delete row['st_asgeojson'];
         delete row['latlng'];
         output[row['stop_id']] = row;
+    }
+
+    return output;
+}
+
+// Get list of stop latLngs by list of ids
+async function getStopPositions(stopIds) {
+    let result;
+    try {
+        result = await db_postgis.query(`SELECT id, latlng, ST_AsGeoJSON(latLng) FROM stops WHERE is_active=true AND id IN (${stopIds})`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    let output = [];
+    let tmpOutput = {};
+
+    for (const row of result.rows) {
+        tmpOutput[row['id']] = {
+            latLng: JSON.parse(row['st_asgeojson']).coordinates,
+            geom: row['latlng']
+        }
+    }
+
+    for (const stopId of stopIds) {
+        if (tmpOutput[stopId] === undefined) {
+            return [];
+        } else {
+            output.push(tmpOutput[stopId]);
+        }
     }
 
     return output;
@@ -318,6 +391,29 @@ async function getActiveTrips() {
     return output;
 }
 
+// Add new shape to DB, returns new id
+async function updateTripsShapeId(tripIds, shapeId) {
+    try {
+        await db_postgis.query(`UPDATE trips SET shape_id=${shapeId} WHERE is_active=true AND id IN (${tripIds})`);
+        return true;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
+// Add new shape to DB, returns new id
+async function addShape(shape, route_type) {
+    try {
+        let id = await db_postgis.query(`INSERT INTO shapes (geom, route_type, is_active)
+            VALUES ('{"type": "MultiLineString", "coordinates": ${JSON.stringify(shape)}}', '${route_type}', true) RETURNING id`);
+        return id.rows[0].id;
+    } catch(error) {
+        log('error', error);
+        return null;
+    }
+}
+
 // Send item to archive
 async function makeObjUnActive(id, type) {
     try {
@@ -329,5 +425,40 @@ async function makeObjUnActive(id, type) {
     }
 }
 
-module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop,
-    getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive }
+// Testing function for routing, will be deleted
+async function getShapes() {
+    let trips = await getActiveTrips();
+
+    let stops = await getActiveStops();
+
+    let sstops = [];
+    for (const stop in stops) {
+        sstops.push(stops[stop]);
+    }
+
+    let res = [];
+    for (let trip in trips) {
+
+        let stps = [];
+        for (const s of trips[trip].stops) {
+
+            let stp = sstops.find((stop) => {return s === stop.id});
+            stps.push({
+                code: stp.stop_id,
+                latLng: stp.latLng
+            })
+        }
+        res.push({
+            route: trips[trip].route_id,
+            shape: JSON.parse((await db_postgis.query(`SELECT ST_AsGeoJSON(geom) FROM shapes WHERE id='${trips[trip].shape_id}'`)).rows[0]['st_asgeojson']).coordinates,
+            trip: trips[trip].trip_id.split('?')[2],
+            stops: stps
+        });
+    }
+
+    return res;
+}
+
+module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
+    getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
+    getPointsAroundStation, getSubNet, getShapes }

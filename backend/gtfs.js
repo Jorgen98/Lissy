@@ -9,6 +9,7 @@ const https = require('https');
 
 const logService = require('./log.js');
 const dbPostGIS = require('./db-postgis.js');
+const routingService = require('./routing.js');
 
 const tmpFileName = './gtfs.zip';
 const tmpFolderName = './gtfsFiles/'
@@ -19,6 +20,7 @@ let useAllServices = false;
 let todayAgencyIds = {};
 let todayStopIds = {};
 let todayRouteIds = {};
+let shapesToCalc = {};
 
 // .env file include
 dotenv.config();
@@ -147,6 +149,20 @@ async function unzipAndParseData(/*response*/) {
                         fs.rmSync(tmpFolderName, { recursive: true });
                         resolve(false);
                         return;
+                    }
+
+                    log('success', 'Processing GTFS data done');
+
+                    // If there are new shapes, calculate them
+                    if (Object.keys(shapesToCalc).length > 0) {
+                        log('info', 'Routing new trip shapes');
+                        if (!await getNewShapes()) {
+                            log('error', 'Routing trip shapes has failed');
+                            fs.rmSync(tmpFolderName, { recursive: true });
+                            resolve(false);
+                            return;
+                        }
+                        log('success', 'Shapes routing done');
                     }
 
                     fs.rmSync(tmpFolderName, { recursive: true });
@@ -278,7 +294,9 @@ async function getTodayStops(inputStopFile) {
 
         try {
             newLatLng = [parseFloat(decRecord[latIdx]), parseFloat(decRecord[lonIdx])];
-        } catch (error) {}
+        } catch (error) {
+            continue;
+        }
 
         let newStop = {
             id: null,
@@ -454,13 +472,19 @@ async function getTodayRoutes(inputRoutesFile) {
                     }
                 }
     
-                todayRouteIds[newRoute.route_id] = await dbPostGIS.addRoute(newRoute);
+                todayRouteIds[newRoute.route_id] = {
+                    id: await dbPostGIS.addRoute(newRoute),
+                    route_type: newRoute.route_type
+                }
     
-                if (todayRouteIds[newRoute.route_id] === null) {
+                if (todayRouteIds[newRoute.route_id].id === null) {
                     return false;
                 }
         } else {
-            todayRouteIds[newRoute.route_id] = actualRoute.id;
+            todayRouteIds[newRoute.route_id] = {
+                id: actualRoute.id,
+                route_type: newRoute.route_type
+            }
         }
     }
 
@@ -668,7 +692,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 }
             }
 
-            newTrip.route_id_id = todayRouteIds[newTrip.route_id];
+            newTrip.route_id_id = todayRouteIds[newTrip.route_id].id;
 
             newTrip['stops_info'] = newTrip['stops_info'].map(value => `'${JSON.stringify(value)}'`);
             let newTripId = await dbPostGIS.addTrip(newTrip);
@@ -677,9 +701,50 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 return false;
             }
 
-            // TO DO
-            // Zarad trip do query na trasovanie
+            let interRouteType = '';
+
+            // Reduction of transit modes, currently only tram, rail and road modes are supported
+            switch (todayRouteIds[newTrip.route_id].route_type) {
+                case 0: interRouteType = 'tram'; break;
+                case 2: interRouteType = 'rail'; break;
+                case 3: case 11: case 800: interRouteType = 'road'; break;
+                default: interRouteType = '';
+            }
+
+            let tmpShapeId = `${interRouteType}?${JSON.stringify(newTrip.stops)}`;
+            if (shapesToCalc[tmpShapeId] === undefined) {
+                shapesToCalc[tmpShapeId] = {
+                    stops: newTrip.stops,
+                    trip_ids: [newTripId],
+                    transportMode: interRouteType
+                }
+            } else {
+                shapesToCalc[tmpShapeId].trip_ids.push(newTripId);
+            }
         }
+
+        let interRouteType = '';
+
+        // Tmp
+        // Reduction of transit modes, currently only tram, rail and road modes are supported
+        switch (todayRouteIds[newTrip.route_id].route_type) {
+            case 0: interRouteType = 'tram'; break;
+            case 2: interRouteType = 'rail'; break;
+            case 3: case 11: case 800: interRouteType = 'road'; break;
+            default: interRouteType = '';
+        }
+
+        let tmpShapeId = `${interRouteType}?${JSON.stringify(newTrip.stops)}`;
+        if (shapesToCalc[tmpShapeId] === undefined) {
+            shapesToCalc[tmpShapeId] = {
+                stops: newTrip.stops,
+                trip_ids: [actualTrip.id],
+                transportMode: interRouteType
+            }
+        } else {
+            shapesToCalc[tmpShapeId].trip_ids.push(actualTrip.id);
+        }
+        // Tmp
 
         // TO DO
         // Vytvor zaznam v StatsDB, ktory neskor vyplnia spracovane data
@@ -767,6 +832,42 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
     return true;
 }
 
+// Routing handle function
+// From proposed data model, every trip needs its shape, trip definition in physical space
+// This function call routing module for every new shape based on actual stop positions and stop order in actual trips
+async function getNewShapes() {
+    return new Promise(async (resolve) => {
+        let routingTasks = [];
+        let progress = 0;
+        let lastProgressValue = 0;
+
+        for (const task in shapesToCalc) {
+            routingTasks.push(
+                new Promise(async (resolve, reject) => {
+                    let retVal = await routingService.computeShape(shapesToCalc[task]);
+                    progress += (1 / Object.keys(shapesToCalc).length) * 100;
+                    if (Math.floor(progress) > lastProgressValue) {
+                        lastProgressValue = Math.floor(progress);
+                        log('info', `Routing shapes, progress: ${lastProgressValue}%`);
+                    }
+                    resolve(retVal);
+                })
+            )
+        }
+
+        Promise.all(routingTasks).then((resValues) => {
+            for (const val of resValues) {
+                if (!val) {
+                    resolve(false);
+                    return;
+                }
+            }
+            resolve(true);
+        });
+    });
+}
+
+// Util functions
 // Try to create JS Date format from GTFS input data
 function parseDateFromGTFS(input) {
     input = `${input.slice(0, 4)}-${input.slice(4, 6)}-${input.slice(6, 8)}`;

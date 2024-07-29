@@ -39,22 +39,28 @@ server.on('listening', async () => {
         log('success', 'Initialization procedure is done');
     }
 })
-
+const fs = require('fs');
 // Processing function
 async function processData() {
     // Load or reload transit net data
-    /*if (await dbPostGIS.reloadNetFiles()) {
+    if (await dbPostGIS.reloadNetFiles()) {
         log('success', 'Net files for routing are loaded');
     } else {
         server.close(() => {
             log('error', 'Can not find new or load actual net files from DB, shutting down');
             process.exit(0);
         });
-    }*/
+    }
 
     if (!(await gtfsService.reloadActualSystemState())) {
         return false;
     }
 
+    // Testing function for routing, will be deleted
+    fs.writeFile("test.txt", JSON.stringify(await dbPostGIS.getShapes()), function(err) {
+        if (err) {
+            console.log(err);
+        }
+    });
     return true;
 }

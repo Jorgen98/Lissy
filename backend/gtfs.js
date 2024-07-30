@@ -151,6 +151,7 @@ async function unzipAndParseData(/*response*/) {
                         return;
                     }
 
+                    fs.rmSync(tmpFolderName, { recursive: true });
                     log('success', 'Processing GTFS data done');
 
                     // If there are new shapes, calculate them
@@ -165,7 +166,6 @@ async function unzipAndParseData(/*response*/) {
                         log('success', 'Shapes routing done');
                     }
 
-                    fs.rmSync(tmpFolderName, { recursive: true });
                     resolve(true);
                 });
             //})
@@ -684,7 +684,6 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             delete actualTripToCmp['id'];
         }
 
-
         if (actualTrip === undefined || JSON.stringify(actualTripToCmp) !== JSON.stringify(tripToCmp)) {
             if (actualTrip !== undefined) {
                 if (! await dbPostGIS.makeObjUnActive(actualTrip.id, 'trips')) {
@@ -726,6 +725,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
         let interRouteType = '';
 
         // Tmp
+        /*
         // Reduction of transit modes, currently only tram, rail and road modes are supported
         switch (todayRouteIds[newTrip.route_id].route_type) {
             case 0: interRouteType = 'tram'; break;
@@ -743,7 +743,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             }
         } else {
             shapesToCalc[tmpShapeId].trip_ids.push(actualTrip.id);
-        }
+        }*/
         // Tmp
 
         // TO DO
@@ -842,28 +842,21 @@ async function getNewShapes() {
         let lastProgressValue = 0;
 
         for (const task in shapesToCalc) {
-            routingTasks.push(
-                new Promise(async (resolve, reject) => {
-                    let retVal = await routingService.computeShape(shapesToCalc[task]);
-                    progress += (1 / Object.keys(shapesToCalc).length) * 100;
-                    if (Math.floor(progress) > lastProgressValue) {
-                        lastProgressValue = Math.floor(progress);
-                        log('info', `Routing shapes, progress: ${lastProgressValue}%`);
-                    }
-                    resolve(retVal);
-                })
-            )
+            let retVal = await routingService.computeShape(shapesToCalc[task]);
+            progress += (1 / Object.keys(shapesToCalc).length) * 100;
+            if (Math.floor(progress) > lastProgressValue) {
+                lastProgressValue = Math.floor(progress);
+                log('info', `Routing shapes, progress: ${lastProgressValue}%`);
+            }
+
+            if (!retVal) {
+                resolve(false);
+                return;
+            }
         }
 
-        Promise.all(routingTasks).then((resValues) => {
-            for (const val of resValues) {
-                if (!val) {
-                    resolve(false);
-                    return;
-                }
-            }
-            resolve(true);
-        });
+        resolve(true);
+        return;
     });
 }
 

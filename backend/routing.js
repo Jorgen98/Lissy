@@ -11,7 +11,7 @@ let configs = [
         'maxWorstJumps': 50,
         'maxWorstJumpsWithTwoPoss': 70,
         'stopsFindRadius': 310,
-        'subNetRadius': 100,
+        'subNetRadius': 140,
         'maxIterations': 50,
         'canReturn': true
     },
@@ -20,7 +20,7 @@ let configs = [
         'maxWorstJumps': 30,
         'maxWorstJumpsWithTwoPoss': 20,
         'stopsFindRadius': 120,
-        'subNetRadius': 4,
+        'subNetRadius': 10,
         'maxIterations': 80,
         'canReturn': false
     },
@@ -35,12 +35,9 @@ let configs = [
     }
 ]
 let setUpConfig = undefined;
-let transportMode = undefined;
 
 // Main function
 async function computeShape(trip) {
-    transportMode = trip.transportMode;
-
     if (trip.transportMode === 'rail') {
         setUpConfig = configs[0];
     } else if (trip.transportMode === 'road') {
@@ -60,7 +57,7 @@ async function computeShape(trip) {
     // The result will be array of arrays, array of points between stops
     let newShape = [];
     for (let idx = 0; idx < stops.length - 1; idx++) {
-        let routingRes = await findConnection(stops[idx], stops[idx + 1]);
+        let routingRes = await findConnection(trip, stops[idx], stops[idx + 1]);
 
         if (routingRes.length < 2) {
             newShape.push([]);
@@ -74,14 +71,14 @@ async function computeShape(trip) {
 
 // Main routing function
 // Tries to compute route from point to point, from stop to stop
-async function findConnection(stopALatLng, stopBLatLng) {
-    let possibilities = await findStopPosInNet(stopALatLng, 'start');
+async function findConnection(trip, stopALatLng, stopBLatLng) {
+    let possibilities = await findStopPosInNet(trip, stopALatLng, 'start');
     if (possibilities.length < 1) {
         return [];
     }
 
-    let subNet = await dbPostGIS.getSubNet(stopALatLng, stopBLatLng, transportMode, setUpConfig.subNetRadius);
-    let endPositions = await findStopPosInNet(stopBLatLng, 'end');
+    let subNet = await dbPostGIS.getSubNet(stopALatLng, stopBLatLng, trip.transportMode, setUpConfig.subNetRadius);
+    let endPositions = await findStopPosInNet(trip, stopBLatLng, 'end');
 
     if (endPositions.length === 0) {
         return [];
@@ -270,8 +267,8 @@ async function findConnection(stopALatLng, stopBLatLng) {
 }
 
 // Find stop nearest net hubs
-async function findStopPosInNet(stopLatLng, stopOrderPosition) {
-    let netPoints = await dbPostGIS.getPointsAroundStation(stopLatLng.geom, transportMode, setUpConfig.stopsFindRadius);
+async function findStopPosInNet(trip, stopLatLng, stopOrderPosition) {
+    let netPoints = await dbPostGIS.getPointsAroundStation(stopLatLng.geom, trip.transportMode, setUpConfig.stopsFindRadius);
     if (netPoints.length < 1) {
         return [];
     }

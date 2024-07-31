@@ -63,6 +63,12 @@ async function reloadNetFiles() {
         return false;
     }
 
+    if (newNets['midpoints']) {
+        if (!await reloadMidpoints(newNets['midpoints'])) {
+            return false;
+        }
+    }
+
     log('info', 'Transit net inspection done');
 
     newNets = {};
@@ -84,7 +90,7 @@ async function scanDirectory(location) {
     
             try {
                 inputData = JSON.parse(rawData);
-                if (inputData.type && inputData.valid && inputData.hubs) {
+                if (inputData.type && inputData.valid && (inputData.hubs || inputData.records)) {
                     if (newNets[inputData.type] === undefined || new Date(inputData.valid) > new Date(newNets[inputData.type].valid)) {
                         newNets[inputData.type] = inputData;
                     }
@@ -172,6 +178,33 @@ async function deleteNet(net) {
     // Make shapes & trips inactive
 }
 
+// Function for midpoints, used in shape creation, reloading
+async function reloadMidpoints(inputData) {
+    try {
+        await db_postgis.query(`TRUNCATE TABLE midpoints RESTART IDENTITY`);
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+
+    for (const record of inputData.records) {
+        if (record.midpoints?.length > 0) {
+            try {
+            await db_postgis.query(`INSERT INTO midpoints (geom_stop_a, geom_stop_b, midpoints) VALUES (
+                '{"type": "Point", "coordinates": ${JSON.stringify(record.endstopageom)}}',
+                '{"type": "Point", "coordinates": ${JSON.stringify(record.endstopbgeom)}}',
+                '{"type": "MultiLineString", "coordinates": [${JSON.stringify(record.midpoints)}]}')`);
+            } catch(error) {
+                log('error', error);
+                return false;
+            }
+        }
+    }
+
+    log('success', `Midpoints data has been actualized`);
+    return true;
+}
+
 // Function for return closes net points to provided stop position
 async function getPointsAroundStation(stopLatLng, layer, maxPointNum) {
     let res;
@@ -206,12 +239,34 @@ async function getSubNet(stopALatLng, stopBLatLng, transportMode, netRadius) {
         return {};
     }
 
-    let output = {};
+    let outputNet = {};
     for (let row of res.rows) {
-        output[row.gid] = {'pos': JSON.parse(row['st_asgeojson']).coordinates, 'conns': row.conns};
+        outputNet[row.gid] = {'pos': JSON.parse(row['st_asgeojson']).coordinates, 'conns': row.conns};
     }
 
-    return output;
+    try {
+        res = await db_postgis.query(`SELECT ST_AsGeoJSON(midpoints) FROM midpoints
+            WHERE ST_DistanceSphere(geom_stop_a, '${stopALatLng.geom}') <= 0.5 AND
+            ST_DistanceSphere(geom_stop_a, '${stopALatLng.geom}') <= 0.5`);
+    } catch(error) {
+        log('error', error);
+        return {
+            subNet: {},
+            midpoints: []
+        }
+    }
+
+    if (res.rows?.length > 0) {
+        return {
+            subNet: outputNet,
+            midpoints: JSON.parse(res.rows[0]['st_asgeojson']).coordinates
+        }
+    }
+
+    return {
+        subNet: outputNet,
+        midpoints: []
+    }
 }
 
 // Add new agency to DB, returns new id

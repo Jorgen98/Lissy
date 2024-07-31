@@ -78,7 +78,7 @@ async function findConnection(trip, stopALatLng, stopBLatLng) {
         return [];
     }
 
-    let subNet = await dbPostGIS.getSubNet(stopALatLng, stopBLatLng, trip.transportMode, setUpConfig.subNetRadius);
+    let {subNet, midpoints} = await dbPostGIS.getSubNet(stopALatLng, stopBLatLng, trip.transportMode, setUpConfig.subNetRadius);
     let endPositions = await findStopPosInNet(trip, stopBLatLng, 'end');
 
     if (endPositions.length === 0) {

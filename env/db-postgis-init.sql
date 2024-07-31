@@ -2,6 +2,7 @@ CREATE EXTENSION IF NOT EXISTS postgis CASCADE;
 CREATE TABLE IF NOT EXISTS rail (gid SERIAL PRIMARY KEY, geom GEOMETRY, conns INT[]);
 CREATE TABLE IF NOT EXISTS road (gid SERIAL PRIMARY KEY, geom GEOMETRY, conns INT[]);
 CREATE TABLE IF NOT EXISTS tram (gid SERIAL PRIMARY KEY, geom GEOMETRY, conns INT[]);
+CREATE TABLE IF NOT EXISTS midpoints (gid SERIAL PRIMARY KEY, geom_stop_a GEOMETRY, geom_stop_b GEOMETRY, midpoints GEOMETRY);
 
 CREATE TABLE IF NOT EXISTS agency (id SERIAL PRIMARY KEY, agency_id TEXT, agency_name TEXT, agency_url TEXT, agency_timezone TEXT,
     agency_lang TEXT, agency_phone TEXT, agency_fare_url TEXT, agency_email TEXT, is_active BOOLEAN);

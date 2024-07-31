@@ -11,7 +11,7 @@ let configs = [
         'maxWorstJumps': 50,
         'maxWorstJumpsWithTwoPoss': 70,
         'stopsFindRadius': 310,
-        'subNetRadius': 140,
+        'subNetRadius': 1.5,
         'maxIterations': 50,
         'canReturn': true
     },
@@ -20,7 +20,7 @@ let configs = [
         'maxWorstJumps': 30,
         'maxWorstJumpsWithTwoPoss': 20,
         'stopsFindRadius': 120,
-        'subNetRadius': 10,
+        'subNetRadius': 1,
         'maxIterations': 80,
         'canReturn': false
     },
@@ -29,7 +29,7 @@ let configs = [
         'maxWorstJumps': 8,
         'maxWorstJumpsWithTwoPoss': 10,
         'stopsFindRadius': 200,
-        'subNetRadius': 100,
+        'subNetRadius': 1,
         'maxIterations': 50,
         'canReturn': false
     }
@@ -60,6 +60,7 @@ async function computeShape(trip) {
         let routingRes = await findConnection(trip, stops[idx], stops[idx + 1]);
 
         if (routingRes.length < 2) {
+            console.log(trip.route);
             newShape.push([]);
         }
         newShape.push(routingRes);

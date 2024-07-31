@@ -713,6 +713,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             let tmpShapeId = `${interRouteType}?${JSON.stringify(newTrip.stops)}`;
             if (shapesToCalc[tmpShapeId] === undefined) {
                 shapesToCalc[tmpShapeId] = {
+                    route: newTrip.route_id,
                     stops: newTrip.stops,
                     trip_ids: [newTripId],
                     transportMode: interRouteType
@@ -837,7 +838,6 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
 // This function call routing module for every new shape based on actual stop positions and stop order in actual trips
 async function getNewShapes() {
     return new Promise(async (resolve) => {
-        let routingTasks = [];
         let progress = 0;
         let lastProgressValue = 0;
 

@@ -195,12 +195,12 @@ async function getPointsAroundStation(stopLatLng, layer, maxPointNum) {
 // Function for return only part of transit net around two points
 async function getSubNet(stopALatLng, stopBLatLng, transportMode, netRadius) {
     let res;
-    let centerPoint = [Math.abs(stopALatLng.latLng[0] + stopALatLng.latLng[0]) / 2, Math.abs(stopALatLng.latLng[1] + stopBLatLng.latLng[1]) / 2];
+    let centerPoint = [Math.abs(stopALatLng.latLng[0] + stopBLatLng.latLng[0]) / 2, Math.abs(stopALatLng.latLng[1] + stopBLatLng.latLng[1]) / 2];
 
     try {
         res = await db_postgis.query(`SELECT gid, conns, ST_AsGeoJSON(geom) FROM ${transportMode}
             WHERE ST_DistanceSphere(geom, '{"type": "Point", "coordinates": ${JSON.stringify(centerPoint)}}')
-            <= ST_DistanceSpheroid('${stopALatLng.geom}', '{"type": "Point", "coordinates": ${JSON.stringify(centerPoint)}}') * ${netRadius}`);
+            <= ST_DistanceSpheroid('${stopALatLng.geom}', '${stopBLatLng.geom}') * ${netRadius}`);
     } catch(error) {
         log('error', error);
         return {};

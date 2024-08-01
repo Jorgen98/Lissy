@@ -168,14 +168,35 @@ async function reloadNet(net, inputData) {
 async function deleteNet(net) {
     try {
         await db_postgis.query(`TRUNCATE TABLE ${net} RESTART IDENTITY`);
-        return true;
     } catch(error) {
         log('error', error);
         return false;
     }
 
-    // TO DO
-    // Make shapes & trips inactive
+    let shapeIds;
+    try {
+        shapeIds = await db_postgis.query(`SELECT id, route_type FROM shapes WHERE is_active=true AND route_type='${net}'`);
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+
+    let ids = [];
+    for (const id of shapeIds?.rows) {
+        ids.push(id.id);
+    }
+
+    if (ids.length > 0) {
+        try {
+            await db_postgis.query(`UPDATE trips SET is_active=false WHERE shape_id IN (${ids})`);
+            await db_postgis.query(`UPDATE shapes SET is_active=false WHERE route_type='${net}'`);
+        } catch(error) {
+            log('error', error);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // Function for midpoints, used in shape creation, reloading
@@ -246,8 +267,8 @@ async function getSubNet(stopALatLng, stopBLatLng, transportMode, netRadius) {
 
     try {
         res = await db_postgis.query(`SELECT ST_AsGeoJSON(midpoints) FROM midpoints
-            WHERE ST_DistanceSphere(geom_stop_a, '${stopALatLng.geom}') <= 0.5 AND
-            ST_DistanceSphere(geom_stop_a, '${stopALatLng.geom}') <= 0.5`);
+            WHERE ST_DistanceSphere(geom_stop_a, '${stopALatLng.geom}') <= 1 AND
+            ST_DistanceSphere(geom_stop_b, '${stopBLatLng.geom}') <= 1`);
     } catch(error) {
         log('error', error);
         return {
@@ -257,9 +278,27 @@ async function getSubNet(stopALatLng, stopBLatLng, transportMode, netRadius) {
     }
 
     if (res.rows?.length > 0) {
+        let decRes = JSON.parse(res.rows[0]['st_asgeojson']).coordinates;
+        let resMidpoints = [];
+
+        for (const point of decRes[0]) {
+            let pointGeom = '';
+
+            try {
+                pointGeom = (await db_postgis.query(`SELECT ST_MakePoint(${point[0]}, ${point[1]})`))?.rows[0]?.['st_makepoint'];
+            } catch (err) {
+                continue;
+            }
+
+            resMidpoints.push({
+                latLng: point,
+                geom: pointGeom
+            })
+        }
+
         return {
             subNet: outputNet,
-            midpoints: JSON.parse(res.rows[0]['st_asgeojson']).coordinates
+            midpoints: resMidpoints
         }
     }
 
@@ -480,6 +519,27 @@ async function makeObjUnActive(id, type) {
     }
 }
 
+async function getShortestLine(pointA, pointB, pointC) {
+    let result;
+    try {
+        result = await db_postgis.query(`SELECT ST_AsGeoJSON(  ST_ShortestLine('POINT (${pointC[0]} ${pointC[1]})',
+            'LINESTRING (${pointA[0]} ${pointA[1]}, ${pointB[0]} ${pointB[1]})')) As line`);
+    } catch(err) {
+        console.log(err);
+        return [];
+    }
+
+    if (result?.rows) {
+        result = JSON.parse(result.rows[0]?.['line']).coordinates;
+
+        if (JSON.stringify(result[0]) === JSON.stringify(pointC)) {
+            return result[1];
+        } else {
+            return result[0];
+        }
+    }
+}
+
 // Testing function for routing, will be deleted
 async function getShapes() {
     let trips = await getActiveTrips();
@@ -516,4 +576,4 @@ async function getShapes() {
 
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
-    getPointsAroundStation, getSubNet, getShapes }
+    getPointsAroundStation, getSubNet, getShapes, getShortestLine }

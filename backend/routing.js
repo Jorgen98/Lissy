@@ -20,7 +20,7 @@ let configs = [
         'maxWorstJumps': 30,
         'maxWorstJumpsWithTwoPoss': 20,
         'stopsFindRadius': 120,
-        'subNetRadius': 1,
+        'subNetRadius': 1.3,
         'maxIterations': 80,
         'canReturn': false
     },
@@ -60,10 +60,55 @@ async function computeShape(trip) {
         let routingRes = await findConnection(trip, stops[idx], stops[idx + 1]);
 
         if (routingRes.length < 2) {
-            console.log(trip.route);
-            newShape.push([]);
+            // Another attempt to find connection with different params, used mainly in road shapes
+            setUpConfig.subNetRadius = 2;
+            routingRes = await findConnection(trip, stops[idx], stops[idx + 1]);
+
+            if (routingRes.length < 2) {
+                console.log(trip.route);
+            }
         }
         newShape.push(routingRes);
+    }
+
+    // Modify result shapes to remove duplicit paths and to make path more suitable for stop positions
+    let newIntersectionPoints = [];
+    for (let i = 0; i < stops.length; i++) {
+        if (newShape[i - 1] === undefined) {
+            if (newShape[i].length < 2) {
+                newIntersectionPoints.push(stops[i].latLng);
+            } else {
+                newIntersectionPoints.push(await dbPostGIS.getShortestLine(newShape[i][0],
+                    newShape[i][1], stops[i].latLng));
+            }
+        } else if (newShape[i] === undefined) {
+            if (newShape[i - 1].length < 2) {
+                newIntersectionPoints.push(stops[i].latLng);
+            } else {
+                newIntersectionPoints.push(await dbPostGIS.getShortestLine(newShape[i - 1][newShape[i - 1].length - 2],
+                    newShape[i - 1][newShape[i - 1].length - 1], stops[i].latLng));
+            }
+        } else {
+            if (newShape[i - 1].length < 2 && newShape[i].length < 2) {
+                newIntersectionPoints.push(stops[i].latLng);
+            } else if (newShape[i - 1].length < 2) {
+                newIntersectionPoints.push(await dbPostGIS.getShortestLine(newShape[i][0],
+                    newShape[i][1], stops[i].latLng));
+            } else {
+                newIntersectionPoints.push(await dbPostGIS.getShortestLine(newShape[i - 1][newShape[i - 1].length - 2],
+                    newShape[i - 1][newShape[i - 1].length - 1], stops[i].latLng));
+            }
+        }
+    }
+
+    for (const [idx, point] of newIntersectionPoints.entries()) {
+        if (newShape[idx]) {
+            newShape[idx][0] = point;
+        }
+
+        if (newShape[idx - 1]) {
+            newShape[idx - 1][newShape[idx - 1].length - 1] = point;
+        }
     }
 
     // Save new shape
@@ -73,12 +118,39 @@ async function computeShape(trip) {
 // Main routing function
 // Tries to compute route from point to point, from stop to stop
 async function findConnection(trip, stopALatLng, stopBLatLng) {
+    let {subNet, midpoints} = await dbPostGIS.getSubNet(stopALatLng, stopBLatLng, trip.transportMode, setUpConfig.subNetRadius);
+
     let possibilities = await findStopPosInNet(trip, stopALatLng, 'start');
     if (possibilities.length < 1) {
         return [];
     }
 
-    let {subNet, midpoints} = await dbPostGIS.getSubNet(stopALatLng, stopBLatLng, trip.transportMode, setUpConfig.subNetRadius);
+    if (midpoints.length > 0) {
+        let midpointsRes = [], tmpRes = [];
+        for (let i = 0; i < midpoints.length; i++) {
+            if (i < 1) {
+                midpointsRes = await findConnection(trip, stopALatLng, midpoints[0]);
+            }
+            if (i > (midpoints.length - 2)) {
+                tmpRes = await findConnection(trip, midpoints[i], stopBLatLng);
+            }
+            if (i < (midpoints.length - 1)) {
+                tmpRes = await findConnection(trip, midpoints[i], midpoints[i + 1]);
+            }
+
+            if (tmpRes.length > 1) {
+                if (midpointsRes.length > 1) {
+                    if (JSON.stringify(midpointsRes[midpointsRes.length - 2]) === JSON.stringify(tmpRes[0]) &&
+                    JSON.stringify(midpointsRes[midpointsRes.length - 1]) === JSON.stringify(tmpRes[1])) {
+                        midpointsRes = midpointsRes.concat(tmpRes.splice(2));
+                    }
+                }
+            }
+        }
+
+        return midpointsRes;
+    }
+
     let endPositions = await findStopPosInNet(trip, stopBLatLng, 'end');
 
     if (endPositions.length === 0) {
@@ -371,16 +443,16 @@ function countDistance(pointA, pointB) {
 
 // Get angle next to point y from two given lines defined by three points
 function getAngle(x, y, z) {
-    let x_y = Math.sqrt(Math.pow(y[0] - x[0], 2)+ Math.pow(y[1] - x[1], 2));
-    let y_z = Math.sqrt(Math.pow(y[0] - z[0], 2)+ Math.pow(y[1] - z[1], 2));
-    let x_z = Math.sqrt(Math.pow(z[0] - x[0], 2)+ Math.pow(z[1] - x[1], 2));
+    let x_y = Math.sqrt(Math.pow(y[0] - x[0], 2) + Math.pow(y[1] - x[1], 2));
+    let y_z = Math.sqrt(Math.pow(y[0] - z[0], 2) + Math.pow(y[1] - z[1], 2));
+    let x_z = Math.sqrt(Math.pow(z[0] - x[0], 2) + Math.pow(z[1] - x[1], 2));
 
     return Math.acos((y_z * y_z + x_y * x_y - x_z * x_z) / (2 * y_z * x_y));
 }
 
 // Save new shape and actualize trips, which are going to use the new shape
 async function saveNewShape(trip, newShape) {
-    let newShapeId = await dbPostGIS.addShape(newShape);
+    let newShapeId = await dbPostGIS.addShape(newShape, trip.transportMode);
 
     if (newShapeId === null) {
         return false;

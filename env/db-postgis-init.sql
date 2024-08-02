@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS rail (gid SERIAL PRIMARY KEY, geom GEOMETRY, conns IN
 CREATE TABLE IF NOT EXISTS road (gid SERIAL PRIMARY KEY, geom GEOMETRY, conns INT[]);
 CREATE TABLE IF NOT EXISTS tram (gid SERIAL PRIMARY KEY, geom GEOMETRY, conns INT[]);
 CREATE TABLE IF NOT EXISTS midpoints (gid SERIAL PRIMARY KEY, geom_stop_a GEOMETRY, geom_stop_b GEOMETRY, midpoints GEOMETRY);
+CREATE TABLE IF NOT EXISTS net_stats (id SERIAL PRIMARY KEY, rail_valid BIGINT, road_valid BIGINT, tram_valid BIGINT, midpoints_valid BIGINT);
+INSERT INTO net_stats (rail_valid, road_valid, tram_valid, midpoints_valid) VALUES (0, 0, 0, 0);
 
 CREATE TABLE IF NOT EXISTS agency (id SERIAL PRIMARY KEY, agency_id TEXT, agency_name TEXT, agency_url TEXT, agency_timezone TEXT,
     agency_lang TEXT, agency_phone TEXT, agency_fare_url TEXT, agency_email TEXT, is_active BOOLEAN);

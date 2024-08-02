@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const fs = require('fs');
 
 const logService = require('./log.js');
+const dbStats = require('./db-stats.js');
 
 // .env file include
 dotenv.config();
@@ -16,6 +17,8 @@ let newNets = {
     road: undefined,
     tram: undefined
 }
+
+let actualNetValid = {};
 
 // Help function for log writing
 function log(type, msg) {
@@ -46,6 +49,14 @@ async function connectToDB() {
 // Try to search for net files in working directory
 async function reloadNetFiles() {
     newNets = {};
+    actualNetValid = {};
+
+    try {
+        actualNetValid = (await db_postgis.query(`SELECT * FROM net_stats`)).rows[0];
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
 
     log('info', 'Searching for new net files');
     await scanDirectory('./');
@@ -87,11 +98,12 @@ async function scanDirectory(location) {
             } catch (error) {
                 continue;
             }
-    
+
             try {
                 inputData = JSON.parse(rawData);
                 if (inputData.type && inputData.valid && (inputData.hubs || inputData.records)) {
-                    if (newNets[inputData.type] === undefined || new Date(inputData.valid) > new Date(newNets[inputData.type].valid)) {
+                    if ((newNets[inputData.type] === undefined || new Date(inputData.valid) > new Date(newNets[inputData.type].valid)) &&
+                        parseInt(actualNetValid[`${inputData.type}_valid`]) < (new Date(inputData.valid)).valueOf()) {
                         newNets[inputData.type] = inputData;
                     }
                 }
@@ -156,6 +168,9 @@ async function reloadNet(net, inputData) {
 
     try {
         await db_postgis.query(`INSERT INTO ${net} (geom, conns) VALUES ${query}`);
+        await db_postgis.query(`UPDATE net_stats SET ${net}_valid=${(new Date(inputData.valid)).valueOf()}`);
+        dbStats.updateStateProcessingStats(`${net}_net_actualized`, true);
+        dbStats.updateStateProcessingStats(`${net}_net_hubs`, inputData.hubs.length);
         log('success', `Transit ${net} successfully actualized`);
         return true;
     } catch(error) {
@@ -215,6 +230,10 @@ async function reloadMidpoints(inputData) {
                 '{"type": "Point", "coordinates": ${JSON.stringify(record.endstopageom)}}',
                 '{"type": "Point", "coordinates": ${JSON.stringify(record.endstopbgeom)}}',
                 '{"type": "MultiLineString", "coordinates": [${JSON.stringify(record.midpoints)}]}')`);
+            await db_postgis.query(`UPDATE net_stats SET midpoints_valid=${(new Date(inputData.valid)).valueOf()}`);
+
+            dbStats.updateStateProcessingStats('midpoints_actualized', true);
+            dbStats.updateStateProcessingStats('midpoints', 1);
             } catch(error) {
                 log('error', error);
                 return false;
@@ -465,12 +484,18 @@ async function addTrip(trip) {
 }
 
 // Get all trips used in actual transit system state
-async function getActiveTrips() {
+async function getActiveTrips(routeIds) {
     let result;
+
+    let ids = [];
+    for (const route in routeIds) {
+        ids.push(routeIds[route].id);
+    }
+
     try {
         result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
             trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
-            stops_info, stops, api FROM trips WHERE is_active=true`);
+            stops_info, stops, api FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
     } catch(error) {
         log('error', error);
         return [];
@@ -508,24 +533,37 @@ async function addShape(shape, route_type) {
     }
 }
 
+// Return number of actual active shapes
+async function countShapes() {
+    try {
+        let res = await db_postgis.query(`SELECT COUNT(id) FROM shapes WHERE is_active=true`);
+        return parseInt(res.rows[0].count);
+    } catch(error) {
+        log('error', error);
+        return null;
+    }
+}
+
 // Send item to archive
 async function makeObjUnActive(id, type) {
     try {
         await db_postgis.query(`UPDATE ${type} SET is_active=false WHERE id='${id}'`);
         return true;
-    } catch(err) {
-        console.log(err);
+    } catch(error) {
+        log('error', error);
         return false;
     }
 }
 
+// This function return couple of latLngs, from which one is pointC and second is the point on line pointA -> pointB
+// It is used to cut result shapes on segments according to stop positions
 async function getShortestLine(pointA, pointB, pointC) {
     let result;
     try {
         result = await db_postgis.query(`SELECT ST_AsGeoJSON(  ST_ShortestLine('POINT (${pointC[0]} ${pointC[1]})',
             'LINESTRING (${pointA[0]} ${pointA[1]}, ${pointB[0]} ${pointB[1]})')) As line`);
-    } catch(err) {
-        console.log(err);
+    } catch(error) {
+        log('error', error);
         return [];
     }
 
@@ -542,7 +580,21 @@ async function getShortestLine(pointA, pointB, pointC) {
 
 // Testing function for routing, will be deleted
 async function getShapes() {
-    let trips = await getActiveTrips();
+    let result;
+    try {
+        result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
+            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
+            stops_info, stops, api FROM trips WHERE is_active=true`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    let trips = {};
+
+    for (const row of result.rows) {
+        trips[row['trip_id']] = row;
+    }
 
     let stops = await getActiveStops();
 
@@ -576,4 +628,4 @@ async function getShapes() {
 
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
-    getPointsAroundStation, getSubNet, getShapes, getShortestLine }
+    getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes }

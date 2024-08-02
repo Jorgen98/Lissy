@@ -42,6 +42,9 @@ server.on('listening', async () => {
 const fs = require('fs');
 // Processing function
 async function processData() {
+    // TO DO: Check if the gtfs can be processed
+
+    dbStats.initStateProcessingStats();
     // Load or reload transit net data
     if (await dbPostGIS.reloadNetFiles()) {
         log('success', 'Net files for routing are loaded');
@@ -57,7 +60,13 @@ async function processData() {
     }
 
     // Testing function for routing, will be deleted
-    fs.writeFile("test.txt", JSON.stringify(await dbPostGIS.getShapes()), function(err) {
+    fs.writeFile(`backups/${(new Date()).toLocaleString()}.txt`, JSON.stringify(await dbPostGIS.getShapes()), function(err) {
+        if (err) {
+            console.log(err);
+        }
+    });
+    // Testing function for routing, will be deleted
+    fs.writeFile(`backups/${(new Date()).toLocaleString()}_stats.txt`, JSON.stringify(await dbStats.saveStateProcessingStats(), null, 4), function(err) {
         if (err) {
             console.log(err);
         }

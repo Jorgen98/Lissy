@@ -3,6 +3,7 @@
  */
 
 const dbPostGIS = require('./db-postgis.js');
+const dbStats = require('./db-stats.js');
 
 // Global configuration for every mode of transport
 let configs = [
@@ -20,7 +21,7 @@ let configs = [
         'maxWorstJumps': 30,
         'maxWorstJumpsWithTwoPoss': 20,
         'stopsFindRadius': 120,
-        'subNetRadius': 1.3,
+        'subNetRadius': 1,
         'maxIterations': 80,
         'canReturn': false
     },
@@ -65,10 +66,15 @@ async function computeShape(trip) {
             routingRes = await findConnection(trip, stops[idx], stops[idx + 1]);
 
             if (routingRes.length < 2) {
-                console.log(trip.route);
+                dbStats.updateStateProcessingStats(`problematic_routes`, trip.route);
+            } else {
+                dbStats.updateStateProcessingStats(`routing_${trip.transportMode}_success`, 1);
             }
+        } else {
+            dbStats.updateStateProcessingStats(`routing_${trip.transportMode}_success`, 1);
         }
         newShape.push(routingRes);
+        dbStats.updateStateProcessingStats(`routing_${trip.transportMode}_total`, 1);
     }
 
     // Modify result shapes to remove duplicit paths and to make path more suitable for stop positions

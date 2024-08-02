@@ -6,14 +6,16 @@ const dotenv = require('dotenv');
 const fs = require('fs');
 const decompress = require("decompress");
 const https = require('https');
+const { performance } = require('perf_hooks');
 
 const logService = require('./log.js');
 const dbPostGIS = require('./db-postgis.js');
 const routingService = require('./routing.js');
+const dbStats = require('./db-stats.js');
 
 const tmpFileName = './gtfs.zip';
 const tmpFolderName = './gtfsFiles/'
-//const file = fs.createWriteStream(tmpFileName);
+const file = fs.createWriteStream(tmpFileName);
 
 let todayServiceIDs = [];
 let useAllServices = false;
@@ -31,7 +33,8 @@ function log(type, msg) {
 }
 
 // Function for transit system state actualization based on actual GTFS data
-async function reloadActualSystemState(stats) {
+async function reloadActualSystemState() {
+    let startTime = performance.now();
     if (process.env.BE_PROCESSING_GTFS_LINK === undefined) {
         log('error', 'GTFS file link not defined');
         return false;
@@ -39,12 +42,9 @@ async function reloadActualSystemState(stats) {
 
     log('info', 'Downloading file from mestobrno.maps.arcgis.com');
     return new Promise(async (resolve) => {
-
-        resolve(await unzipAndParseData());
-        return;
-
         https.get(process.env.BE_PROCESSING_GTFS_LINK, async response => {
-            if (!await unzipAndParseData(response)) {
+            dbStats.updateStateProcessingStats('gtfs_file_downloaded', true);
+            if (!await unzipAndParseData(response, startTime)) {
                 fs.unlink(tmpFileName, (error) => {
                     if (error) {
                         log('error', error);
@@ -77,12 +77,12 @@ async function reloadActualSystemState(stats) {
 
 
 // Function for downloaded data unzip and parse
-async function unzipAndParseData(/*response*/) {
+async function unzipAndParseData(response, startTime) {
     return new Promise((resolve) => {
         try {
-            //response.pipe(file);
+            response.pipe(file);
 
-            //file.on('finish', () => {
+            file.on('finish', () => {
                 log('info', 'GTFS file successfully downloaded, parsing content');
 
                 decompress(tmpFileName, tmpFolderName).then(async (inputFiles) => {
@@ -153,6 +153,7 @@ async function unzipAndParseData(/*response*/) {
 
                     fs.rmSync(tmpFolderName, { recursive: true });
                     log('success', 'Processing GTFS data done');
+                    dbStats.updateStateProcessingStats('gtfs_processing_time', performance.now() - startTime);
 
                     // If there are new shapes, calculate them
                     if (Object.keys(shapesToCalc).length > 0) {
@@ -168,11 +169,11 @@ async function unzipAndParseData(/*response*/) {
 
                     resolve(true);
                 });
-            //})
-            //.on('error', (error) => {
-            //    log('error', error);
-            //    resolve(false);
-            //});
+            })
+            .on('error', (error) => {
+                log('error', error);
+                resolve(false);
+            });
         } catch(error) {
             log('error', error);
             resolve(false);
@@ -240,11 +241,14 @@ async function getTodayAgencies(inputAgencyFile) {
                 if (todayAgencyIds[newAgency.agency_id] === null) {
                     return false;
                 }
+
+                dbStats.updateStateProcessingStats('gtfs_agencies_added', 1);
         } else {
             todayAgencyIds[newAgency.agency_id] = actualAgency.id;
         }
     }
 
+    dbStats.updateStateProcessingStats('gtfs_agencies', Object.keys(todayAgencyIds).length);
     return true;
 }
 
@@ -353,6 +357,7 @@ async function getTodayStops(inputStopFile) {
         }
     }
 
+    dbStats.updateStateProcessingStats('gtfs_stops', Object.keys(todayStopIds).length);
     return true;
 }
 
@@ -384,6 +389,7 @@ async function inspectProcessedStop(stop, replace = false) {
             if (todayStopIds[stop.stop_id] === null) {
                 return false;
             }
+            dbStats.updateStateProcessingStats('gtfs_stops_added', 1);
     } else {
         todayStopIds[stop.stop_id] = todayStopIds[stop.stop_id].id;
     }
@@ -480,6 +486,8 @@ async function getTodayRoutes(inputRoutesFile) {
                 if (todayRouteIds[newRoute.route_id].id === null) {
                     return false;
                 }
+
+                dbStats.updateStateProcessingStats('gtfs_routes_added', 1);
         } else {
             todayRouteIds[newRoute.route_id] = {
                 id: actualRoute.id,
@@ -488,6 +496,7 @@ async function getTodayRoutes(inputRoutesFile) {
         }
     }
 
+    dbStats.updateStateProcessingStats('gtfs_routes', Object.keys(todayRouteIds).length);
     return true;
 }
 
@@ -635,7 +644,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
         return false;
     }
 
-    let actualTrips = await dbPostGIS.getActiveTrips();
+    let actualTrips = await dbPostGIS.getActiveTrips(todayRouteIds);
 
     for (const record of inputTripsData) {
         let decRecord = parseOneLineFromInputFile(record);
@@ -646,7 +655,9 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
         if (todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) === -1 || actualStopTimes[decRecord[tripIdIdxTrips]] === undefined ||
             todayRouteIds[decRecord[routeIdIdx]] === undefined) {
-            continue;
+            if (!useAllServices) {
+                continue;   
+            }
         }
 
         let internTripId = `${decRecord[routeIdIdx]}?${actualStopTimes[decRecord[tripIdIdxTrips]].stops_info[0].aT}?${JSON.stringify(actualStopTimes[decRecord[tripIdIdxTrips]]?.stops)}`;
@@ -700,6 +711,9 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 return false;
             }
 
+            dbStats.updateStateProcessingStats('gtfs_trips_added', 1);
+            actualTrips[internTripId] = newTrip;
+
             let interRouteType = '';
 
             // Reduction of transit modes, currently only tram, rail and road modes are supported
@@ -722,35 +736,9 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 shapesToCalc[tmpShapeId].trip_ids.push(newTripId);
             }
         }
-
-        let interRouteType = '';
-
-        // Tmp
-        /*
-        // Reduction of transit modes, currently only tram, rail and road modes are supported
-        switch (todayRouteIds[newTrip.route_id].route_type) {
-            case 0: interRouteType = 'tram'; break;
-            case 2: interRouteType = 'rail'; break;
-            case 3: case 11: case 800: interRouteType = 'road'; break;
-            default: interRouteType = '';
-        }
-
-        let tmpShapeId = `${interRouteType}?${JSON.stringify(newTrip.stops)}`;
-        if (shapesToCalc[tmpShapeId] === undefined) {
-            shapesToCalc[tmpShapeId] = {
-                stops: newTrip.stops,
-                trip_ids: [actualTrip.id],
-                transportMode: interRouteType
-            }
-        } else {
-            shapesToCalc[tmpShapeId].trip_ids.push(actualTrip.id);
-        }*/
-        // Tmp
-
-        // TO DO
-        // Vytvor zaznam v StatsDB, ktory neskor vyplnia spracovane data
     }
 
+    dbStats.updateStateProcessingStats('gtfs_trips', Object.keys(actualTrips).length);
     return true;
 }
 
@@ -840,6 +828,7 @@ async function getNewShapes() {
     return new Promise(async (resolve) => {
         let progress = 0;
         let lastProgressValue = 0;
+        let startTime = performance.now();
 
         for (const task in shapesToCalc) {
             let retVal = await routingService.computeShape(shapesToCalc[task]);
@@ -853,7 +842,13 @@ async function getNewShapes() {
                 resolve(false);
                 return;
             }
+
+            dbStats.updateStateProcessingStats('gtfs_shapes_added', 1);
         }
+
+        dbStats.updateStateProcessingStats('gtfs_shapes', await dbPostGIS.countShapes());
+        dbStats.updateStateProcessingStats('routing_time', performance.now() - startTime);
+        dbStats.updateStateProcessingStats('routing_done', true);
 
         resolve(true);
         return;

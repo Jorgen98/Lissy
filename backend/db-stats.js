@@ -49,7 +49,7 @@ async function getStats() {
         dbQueryAPI.queryRows(testQuery, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row)
-                console.log(`${o._time} ${o._measurement}: ${o._field}=${o._value}`)
+                console.log(o)
             },
             error(error) {
                 log('error', error);
@@ -154,7 +154,7 @@ async function saveStateProcessingStats() {
 
     return new Promise((resolve) => {
         writeApi.close().then(() => {
-            resolve(true);
+            resolve(stateProcessingStats);
         })
         .catch((error) => {
             log('error', error)
@@ -175,4 +175,4 @@ function updateStateProcessingStats(prop, value) {
     }
 }
 
-module.exports = { isDBConnected, saveStateProcessingStats, initStateProcessingStats, updateStateProcessingStats }
+module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats, updateStateProcessingStats }

@@ -24,6 +24,8 @@ let todayStopIds = {};
 let todayRouteIds = {};
 let shapesToCalc = {};
 
+let todayStopIdsDict = {};
+
 // .env file include
 dotenv.config();
 
@@ -81,6 +83,7 @@ async function unzipAndParseData(response, startTime) {
     return new Promise((resolve) => {
         try {
             response.pipe(file);
+            
 
             file.on('finish', () => {
                 log('info', 'GTFS file successfully downloaded, parsing content');
@@ -172,7 +175,7 @@ async function unzipAndParseData(response, startTime) {
             })
             .on('error', (error) => {
                 log('error', error);
-                resolve(false);
+               resolve(false);
             });
         } catch(error) {
             log('error', error);
@@ -284,13 +287,16 @@ async function getTodayStops(inputStopFile) {
 
     let inputStopsHierarchy = {};
     let inputStopsToPlace = [];
+    todayStopIdsDict = {};
+
+    todayStopIds = await dbPostGIS.getActiveStops();
 
     // Process input zip data
     // https://gtfs.org/schedule/reference/#stopstxt
     for (const record of inputStopData) {
         let decRecord = parseOneLineFromInputFile(record);
 
-        if (decRecord === undefined) {
+        if (decRecord === undefined || decRecord[stopIdIdx] === undefined || decRecord[stopIdIdx] === '') {
             continue;
         }
 
@@ -349,10 +355,8 @@ async function getTodayStops(inputStopFile) {
         }
     }
 
-    todayStopIds = await dbPostGIS.getActiveStops();
-
     for (const stop_id in inputStopsHierarchy) {
-        if (!await inspectProcessedStop(inputStopsHierarchy[stop_id])) {
+        if (!await inspectProcessedStop(inputStopsHierarchy[stop_id], false, 0)) {
             return false;
         }
     }
@@ -362,7 +366,9 @@ async function getTodayStops(inputStopFile) {
 }
 
 // Help function for inspect, if the stop need to be replaced by new version
-async function inspectProcessedStop(stop, replace = false) {
+async function inspectProcessedStop(stop, replace = false, level) {
+    let stateStopId = JSON.parse(JSON.stringify(stop.stop_id));
+    stop.stop_id = `${level}:${stop.stop_name}:${stop.latLng[0].toString()}:${stop.latLng[1].toString()}`;
     let actualStop = todayStopIds[stop.stop_id];
     let replaceChild = false;
     stop.id = actualStop?.id;
@@ -371,31 +377,39 @@ async function inspectProcessedStop(stop, replace = false) {
     let actualStopToCmp = actualStop ? JSON.parse(JSON.stringify(actualStop)) : undefined;
     let stopToCmp = JSON.parse(JSON.stringify(stop));
     delete stopToCmp['child_stops'];
+    delete stopToCmp['parent_station'];
+
+    if (actualStopToCmp !== undefined) {
+        delete actualStopToCmp['parent_station'];
+    }
+
+    if (stop.parent_station !== '') {
+        stop.parent_station_id = todayStopIds[todayStopIdsDict[stop.parent_station]];
+    }
 
     if (actualStop === undefined || JSON.stringify(actualStopToCmp) !== JSON.stringify(stopToCmp) || replace) {
-            if (stop.parent_station !== '') {
-                stop.parent_station_id = todayStopIds[stop.parent_station];
-            }
-
-            if (actualStop !== undefined) {
-                if (! await dbPostGIS.makeObjUnActive(todayStopIds[stop.stop_id].id, 'stops')) {
-                    return false;
-                }
-            }
-
-            todayStopIds[stop.stop_id] = await dbPostGIS.addStop(stop);
-            replaceChild = true;
-
-            if (todayStopIds[stop.stop_id] === null) {
+        if (actualStop !== undefined) {
+            if (! await dbPostGIS.makeObjUnActive(todayStopIds[stop.stop_id].id, 'stops')) {
                 return false;
             }
-            dbStats.updateStateProcessingStats('gtfs_stops_added', 1);
+        }
+
+        todayStopIds[stop.stop_id] = await dbPostGIS.addStop(stop);
+        replaceChild = true;
+
+        if (todayStopIds[stop.stop_id] === null) {
+            return false;
+        }
+        dbStats.updateStateProcessingStats('gtfs_stops_added', 1);
     } else {
         todayStopIds[stop.stop_id] = todayStopIds[stop.stop_id].id;
     }
 
-    for (const childStop of stop.child_stops) {
-        if (!await inspectProcessedStop(childStop, replaceChild)) {
+    todayStopIdsDict[stateStopId] = stop.stop_id;
+
+    stop.child_stops = stopsSort(stop.child_stops);
+    for (const [idx, childStop] of stop.child_stops.entries()) {
+        if (!await inspectProcessedStop(childStop, replaceChild, `${level + 1}:${idx}`)) {
             return false;
         }
     }
@@ -588,10 +602,10 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             }
             stop['dT'] = Math.round((parseTimeFromGTFS(stop['dT']).valueOf() - startTime.valueOf()) / 1000);
 
-            if (todayStopIds[stop['stop_id']] === undefined) {
+            if (todayStopIds[todayStopIdsDict[stop['stop_id']]] === undefined) {
                 actualStopTimes[record].stops_info.splice(idx, 1);
             } else {
-                actualStopTimes[record].stops.push(todayStopIds[stop['stop_id']]);
+                actualStopTimes[record].stops.push(todayStopIds[todayStopIdsDict[stop['stop_id']]]);
                 idx++;
             }
 
@@ -656,7 +670,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
         if (todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) === -1 || actualStopTimes[decRecord[tripIdIdxTrips]] === undefined ||
             todayRouteIds[decRecord[routeIdIdx]] === undefined) {
             if (!useAllServices) {
-                continue;   
+                continue;
             }
         }
 
@@ -916,6 +930,19 @@ function parseOneLineFromInputFile(input) {
     }
 
     return decRecord;
+}
+
+function stopsSort(data) {
+    data.sort(function(x, y) {
+        if (x.stop_name.toLowerCase() < y.stop_name.toLowerCase()) {
+          return -1;
+        }
+        if (x > y) {
+          return 1;
+        }
+        return x.latLng.toString() < y.latLng.toString() ? -1 : 1;
+      });
+    return data;
 }
 
 module.exports = { reloadActualSystemState }

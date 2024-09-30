@@ -607,14 +607,21 @@ async function getShapes() {
     for (let trip in trips) {
 
         let stps = [];
+        let exists = true;
         for (const s of trips[trip].stops) {
 
             let stp = sstops.find((stop) => {return s === stop.id});
+
+            if (stp === undefined) {
+                exists = false;
+                break;
+            }
             stps.push({
                 code: stp.stop_id,
                 latLng: stp.latLng
             })
         }
+        if (exists)
         res.push({
             route: trips[trip].route_id,
             shape: JSON.parse((await db_postgis.query(`SELECT ST_AsGeoJSON(geom) FROM shapes WHERE id='${trips[trip].shape_id}'`)).rows[0]['st_asgeojson']).coordinates,

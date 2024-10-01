@@ -17,6 +17,12 @@ const db_influx = new InfluxDB({url: `${process.env.DB_STATS_HOST}:${process.env
 // Measurement names
 const measurementStats = 'stats';
 
+// Stats measurement is divided by main tag intro sub measurements
+const statType = {
+    expectedState: 'expected_state', // actual GTFS processing stats
+    tripsToProcess: 'trips_to_process' // how many trips should be still processed in current day
+}
+
 // Variable for transit system state processing stats
 let stateProcessingStats = {};
 
@@ -31,7 +37,7 @@ async function isDBConnected() {
     return new Promise((resolve) => {
         pingAPI.getPing()
             .then(async () => {
-                await getStats();
+                await getStats(statType.expectedState, new Date((new Date()).valueOf() - 1000), new Date(), false);
                 resolve(true);
             })
             .catch((error) => {
@@ -41,22 +47,47 @@ async function isDBConnected() {
     });
 }
 
-async function getStats() {
+async function getStats(statType, start, stop, latest) {
+    let startTime;
+    let stopTime;
+    try {
+        startTime = new Date(start);
+        stopTime = new Date(stop);
+    } catch (error) {
+        return {};
+    }
+
     let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);
-    let testQuery = flux`from(bucket: "${process.env.DB_STATS_BUCKET}") |> range(start: -1d) |> filter(fn: (r) => r._measurement != "")`;
+    let testQuery;
+
+    if (latest) {
+        testQuery = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
+        |> range(start: ${startTime}, stop: ${stopTime})
+        |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType})
+        |> last()`;
+    } else {
+        testQuery = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
+        |> range(start: ${startTime}, stop: ${stopTime})
+        |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType})`;
+    }
+
+    let records = {};
 
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(testQuery, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row)
-                console.log(o)
+                if (records[o._time] === undefined) {
+                    records[o._time] = {};
+                }
+                records[o._time][o._field] = o._value;
             },
             error(error) {
                 log('error', error);
                 resolve(false);
             },
             complete() {
-                resolve(true);
+                resolve(records);
             },
         })
     });
@@ -92,7 +123,8 @@ function initStateProcessingStats() {
         routing_tram_total: 0,
         routing_tram_success: 0,
         routing_time: 0,
-        problematic_routes: []
+        problematic_routes: [],
+        trips_to_process: 0
     }
 }
 
@@ -116,7 +148,7 @@ async function saveStateProcessingStats() {
     })
 
     const record = new Point(measurementStats)
-        .tag('stat_type', 'expected_state')
+        .tag('stat_type', statType.expectedState)
         .tag('gtfs_file', stateProcessingStats['gtfs_file_downloaded'])
         .tag('routing', stateProcessingStats['routing_done'])
         .booleanField('rail_net_actualized', stateProcessingStats['rail_net_actualized'])
@@ -153,7 +185,8 @@ async function saveStateProcessingStats() {
     writeApi.writePoint(record)
 
     return new Promise((resolve) => {
-        writeApi.close().then(() => {
+        writeApi.close().then(async () => {
+            await saveTripsToProcessNum(stateProcessingStats['trips_to_process']);
             resolve(stateProcessingStats);
         })
         .catch((error) => {
@@ -163,6 +196,7 @@ async function saveStateProcessingStats() {
     });
 }
 
+// Help function for processing state actual value edit
 function updateStateProcessingStats(prop, value) {
     if (stateProcessingStats[prop] === undefined) {
         return;
@@ -175,4 +209,25 @@ function updateStateProcessingStats(prop, value) {
     }
 }
 
-module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats, updateStateProcessingStats }
+async function saveTripsToProcessNum(numOfTrips) {
+    const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
+
+    const record = new Point(measurementStats)
+        .tag('stat_type', statType.tripsToProcess)
+        .intField('trips_to_process', numOfTrips)
+        .timestamp(new Date());
+        
+    writeApi.writePoint(record)
+
+    return new Promise((resolve) => {
+        writeApi.close().then(() => {
+            resolve(true);
+        })
+        .catch((error) => {
+            log('error', error)
+            resolve(false);
+        })
+    });
+}
+
+module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats, updateStateProcessingStats, saveTripsToProcessNum }

@@ -659,6 +659,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
     }
 
     let actualTrips = await dbPostGIS.getActiveTrips(todayRouteIds);
+    let tripsToProcess = 0;
 
     for (const record of inputTripsData) {
         let decRecord = parseOneLineFromInputFile(record);
@@ -673,6 +674,8 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 continue;
             }
         }
+
+        tripsToProcess++;
 
         let internTripId = `${decRecord[routeIdIdx]}?${actualStopTimes[decRecord[tripIdIdxTrips]].stops_info[0].aT}?${JSON.stringify(actualStopTimes[decRecord[tripIdIdxTrips]]?.stops)}`;
 
@@ -753,6 +756,9 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
     }
 
     dbStats.updateStateProcessingStats('gtfs_trips', Object.keys(actualTrips).length);
+
+    dbStats.updateStateProcessingStats('trips_to_process', tripsToProcess);
+
     return true;
 }
 

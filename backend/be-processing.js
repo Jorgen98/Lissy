@@ -40,9 +40,30 @@ server.on('listening', async () => {
     }
 })
 const fs = require('fs');
+
 // Processing function
 async function processData() {
-    // TO DO: Check if the gtfs can be processed
+    let lastGTFSRecord = await dbStats.getStats('expected_state', (new Date()).valueOf() - (1000 * 3600 * 24), new Date(), true);
+
+    // Main processing switch, depends on actual stateDB data, what will be done
+    // 1. Process delay data and actualize system state
+    // 2. Actualize system state only
+    // 3. Do nothing, we need to wait for next day to process data
+    if (Object.keys(lastGTFSRecord).length == 1) {
+        let recordTimeStamp = new Date(Object.keys(lastGTFSRecord)[0]);
+
+        recordTimeStamp.setHours(0, 0, 0, 0);
+        let timeDiff = ((new Date()).setHours(0, 0, 0, 0).valueOf() - recordTimeStamp.valueOf())
+        if (timeDiff === 0) {
+            log('info', 'Today system state has been actualized, waiting for next day to process data.');
+            return true;
+        }
+
+        // To do: Are we going to process data?
+        log('info', 'Starting system state actualization.');
+    } else {
+        log('info', 'There is no actual system state. Starting actualization.');
+    }
 
     dbStats.initStateProcessingStats();
     // Load or reload transit net data

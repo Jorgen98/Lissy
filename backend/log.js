@@ -26,6 +26,11 @@ const modules = [
         name: process.env.DB_STATS_MODULE_NAME,
         label: process.env.DB_STATS_MODULE_LABEL,
         color: "\x1b[36m"
+    },
+    {
+        name: process.env.BE_OP_DATA_PROCESSING_MODULE_NAME,
+        label: process.env.BE_OP_DATA_PROCESSING_MODULE_LABEL,
+        color: "\x1b[34m"
     }
 ]
 

@@ -203,7 +203,7 @@ async function deleteNet(net) {
 
     if (ids.length > 0) {
         try {
-            await db_postgis.query(`UPDATE trips SET is_active=false WHERE shape_id IN (${ids})`);
+            await db_postgis.query(`UPDATE trips SET is_active=false, is_today=false WHERE shape_id IN (${ids})`);
             await db_postgis.query(`UPDATE shapes SET is_active=false WHERE route_type='${net}'`);
         } catch(error) {
             log('error', error);
@@ -447,7 +447,7 @@ async function addRoute(route) {
     }
 }
 
-// Get all lines used in actual transit system state
+// Get all routes used in actual transit system state
 async function getActiveRoutes() {
     let result;
     try {
@@ -473,9 +473,9 @@ async function addTrip(trip) {
     try {
         let id = await db_postgis.query(`INSERT INTO trips (route_id, route_id_id, trip_id, trip_headsign,
             trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id, stops_info, stops, api,
-            is_active) VALUES ('${trip.route_id}',  ${trip.route_id_id}, '${trip.trip_id}', '${trip.trip_headsign}',
+            is_active, is_today) VALUES ('${trip.route_id}',  ${trip.route_id_id}, '${trip.trip_id}', '${trip.trip_headsign}',
             '${trip.trip_short_name}', ${trip.direction_id}, '${trip.block_id}', ${trip.wheelchair_accessible},
-            ${trip.bikes_allowed}, ${trip.shape_id}, array[${trip.stops_info}]::json[], '{${trip.stops}}', '${trip.api}', true) RETURNING id`);
+            ${trip.bikes_allowed}, ${trip.shape_id}, array[${trip.stops_info}]::json[], '{${trip.stops}}', '${trip.api}', true, false) RETURNING id`);
         return id.rows[0].id;
     } catch(error) {
         log('error', error);
@@ -508,6 +508,67 @@ async function getActiveTrips(routeIds) {
     }
 
     return output;
+}
+
+// Get all trips used in actual transit system state which will be served today
+async function getPlannedTrips(routeIds) {
+    let result;
+
+    let ids = [];
+    for (const route in routeIds) {
+        ids.push(routeIds[route].id);
+    }
+
+    try {
+        result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
+            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
+            stops_info, stops, api FROM trips WHERE is_active=true AND is_today=true AND route_id_id IN (${ids})`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    let output = {};
+
+    for (const row of result.rows) {
+        output[row['trip_id']] = row;
+    }
+
+    return output;
+}
+
+// Set all active trips as served, this function will be used before actual GTFS state processing
+// This means there can be trips, which do not change at all (is_active), but they are not served on current day (is_today)
+async function setAllTripAsServed() {
+    try {
+        await db_postgis.query(`UPDATE trips SET is_today=false WHERE is_active=true`);
+        return true;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
+// Set trip as served, means for today state data of this trip was processed
+async function setTripAsServed(id) {
+    try {
+        await db_postgis.query(`UPDATE trips SET is_today=false WHERE id='${id}'`);
+        return true;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
+// Change trip state to will be served today
+async function setTripAsUnServed(id) {
+    try {
+        await db_postgis.query(`UPDATE trips SET is_today=true WHERE id='${id}'`);
+        return true;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
 }
 
 // Add new shape to DB, returns new id
@@ -635,4 +696,5 @@ async function getShapes() {
 
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
-    getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes }
+    getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
+    setTripAsServed, setTripAsUnServed }

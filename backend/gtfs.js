@@ -658,6 +658,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
         return false;
     }
 
+    await dbPostGIS.setAllTripAsServed();
     let actualTrips = await dbPostGIS.getActiveTrips(todayRouteIds);
     let tripsToProcess = 0;
 
@@ -752,11 +753,18 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             } else {
                 shapesToCalc[tmpShapeId].trip_ids.push(newTripId);
             }
+
+            if (! await dbPostGIS.setTripAsUnServed(newTripId)) {
+                return false;
+            }
+        } else {
+            if (! await dbPostGIS.setTripAsUnServed(actualTrip.id)) {
+                return false;
+            }
         }
     }
 
     dbStats.updateStateProcessingStats('gtfs_trips', Object.keys(actualTrips).length);
-
     dbStats.updateStateProcessingStats('trips_to_process', tripsToProcess);
 
     return true;

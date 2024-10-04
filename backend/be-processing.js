@@ -10,6 +10,7 @@ const dbPostGIS = require('./db-postgis.js');
 const dbStats = require('./db-stats.js');
 const logService = require('./log.js');
 const gtfsService = require('./gtfs.js');
+const opProcessingService = require('./be-processing-operational-data.js');
 
 // .env file include
 dotenv.config();
@@ -56,10 +57,27 @@ async function processData() {
         let timeDiff = ((new Date()).setHours(0, 0, 0, 0).valueOf() - recordTimeStamp.valueOf())
         if (timeDiff === 0) {
             log('info', 'Today system state has been actualized, waiting for next day to process data.');
+            //return true;
+        }
+
+        // Are there any trips to process, parse data from real operations?
+        let tripsToBeProcessedNum = Object.keys(await dbPostGIS.getPlannedTrips(await dbPostGIS.getActiveRoutes())).length;
+        if (tripsToBeProcessedNum > 0) {
+            // Yes, process this data
+            if (! await opProcessingService.processServedTrips()) {
+                return false;
+            }
+        }
+
+        // Are there still trips to process, especially trips which do not end until now?
+        tripsToBeProcessedNum = Object.keys(await dbPostGIS.getPlannedTrips(await dbPostGIS.getActiveRoutes())).length;
+        if (tripsToBeProcessedNum > 0) {
+            // Yes, we need to run processing one more time later
+            log('info', 'There are still trips to process, but this trips not finished yet. Please run processing one more time later.');
             return true;
         }
 
-        // To do: Are we going to process data?
+        // No, we processed all trips, so we can actualize transit system structure and wait until next processing time
         log('info', 'Starting system state actualization.');
     } else {
         log('info', 'There is no actual system state. Starting actualization.');

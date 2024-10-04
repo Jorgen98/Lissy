@@ -180,13 +180,13 @@ async function saveStateProcessingStats() {
         .intField('routing_tram_success', stateProcessingStats['routing_tram_success'])
         .intField('routing_time', stateProcessingStats['routing_time'])
         .stringField('problematic_routes', JSON.stringify(stateProcessingStats['problematic_routes']))
+        .intField('trips_to_process', stateProcessingStats['trips_to_process'])
         .timestamp(new Date());
         
     writeApi.writePoint(record)
 
     return new Promise((resolve) => {
         writeApi.close().then(async () => {
-            await saveTripsToProcessNum(stateProcessingStats['trips_to_process']);
             resolve(stateProcessingStats);
         })
         .catch((error) => {
@@ -209,25 +209,4 @@ function updateStateProcessingStats(prop, value) {
     }
 }
 
-async function saveTripsToProcessNum(numOfTrips) {
-    const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
-
-    const record = new Point(measurementStats)
-        .tag('stat_type', statType.tripsToProcess)
-        .intField('trips_to_process', numOfTrips)
-        .timestamp(new Date());
-        
-    writeApi.writePoint(record)
-
-    return new Promise((resolve) => {
-        writeApi.close().then(() => {
-            resolve(true);
-        })
-        .catch((error) => {
-            log('error', error)
-            resolve(false);
-        })
-    });
-}
-
-module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats, updateStateProcessingStats, saveTripsToProcessNum }
+module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats, updateStateProcessingStats }

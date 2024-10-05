@@ -44,7 +44,9 @@ const fs = require('fs');
 
 // Processing function
 async function processData() {
-    let lastGTFSRecord = await dbStats.getStats('expected_state', (new Date()).valueOf() - (1000 * 3600 * 24), new Date(), true);
+    let now = new Date();
+    let yesterday = (new Date()).setHours(0, 0, 0, 0).valueOf() - (1000 * 3600 * 24 * 1);
+    let lastGTFSRecord = await dbStats.getStats('expected_state', yesterday, new Date(), true);
 
     // Main processing switch, depends on actual stateDB data, what will be done
     // 1. Process delay data and actualize system state
@@ -57,11 +59,11 @@ async function processData() {
         let timeDiff = ((new Date()).setHours(0, 0, 0, 0).valueOf() - recordTimeStamp.valueOf())
         if (timeDiff === 0) {
             log('info', 'Today system state has been actualized, waiting for next day to process data.');
-            //return true;
+            return true;
         }
 
         // Are there any trips to process, parse data from real operations?
-        let tripsToBeProcessedNum = Object.keys(await dbPostGIS.getPlannedTrips(await dbPostGIS.getActiveRoutes())).length;
+        let tripsToBeProcessedNum = (await dbPostGIS.getPlannedTrips(await dbPostGIS.getActiveRoutesToProcess())).length;
         if (tripsToBeProcessedNum > 0) {
             // Yes, process this data
             if (! await opProcessingService.processServedTrips()) {
@@ -70,7 +72,7 @@ async function processData() {
         }
 
         // Are there still trips to process, especially trips which do not end until now?
-        tripsToBeProcessedNum = Object.keys(await dbPostGIS.getPlannedTrips(await dbPostGIS.getActiveRoutes())).length;
+        tripsToBeProcessedNum = (await dbPostGIS.getPlannedTrips(await dbPostGIS.getActiveRoutesToProcess())).length;
         if (tripsToBeProcessedNum > 0) {
             // Yes, we need to run processing one more time later
             log('info', 'There are still trips to process, but this trips not finished yet. Please run processing one more time later.');
@@ -82,6 +84,9 @@ async function processData() {
     } else {
         log('info', 'There is no actual system state. Starting actualization.');
     }
+    
+
+    return true;
 
     dbStats.initStateProcessingStats();
     // Load or reload transit net data

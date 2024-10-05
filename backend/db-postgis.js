@@ -468,6 +468,19 @@ async function getActiveRoutes() {
     return output;
 }
 
+// Get all routes used in actual transit system state for operation data processing
+async function getActiveRoutesToProcess() {
+    let result;
+    try {
+        result = await db_postgis.query(`SELECT id, route_id FROM routes WHERE is_active=true`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    return result.rows;
+}
+
 // Add new trip to DB, returns new id
 async function addTrip(trip) {
     try {
@@ -511,30 +524,31 @@ async function getActiveTrips(routeIds) {
 }
 
 // Get all trips used in actual transit system state which will be served today
-async function getPlannedTrips(routeIds) {
+async function getPlannedTrips(routes) {
     let result;
 
-    let ids = [];
-    for (const route in routeIds) {
-        ids.push(routeIds[route].id);
+    for (let route of routes) {
+        try {
+            result = await db_postgis.query(`SELECT id, api, shape_id, stops_info
+                FROM trips WHERE is_active=true AND is_today=true AND route_id_id='${route.id}'`);
+        } catch(error) {
+            log('error', error);
+            return [];
+        }
+
+        let trips_to_save = [];
+        for (let trip of result.rows) {
+            if (trip.stops_info.length < 2) {
+                continue;
+            }
+
+            trip.stops_info = [trip.stops_info[0], trip.stops_info[trip.stops_info.length - 1]];
+            trips_to_save.push(trip);
+        }
+        route.trips = trips_to_save;
     }
 
-    try {
-        result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
-            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
-            stops_info, stops, api FROM trips WHERE is_active=true AND is_today=true AND route_id_id IN (${ids})`);
-    } catch(error) {
-        log('error', error);
-        return [];
-    }
-
-    let output = {};
-
-    for (const row of result.rows) {
-        output[row['trip_id']] = row;
-    }
-
-    return output;
+    return routes;
 }
 
 // Set all active trips as served, this function will be used before actual GTFS state processing
@@ -603,6 +617,30 @@ async function countShapes() {
         log('error', error);
         return null;
     }
+}
+
+// Get all active shapes
+async function getActiveShapes() {
+    let result;
+    try {
+        result = await db_postgis.query(`SELECT id, ST_AsGeoJSON(geom) FROM shapes WHERE is_active=true`);
+    } catch(error) {
+        log('error', error);
+        return {};
+    }
+
+    let output = {};
+    for (const row of result.rows) {
+        let coords = [];
+        try {
+            coords = JSON.parse(row['st_asgeojson']).coordinates;
+        } catch(error) {
+            continue;
+        }
+        output[row.id] = coords;
+    }
+
+    return output;
 }
 
 // Send item to archive
@@ -697,4 +735,4 @@ async function getShapes() {
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
-    setTripAsServed, setTripAsUnServed }
+    setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes }

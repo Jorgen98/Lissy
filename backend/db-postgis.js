@@ -548,6 +548,15 @@ async function getPlannedTrips(routes) {
         route.trips = trips_to_save;
     }
 
+    let idx = 0;
+    while (idx < routes.length) {
+        if (routes[idx].trips.length < 1) {
+            routes.splice(idx, 1);
+        } else {
+            idx++;
+        }
+    }
+
     return routes;
 }
 

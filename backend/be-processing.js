@@ -5,6 +5,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const app = express();
+const fs = require('fs');
 
 const dbPostGIS = require('./db-postgis.js');
 const dbStats = require('./db-stats.js');
@@ -40,7 +41,6 @@ server.on('listening', async () => {
         log('success', 'Initialization procedure is done');
     }
 })
-const fs = require('fs');
 
 // Processing function
 async function processData() {
@@ -57,7 +57,7 @@ async function processData() {
 
         recordTimeStamp.setHours(0, 0, 0, 0);
         let timeDiff = ((new Date()).setHours(0, 0, 0, 0).valueOf() - recordTimeStamp.valueOf())
-        if (timeDiff === 0) {
+        if (timeDiff !== 0) {
             log('info', 'Today system state has been actualized, waiting for next day to process data.');
             return true;
         }
@@ -84,9 +84,6 @@ async function processData() {
     } else {
         log('info', 'There is no actual system state. Starting actualization.');
     }
-    
-
-    return true;
 
     dbStats.initStateProcessingStats();
     // Load or reload transit net data

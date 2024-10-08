@@ -20,7 +20,8 @@ const measurementStats = 'stats';
 // Stats measurement is divided by main tag intro sub measurements
 const statType = {
     expectedState: 'expected_state', // actual GTFS processing stats
-    tripsToProcess: 'trips_to_process' // how many trips should be still processed in current day
+    tripsToProcess: 'trips_to_process', // how many trips should be still processed in current day
+    operationData: 'operation_data' // Real operation processed data
 }
 
 // Variable for transit system state processing stats
@@ -196,6 +197,36 @@ async function saveStateProcessingStats() {
     });
 }
 
+// Function for saving transit system processing stats intro DB
+async function saveRealOperationData(tripId, scoreTable, date) {
+    const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
+
+    let record = new Point(measurementStats)
+        .tag('stat_type', statType.operationData)
+        .tag('trip_id', tripId)
+        .timestamp(date);
+    
+    for (const [i, row] of scoreTable.entries()) {
+        for (const [j, value] of row.entries()) {
+            if (value !== null) {
+                record.floatField(`${i}-${j}`, value);
+            }
+        }
+    }
+        
+    writeApi.writePoint(record);
+
+    return new Promise((resolve) => {
+        writeApi.close().then(async () => {
+            resolve(true);
+        })
+        .catch((error) => {
+            log('error', error)
+            resolve(false);
+        })
+    });
+}
+
 // Help function for processing state actual value edit
 function updateStateProcessingStats(prop, value) {
     if (stateProcessingStats[prop] === undefined) {
@@ -209,4 +240,5 @@ function updateStateProcessingStats(prop, value) {
     }
 }
 
-module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats, updateStateProcessingStats }
+module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats,
+    updateStateProcessingStats, saveRealOperationData }

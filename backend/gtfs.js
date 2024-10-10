@@ -29,6 +29,8 @@ let todayStopIdsDict = {};
 // .env file include
 dotenv.config();
 
+const saveTestOutput = process.env.TEST_OUTPUTS === 'true' ? true : false;
+
 // Help function for log writing
 function log(type, msg) {
     logService.write(process.env.BE_PROCESSING_MODULE_NAME, type, msg)
@@ -167,6 +169,14 @@ async function unzipAndParseData(response, startTime) {
                             return;
                         }
                         log('success', 'Shapes routing done');
+
+                        if (saveTestOutput) {
+                            fs.writeFile(`backups/${(new Date()).toLocaleString()}_shapes.txt`, JSON.stringify(await dbPostGIS.getShapes()), function(error) {
+                                if (error) {
+                                    console.log(error);
+                                }
+                            });
+                        }
                     }
 
                     resolve(true);

@@ -686,13 +686,11 @@ async function getShortestLine(pointA, pointB, pointC) {
     }
 }
 
-// Testing function for routing, will be deleted
+// Function for testing purposes, return currently active shapes
 async function getShapes() {
-    let result;
+    let tripsDBOutput = [];
     try {
-        result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
-            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
-            stops_info, stops, api FROM trips WHERE is_active=true`);
+        tripsDBOutput = await db_postgis.query(`SELECT id, trip_id, route_id, trip_headsign, shape_id, stops FROM trips WHERE is_active=true`);
     } catch(error) {
         log('error', error);
         return [];
@@ -700,45 +698,45 @@ async function getShapes() {
 
     let trips = {};
 
-    for (const row of result.rows) {
+    for (const row of tripsDBOutput.rows) {
         trips[row['trip_id']] = row;
     }
 
-    let stops = await getActiveStops();
+    let actualStops = await getActiveStops();
 
-    let sstops = [];
-    for (const stop in stops) {
-        sstops.push(stops[stop]);
+    let stopsArr = [];
+    for (const stop in actualStops) {
+        stopsArr.push(actualStops[stop]);
     }
 
-    let res = [];
+    let output = [];
     for (let trip in trips) {
-
-        let stps = [];
+        let tripStops = [];
         let exists = true;
-        for (const s of trips[trip].stops) {
+        for (const inspectedStop of trips[trip].stops) {
 
-            let stp = sstops.find((stop) => {return s === stop.id});
+            let stop = stopsArr.find((stop) => {return inspectedStop === stop.id});
 
-            if (stp === undefined) {
+            if (stop === undefined) {
                 exists = false;
                 break;
             }
-            stps.push({
-                code: stp.stop_id,
-                latLng: stp.latLng
+
+            tripStops.push({
+                code: stop.stop_id,
+                latLng: stop.latLng
             })
         }
         if (exists)
-        res.push({
-            route: trips[trip].route_id,
-            shape: JSON.parse((await db_postgis.query(`SELECT ST_AsGeoJSON(geom) FROM shapes WHERE id='${trips[trip].shape_id}'`)).rows[0]['st_asgeojson']).coordinates,
-            trip: trips[trip].trip_id.split('?')[2],
-            stops: stps
+            output.push({
+                route: trips[trip].route_id,
+                shape: JSON.parse((await db_postgis.query(`SELECT ST_AsGeoJSON(geom) FROM shapes WHERE id='${trips[trip].shape_id}'`)).rows[0]['st_asgeojson']).coordinates,
+                trip: trips[trip].trip_id.split('?')[2],
+                stops: tripStops
         });
     }
 
-    return res;
+    return output;
 }
 
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,

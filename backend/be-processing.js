@@ -44,7 +44,6 @@ server.on('listening', async () => {
 
 // Processing function
 async function processData() {
-    let now = new Date();
     let yesterday = (new Date()).setHours(0, 0, 0, 0).valueOf() - (1000 * 3600 * 24 * 1);
     let lastGTFSRecord = await dbStats.getStats('expected_state', yesterday, new Date(), true);
 
@@ -52,12 +51,12 @@ async function processData() {
     // 1. Process delay data and actualize system state
     // 2. Actualize system state only
     // 3. Do nothing, we need to wait for next day to process data
-    if (Object.keys(lastGTFSRecord).length == 1) {
+    if (Object.keys(lastGTFSRecord).length > 0) {
         let recordTimeStamp = new Date(Object.keys(lastGTFSRecord)[0]);
 
         recordTimeStamp.setHours(0, 0, 0, 0);
         let timeDiff = ((new Date()).setHours(0, 0, 0, 0).valueOf() - recordTimeStamp.valueOf())
-        if (timeDiff !== 0) {
+        if (timeDiff === 0) {
             log('info', 'Today system state has been actualized, waiting for next day to process data.');
             return true;
         }
@@ -84,8 +83,7 @@ async function processData() {
     } else {
         log('info', 'There is no actual system state. Starting actualization.');
     }
-
-    dbStats.initStateProcessingStats();
+    
     // Load or reload transit net data
     if (await dbPostGIS.reloadNetFiles()) {
         log('success', 'Net files for routing are loaded');
@@ -96,21 +94,12 @@ async function processData() {
         });
     }
 
+    // Actualization of transit system state
+    dbStats.initStateProcessingStats();
     if (!(await gtfsService.reloadActualSystemState())) {
         return false;
     }
+    await dbStats.saveStateProcessingStats();
 
-    // Testing function for routing, will be deleted
-    fs.writeFile(`backups/${(new Date()).toLocaleString()}.txt`, JSON.stringify(await dbPostGIS.getShapes()), function(err) {
-        if (err) {
-            console.log(err);
-        }
-    });
-    // Testing function for routing, will be deleted
-    fs.writeFile(`backups/${(new Date()).toLocaleString()}_stats.txt`, JSON.stringify(await dbStats.saveStateProcessingStats(), null, 4), function(err) {
-        if (err) {
-            console.log(err);
-        }
-    });
     return true;
 }

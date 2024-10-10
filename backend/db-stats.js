@@ -4,6 +4,7 @@
 
 const { flux, InfluxDB, Point } = require('@influxdata/influxdb-client');
 const { PingAPI, DeleteAPI } = require('@influxdata/influxdb-client-apis');
+const fs = require('fs');
 const dotenv = require('dotenv');
 
 const logService = require('./log.js');
@@ -21,11 +22,17 @@ const measurementStats = 'stats';
 const statType = {
     expectedState: 'expected_state', // actual GTFS processing stats
     tripsToProcess: 'trips_to_process', // how many trips should be still processed in current day
-    operationData: 'operation_data' // Real operation processed data
+    operationData: 'operation_data', // Real operation processed data
+    operationDataStats: 'operation_data_stats' // Real operation processing stats
 }
 
 // Variable for transit system state processing stats
 let stateProcessingStats = {};
+
+// Variable for real operation processing stats
+let realOperationProcessingStats = {};
+
+const saveTestOutput = process.env.TEST_OUTPUTS === 'true' ? true : false;
 
 // Help function for log writing
 function log(type, msg) {
@@ -129,24 +136,22 @@ function initStateProcessingStats() {
     }
 }
 
+function initROProcessingStats() {
+    realOperationProcessingStats = {
+        is_db_available: false,
+        processing_time: 0,
+        downloading_time: 0,
+        parsing_time: 0,
+        downloaded_records: 0,
+        stored_records: 0,
+        trips_without_data: 0,
+        data_without_trips: 0
+    }
+}
+
 // Function for saving transit system processing stats intro DB
 async function saveStateProcessingStats() {
     const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
-
-    const deleteAPI = new DeleteAPI(db_influx)
-    const stop = new Date()
-    let start = new Date();
-    start.setUTCHours(0, 0, 0, 0);
-
-    await deleteAPI.postDelete({
-        org: process.env.DB_STATS_ORG,
-        bucket: process.env.DB_STATS_BUCKET,
-        body: {
-            start: start.toISOString(),
-            stop: stop.toISOString(),
-            predicate: `_measurement="${measurementStats}"`,
-        },
-    })
 
     const record = new Point(measurementStats)
         .tag('stat_type', statType.expectedState)
@@ -187,8 +192,51 @@ async function saveStateProcessingStats() {
     writeApi.writePoint(record)
 
     return new Promise((resolve) => {
-        writeApi.close().then(async () => {
-            resolve(stateProcessingStats);
+        writeApi.close().then(() => {
+            if (saveTestOutput) {
+                fs.writeFile(`backups/${(new Date()).toLocaleString()}_gtfs_stats.txt`, JSON.stringify(stateProcessingStats, null, 4), function(error) {
+                    if (error) {
+                        log('error', error);
+                    }
+                });
+            }
+            resolve(true);
+        })
+        .catch((error) => {
+            log('error', error)
+            resolve(false);
+        })
+    });
+}
+
+// Function for saving transit system processing stats intro DB
+async function saveROProcessingStats() {
+    const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
+
+    const record = new Point(measurementStats)
+        .tag('stat_type', statType.operationDataStats)
+        .tag('is_db_available', realOperationProcessingStats['is_db_available'])
+        .intField('processing_time', realOperationProcessingStats['processing_time'])
+        .intField('downloading_time', realOperationProcessingStats['downloading_time'])
+        .intField('parsing_time', realOperationProcessingStats['parsing_time'])
+        .intField('downloaded_records', realOperationProcessingStats['downloaded_records'])
+        .intField('stored_records', realOperationProcessingStats['stored_records'])
+        .intField('trips_without_data', realOperationProcessingStats['trips_without_data'])
+        .intField('data_without_trips', realOperationProcessingStats['data_without_trips'])
+        .timestamp(new Date());
+        
+    writeApi.writePoint(record)
+
+    return new Promise((resolve) => {
+        writeApi.close().then(() => {
+            if (saveTestOutput) {
+                fs.writeFile(`backups/${(new Date()).toLocaleString()}_ro_stats.txt`, JSON.stringify(realOperationProcessingStats, null, 4), function(error) {
+                    if (error) {
+                        log('error', error);
+                    }
+                });
+            }
+            resolve(true);
         })
         .catch((error) => {
             log('error', error)
@@ -206,13 +254,16 @@ async function saveRealOperationData(tripId, scoreTable, date) {
         .tag('trip_id', tripId)
         .timestamp(date);
     
+    let anyData = false;
     for (const [i, row] of scoreTable.entries()) {
         for (const [j, value] of row.entries()) {
             if (value !== null) {
                 record.floatField(`${i}-${j}`, value);
+                anyData = true;
             }
         }
     }
+    record.tag('anyData', anyData);
         
     writeApi.writePoint(record);
 
@@ -227,7 +278,7 @@ async function saveRealOperationData(tripId, scoreTable, date) {
     });
 }
 
-// Help function for processing state actual value edit
+// Help function for updating system state processing stats
 function updateStateProcessingStats(prop, value) {
     if (stateProcessingStats[prop] === undefined) {
         return;
@@ -240,5 +291,18 @@ function updateStateProcessingStats(prop, value) {
     }
 }
 
+// Help function for updating real operation processing stats
+function updateROProcessingStats(prop, value) {
+    if (realOperationProcessingStats[prop] === undefined) {
+        return;
+    }
+
+    switch (typeof(realOperationProcessingStats[prop])) {
+        case 'number': realOperationProcessingStats[prop] += value; break;
+        case 'boolean': realOperationProcessingStats[prop] = value; break;
+    }
+}
+
 module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats,
-    updateStateProcessingStats, saveRealOperationData }
+    updateStateProcessingStats, saveRealOperationData, initROProcessingStats,
+    updateROProcessingStats, saveROProcessingStats }

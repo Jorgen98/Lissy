@@ -431,6 +431,26 @@ function triangulation(edgeA, edgeB, point) {
     }
 }
 
+// Geometric support functions
+function triangulationWithDistControl(edgeA, edgeB, point) {
+    let dist = countDistance(edgeA, edgeB);
+    let distA = countDistance(edgeA, point);
+    let distB = countDistance(edgeB, point);
+
+    if ((dist * 2) < distA || (dist * 2) < distB) {
+        return Infinity;
+    }
+
+    let angleCAB = getAngle(point, edgeA, edgeB);
+    let angleCBA = getAngle(point, edgeB, edgeA);
+
+    if (angleCAB > 1.63 || angleCBA > 1.63) {
+        return Infinity;
+    } else {
+        return Math.min(Math.sin(angleCAB) * countDistance(point, edgeA), Math.sin(angleCBA) * countDistance(point, edgeB));
+    }
+}
+
 // Two points distance calculation function
 function countDistance(pointA, pointB) {
     // Length computation with Haversine formula
@@ -467,4 +487,4 @@ async function saveNewShape(trip, newShape) {
     return await dbPostGIS.updateTripsShapeId(trip.trip_ids, newShapeId);
 }
 
-module.exports = { computeShape, triangulation };
+module.exports = { computeShape, triangulation, triangulationWithDistControl };

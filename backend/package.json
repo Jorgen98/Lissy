@@ -5,7 +5,9 @@
   "main": "app.js",
   "scripts": {
     "be-processing-start": "DB_POSTGIS_HOST='localhost' DB_STATS_HOST='http://localhost' node -r dotenv/config be-processing.js dotenv_config_path=../env/.env",
-    "be-processing-docker": "DB_POSTGIS_HOST='db-postgis' DB_STATS_HOST='http://db-stats' DB_STATS_PORT=8086 node -r dotenv/config be-processing.js dotenv_config_path=.env"
+    "be-processing-docker": "DB_POSTGIS_HOST='db-postgis' DB_STATS_HOST='http://db-stats' node -r dotenv/config be-processing.js dotenv_config_path=.env",
+    "be-api-start": "API_KEY=false DB_POSTGIS_HOST='localhost' DB_STATS_HOST='http://localhost' node -r dotenv/config be-api.js dotenv_config_path=../env/.env",
+    "be-api-docker": "API_KEY=true DB_POSTGIS_HOST='db-postgis' DB_STATS_HOST='http://db-stats' node -r dotenv/config be-api.js dotenv_config_path=.env"
   },
   "author": "",
   "license": "ISC",
@@ -15,7 +17,7 @@
     "cors": "^2.8.5",
     "decompress": "^4.2.1",
     "dotenv": "^16.3.1",
-    "express": "^4.21.0",
+    "express": "^4.21.1",
     "pg": "^8.11.3"
   }
 }

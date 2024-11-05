@@ -5,7 +5,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const app = express();
-const fs = require('fs');
 
 const dbPostGIS = require('./db-postgis.js');
 const dbStats = require('./db-stats.js');
@@ -52,7 +51,7 @@ async function processData() {
     // 2. Actualize system state only
     // 3. Do nothing, we need to wait for next day to process data
     if (Object.keys(lastGTFSRecord).length > 0) {
-        let recordTimeStamp = new Date(Object.keys(lastGTFSRecord)[0]);
+        let recordTimeStamp = new Date(Object.keys(lastGTFSRecord)[Object.keys(lastGTFSRecord).length - 1]);
 
         recordTimeStamp.setHours(0, 0, 0, 0);
         let timeDiff = ((new Date()).setHours(0, 0, 0, 0).valueOf() - recordTimeStamp.valueOf())

@@ -1,6 +1,5 @@
-version: '3.9'
 services:
-  nginx:
+  proxy:
     container_name: lissy-proxyServer
     image: nginx:1.19
     depends_on:
@@ -12,12 +11,55 @@ services:
       - 7000:80
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./index.html:/home/index.html
+  fe:
+    container_name: lissy-fe
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    depends_on:
+      db-postgis:
+        condition: service_healthy
+      db-stats:
+        condition: service_healthy
+    environment:
+      TZ: "Europe/Bratislava"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
   be-processing:
     container_name: lissy-be-processing
     build:
       context: ./
       dockerfile: ./backend/Dockerfile-be-processing
+    depends_on:
+      db-postgis:
+        condition: service_healthy
+      db-stats:
+        condition: service_healthy
+    environment:
+      TZ: "Europe/Bratislava"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  be-api:
+    container_name: lissy-be-api
+    build:
+      context: ./
+      dockerfile: ./backend/Dockerfile-be-api
     depends_on:
       db-postgis:
         condition: service_healthy
@@ -41,13 +83,11 @@ services:
     volumes:
       - ./env/db-postgis-init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./db-postgis-data:/var/lib/postgresql/data
-    ports:
-      - ${DB_POSTGIS_PORT}:${DB_POSTGIS_PORT}
     environment:
       POSTGRES_USER: ${DB_POSTGIS_USER}
       POSTGRES_PASSWORD: ${DB_POSTGIS_PASSWORD}
       POSTGRES_DB: ${DB_POSTGIS_DATABASE}
-      PGPORT: ${DB_POSTGIS_PORT}
+      PGPORT: 5432
       PGUSER: ${DB_POSTGIS_USER}
       TZ: "Europe/Bratislava"
     deploy:
@@ -68,8 +108,6 @@ services:
     image: influxdb:2.7
     volumes:
       - ./db-stats-data:/var/lib/influxdb
-    ports:
-      - ${DB_STATS_PORT}:8086
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: ${DB_STATS_USER}

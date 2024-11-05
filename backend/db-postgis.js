@@ -31,7 +31,7 @@ const db_postgis = new Pool({
     host: process.env.DB_POSTGIS_HOST,
     database: process.env.DB_POSTGIS_DATABASE,
     password: process.env.DB_POSTGIS_PASSWORD,
-    port: process.env.DB_POSTGIS_PORT
+    port: 5432
 });
 
 // Function for DB connection create

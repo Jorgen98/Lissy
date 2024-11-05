@@ -13,7 +13,7 @@ const logService = require('./log.js');
 dotenv.config();
 
 // Stats DB instant
-const db_influx = new InfluxDB({url: `${process.env.DB_STATS_HOST}:${process.env.DB_STATS_PORT}`, token: process.env.DB_STATS_TOKEN});
+const db_influx = new InfluxDB({url: `${process.env.DB_STATS_HOST}:8086`, token: process.env.DB_STATS_TOKEN});
 
 // Measurement names
 const measurementStats = 'stats';

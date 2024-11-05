@@ -1,0 +1,57 @@
+services:
+  db-postgis:
+    container_name: lissy-db-postgis
+    image: postgis/postgis:16-master
+    volumes:
+      - ./env/db-postgis-init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db-postgis-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${DB_POSTGIS_USER}
+      POSTGRES_PASSWORD: ${DB_POSTGIS_PASSWORD}
+      POSTGRES_DB: ${DB_POSTGIS_DATABASE}
+      PGPORT: 5432
+      PGUSER: ${DB_POSTGIS_USER}
+      TZ: "Europe/Bratislava"
+    deploy:
+      restart_policy:
+        condition: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${DB_POSTGIS_DATABASE} -U ${DB_POSTGIS_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  db-stats:
+    container_name: lissy-db-stats
+    image: influxdb:2.7
+    volumes:
+      - ./db-stats-data:/var/lib/influxdb
+    ports:
+      - 8086:8086
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${DB_STATS_USER}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${DB_STATS_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${DB_STATS_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${DB_STATS_BUCKET}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${DB_STATS_TOKEN}
+      INFLUXDB_BIND_ADDRESS: 0.0.0.0:8088
+    deploy:
+      restart_policy:
+        condition: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    healthcheck:
+      test: influx ping
+      interval: 5s
+      timeout: 5s
+      retries: 5

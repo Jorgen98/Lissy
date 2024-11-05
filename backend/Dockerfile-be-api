@@ -1,0 +1,12 @@
+FROM node:latest
+
+WORKDIR /be-api/
+
+COPY ./backend/package*.json ./
+
+RUN npm install
+
+COPY ./backend/ .
+ADD ./env/.env ./
+
+CMD npm run be-api-docker

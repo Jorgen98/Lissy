@@ -3,3 +3,4 @@
 /backend/node_modules
 /backend/backups
 /frontend/node_modules
+/frontend/.angular

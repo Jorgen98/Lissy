@@ -1,0 +1,7 @@
+<main class="main" *ngIf="config.enabled">
+  <h1>Angular Router App</h1>
+  <span *ngFor="let module of modules">
+    <a *ngIf="module.enabled" routerLink="{{ module.apiPrefix }}" routerLinkActive="active" ariaCurrentWhenActive="page">{{ module.name }}</a><br>
+  </span>
+  <p>{{ isDBConnected }}</p>
+</main>

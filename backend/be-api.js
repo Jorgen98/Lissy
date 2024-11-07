@@ -11,6 +11,12 @@ const dbPostGIS = require('./db-postgis.js');
 const dbStats = require('./db-stats.js');
 const logService = require('./log.js');
 
+// modules
+const modules = [
+    require('../frontend/modules/about/api.js'),
+    require('../frontend/modules/stats/api.js')
+];
+
 // .env file include
 dotenv.config();
 
@@ -19,27 +25,49 @@ function log(type, msg) {
     logService.write(process.env.BE_API_MODULE_NAME, type, msg)
 }
 
-// Base API URL
-const apiBaseUrl = '/lissy/api/';
-
 // CORS setup
 app.use(cors());
 
 // Function for API Token verification
-function verifyToken(req, res, next) {
+async function verifyToken(req, res, next) {
     const token = process.env.BE_API_MODULE_TOKEN;
   
     if (process.env.API_KEY === 'true' && req.headers['authorization'] !== token) {
-      log('info', 'Attempt with false API Token verification');
-      res.send(false);
-      return;
+        log('info', 'Attempt with false API Token verification');
+        res.send(false);
+        return;
     }
-  
-    next();
-}
 
-// API Token activation
-app.use(verifyToken);
+    let url = req.originalUrl.split('/');
+    let idx = 0;
+    while (idx < url.length) {
+        if (url[idx] == '') {
+            url.splice(idx, 1);
+        } else {
+            idx++;
+        }
+    }
+
+    if (url.length < 1 || url[0] !== 'lissy' || url[1] !== 'api') {
+        res.send(false);
+    } else if (url.length == 2) {
+        try {
+            res.send(await dbPostGIS.connectToDB() && await dbStats.isDBConnected());
+        } catch (error) {
+            log('error', error);
+            res.send(false);
+        }
+    } else {
+        for (const module of modules) {
+            if (module.env.apiPrefix === url[2] && module.env.enabled) {
+                module.processRequest(url.slice(3), req, res);
+                return;
+            }
+        }
+
+        res.send(false);
+    }
+}
 
 // Try to run processing service
 let server = app.listen(7001, async () => {
@@ -58,12 +86,5 @@ server.on('listening', async () => {
     }
 })
 
-// Default API endpoint to connection check
-app.get(apiBaseUrl, async (req, res) => {
-    try {
-        res.send(await dbPostGIS.connectToDB() && await dbStats.isDBConnected());
-    } catch (error) {
-        log('error', error);
-        res.send(false);
-    }
-});
+// API Token activation
+app.use(verifyToken);

@@ -1,0 +1,51 @@
+{
+    "header": "Editor map",
+    "logIn": "Přihlásit se",
+    "wrongCredentials": "Nesprávné uživatelské jméno nebo heslo",
+    "menu": "Menu",
+    "files-manipulation": {
+        "header": "Import a export map",
+        "importBtn": "Načtení mapových podkladů",
+        "exportBtn": "Export mapových podkladů",
+        "import": {
+            "header": "Import mapových podkladů",
+            "file": "Vstupní soubor",
+            "importBtn": "Importuj data"
+        },
+        "export": {
+            "header": "Vyberte vrstvu, kterou chcete exportovat",
+            "exportBtn": "Exportovat tuto vrstvu",
+            "cancelBtn": "Zrušit"
+        },
+        "menuBtn": "Menu",
+        "warnings": {
+            "attention": "Pozor!",
+            "rewrite": "Importem načteného souboru se přepíší aktuálně používaná data.",
+            "contBtn": "Pokračovat",
+            "cancelBtn": "Zrušit",
+            "loadError": "Vybraný soubor se nepodařilo načíst",
+            "wrongFormat": "Načtený soubor není ve správném formátu",
+            "noFile": "Nenahráli jste žádný soubor",
+            "unknownFormat": "Chyba při načítání dat, vybraný soubor není ve správném formátu"
+        },
+        "closeBtn": "Zavřít",
+        "progress": {
+            "importHeader": "Zpracování dat",
+            "importDone": "Zpracování dat je dokončeno",
+            "exportHeader": "Export dat",
+            "exportDone": "Exportování dat je dokončeno"
+        }
+    },
+    "layer-select": {
+        "railLayer": "Železniční síť",
+        "roadLayer": "Silniční síť",
+        "tramLayer": "Tramvajová síť"
+    },
+    "map": {
+        "deleteOne": "Smazat jednu část",
+        "deleteSection": "Smazat celou sekci",
+        "bothway": "Sobousměnit",
+        "oneway": "Sjednosměrnit",
+        "changeDir": "Změnit směr"
+    }
+}

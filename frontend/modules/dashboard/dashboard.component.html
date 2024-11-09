@@ -1,7 +1,7 @@
 <main class="main" *ngIf="config.enabled">
-  <h1>Angular Router App</h1>
+  <h1 style="color: white;">{{ 'header' | translate }}</h1>
   <span *ngFor="let module of modules">
-    <a *ngIf="module.enabled" routerLink="{{ module.apiPrefix }}" routerLinkActive="active" ariaCurrentWhenActive="page">{{ module.name }}</a><br>
+    <a *ngIf="module.enabled" routerLink="{{ module.apiPrefix }}" routerLinkActive="active" ariaCurrentWhenActive="page" class="p-button font-bold">{{ module.name }}</a><br>
   </span>
   <p>{{ isDBConnected }}</p>
 </main>

@@ -1,18 +1,52 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { ImportsModule } from './imports';
+import { TranslateService } from '@ngx-translate/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [ ImportsModule ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 
 export class AppComponent {
   public isDBConnected: boolean = false;
+
+  public langs = [
+    { code: 'cz', flag: 'GB' },
+    { code: 'en', flag: 'CZ' }
+  ];
+  public selectedLang: {code: string, flag: string} = this.langs[0];
   
-  constructor() {}
+  constructor(
+    private translate: TranslateService,
+    public router: Router
+  ) {
+    this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
+    this.translate.setDefaultLang(this.langs[0].code);
+    this.translate.use(this.langs[0].code);
+  }
+
+  public changeLang() {
+    if (this.selectedLang.code === 'cz') {
+      this.selectedLang = this.langs[1];
+    } else {
+      this.selectedLang = this.langs[0];
+    }
+    this.translate.use(this.selectedLang.code);
+  }
+
+  public goToLink(whereTo: string) {
+    let url = '';
+    if (whereTo === 'brno') {
+      url = (this.selectedLang.code === 'en' ? 'https://datahub.brno.cz/' : 'https://data.brno.cz/');
+    } else {
+      url = (this.selectedLang.code === 'en' ? 'https://www.fit.vut.cz/.en' : 'https://www.fit.vut.cz/.cs');
+    }
+    window.open(url, "_blank");
+  }
 }
 
 export interface ModuleConfig {

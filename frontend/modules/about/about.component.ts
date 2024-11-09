@@ -1,30 +1,21 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { APIService } from '../../src/app/services/api';
+import { Component } from '@angular/core';
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
-import { CommonModule } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
+import { ImportsModule } from '../../src/app/imports';
 
 @Component({
   selector: 'about',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [ ImportsModule ],
   templateUrl: './about.component.html',
   styleUrl: './about.component.css'
 })
 
-export class AboutModule implements OnInit {
+export class AboutModule {
   static modulConfig: ModuleConfig = config;
   public config: ModuleConfig = config;
-  constructor(private apiService: APIService) {}
-
-  public DBoutPut: string = '';
-
-  private async apiGet(url: string) {
-    return await this.apiService.genericGet(`${config.apiPrefix}/${url}`);
-  }
-
-  public async ngOnInit() {
-    this.DBoutPut = JSON.stringify(await this.apiGet(''));
-  }
+  constructor(
+    public translate: TranslateService
+  ) {}
 }

@@ -1,4 +1,5 @@
 <main class="main" *ngIf="config.enabled">
-  <a routerLink="/" routerLinkActive="active" ariaCurrentWhenActive="page">Home</a>
-  <p>{{ DBoutPut }}</p>
+  <markdown
+    [src]="translate.currentLang == 'en' ? 'assets/aboutReadMeEN.md' : 'assets/aboutReadMe.md'">
+  </markdown>
 </main>

@@ -1,1 +1,24 @@
-<router-outlet></router-outlet>
+<div class="main">
+    <div class="header">
+        <div class="header-left">
+            <button pButton type="button" class="btn-header" [disabled]="router.url == '/'" routerLink="/">
+                <i class="pi pi-list"></i>
+            </button>
+        </div>
+        <div class="header-center">
+            <p style="padding: 0; color: white;">Lissy</p>
+        </div>
+        <div class="header-right">
+            <div class="header-link-item" (click)="goToLink('fit')">
+                <img class="header-link-img" src="./FIT.png"/>
+            </div>
+            <div class="header-link-item" (click)="goToLink('brno')">
+                <img class="header-link-img" src="./brno.png"/>
+            </div>
+            <div class="header-link-item" (click)="changeLang()">
+                <img class="header-link-img header-lang-item" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/' + selectedLang.flag + '.svg'"/>
+            </div>
+        </div>
+    </div>
+    <router-outlet class="content"></router-outlet>
+</div>

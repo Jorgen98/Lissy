@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { APIService } from '../../src/app/services/api';
 import * as config from './config.json';
 import { ModuleConfig } from '../../src/app/app.component';
-import { CommonModule } from '@angular/common';
+import { ImportsModule } from '../../src/app/imports';
+import { TranslateService } from '@ngx-translate/core';
 
 // Module configs
 import * as configAboutModule from '../about/config.json';
@@ -12,7 +12,7 @@ import * as configStatsModule from '../stats/config.json';
 @Component({
   selector: 'dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [ ImportsModule ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -20,7 +20,10 @@ import * as configStatsModule from '../stats/config.json';
 export class DashboardModule implements OnInit {
   static modulConfig: ModuleConfig = config;
   public config: ModuleConfig = config;
-  constructor(private apiService: APIService, private router: Router) {}
+  constructor(
+    private apiService: APIService,
+    private translate: TranslateService
+  ) {}
 
   public isDBConnected: boolean = false;
   public modules: ModuleConfig[] = [

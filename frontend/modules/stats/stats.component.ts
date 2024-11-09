@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
 import { APIService } from '../../src/app/services/api';
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
-import { CommonModule } from '@angular/common';
+import { ImportsModule } from '../../src/app/imports';
 
 @Component({
   selector: 'stats',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [ ImportsModule ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.css'
 })

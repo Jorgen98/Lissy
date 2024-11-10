@@ -1,12 +1,12 @@
 <div class="main">
     <div class="header">
         <div class="header-left">
-            <button pButton type="button" class="btn-header" [disabled]="router.url == '/'" routerLink="/">
-                <i class="pi pi-list"></i>
+            <button *ngIf="router.url != '/'" pButton type="button" class="btn-header" routerLink="/">
+                <i class="pi pi-microsoft"></i>
             </button>
         </div>
         <div class="header-center">
-            <p style="padding: 0; color: white;">Lissy</p>
+            <p *ngIf="router.url != '/'" style="padding: 0; margin: 0; color: white;">Lissy</p>
         </div>
         <div class="header-right">
             <div class="header-link-item" (click)="goToLink('fit')">
@@ -20,5 +20,5 @@
             </div>
         </div>
     </div>
-    <router-outlet class="content"></router-outlet>
+    <router-outlet></router-outlet>
 </div>

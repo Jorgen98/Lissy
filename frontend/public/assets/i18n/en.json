@@ -1,51 +1,17 @@
 {
-    "header": "Map Editor",
-    "logIn": "Login",
-    "wrongCredentials": "Wrong username or password",
-    "menu": "Menu",
-    "files-manipulation": {
-        "header": "Import and export map files",
-        "importBtn": "Import map files",
-        "exportBtn": "Export map files",
-        "import": {
-            "header": "Import map files",
-            "file": "Input file",
-            "importBtn": "Import data"
-        },
-        "export": {
-            "header": "Select the layer you want to export",
-            "exportBtn": "Export this layer",
-            "cancelBtn": "Cancel"
-        },
-        "menuBtn": "Menu",
-        "warnings": {
-            "attention": "Attention!",
-            "rewrite": "Importing a loaded file overwrites the currently used data.",
-            "contBtn": "Continue",
-            "cancelBtn": "Cancel",
-            "loadError": "The selected file could not be loaded",
-            "wrongFormat": "The loaded file is not in the correct format",
-            "noFile": "You have not uploaded any file",
-            "unknownFormat": "Error loading data, the selected file is not in the correct format"
-        },
-        "closeBtn": "Close",
-        "progress": {
-            "importHeader": "Processing data",
-            "importDone": "Data processing is completed",
-            "exportHeader": "Export data",
-            "exportDone": "Data export is complete"
-        }
+    "about": {
+        "name": "About"
     },
-    "layer-select": {
-        "railLayer": "Railway network",
-        "roadLayer": "Road network",
-        "tramLayer": "Tramway network"
+    "stats": {
+        "name": "Stats"
     },
-    "map": {
-        "deleteOne": "Delete one section",
-        "deleteSection": "Delete whole section",
-        "bothway": "Two-way road",
-        "oneway": "One-way road",
-        "changeDir": "Change direction"
+    "primeng": {
+        "dayNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        "dayNamesShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        "dayNamesMin": ["Su","Mo","Tu","We","Th","Fr","Sa"],
+        "monthNames": ["January","February","March","April","May","June","July","August","September","October","November","December"],
+        "monthNamesShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun","Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        "today": "Today",
+        "weekHeader": "Wk"
     }
 }

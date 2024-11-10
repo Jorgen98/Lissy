@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ImportsModule } from './imports';
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
+import { PrimeNGConfig } from 'primeng/api';
 
 @Component({
   selector: 'app-root',
@@ -22,11 +23,13 @@ export class AppComponent {
   
   constructor(
     private translate: TranslateService,
-    public router: Router
+    public router: Router,
+    private config: PrimeNGConfig
   ) {
     this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
     this.translate.setDefaultLang(this.langs[0].code);
     this.translate.use(this.langs[0].code);
+    this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
   }
 
   public changeLang() {
@@ -36,6 +39,7 @@ export class AppComponent {
       this.selectedLang = this.langs[0];
     }
     this.translate.use(this.selectedLang.code);
+    this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
   }
 
   public goToLink(whereTo: string) {
@@ -52,5 +56,6 @@ export class AppComponent {
 export interface ModuleConfig {
   enabled: boolean,
   apiPrefix: string,
-  name: string
+  name: string,
+  icon: string
 }

@@ -1,5 +1,6 @@
 {
     "enabled": true,
     "apiPrefix": "stats",
-    "name": "Stats"
+    "name": "stats.name",
+    "icon": "pi-chart-line"
 }

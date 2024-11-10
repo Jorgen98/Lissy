@@ -1,0 +1,33 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    row-gap: 5em;
+}
+
+.main-item-up {
+    margin: auto auto 0 auto;
+}
+
+.main-item-down {
+    margin: 0 auto auto auto;
+    display: flex;
+    row-gap: 4em;
+    column-gap: 4em;
+}
+
+.main-btn-div {
+    justify-content: center;
+    align-content: center;
+    display: flex;
+}
+
+.main-btn-content {
+    display: flex;
+    flex-direction: column;
+    font-size: 1.5em;
+}
+
+.main-btn-content-text {
+    line-height: 1.5em;
+}

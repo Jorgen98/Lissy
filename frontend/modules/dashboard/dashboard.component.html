@@ -1,7 +1,13 @@
 <main class="main" *ngIf="config.enabled">
-  <h1 style="color: white;">{{ 'header' | translate }}</h1>
-  <span *ngFor="let module of modules">
-    <a *ngIf="module.enabled" routerLink="{{ module.apiPrefix }}" routerLinkActive="active" ariaCurrentWhenActive="page" class="p-button font-bold">{{ module.name }}</a><br>
-  </span>
-  <p>{{ isDBConnected }}</p>
+  <div class="main-item-up" style="color: white; font-size: 5em;">Lissy</div>
+  <div class="main-item-down">
+    <div *ngFor="let module of modules" class="main-btn-div">
+      <button *ngIf="module.enabled" pButton type="button" class="btn-header" routerLink="{{ module.apiPrefix }}">
+        <div class="main-btn-content">
+          <i class="pi {{ module.icon }}"></i>
+          <span class="main-btn-content-text">{{ module.name | translate }}</span>
+        </div>
+      </button>
+    </div>
+  </div>
 </main>

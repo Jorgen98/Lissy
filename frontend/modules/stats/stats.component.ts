@@ -17,13 +17,22 @@ export class StatsModule implements OnInit {
   public config: ModuleConfig = config;
   constructor(private apiService: APIService) {}
 
-  public DBoutPut: string = '';
+  public isCalendarModuleActive: boolean = false;
+  public dates: Date[] = [new Date()];
 
   private async apiGet(url: string) {
     return await this.apiService.genericGet(`${config.apiPrefix}/${url}`);
   }
 
   public async ngOnInit() {
-    this.DBoutPut = JSON.stringify(await this.apiGet(''));
+    this.renderData();
+  }
+
+  public setToday() {
+    this.dates = [new Date()];
+  }
+
+  public renderData() {
+    this.isCalendarModuleActive = false;
   }
 }

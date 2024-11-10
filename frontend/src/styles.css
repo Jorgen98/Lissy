@@ -12,6 +12,8 @@
     line-height: 0;
     opacity: 0.5;
     padding: 0;
+    outline: none;
+    box-shadow: none;
 }
 
 .btn-header:hover {
@@ -21,4 +23,78 @@
 
 .pi {
     font-size: inherit;
+}
+
+.side-control {
+    display: flex;
+    align-items: center;
+    border-right: 0.15em solid var(--gray-800);
+    height: 100%;
+    position: fixed;
+    width: 5em;
+}
+
+.side-btn-div {
+    border-left: 0.15em solid transparent;
+    padding: 0 1.35em;
+    transition: .5s;
+}
+
+.side-btn-div-active {
+    border-left: 0.15em solid var(--gray-50);
+    transition: .5s;
+}
+
+.btn-side-menu {
+    background-color: transparent;
+    border: none;
+    color: var(--gray-50);
+    text-decoration: none;
+    font-size: 1.75em;
+    transition: .5s;
+    line-height: 0;
+    opacity: 0.5;
+    padding: 0.5em 0;
+    outline: none;
+    box-shadow: none;
+}
+
+.btn-side-menu:hover {
+    transition: .5s;
+    opacity: 1;
+}
+
+.btn-side-menu-active {
+    opacity: 1;
+}
+
+.main {
+    background-color: var(--background);
+    display: flex;
+}
+
+.content {
+    margin-left: 5em;
+}
+
+.side-control-content {
+    position: fixed;
+    display: flex;
+    height: 100%;
+    align-items: center;
+    margin-left: 2em;
+}
+
+router-outlet {
+    padding-top: 3.5em;
+}
+
+dashboard {
+    display: flex;
+    flex-grow: 1;
+}
+
+stats {
+    display: flex;
+    flex-grow: 1;
 }

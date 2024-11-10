@@ -6,6 +6,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
+import { CalendarModule } from 'primeng/calendar';
 
 @NgModule({
   imports: [
@@ -16,7 +17,8 @@ import { MarkdownModule } from 'ngx-markdown';
     DropdownModule,
     FormsModule,
     CommonModule,
-    MarkdownModule
+    MarkdownModule,
+    CalendarModule
   ],
   exports: [
     RouterOutlet,
@@ -26,7 +28,8 @@ import { MarkdownModule } from 'ngx-markdown';
     DropdownModule,
     FormsModule,
     CommonModule,
-    MarkdownModule
+    MarkdownModule,
+    CalendarModule
   ],
   providers: []
 })

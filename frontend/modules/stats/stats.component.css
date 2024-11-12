@@ -1,3 +1,8 @@
+:host::ng-deep.p-disabled {
+    opacity: 0.5 !important;
+    color: var(--gray-500) !important;
+}
+
 :host::ng-deep.p-calendar {
     width: 26em;
     height: 29em;
@@ -19,30 +24,25 @@
     color: var(--gray-50);
     background-color: var(--background);
     transition: .5s;
-    opacity: 0.5;
     border: 0.15em solid var(--gray-50);
 }
 
 :host::ng-deep.p-datepicker table td.p-datepicker-today > span:hover {
-    opacity: 1;
     transition: .5s;
     color: var(--background);
     background-color: var(--gray-50);
 }
 
 :host::ng-deep.p-datepicker table td > span {
-    opacity: 0.5;
     transition: .5s;
 }
 
 :host::ng-deep.p-datepicker table td > span:hover {
-    opacity: 1;
     transition: .5s;
     color: var(--background);
 }
 
 :host::ng-deep.p-datepicker table td > span.p-highlight {
-    opacity: 1;
     color: var(--background);
     background-color: var(--gray-50);
 }
@@ -52,12 +52,10 @@
 }
 
 :host::ng-deep.p-yearpicker-year, :host::ng-deep.p-monthpicker-month {
-    opacity: 0.5;
     transition: .5s;
 }
 
 :host::ng-deep.p-yearpicker-year:hover, :host::ng-deep.p-monthpicker-month:hover {
-    opacity: 1;
     color: var(--background);
     transition: .5s;
 }
@@ -69,7 +67,6 @@
 }
 
 :host::ng-deep.p-datepicker-year, :host::ng-deep.p-datepicker-month {
-    opacity: 0.5;
     transition: .5s;
     color: var(--gray-50);
     font-weight: 600;
@@ -77,7 +74,6 @@
 }
 
 :host::ng-deep.p-datepicker-year:hover, :host::ng-deep.p-datepicker-month:hover, :host::ng-deep.p-highlight:hover {
-    opacity: 1;
     color: var(--background);
     transition: .5s;
     background-color: var(--gray-50);

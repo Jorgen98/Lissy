@@ -37,13 +37,23 @@ export class APIService {
     }
 
     // Generic endpoint
-    private query(url: string) {
-        return this.httpClient.get(`${this.whoToAsk}${url}`, {headers: this.headers}).pipe(retry(3));
+    private query(url: string, params?: {[name: string]: string}) {
+        if (params) {
+            let queryText = `${this.whoToAsk}${url}?`;
+
+            for (const param in params) {
+                queryText += `${param}=${params[param]}`
+            }
+
+            return this.httpClient.get(queryText, {headers: this.headers}).pipe(retry(3));
+        } else {
+            return this.httpClient.get(`${this.whoToAsk}${url}`, {headers: this.headers}).pipe(retry(3));
+        }
     }
 
-    public genericGet(url: string): Promise<any> {
+    public genericGet(url: string, params?: {[name: string]: string}): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.query(url).subscribe(response => {
+            this.query(url, params).subscribe(response => {
                 if (!response) {
                     resolve(false);
                 } else {

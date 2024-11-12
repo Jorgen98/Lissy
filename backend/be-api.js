@@ -38,7 +38,7 @@ async function verifyToken(req, res, next) {
         return;
     }
 
-    let url = req.originalUrl.split('/');
+    let url = req.originalUrl.split(/[?\/]/);
     let idx = 0;
     while (idx < url.length) {
         if (url[idx] == '') {

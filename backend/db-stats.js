@@ -61,6 +61,7 @@ async function getStats(statType, start, stop, latest) {
     try {
         startTime = new Date(start);
         stopTime = new Date(stop);
+        stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
     } catch (error) {
         return {};
     }
@@ -303,6 +304,66 @@ function updateROProcessingStats(prop, value) {
     }
 }
 
+async function getAvailableDates() {
+    let startTime = new Date('2024-01-01');
+    let stopTime = new Date();
+
+    let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);
+    let query;
+
+    query = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
+        |> range(start: ${startTime}, stop: ${stopTime})
+        |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == "operation_data_stats" and r._field == "trips_without_data")`;
+
+    let records = [];
+
+    return new Promise((resolve) => {
+        dbQueryAPI.queryRows(query, {
+            next(row, tableMeta) {
+                const o = tableMeta.toObject(row)
+                const date = (new Date(o._time)).setHours(0, 0, 0, 0);
+                if (records.indexOf(date) === -1) {
+                    records.push(date);
+                }
+            },
+            error(error) {
+                log('error', error);
+                resolve(false);
+            },
+            complete() {
+                if (records.length === 0) {
+                    resolve({
+                        start: (new Date).setHours(0, 0, 0, 0),
+                        disabled: [(new Date).setHours(0, 0, 0, 0)],
+                        end: (new Date).setHours(0, 0, 0, 0)
+                    })
+                } else if (records.length < 1) {
+                    resolve({
+                        start: records[0],
+                        disabled: [],
+                        end: records[0]
+                    })
+                } else {
+                    let day = 24 * 60 * 60 * 1000;
+                    let actualDate = records[0];
+                    let disabledDates = [];
+                    while (actualDate < (records[records.length - 1])) {
+                        if (records.indexOf(actualDate) === -1) {
+                            disabledDates.push(actualDate);
+                        }
+                        actualDate += day;
+                    }
+                    resolve({
+                        start: records[0],
+                        disabled: disabledDates,
+                        end: records[records.length - 1]
+                    })
+                }
+            },
+        })
+    });
+}
+
 module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats,
     updateStateProcessingStats, saveRealOperationData, initROProcessingStats,
-    updateROProcessingStats, saveROProcessingStats }
+    updateROProcessingStats, saveROProcessingStats, getAvailableDates }

@@ -2,19 +2,19 @@
   <div class="side-control">
     <div [ngClass]="isCalendarModuleActive ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
       <button pButton type="button" [ngClass]="isCalendarModuleActive ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-        (click)="isCalendarModuleActive = !isCalendarModuleActive">
+        (click)="switchCalendarModuleVisibility()">
         <i class="pi pi-calendar"></i>
       </button>
     </div>
   </div>
   <div class="content" style="color: white;">
     <div class="side-control-content" *ngIf="isCalendarModuleActive">
-      <p-calendar class="calendar" [(ngModel)]="dates" [inline]="true" selectionMode="range"
-        [firstDayOfWeek]="1">
+      <p-calendar class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
+        [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
         <ng-template pTemplate="footer">
           <div class="calendar-btns-div">
-            <button pButton type="button" class="p-link p-datepicker-month" (click)="setToday()">Dnes</button>
-            <button pButton type="button" class="p-link p-datepicker-month" (click)="renderData()">Načíst Data</button>
+            <button *ngIf="isTodayFunctionEnabled" pButton type="button" class="p-link p-datepicker-month" (click)="setToday()">Dnes</button>
+            <button pButton type="button" class="p-link p-datepicker-month" (click)="renderData()" [disabled]="hooverDates == null">Načíst Data</button>
           </div>
         </ng-template>
       </p-calendar>

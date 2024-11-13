@@ -95,7 +95,12 @@ async function unzipAndParseData(response, startTime) {
                         !inputFiles.find((file) => { return file.path === 'stop_times.txt'}) ||
                         !inputFiles.find((file) => { return file.path === 'trips.txt'})) {
                             log('error', 'GTFS file set is incomplete');
-                            fs.rmSync(tmpFolderName, { recursive: true });
+                            dbStats.updateStateProcessingStats('gtfs_file_downloaded', false);
+                            try {
+                                fs.rmSync(tmpFolderName, { recursive: true });
+                            } catch (error) {
+                                log('error', error);
+                            }
                             resolve(false);
                             return;
                     }

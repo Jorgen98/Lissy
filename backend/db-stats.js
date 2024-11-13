@@ -313,14 +313,15 @@ async function getAvailableDates() {
 
     query = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
         |> range(start: ${startTime}, stop: ${stopTime})
-        |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == "operation_data_stats" and r._field == "trips_without_data")`;
+        |> filter(fn: (r) => r._measurement == ${measurementStats} and (r.stat_type == "expected_state" and
+        r._field == "trips_to_process" or (r.stat_type == "operation_data_stats" and r._field == "trips_without_data")))`;
 
     let records = [];
 
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
-                const o = tableMeta.toObject(row)
+                const o = tableMeta.toObject(row);
                 const date = (new Date(o._time)).setHours(0, 0, 0, 0);
                 if (records.indexOf(date) === -1) {
                     records.push(date);

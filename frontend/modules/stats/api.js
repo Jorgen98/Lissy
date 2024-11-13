@@ -23,14 +23,16 @@ async function processRequest(url, req, res) {
                 if (req.query.dates === undefined) {
                     res.send(false);
                 } else {
-                    let data = [];
+                    let operationData = [];
+                    let gtfsData = [];
                     let dates = JSON.parse(req.query.dates);
 
                     for (const pair of dates) {
-                        data.push(await dbStats.getStats('operation_data_stats', pair[0], pair[1]))
+                        operationData.push(await dbStats.getStats('operation_data_stats', pair[0], pair[1]));
+                        gtfsData.push(await dbStats.getStats('expected_state', pair[0], pair[1]));
                     }
 
-                    res.send(data);
+                    res.send({operations: operationData, state: gtfsData});
                 }
                 break;
             }

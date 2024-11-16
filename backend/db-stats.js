@@ -304,6 +304,9 @@ function updateROProcessingStats(prop, value) {
     }
 }
 
+// Returns dates, when stats are available
+// Record stamp for one date consist of expected state valid for that day and
+// real operation data from next day
 async function getAvailableDates() {
     let startTime = new Date('2024-01-01');
     let stopTime = new Date();
@@ -313,16 +316,17 @@ async function getAvailableDates() {
 
     query = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
         |> range(start: ${startTime}, stop: ${stopTime})
-        |> filter(fn: (r) => r._measurement == ${measurementStats} and (r.stat_type == "expected_state" and
-        r._field == "trips_to_process" or (r.stat_type == "operation_data_stats" and r._field == "trips_without_data")))`;
+        |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == "operation_data_stats"
+        and r._field == "trips_without_data")`;
 
     let records = [];
+    const day = 24 * 60 * 60 * 1000;
 
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
-                const date = (new Date(o._time)).setHours(0, 0, 0, 0);
+                const date = (new Date(o._time)).setHours(0, 0, 0, 0) - day;
                 if (records.indexOf(date) === -1) {
                     records.push(date);
                 }
@@ -345,7 +349,6 @@ async function getAvailableDates() {
                         end: records[0]
                     })
                 } else {
-                    let day = 24 * 60 * 60 * 1000;
                     let actualDate = records[0];
                     let disabledDates = [];
                     while (actualDate < (records[records.length - 1])) {

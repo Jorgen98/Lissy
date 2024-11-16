@@ -85,3 +85,14 @@
     border-top: 0.15em solid var(--gray-800);
     padding-top: 0.5em;
 }
+
+.content-graphs {
+    color: var(--gray-50);
+    margin: 0 2em;
+}
+
+.content-graphs-cells {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}

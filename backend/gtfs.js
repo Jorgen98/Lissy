@@ -163,6 +163,7 @@ async function unzipAndParseData(response, startTime) {
                     fs.rmSync(tmpFolderName, { recursive: true });
                     log('success', 'Processing GTFS data done');
                     dbStats.updateStateProcessingStats('gtfs_processing_time', performance.now() - startTime);
+                    dbStats.updateStateProcessingStats('gtfs_shapes', await dbPostGIS.countShapes());
 
                     // If there are new shapes, calculate them
                     if (Object.keys(shapesToCalc).length > 0) {
@@ -888,7 +889,6 @@ async function getNewShapes() {
             dbStats.updateStateProcessingStats('gtfs_shapes_added', 1);
         }
 
-        dbStats.updateStateProcessingStats('gtfs_shapes', await dbPostGIS.countShapes());
         dbStats.updateStateProcessingStats('routing_time', performance.now() - startTime);
         dbStats.updateStateProcessingStats('routing_done', true);
 

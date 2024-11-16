@@ -3,7 +3,17 @@
         "name": "O aplikaci"
     },
     "stats": {
-        "name": "Statistiky"
+        "name": "Statistiky",
+        "today": "Dnes",
+        "loadData": "Načíst Data",
+        "systemStateHead": "Statistiky dopravní sítě",
+        "systemStateInfo": "Základem pro zpracování dat o fungování samotného dopravního systému je znalost jeho struktury. Zjednodušeně řečeno, kdy a kde by mělo jet nějaké vozidlo. V podstatě se každý systém hromadné dopravy skládá ze stejné vnitřní struktury. Na samém vrcholu jsou linky, například 1. Každá linka pak obsahuje trasy, což je v podstatě pevné pořadí zastávek. Každá trasa obsahuje spoje, které jsou v podstatě realizací trasy v určitém čase, jinými slovy, je to ta konkrétní šalina, která jede z dané zastávky v určitém čase. Spoje jsou pak propojeny s trasami v prostoru, což je v podstatě jen seznam ulic, kudy trasa linky vede. V případě této aplikace jsou trasy a spoje propojeny, což vychází z navrženého datového modelu, který je podrobněji popsán v části O aplikaci. Následující statistiky ukazují stav systému ve vybraném období.",
+        "systemStateActual": "Aktuálně používané",
+        "systemStateNew": "Nově přidané",
+        "systemStateRoutes": "Linky",
+        "systemStateShapes": "Trasy v prostoru",
+        "systemStateStops": "Zastávky",
+        "systemStateTrips": "Spoje"
     },
     "primeng": {
         "dayNames": ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"],

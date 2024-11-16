@@ -653,6 +653,7 @@ async function getActiveShapes() {
 }
 
 // Send item to archive
+// TO DO: archive also connected items
 async function makeObjUnActive(id, type) {
     try {
         await db_postgis.query(`UPDATE ${type} SET is_active=false WHERE id='${id}'`);

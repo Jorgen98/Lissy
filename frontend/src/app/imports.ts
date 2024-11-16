@@ -7,6 +7,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
 import { CalendarModule } from 'primeng/calendar';
+import { ChartModule } from 'primeng/chart';
 
 @NgModule({
   imports: [
@@ -18,7 +19,8 @@ import { CalendarModule } from 'primeng/calendar';
     FormsModule,
     CommonModule,
     MarkdownModule,
-    CalendarModule
+    CalendarModule,
+    ChartModule
   ],
   exports: [
     RouterOutlet,
@@ -29,7 +31,8 @@ import { CalendarModule } from 'primeng/calendar';
     FormsModule,
     CommonModule,
     MarkdownModule,
-    CalendarModule
+    CalendarModule,
+    ChartModule
   ],
   providers: []
 })

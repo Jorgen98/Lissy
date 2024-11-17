@@ -1,7 +1,9 @@
 :root {
     --background: #0f0f11;
-    --graph-color-a: #d9a404;
-    --graph-color-b: #4d7bac;
+    --graph-color-a: #eab308;
+    --graph-color-b: #3b82f6;
+    --graph-color-c: #22c55e;
+    --graph-color-d: #ff3d32;
 }
 
 .btn-header {

@@ -16,38 +16,96 @@
         [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
         <ng-template pTemplate="footer">
           <div class="calendar-btns-div">
-            <button *ngIf="isTodayFunctionEnabled" pButton type="button" class="p-link p-datepicker-month" (click)="setToday()">Dnes</button>
-            <button pButton type="button" class="p-link p-datepicker-month" (click)="renderData()" [disabled]="hooverDates == null">Načíst Data</button>
+            <button *ngIf="isTodayFunctionEnabled" pButton type="button" class="p-link p-datepicker-month" (click)="setToday()">{{ 'stats.today' | translate }}</button>
+            <button pButton type="button" class="p-link p-datepicker-month" (click)="downloadData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
           </div>
         </ng-template>
       </p-calendar>
     </div>
     <!-- Graphs -->
+    <!-- System state -->
     <div class="content-graphs">
+      <p>{{ 'stats.info' | translate }}</p>
       <h2>{{ 'stats.systemStateHead' | translate }}</h2>
       <p>{{ 'stats.systemStateInfo' | translate }}</p>
       <div class="content-graphs-cells">
         <div>
           <h4>{{'stats.systemStateRoutes' | translate }}</h4>
-          <p-chart type="bar" [data]="systemState[0]" [options]="graphOptions"/>
+          <p-chart type="bar" [data]="systemState[0]" [options]="graphOptionsLegend"/>
         </div>
         <div>
           <h4>{{'stats.systemStateTrips' | translate }}</h4>
-          <p-chart type="bar" [data]="systemState[3]" [options]="graphOptions"/>
+          <p-chart type="bar" [data]="systemState[3]" [options]="graphOptionsLegend"/>
         </div>
         <div>
           <h4>{{'stats.systemStateStops' | translate }}</h4>
-          <p-chart type="bar" [data]="systemState[2]" [options]="graphOptions"/>
+          <p-chart type="bar" [data]="systemState[2]" [options]="graphOptionsLegend"/>
         </div>
         <div>
           <h4>{{'stats.systemStateShapes' | translate }}</h4>
-          <p-chart type="bar" [data]="systemState[1]" [options]="graphOptions"/>
+          <p-chart type="bar" [data]="systemState[1]" [options]="graphOptionsLegend"/>
         </div>
       </div>
       <div>
-        <h4>{{'stats.systemStateShapes' | translate }}</h4>
-        <p></p>
+        <h4>{{'stats.systemStateProcessingTime' | translate }}</h4>
+        <p>{{'stats.systemStateProcessingTimeInfo' | translate }}</p>
         <p-chart type="line" [data]="systemStateProcessingTime" [options]="graphTimeOptions"/>
+      </div>
+    </div>
+    <!-- Routing -->
+    <div class="content-graphs" *ngIf="isRoutingDataAvailable">
+      <h2>{{'stats.systemStateRouting' | translate }}</h2>
+      <p>{{'stats.systemStateRoutingInfo' | translate }}</p>
+      <div class="content-graphs-cells">
+        <div>
+          <h4>{{'stats.systemStateRoutingType' | translate }}</h4>
+          <p-chart type="doughnut" [data]="systemStateRoutingTypes" [options]="graphOptionsDoughnut"/>
+        </div>
+        <div>
+          <h4>{{'stats.systemStateRoutingSuccess' | translate }}</h4>
+          <p-chart type="doughnut" [data]="systemStateRoutingSuccess" [options]="graphOptionsDoughnutBinary"/>
+        </div>
+        <div>
+          <h4>{{'stats.systemStateRoutingTime' | translate }}</h4>
+          <p-chart type="line" [data]="systemStateRoutingTime" [options]="graphTimeOptions"/>
+        </div>
+      </div>
+    </div>
+    <!-- Data processing -->
+    <div class="content-graphs">
+      <h2>{{'stats.processingDataHead' | translate }}</h2>
+      <p>{{'stats.processingDataInfo' | translate }}</p>
+      <div>
+        <h4>{{'stats.processingDataTimes' | translate }}</h4>
+        <p-chart type="line" [data]="processingTimes" [options]="graphTimeOptionsLegend"/>
+      </div>
+      <div class="content-graphs-cells">
+        <div>
+          <h4>{{'stats.processingDataDownloadRecords' | translate }}</h4>
+          <p-chart type="bar" [data]="processingDataDownload" [options]="graphOptions"/>
+        </div>
+        <div>
+          <h4>{{'stats.processingDataSavedRecords' | translate }}</h4>
+          <p-chart type="bar" [data]="processingDataSaved" [options]="graphOptions"/>
+        </div>
+        <div>
+          <h4>{{'stats.processingDataRecordsStats' | translate }}</h4>
+          <p-chart type="doughnut" [data]="processingDataAll" [options]="graphOptionsDoughnutBinary"/>
+        </div>
+      </div>
+      <div class="content-graphs-cells">
+        <div>
+          <h4>{{'stats.processingDataPlannedTrips' | translate }}</h4>
+          <p-chart type="bar" [data]="processingTripsPlanned" [options]="graphOptions"/>
+        </div>
+        <div>
+          <h4>{{'stats.processingDataExtraTrips' | translate }}</h4>
+          <p-chart type="bar" [data]="processingTripsExtra" [options]="graphOptions"/>
+        </div>
+        <div>
+          <h4>{{'stats.processingDataTripsRate' | translate }}</h4>
+          <p-chart type="doughnut" [data]="processingTripsAll" [options]="graphOptionsDoughnutBinary"/>
+        </div>
       </div>
     </div>
   </div>

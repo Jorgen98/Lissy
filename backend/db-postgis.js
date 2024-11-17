@@ -653,10 +653,51 @@ async function getActiveShapes() {
 }
 
 // Send item to archive
-// TO DO: archive also connected items
 async function makeObjUnActive(id, type) {
     try {
-        await db_postgis.query(`UPDATE ${type} SET is_active=false WHERE id='${id}'`);
+        let route_ids = [];
+        if (type === 'agency') {
+            await db_postgis.query(`UPDATE agency SET is_active=false WHERE id='${id}'`);
+            route_ids = await db_postgis.query(`SELECT id FROM routes WHERE agency_id_id='${id}'`);
+            route_ids = route_ids.rows.map((id) => {return id.id});
+        }
+
+        let trip_ids = [];
+        if (type === 'routes') {
+            route_ids = [id];
+        }
+
+        for (const route_id of route_ids) {
+            await db_postgis.query(`UPDATE routes SET is_active=false WHERE id='${route_id}'`);
+            let res = await db_postgis.query(`SELECT id FROM trips WHERE route_id_id='${route_id}'`);
+            trip_ids = trip_ids.concat(res.rows.map((id) => {return id.id}));
+        }
+
+        if (type === 'stops') {
+            await db_postgis.query(`UPDATE stops SET is_active=false WHERE id='${id}'`);
+            let res = await db_postgis.query(`SELECT id FROM trips WHERE ${id} = ANY(stops)`);
+            trip_ids = trip_ids.concat(res.rows.map((id) => {return id.id}));
+        }
+
+        if (type === 'trips') {
+            trip_ids = [id];
+        }
+
+        let shape_ids = [];
+        for (const trip_id of trip_ids) {
+            await db_postgis.query(`UPDATE trips SET is_active=false WHERE id='${trip_id}'`);
+            let shape_id = (await db_postgis.query(`SELECT shape_id FROM trips WHERE id='${trip_id}'`)).rows[0]?.shape_id;
+            if (shape_id !== undefined && shape_ids.indexOf(shape_id) === -1) {
+                shape_ids.push(shape_id);
+            }
+        }
+
+        for (const shape_id of shape_ids) {
+            if (parseInt((await db_postgis.query(`SELECT COUNT(id) FROM trips WHERE shape_id=${shape_id} AND is_active=true`)).rows[0].count) === 0) {
+                await db_postgis.query(`UPDATE shapes SET is_active=false WHERE id='${shape_id}'`);
+            }
+        }
+
         return true;
     } catch(error) {
         log('error', error);

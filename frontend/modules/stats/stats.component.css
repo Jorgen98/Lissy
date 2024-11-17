@@ -86,13 +86,23 @@
     padding-top: 0.5em;
 }
 
+.content {
+    color: var(--gray-50);
+}
+
 .content-graphs {
     color: var(--gray-50);
     margin: 0 2em;
+    width: 100%;
+    max-width: calc(100vw - 9em);
 }
 
 .content-graphs-cells {
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
+}
+
+p {
+    text-align: justify;
 }

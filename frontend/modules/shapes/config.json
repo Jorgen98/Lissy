@@ -1,0 +1,6 @@
+{
+    "enabled": true,
+    "apiPrefix": "shapes",
+    "name": "shapes.name",
+    "icon": "pi-share-alt"
+}

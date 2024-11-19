@@ -32,7 +32,7 @@ export class StatsModule implements OnInit {
   public isTodayFunctionEnabled: boolean = false;
   public isRoutingDataAvailable: boolean = false;
 
-  public selectedDates: Date[] = [];
+  public selectedDates: Date[] | null = null;
   public hooverDates: Date[] | null = null;
   public startDate: Date = new Date();
   public disabledDates: Date[] = [];
@@ -167,6 +167,14 @@ export class StatsModule implements OnInit {
   public async ngOnInit() {
     let apiDates = await this.apiGet('availableDates');
 
+    if (apiDates.start === undefined || apiDates.end === undefined) {
+      this.startDate = new Date();
+      this.disabledDates.push(new Date());
+      this.endDate = new Date();
+      this.isTodayFunctionEnabled = false;
+      return;
+    }
+
     this.startDate = new Date(apiDates.start);
     for (const date of apiDates.disabled) {
       this.disabledDates.push(new Date(date));
@@ -192,7 +200,7 @@ export class StatsModule implements OnInit {
 
   // Function for calendar module switch
   public switchCalendarModuleVisibility() {
-    if (!this.isCalendarModuleActive) {
+    if (!this.isCalendarModuleActive && this.selectedDates !== null) {
       this.hooverDates = [];
       for (const date of this.selectedDates) {
         this.hooverDates.push(new Date(date));

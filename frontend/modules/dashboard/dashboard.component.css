@@ -1,8 +1,8 @@
 .main {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     width: 100%;
-    row-gap: 5em;
+    row-gap: 2em;
+    grid-template-rows: 0.5fr auto
 }
 
 .main-item-up {
@@ -30,4 +30,8 @@
 
 .main-btn-content-text {
     line-height: 1.5em;
+}
+
+.logo-img {
+    width: 30em;
 }

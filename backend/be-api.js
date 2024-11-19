@@ -14,7 +14,8 @@ const logService = require('./log.js');
 // modules
 const modules = [
     require('../frontend/modules/about/api.js'),
-    require('../frontend/modules/stats/api.js')
+    require('../frontend/modules/stats/api.js'),
+    require('../frontend/modules/shapes/api.js')
 ];
 
 // .env file include

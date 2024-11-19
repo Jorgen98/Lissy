@@ -43,6 +43,13 @@
         "processingDataTripsRateSuccess": "Services containing data",
         "processingDataTripsRateFail": "Services without data"
     },
+    "shapes" : {
+        "name": "Line routes",
+        "today": "Today",
+        "loadData": "Load Data",
+        "route": "Line",
+        "shape": "Route"
+    },
     "primeng": {
         "dayNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
         "dayNamesShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],

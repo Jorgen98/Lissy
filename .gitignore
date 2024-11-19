@@ -2,5 +2,6 @@
 /db-stats-data
 /backend/node_modules
 /backend/backups
+/backend/gtfs.zip
 /frontend/node_modules
 /frontend/.angular

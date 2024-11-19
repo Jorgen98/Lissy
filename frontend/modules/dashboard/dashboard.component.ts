@@ -8,6 +8,7 @@ import { TranslateService } from '@ngx-translate/core';
 // Module configs
 import * as configAboutModule from '../about/config.json';
 import * as configStatsModule from '../stats/config.json';
+import * as configShapesModule from '../shapes/config.json';
 
 @Component({
   selector: 'dashboard',
@@ -28,7 +29,8 @@ export class DashboardModule implements OnInit {
   public isDBConnected: boolean = false;
   public modules: ModuleConfig[] = [
     configAboutModule,
-    configStatsModule
+    configStatsModule,
+    configShapesModule
   ]
 
   public async ngOnInit() {

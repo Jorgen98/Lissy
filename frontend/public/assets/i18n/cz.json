@@ -43,6 +43,13 @@
         "processingDataTripsRateSuccess": "Spoje obsahující data",
         "processingDataTripsRateFail": "Spoje bez dat"
     },
+    "shapes" : {
+        "name": "Trasy linek",
+        "today": "Dnes",
+        "loadData": "Načíst Data",
+        "route": "Linka",
+        "shape": "Trasa"
+    },
     "primeng": {
         "dayNames": ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"],
         "dayNamesShort": ["Ned", "Pon", "Út", "Stř", "Čtv", "Pát", "Sob"],

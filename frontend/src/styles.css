@@ -32,10 +32,12 @@
 .side-control {
     display: flex;
     align-items: center;
+    justify-content: center;
     border-right: 0.15em solid var(--gray-800);
     height: 100%;
     position: fixed;
     width: 5em;
+    flex-direction: column;
 }
 
 .side-btn-div {

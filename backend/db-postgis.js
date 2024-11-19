@@ -472,7 +472,7 @@ async function getActiveRoutes() {
 async function getActiveRoutesToProcess() {
     let result;
     try {
-        result = await db_postgis.query(`SELECT id, route_id FROM routes WHERE is_active=true`);
+        result = await db_postgis.query(`SELECT id, route_id, route_short_name, route_color FROM routes WHERE is_active=true`);
     } catch(error) {
         log('error', error);
         return [];
@@ -594,6 +594,71 @@ async function setTripAsUnServed(id) {
     }
 }
 
+// Get all trips which will be served today and has different shape id
+async function getPlannedTripsWithUniqueShape(routes) {
+    let result;
+    let stops = {};
+    try {
+        result = await db_postgis.query(`SELECT id, stop_name FROM stops`);
+        for (const stop of result.rows) {
+            stops[stop.id] = stop.stop_name;
+        }
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    routes.sort((a, b) => {return parseInt(a.route_short_name) > parseInt(b.route_short_name) ? 1 : -1});
+
+    for (let route of routes) {
+        try {
+            result = await db_postgis.query(`SELECT * FROM ( SELECT shape_id, stops,
+                ROW_NUMBER() OVER(PARTITION BY shape_id ORDER BY shape_id) AS row_number FROM trips 
+                WHERE is_active=true AND is_today=true AND route_id_id='${route.id}') AS rows WHERE row_number = 1`);
+        } catch(error) {
+            log('error', error);
+            return [];
+        }
+
+        let idx = 0;
+        while (idx < result.rows.length) {
+            if (result.rows.find((instTrip) => { return instTrip.stops.toString() === result.rows[idx].stops.toString() &&
+                instTrip.shape_id !== result.rows[idx].shape_id })) {
+                result.rows.splice(idx, 1);
+            } else {
+                idx++;
+            }
+        }
+
+        let trips_to_save = [];
+        for (let trip of result.rows) {
+            if (trip.stops.length < 2) {
+                continue;
+            }
+
+            trip.stops = `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`;
+            trips_to_save.push(trip);
+            delete trip.row_number;
+        }
+        trips_to_save.sort((a, b) => {return a.stops > b.stops ? 1 : -1});
+        route.trips = trips_to_save;
+        delete route.id;
+        delete route.route_id;
+    }
+
+    let idx = 0;
+    while (idx < routes.length) {
+        if (routes[idx].trips.length < 1) {
+            routes.splice(idx, 1);
+        } else {
+            idx++;
+        }
+    }
+
+    return routes;
+}
+
+
 // Add new shape to DB, returns new id
 async function updateTripsShapeId(tripIds, shapeId) {
     try {
@@ -647,6 +712,54 @@ async function getActiveShapes() {
             continue;
         }
         output[row.id] = coords;
+    }
+
+    return output;
+}
+
+// Get shape and its metadata
+async function getFullShape(id) {
+    let result;
+    let trip;
+    let stops;
+
+    try {
+        result = await db_postgis.query(`SELECT id, ST_AsGeoJSON(geom) FROM shapes WHERE id=${id}`);
+        trip = (await db_postgis.query(`SELECT stops FROM trips WHERE shape_id=${id}`)).rows[0];
+
+        if (trip === undefined) {
+            return {};
+        }
+
+        stops = (await db_postgis.query(`SELECT id, stop_name, ST_AsGeoJSON(latLng), wheelchair_boarding,
+            zone_id FROM stops WHERE id IN (${trip.stops})`)).rows;
+    } catch(error) {
+        log('error', error);
+        return {};
+    }
+
+    
+
+    let output = {};
+    for (const row of result.rows) {
+        let coords = [];
+        try {
+            coords = JSON.parse(row['st_asgeojson']).coordinates;
+        } catch(error) {
+            continue;
+        }
+        output['coords'] = coords;
+    }
+
+    output['stops'] = [];
+    for (let stop of trip.stops) {
+        let stopFromDB = stops.find((insStop) => {return insStop.id === stop});
+        if (stopFromDB === undefined) {
+            return {};
+        }
+        stopFromDB.coords = JSON.parse(stopFromDB.st_asgeojson).coordinates;
+        delete stopFromDB.st_asgeojson;
+        output['stops'].push(stopFromDB);
     }
 
     return output;
@@ -756,7 +869,6 @@ async function getShapes() {
         let tripStops = [];
         let exists = true;
         for (const inspectedStop of trips[trip].stops) {
-
             let stop = stopsArr.find((stop) => {return inspectedStop === stop.id});
 
             if (stop === undefined) {
@@ -784,4 +896,5 @@ async function getShapes() {
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
-    setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes }
+    setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
+    getFullShape }

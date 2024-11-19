@@ -1,0 +1,45 @@
+<main class="main" *ngIf="config.enabled">
+  <!-- Side menu -->
+  <div class="side-control">
+    <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+        (click)="switchCalendarModuleVisibility()">
+        <i class="pi pi-calendar"></i>
+      </button>
+    </div>
+    <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <button pButton type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+        (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+        <i class="pi pi-share-alt"></i>
+      </button>
+    </div>
+  </div>
+  <!-- Module content -->
+  <div class="content">
+    <!-- Calendar -->
+    <div class="side-control-content" *ngIf="moduleFocus == 1">
+      <p-calendar class="calendar" [(ngModel)]="hooverDate" [inline]="true" selectionMode="single"
+        [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
+        <ng-template pTemplate="footer">
+          <div class="calendar-btns-div">
+            <button *ngIf="isTodayFunctionEnabled" pButton type="button" class="p-link p-datepicker-month" (click)="setToday()">{{ 'shapes.today' | translate }}</button>
+            <button pButton type="button" class="p-link p-datepicker-month" (click)="getAvailableShapesData()" [disabled]="hooverDate == null">{{ 'shapes.loadData' | translate }}</button>
+          </div>
+        </ng-template>
+      </p-calendar>
+    </div>
+    <!-- Shape selection -->
+    <div class="side-control-content" *ngIf="moduleFocus == 2">
+      <div class="routeSelectionDiv">
+        <div class="routeSelectionInnerDiv">
+          <h3>{{ 'shapes.route' | translate }}</h3>
+          <p-dropdown [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" (onChange)="changeRoute()"/>
+          <h3>{{ 'shapes.shape' | translate }}</h3>
+          <p-dropdown [options]="selectedRoute?.trips" [(ngModel)]="selectedTrip" optionLabel="stops" (onChange)="renderData()"/>
+        </div>
+      </div>
+    </div>
+    <!-- Map -->
+    <map></map>
+  </div>
+</main>

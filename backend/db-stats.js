@@ -34,6 +34,8 @@ let realOperationProcessingStats = {};
 
 const saveTestOutput = process.env.TEST_OUTPUTS === 'true' ? true : false;
 
+const day = 24 * 60 * 60 * 1000;
+
 // Help function for log writing
 function log(type, msg) {
     logService.write(process.env.DB_STATS_MODULE_NAME, type, msg)
@@ -85,7 +87,7 @@ async function getStats(statType, start, stop, latest) {
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(testQuery, {
             next(row, tableMeta) {
-                const o = tableMeta.toObject(row)
+                const o = tableMeta.toObject(row);
                 if (records[o._time] === undefined) {
                     records[o._time] = {};
                 }
@@ -96,6 +98,29 @@ async function getStats(statType, start, stop, latest) {
                 resolve(false);
             },
             complete() {
+                if (statType === 'operation_data_stats') {
+                    let keys = Object.keys(records).sort();
+                    let idx = 0;
+                    while (keys.length > idx) {
+                        if (Math.abs((new Date(keys[idx])).setHours(0, 0, 0, 0) - (new Date(keys[idx + 1])).setHours(0, 0, 0, 0)) < day) {
+                            if (records[keys[idx]]['data_without_trips'] > records[keys[idx + 1]]['data_without_trips']) {
+                                records[keys[idx]]['data_without_trips'] = records[keys[idx + 1]]['data_without_trips'];
+                            }
+                            if (records[keys[idx]]['downloaded_records'] < records[keys[idx + 1]]['downloaded_records']) {
+                                records[keys[idx]]['downloaded_records'] = records[keys[idx + 1]]['downloaded_records'];
+                            }
+                            records[keys[idx]]['downloading_time'] += records[keys[idx + 1]]['downloading_time'];
+                            records[keys[idx]]['parsing_time'] += records[keys[idx + 1]]['parsing_time'];
+                            records[keys[idx]]['processing_time'] += records[keys[idx + 1]]['processing_time'];
+                            records[keys[idx]]['stored_records'] += records[keys[idx + 1]]['stored_records'];
+                            records[keys[idx]]['trips_without_data'] += records[keys[idx + 1]]['trips_without_data'];
+                            delete records[keys[idx + 1]];
+                            keys = Object.keys(records).sort();
+                        } else {
+                            idx++;
+                        }
+                    }
+                }
                 resolve(records);
             },
         })
@@ -307,7 +332,7 @@ function updateROProcessingStats(prop, value) {
 // Returns dates, when stats are available
 // Record stamp for one date consist of expected state valid for that day and
 // real operation data from next day
-async function getAvailableDates() {
+async function getAvailableDates(includeToday = false) {
     let startTime = new Date('2024-01-01');
     let stopTime = new Date();
 
@@ -320,7 +345,6 @@ async function getAvailableDates() {
         and r._field == "trips_without_data")`;
 
     let records = [];
-    const day = 24 * 60 * 60 * 1000;
 
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(query, {
@@ -335,7 +359,13 @@ async function getAvailableDates() {
                 log('error', error);
                 resolve(false);
             },
-            complete() {
+            async complete() {
+                if (includeToday) {
+                    let yesterday = (new Date()).setHours(0, 0, 0, 0).valueOf();
+                    if (Object.keys(await getStats('expected_state', yesterday, (new Date()).valueOf(), true)).length > 0) {
+                        records.push((new Date()).setHours(0, 0, 0, 0));
+                    }
+                }
                 if (records.length === 0) {
                     resolve({
                         start: (new Date).setHours(0, 0, 0, 0),

@@ -5,12 +5,15 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const app = express();
+const cron = require('node-cron');
 
 const dbPostGIS = require('./db-postgis.js');
 const dbStats = require('./db-stats.js');
 const logService = require('./log.js');
 const gtfsService = require('./gtfs.js');
 const opProcessingService = require('./be-processing-operational-data.js');
+
+const tmpFileName = './gtfs.zip';
 
 // .env file include
 dotenv.config();
@@ -40,6 +43,15 @@ server.on('listening', async () => {
         log('success', 'Initialization procedure is done');
     }
 })
+
+// Regular job functions
+// Main data processing function
+cron.schedule('15 4 * * *', async () => {
+    log('info', 'Running scheduled actualization job. Processing real operation data and actualizing transit system');
+    if (await processData()) {
+        log('success', 'Actualization procedure is done');
+    }
+});
 
 // Processing function
 async function processData() {

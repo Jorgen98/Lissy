@@ -759,6 +759,7 @@ async function getFullShape(id) {
         }
         stopFromDB.coords = JSON.parse(stopFromDB.st_asgeojson).coordinates;
         delete stopFromDB.st_asgeojson;
+        delete stopFromDB.id;
         output['stops'].push(stopFromDB);
     }
 

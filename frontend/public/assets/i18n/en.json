@@ -48,7 +48,11 @@
         "today": "Today",
         "loadData": "Load Data",
         "route": "Line",
-        "shape": "Route"
+        "shape": "Route",
+        "close": "Close"
+    },
+    "map" : {
+        "zone": "Zone"
     },
     "primeng": {
         "dayNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],

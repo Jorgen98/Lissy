@@ -5,6 +5,7 @@ import * as config from './config.json';
 import { ImportsModule } from '../../src/app/imports';
 import { TranslateService } from '@ngx-translate/core';
 import { MapComponent } from '../../src/app/map/map.component';
+import { mapObject, MapService } from '../../src/app/map/map.service';
 
 interface route {
   route_color: string,
@@ -28,7 +29,8 @@ export class ShapesModule implements OnInit {
   public config: ModuleConfig = config;
   constructor(
     private apiService: APIService,
-    public translate: TranslateService
+    public translate: TranslateService,
+    public mapService: MapService
   ) {}
 
   public moduleFocus: Number = 0;
@@ -137,6 +139,49 @@ export class ShapesModule implements OnInit {
 
   public async renderData() {
     let mapData = await this.apiGet('getTodayShape', {shape_id: JSON.stringify(this.selectedTrip?.shape_id)});
-    console.log(mapData);
+
+    this.mapService.removeLayer('route');
+    this.mapService.addNewLayer({name: 'route', palette: {}, layer: undefined, paletteItemName: 'map.zon'});
+
+    this.mapService.removeLayer('stops');
+    this.mapService.addNewLayer({name: 'stops', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
+
+    for (const stop of mapData.stops) {
+      let mapStop: mapObject = {
+        layerName: 'stops',
+        type: 'stop',
+        focus: false,
+        latLng: [{lat: stop.coords[0], lng: stop.coords[1]}],
+        color: 'palette',
+        metadata: {
+          stop_name: stop.stop_name,
+          wheelchair_boarding: stop.wheelchair_boarding,
+          zone_id: stop.zone_id
+        }
+      }
+
+      this.mapService.addToLayer(mapStop);
+    }
+
+    for (const routePart of mapData.coords) {
+      let mapRoutePart: mapObject = {
+        layerName: 'route',
+        type: 'route',
+        focus: false,
+        latLng: routePart.map((coord: any) => {return {lat: coord[0], lng: coord[1]}}),
+        color: 'provided',
+        metadata: {
+          color: this.selectedRoute?.route_color
+        }
+      }
+
+      this.mapService.addToLayer(mapRoutePart);
+    }
+
+    this.mapService.fitToLayer('stops');
+  }
+
+  public closeRouteModule() {
+    this.moduleFocus = 0;
   }
 }

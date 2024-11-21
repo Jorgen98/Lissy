@@ -48,7 +48,11 @@
         "today": "Dnes",
         "loadData": "Načíst Data",
         "route": "Linka",
-        "shape": "Trasa"
+        "shape": "Trasa",
+        "close": "Zavřít"
+    },
+    "map" : {
+        "zone": "Zóna"
     },
     "primeng": {
         "dayNames": ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"],

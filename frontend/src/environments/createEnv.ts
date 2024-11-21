@@ -11,7 +11,9 @@ const setEnv = () => {
     const envConfigFile = `export const environment = {
         apiUrl: '/lissy/api/',
         apiKey: '${process.env['BE_API_MODULE_TOKEN']}',
-        production: true
+        production: true,
+        mapCenter: '${process.env['FE_MAP_CENTER']}',
+        mapZoom: '${process.env['FE_MAP_ZOOM']}'
     };`;
     
     writeFile(targetPath, envConfigFile, () => {});

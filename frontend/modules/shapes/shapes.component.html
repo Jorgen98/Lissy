@@ -1,6 +1,18 @@
 <main class="main" *ngIf="config.enabled">
   <!-- Side menu -->
   <div class="side-control">
+    <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <button pButton type="button" class="btn-side-menu"
+        (click)="mapService.zoomIn()">
+        <i class="pi pi-search-plus"></i>
+      </button>
+    </div>
+    <div [ngClass]="moduleFocus == 4 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <button pButton type="button" class="btn-side-menu"
+        (click)="mapService.zoomOut()">
+        <i class="pi pi-search-minus"></i>
+      </button>
+    </div>
     <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
       <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
         (click)="switchCalendarModuleVisibility()">
@@ -36,6 +48,9 @@
           <p-dropdown [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" (onChange)="changeRoute()"/>
           <h3>{{ 'shapes.shape' | translate }}</h3>
           <p-dropdown [options]="selectedRoute?.trips" [(ngModel)]="selectedTrip" optionLabel="stops" (onChange)="renderData()"/>
+          <div class="calendar-btns-div">
+            <button pButton type="button" class="p-link p-datepicker-month" (click)="closeRouteModule()">{{ 'shapes.close' | translate }}</button>
+          </div>
         </div>
       </div>
     </div>

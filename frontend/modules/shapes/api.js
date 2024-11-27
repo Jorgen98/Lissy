@@ -22,11 +22,22 @@ async function processRequest(url, req, res) {
                 res.send(await dbStats.getAvailableDates(true));
                 break;
             }
+            // Return available uniq shapeId for current day
             case 'getTodayShapes': {
                 res.send(await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess()));
                 break;
             }
-            case 'getTodayShape': {
+            // Return available uniq shapeId for selected day
+            case 'getShapes': {
+                if (req.query.date === undefined) {
+                    res.send(false);
+                } else {
+                    res.send(await dbPostGIS.getTripsWithUniqueShape(await dbStats.getTripIdsInInterval(parseInt(req.query.date), parseInt(req.query.date))));
+                }
+                break;
+            }
+            // Return full shape with stops and polyline for given shapeId
+            case 'getShape': {
                 if (req.query.shape_id === undefined) {
                     res.send(false);
                 } else {

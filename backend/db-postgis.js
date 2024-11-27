@@ -658,6 +658,100 @@ async function getPlannedTripsWithUniqueShape(routes) {
     return routes;
 }
 
+// Get all trips according to trip ids and has different shape id
+async function getTripsWithUniqueShape(tripIds) {
+    let result;
+    let routes = [];
+    let stops = {};
+
+    if (tripIds.length < 1) {
+        return [];
+    }
+
+    try {
+        result = await db_postgis.query(`SELECT id, stop_name FROM stops`);
+        for (const stop of result.rows) {
+            stops[stop.id] = stop.stop_name;
+        }
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    try {
+        result = await db_postgis.query(`SELECT * FROM ( SELECT route_id_id, shape_id, stops,
+            ROW_NUMBER() OVER(PARTITION BY shape_id ORDER BY shape_id) AS row_number FROM trips 
+            WHERE id IN (${tripIds})) AS rows WHERE row_number = 1`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    let idx = 0;
+    while (idx < result.rows.length) {
+        if (result.rows.find((instTrip) => { return instTrip.stops.toString() === result.rows[idx].stops.toString() &&
+            instTrip.shape_id !== result.rows[idx].shape_id })) {
+            result.rows.splice(idx, 1);
+        } else {
+            idx++;
+        }
+    }
+
+    let trips_to_save = [];
+    for (let trip of result.rows) {
+        if (trip.stops.length < 2) {
+            continue;
+        }
+
+        trip.stops = `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`;
+        trips_to_save.push(trip);
+        delete trip.row_number;
+    }
+    trips_to_save.sort((a, b) => {return a.stops > b.stops ? 1 : -1});
+
+    for (const trip of trips_to_save) {
+        let routeIdx = routes.findIndex((route) => {return route.route_id === trip.route_id_id});
+        if (routeIdx === -1) {
+            routes.push({
+                route_id: trip.route_id_id,
+                route_short_name: "",
+                route_color: "",
+                trips: []
+            });
+            routeIdx = routes.length - 1;
+        }
+        delete trip.route_id_id;
+        routes[routeIdx].trips.push(trip);
+    }
+
+    let routeIds = routes.map((route) => route.route_id);
+    let routeDetails;
+
+    try {
+        routeDetails = (await db_postgis.query(`SELECT id, route_short_name, route_color FROM routes WHERE id IN (${routeIds})`)).rows;
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    idx = 0;
+    while (idx < routes.length) {
+        if (routes[idx].trips.length < 1) {
+            routes.splice(idx, 1);
+        } else {
+            let routeDetail = routeDetails.find((route) => { return route.id === routes[idx].route_id});
+            routes[idx].route_short_name = routeDetail.route_short_name;
+            routes[idx].route_color = routeDetail.route_color;
+            delete routes[idx].route_id;
+
+            idx++;
+        }
+    }
+
+    routes.sort((a, b) => {return parseInt(a.route_short_name) > parseInt(b.route_short_name) ? 1 : -1});
+
+    return routes;
+}
 
 // Add new shape to DB, returns new id
 async function updateTripsShapeId(tripIds, shapeId) {
@@ -738,8 +832,6 @@ async function getFullShape(id) {
         return {};
     }
 
-    
-
     let output = {};
     for (const row of result.rows) {
         let coords = [];
@@ -755,7 +847,7 @@ async function getFullShape(id) {
     for (let stop of trip.stops) {
         let stopFromDB = stops.find((insStop) => {return insStop.id === stop});
         if (stopFromDB === undefined) {
-            return {};
+            continue;
         }
         stopFromDB.coords = JSON.parse(stopFromDB.st_asgeojson).coordinates;
         delete stopFromDB.st_asgeojson;
@@ -898,4 +990,4 @@ module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, ad
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
-    getFullShape }
+    getFullShape, getTripsWithUniqueShape }

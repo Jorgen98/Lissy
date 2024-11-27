@@ -45,12 +45,13 @@
 ::ng-deep .legend-layer-div {
     display: flex;
     flex-direction: column;
+    gap: 0.25em;
 }
 
 ::ng-deep .legend-item {
     display: flex;
     flex-direction: row;
-    column-gap: 0.5em;
+    gap: 0.25em;
 }
 
 ::ng-deep .legend-img {

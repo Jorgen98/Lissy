@@ -13,7 +13,7 @@ const logService = require('./log.js');
 dotenv.config();
 
 // Stats DB instant
-const db_influx = new InfluxDB({url: `${process.env.DB_STATS_HOST}:8086`, token: process.env.DB_STATS_TOKEN});
+const db_influx = new InfluxDB({url: `${process.env.DB_STATS_HOST}:8086`, token: process.env.DB_STATS_TOKEN, timeout: 30 * 1000});
 
 // Measurement names
 const measurementStats = 'stats';
@@ -23,7 +23,8 @@ const statType = {
     expectedState: 'expected_state', // actual GTFS processing stats
     tripsToProcess: 'trips_to_process', // how many trips should be still processed in current day
     operationData: 'operation_data', // Real operation processed data
-    operationDataStats: 'operation_data_stats' // Real operation processing stats
+    operationDataStats: 'operation_data_stats', // Real operation processing stats
+    operationDataTrips: 'operation_data_trips'
 }
 
 // Variable for transit system state processing stats
@@ -220,7 +221,7 @@ async function saveStateProcessingStats() {
     return new Promise((resolve) => {
         writeApi.close().then(() => {
             if (saveTestOutput) {
-                fs.writeFile(`backups/${(new Date()).toLocaleString()}_gtfs_stats.txt`, JSON.stringify(stateProcessingStats, null, 4), function(error) {
+                fs.writeFile(`backups/${(new Date()).toISOString()}_gtfs_stats.txt`, JSON.stringify(stateProcessingStats, null, 4), function(error) {
                     if (error) {
                         log('error', error);
                     }
@@ -256,7 +257,7 @@ async function saveROProcessingStats() {
     return new Promise((resolve) => {
         writeApi.close().then(() => {
             if (saveTestOutput) {
-                fs.writeFile(`backups/${(new Date()).toLocaleString()}_ro_stats.txt`, JSON.stringify(realOperationProcessingStats, null, 4), function(error) {
+                fs.writeFile(`backups/${(new Date()).toISOString()}_ro_stats.txt`, JSON.stringify(realOperationProcessingStats, null, 4), function(error) {
                     if (error) {
                         log('error', error);
                     }
@@ -279,6 +280,11 @@ async function saveRealOperationData(tripId, scoreTable, date) {
         .tag('stat_type', statType.operationData)
         .tag('trip_id', tripId)
         .timestamp(date);
+
+    let tripRecord = new Point(measurementStats)
+        .tag('stat_type', statType.operationDataTrips)
+        .intField('trip_id', tripId)
+        .timestamp(date);
     
     let anyData = false;
     for (const [i, row] of scoreTable.entries()) {
@@ -292,6 +298,7 @@ async function saveRealOperationData(tripId, scoreTable, date) {
     record.tag('anyData', anyData);
         
     writeApi.writePoint(record);
+    writeApi.writePoint(tripRecord);
 
     return new Promise((resolve) => {
         writeApi.close().then(async () => {
@@ -379,6 +386,7 @@ async function getAvailableDates(includeToday = false) {
                         end: records[0]
                     })
                 } else {
+                    records.sort();
                     let actualDate = records[0];
                     let disabledDates = [];
                     while (actualDate < (records[records.length - 1])) {
@@ -398,6 +406,47 @@ async function getAvailableDates(includeToday = false) {
     });
 }
 
+async function getTripIdsInInterval(start, stop) {
+    let startTime;
+    let stopTime;
+    try {
+        startTime = new Date(start);
+        stopTime = new Date(stop);
+        stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
+    } catch (error) {
+        return [];
+    }
+
+    let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);
+    let query;
+
+    query = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
+    |> range(start: ${startTime}, stop: ${stopTime})
+    |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.operationDataTrips})`;
+
+    let records = {};
+
+    return new Promise((resolve) => {
+        dbQueryAPI.queryRows(query, {
+            next(row, tableMeta) {
+                const o = tableMeta.toObject(row);
+                if (o._field === 'trip_id') {
+                    if (!records[o._value]) {
+                        records[o._value] = true;
+                    }
+                }
+            },
+            error(error) {
+                log('error', error);
+                resolve(false);
+            },
+            complete() {
+                resolve(records = Object.keys(records).map((item) => [item]));
+            },
+        })
+    });
+}
+
 module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats,
     updateStateProcessingStats, saveRealOperationData, initROProcessingStats,
-    updateROProcessingStats, saveROProcessingStats, getAvailableDates }
+    updateROProcessingStats, saveROProcessingStats, getAvailableDates, getTripIdsInInterval }

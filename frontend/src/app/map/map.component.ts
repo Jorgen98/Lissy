@@ -201,7 +201,7 @@ export class MapComponent implements AfterViewInit {
                     {icon: this.createStopIconShadow()}
                 )
                 .addTo(this.layers[object.layerName].layer!);
-                let stop = L.marker(
+                L.marker(
                     L.latLng(object.latLng[0]),
                     {icon: this.createStopIcon(object)}
                 )
@@ -223,6 +223,7 @@ export class MapComponent implements AfterViewInit {
         if (layerToRemove !== undefined && layerToRemove.layer) {
             this.map?.removeLayer(layerToRemove.layer);
             delete this.layers[layerName];
+            this.actualizeColorLegend();
         }
     }
 

@@ -120,16 +120,21 @@ export class ShapesModule implements OnInit {
     if (this.selectedDate.valueOf() === (new Date).setHours(0, 0, 0, 0).valueOf()) {
       this.routes = await this.apiGet('getTodayShapes');
     } else {
-      //queryData = await this.apiGet('statistics', {dates: JSON.stringify([this.hooverDate.valueOf(), this.hooverDate.valueOf()])});
+      this.routes = await this.apiGet('getShapes', {date: this.hooverDate.valueOf().toString()});
     }
 
     if (this.routes.length < 1) {
       this.isRouteSelectionEnabled = false;
+      this.selectedRoute = undefined;
+      this.selectedTrip = undefined;
     } else {
+      this.isRouteSelectionEnabled = true;
       this.selectedRoute = this.routes[0];
       this.selectedTrip = this.selectedRoute?.trips[0];
-      this.renderData();
     }
+
+    await this.renderData();
+    this.moduleFocus = 0;
   }
 
   public changeRoute() {
@@ -138,13 +143,21 @@ export class ShapesModule implements OnInit {
   }
 
   public async renderData() {
-    let mapData = await this.apiGet('getTodayShape', {shape_id: JSON.stringify(this.selectedTrip?.shape_id)});
-
     this.mapService.removeLayer('route');
     this.mapService.addNewLayer({name: 'route', palette: {}, layer: undefined, paletteItemName: 'map.zon'});
 
     this.mapService.removeLayer('stops');
     this.mapService.addNewLayer({name: 'stops', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
+
+    if (!this.selectedTrip?.shape_id) {
+      return;
+    }
+
+    let mapData = await this.apiGet('getShape', {shape_id: JSON.stringify(this.selectedTrip?.shape_id)});
+
+    if (!mapData.stops || !mapData.coords) {
+      return;
+    }
 
     for (const stop of mapData.stops) {
       let mapStop: mapObject = {

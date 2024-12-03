@@ -472,7 +472,7 @@ async function getActiveRoutes() {
 async function getActiveRoutesToProcess() {
     let result;
     try {
-        result = await db_postgis.query(`SELECT id, route_id, route_short_name, route_color FROM routes WHERE is_active=true`);
+        result = await db_postgis.query(`SELECT id, route_type, route_id, route_short_name, route_color FROM routes WHERE is_active=true`);
     } catch(error) {
         log('error', error);
         return [];
@@ -608,7 +608,7 @@ async function getPlannedTripsWithUniqueShape(routes) {
         return [];
     }
 
-    routes.sort((a, b) => {return parseInt(a.route_short_name) > parseInt(b.route_short_name) ? 1 : -1});
+    routes.sort(sortRoutes);
 
     for (let route of routes) {
         try {
@@ -644,6 +644,7 @@ async function getPlannedTripsWithUniqueShape(routes) {
         route.trips = trips_to_save;
         delete route.id;
         delete route.route_id;
+        delete route.route_type;
     }
 
     let idx = 0;
@@ -728,7 +729,7 @@ async function getTripsWithUniqueShape(tripIds) {
     let routeDetails;
 
     try {
-        routeDetails = (await db_postgis.query(`SELECT id, route_short_name, route_color FROM routes WHERE id IN (${routeIds})`)).rows;
+        routeDetails = (await db_postgis.query(`SELECT id, route_type, route_short_name, route_color FROM routes WHERE id IN (${routeIds})`)).rows;
     } catch(error) {
         log('error', error);
         return [];
@@ -742,13 +743,17 @@ async function getTripsWithUniqueShape(tripIds) {
             let routeDetail = routeDetails.find((route) => { return route.id === routes[idx].route_id});
             routes[idx].route_short_name = routeDetail.route_short_name;
             routes[idx].route_color = routeDetail.route_color;
-            delete routes[idx].route_id;
-
             idx++;
         }
     }
 
-    routes.sort((a, b) => {return parseInt(a.route_short_name) > parseInt(b.route_short_name) ? 1 : -1});
+    routes.sort(sortRoutes);
+    idx = 0;
+    while (idx < routes.length) {
+        delete routes[idx].route_id;
+        delete routes[idx].route_type;
+        idx++;
+    }
 
     return routes;
 }
@@ -893,7 +898,7 @@ async function makeObjUnActive(id, type) {
         for (const trip_id of trip_ids) {
             await db_postgis.query(`UPDATE trips SET is_active=false WHERE id='${trip_id}'`);
             let shape_id = (await db_postgis.query(`SELECT shape_id FROM trips WHERE id='${trip_id}'`)).rows[0]?.shape_id;
-            if (shape_id !== undefined && shape_ids.indexOf(shape_id) === -1) {
+            if (shape_id !== undefined && shape_id !== null && shape_ids.indexOf(shape_id) === -1) {
                 shape_ids.push(shape_id);
             }
         }
@@ -984,6 +989,17 @@ async function getShapes() {
     }
 
     return output;
+}
+
+// Help function for route sorting according to its short names
+function sortRoutes(routeA, routeB) {
+    if (routeA.route_type > routeB.route_type) {
+        return 1;
+    } else if (routeA.route_type < routeB.route_type) {
+        return -1;
+    }
+    
+    return routeA.route_short_name.localeCompare(routeB.route_short_name, 'en', { sensitivity: 'base', numeric: true });
 }
 
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,

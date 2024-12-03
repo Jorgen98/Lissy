@@ -32,7 +32,12 @@ async function processRequest(url, req, res) {
                 if (req.query.date === undefined) {
                     res.send(false);
                 } else {
-                    res.send(await dbPostGIS.getTripsWithUniqueShape(await dbStats.getTripIdsInInterval(parseInt(req.query.date), parseInt(req.query.date))));
+                    let routes = await dbStats.getRoutesIdsInInterval(parseInt(req.query.date), parseInt(req.query.date));
+                    let trips  = [];
+                    for (const route of routes) {
+                        trips = trips.concat(await dbStats.getTripIdsInInterval(route, parseInt(req.query.date), parseInt(req.query.date)));
+                    }
+                    res.send(await dbPostGIS.getTripsWithUniqueShape(trips));
                 }
                 break;
             }

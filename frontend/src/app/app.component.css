@@ -134,6 +134,8 @@
     color: var(--gray-50);
     font-weight: 600;
     padding: 0.5rem;
+    outline: none;
+    box-shadow: none;
 }
 
 :host::ng-deep.p-datepicker-year:hover, :host::ng-deep.p-datepicker-month:hover, :host::ng-deep.p-highlight:hover {
@@ -185,4 +187,31 @@
 
 :host::ng-deep.p-overlay {
     max-width: 100%;
+}
+
+:host::ng-deep.p-dropdown-header {
+    background: var(--background);
+    border-bottom: 0.2em solid var(--gray-800);
+}
+
+:host::ng-deep.p-dropdown-filter {
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+    border: none;
+    color: inherit;
+    transition: .5s;
+}
+
+:host::ng-deep.p-dropdown-filter-container {
+    background: var(--background);
+    color: var(--gray-50);
+    transition: .5s;
+    border-radius: 6px;
+}
+
+:host::ng-deep.p-dropdown-filter-container:hover {
+    background: var(--gray-50);
+    color: var(--background);
+    transition: .5s;
 }

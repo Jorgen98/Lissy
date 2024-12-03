@@ -37,6 +37,9 @@ async function processRequest(url, req, res) {
                         let expectedStateData = await dbStats.getStats('expected_state', pair[0], pair[1]);
 
                         // Couple real operations data and expected state data
+                        if (Object.keys(realOperationData).length < 1) {
+                            continue;
+                        }
                         for (const item in realOperationData) {
                             let date = (new Date(item)).setHours(0, 0, 0, 0) - day;
 

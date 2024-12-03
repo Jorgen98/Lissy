@@ -58,6 +58,10 @@ async function processServedTrips() {
     }
 
     // Try to parse and save data downloaded from Brno ArcGIS DB
+    if (!(await dbStats.saveRealOperationRoutesData(JSON.stringify(tripsToProcess.map((item) => item.id)), yesterdayMidNight))) {
+        return false;
+    }
+
     progress = 0;
     lastProgressValue = 0;
     for (const route of tripsToProcess) {
@@ -217,6 +221,10 @@ async function processRoute(route) {
                 log('error', error);
             }
         });
+    }
+
+    if (!(await dbStats.saveRealOperationTripsData(JSON.stringify(route.trips.map((item) => item.id)), route.id, yesterdayMidNight))) {
+        return false;
     }
 
     dbStats.updateROProcessingStats('data_without_trips', Object.keys(dataToProcess).length);

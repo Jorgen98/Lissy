@@ -24,7 +24,8 @@ const statType = {
     tripsToProcess: 'trips_to_process', // how many trips should be still processed in current day
     operationData: 'operation_data', // Real operation processed data
     operationDataStats: 'operation_data_stats', // Real operation processing stats
-    operationDataTrips: 'operation_data_trips'
+    operationDataRoutes: 'operation_data_routes', // Routes metadata
+    operationDataTrips: 'operation_data_trips' // Trips metadata
 }
 
 // Variable for transit system state processing stats
@@ -280,11 +281,6 @@ async function saveRealOperationData(tripId, scoreTable, date) {
         .tag('stat_type', statType.operationData)
         .tag('trip_id', tripId)
         .timestamp(date);
-
-    let tripRecord = new Point(measurementStats)
-        .tag('stat_type', statType.operationDataTrips)
-        .intField('trip_id', tripId)
-        .timestamp(date);
     
     let anyData = false;
     for (const [i, row] of scoreTable.entries()) {
@@ -298,7 +294,51 @@ async function saveRealOperationData(tripId, scoreTable, date) {
     record.tag('anyData', anyData);
         
     writeApi.writePoint(record);
-    writeApi.writePoint(tripRecord);
+
+    return new Promise((resolve) => {
+        writeApi.close().then(async () => {
+            resolve(true);
+        })
+        .catch((error) => {
+            log('error', error)
+            resolve(false);
+        })
+    });
+}
+
+// Function for saving transit system used routes intro DB
+async function saveRealOperationRoutesData(ids, date) {
+    const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
+
+    let record = new Point(measurementStats)
+        .tag('stat_type', statType.operationDataRoutes)
+        .stringField('route_ids', ids)
+        .timestamp(date);
+        
+    writeApi.writePoint(record);
+
+    return new Promise((resolve) => {
+        writeApi.close().then(async () => {
+            resolve(true);
+        })
+        .catch((error) => {
+            log('error', error)
+            resolve(false);
+        })
+    });
+}
+
+// Function for saving transit system used trips intro DB
+async function saveRealOperationTripsData(ids, route_id, date) {
+    const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
+
+    let record = new Point(measurementStats)
+        .tag('stat_type', statType.operationDataTrips)
+        .tag('route_id', route_id)
+        .stringField('trip_ids', ids)
+        .timestamp(date);
+        
+    writeApi.writePoint(record);
 
     return new Promise((resolve) => {
         writeApi.close().then(async () => {
@@ -406,7 +446,8 @@ async function getAvailableDates(includeToday = false) {
     });
 }
 
-async function getTripIdsInInterval(start, stop) {
+// Help function for retrieving, which routes has been served in given time interval
+async function getRoutesIdsInInterval(start, stop) {
     let startTime;
     let stopTime;
     try {
@@ -422,26 +463,60 @@ async function getTripIdsInInterval(start, stop) {
 
     query = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
     |> range(start: ${startTime}, stop: ${stopTime})
-    |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.operationDataTrips})`;
+    |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.operationDataRoutes})`;
 
-    let records = {};
+    let records = [];
 
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
-                if (o._field === 'trip_id') {
-                    if (!records[o._value]) {
-                        records[o._value] = true;
-                    }
-                }
+                records = JSON.parse(o._value);
             },
             error(error) {
                 log('error', error);
                 resolve(false);
             },
             complete() {
-                resolve(records = Object.keys(records).map((item) => [item]));
+                resolve(records);
+            },
+        })
+    });
+}
+
+// Help function for retrieving, which trips has been server on give route in given time interval
+async function getTripIdsInInterval(route_id, start, stop) {
+    let startTime;
+    let stopTime;
+    try {
+        startTime = new Date(start);
+        stopTime = new Date(stop);
+        stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
+    } catch (error) {
+        return [];
+    }
+
+    let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);
+    let query;
+
+    query = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
+    |> range(start: ${startTime}, stop: ${stopTime})
+    |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.operationDataTrips} and r.route_id == ${route_id.toString()})`;
+
+    let records = [];
+
+    return new Promise((resolve) => {
+        dbQueryAPI.queryRows(query, {
+            next(row, tableMeta) {
+                const o = tableMeta.toObject(row);
+                records = JSON.parse(o._value);
+            },
+            error(error) {
+                log('error', error);
+                resolve(false);
+            },
+            complete() {
+                resolve(records);
             },
         })
     });
@@ -449,4 +524,5 @@ async function getTripIdsInInterval(start, stop) {
 
 module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats,
     updateStateProcessingStats, saveRealOperationData, initROProcessingStats,
-    updateROProcessingStats, saveROProcessingStats, getAvailableDates, getTripIdsInInterval }
+    updateROProcessingStats, saveROProcessingStats, getAvailableDates, getRoutesIdsInInterval, getTripIdsInInterval,
+    saveRealOperationRoutesData, saveRealOperationTripsData }

@@ -465,20 +465,37 @@ async function getRoutesIdsInInterval(start, stop) {
     |> range(start: ${startTime}, stop: ${stopTime})
     |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.operationDataRoutes})`;
 
-    let records = [];
+    let records = {};
 
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
-                records = JSON.parse(o._value);
+                const keys = JSON.parse(o._value);
+                for (const key of keys) {
+                    if (records[key] === undefined) {
+                        records[key] = 0;
+                    }
+                    records[key]++;
+                }
             },
             error(error) {
                 log('error', error);
                 resolve(false);
             },
             complete() {
-                resolve(records);
+                let max = 0;
+                for (const key in records) {
+                    if (records[key] > max) {
+                        max = records[key];
+                    }
+                }
+                for (const key in records) {
+                    if (records[key] < max) {
+                        delete records[key];
+                    }
+                }
+                resolve(Object.keys(records).map((item) => parseInt(item)));
             },
         })
     });

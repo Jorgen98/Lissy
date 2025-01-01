@@ -1,0 +1,39 @@
+<main class="main" *ngIf="config.enabled">
+  <!-- Side menu -->
+  <div class="side-control">
+    <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <button pButton type="button" class="btn-side-menu"
+        (click)="mapService.zoomIn()">
+        <i class="pi pi-search-plus"></i>
+      </button>
+    </div>
+    <div [ngClass]="moduleFocus == 4 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <button pButton type="button" class="btn-side-menu"
+        (click)="mapService.zoomOut()">
+        <i class="pi pi-search-minus"></i>
+      </button>
+    </div>
+    <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+        (click)="switchCalendarModuleVisibility()">
+        <i class="pi pi-calendar"></i>
+      </button>
+    </div>
+  </div>
+  <!-- Module content -->
+  <div class="content">
+    <!-- Calendar -->
+    <div class="side-control-content" *ngIf="isCalendarModuleActive">
+      <p-calendar class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
+        [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
+        <ng-template pTemplate="footer">
+          <div class="calendar-btns-div">
+            <button pButton type="button" class="p-link p-datepicker-month" (click)="downloadData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
+          </div>
+        </ng-template>
+      </p-calendar>
+    </div>
+    <!-- Map -->
+    <map></map>
+  </div>
+</main>

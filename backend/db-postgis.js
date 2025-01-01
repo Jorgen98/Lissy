@@ -8,6 +8,7 @@ const fs = require('fs');
 
 const logService = require('./log.js');
 const dbStats = require('./db-stats.js');
+const gtfsService = require('./gtfs.js');
 
 // .env file include
 dotenv.config();
@@ -758,6 +759,79 @@ async function getTripsWithUniqueShape(tripIds) {
     return routes;
 }
 
+// Return basic info about given routes by them id
+async function getRoutesDetail(routeIds) {
+    let routes = [];
+    try {
+        routes = (await db_postgis.query(`SELECT id, route_type, route_short_name FROM routes WHERE id IN (${routeIds})`)).rows;
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    routes.sort(sortRoutes);
+    idx = 0;
+    while (idx < routes.length) {
+        delete routes[idx].route_type;
+        idx++;
+    }
+
+    return routes;
+}
+
+// Return trips info by given id joined by shape id
+async function getTripsDetail(tripIds) {
+    let result;
+    let stops = {};
+
+    if (tripIds.length < 1) {
+        return [];
+    }
+
+    try {
+        result = await db_postgis.query(`SELECT id, stop_name FROM stops`);
+        for (const stop of result.rows) {
+            stops[stop.id] = stop.stop_name;
+        }
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    try {
+        result = await db_postgis.query(`SELECT id, shape_id, stops, stops_info FROM trips WHERE id IN (${tripIds})`);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    let tripGroups = [];
+    for (let trip of result.rows) {
+        if (trip.stops.length < 2) {
+            continue;
+        }
+
+        let tripShapeId = tripGroups.findIndex((inspTrip) => {return inspTrip.stops === `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`});
+        if (tripShapeId === -1) {
+            tripShapeId = tripGroups.length;
+            tripGroups.push({stops: `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`, trips: []});
+        }
+
+        trip.dep_time = (new Date(gtfsService.parseTimeFromGTFS(trip.stops_info[0].aT))).valueOf() + trip.stops_info[0].dT;
+        delete trip.stops_info;
+        delete trip.stops;
+        tripGroups[tripShapeId].trips.push(trip);
+    }
+
+    for (let group of tripGroups) {
+        group.trips.sort((a, b) => {return a.dep_time > b.dep_time ? 1 : -1});
+    }
+
+    tripGroups.sort((a, b) => {return a.stops > b.stops ? 1 : -1});
+
+    return tripGroups;
+}
+
 // Add new shape to DB, returns new id
 async function updateTripsShapeId(tripIds, shapeId) {
     try {
@@ -1006,4 +1080,4 @@ module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, ad
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
-    getFullShape, getTripsWithUniqueShape }
+    getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail }

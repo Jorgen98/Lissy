@@ -737,6 +737,8 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
             newTrip.route_id_id = todayRouteIds[newTrip.route_id].id;
 
+            // To do: iterate thought actual trips, try to find suitable shape and save shape id, if not, call routing
+
             newTrip['stops_info'] = newTrip['stops_info'].map(value => `'${JSON.stringify(value)}'`);
             let newTripId = await dbPostGIS.addTrip(newTrip);
 
@@ -973,4 +975,4 @@ function stopsSort(data) {
     return data;
 }
 
-module.exports = { reloadActualSystemState }
+module.exports = { reloadActualSystemState, parseTimeFromGTFS }

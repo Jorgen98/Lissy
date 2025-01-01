@@ -46,7 +46,7 @@ server.on('listening', async () => {
 
 // Regular job functions
 // Main data processing function
-cron.schedule('15 4 * * *', async () => {
+cron.schedule('15 2 * * *', async () => {
     log('info', 'Running scheduled actualization job. Processing real operation data and actualizing transit system');
     if (await processData()) {
         log('success', 'Actualization procedure is done');

@@ -41,8 +41,11 @@ export class APIService {
         if (params) {
             let queryText = `${this.whoToAsk}${url}?`;
 
-            for (const param in params) {
-                queryText += `${param}=${params[param]}`
+            for (const [idx, param] of Object.keys(params).entries()) {
+                queryText += `${param}=${params[param]}`;
+                if (idx < (Object.keys(params).length - 1)) {
+                    queryText += '&';
+                }
             }
 
             return this.httpClient.get(queryText, {headers: this.headers}).pipe(retry(3));

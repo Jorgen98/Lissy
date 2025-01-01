@@ -9,6 +9,7 @@ import { TranslateService } from '@ngx-translate/core';
 import * as configAboutModule from '../about/config.json';
 import * as configStatsModule from '../stats/config.json';
 import * as configShapesModule from '../shapes/config.json';
+import * as configDelayTripsModule from '../delay-trips/config.json';
 
 @Component({
   selector: 'dashboard',
@@ -30,7 +31,8 @@ export class DashboardModule implements OnInit {
   public modules: ModuleConfig[] = [
     configAboutModule,
     configStatsModule,
-    configShapesModule
+    configShapesModule,
+    configDelayTripsModule
   ]
 
   public async ngOnInit() {

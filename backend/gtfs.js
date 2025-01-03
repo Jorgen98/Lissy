@@ -677,6 +677,10 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
     let actualTrips = await dbPostGIS.getActiveTrips(todayRouteIds);
     let tripsToProcess = 0;
 
+    for (const tripId in actualTrips) {
+        actualTrips[tripId].tmp_shape_id = `${todayRouteIds[actualTrips[tripId].route_id].route_type}?${JSON.stringify(actualTrips[tripId].stops)}`;
+    }
+
     for (const record of inputTripsData) {
         let decRecord = parseOneLineFromInputFile(record);
 
@@ -726,6 +730,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             actualTripToCmp['stops_info'] = JSON.stringify(actualTripToCmp['stops_info'] ? actualTripToCmp['stops_info'] : undefined);
             actualTripToCmp['stops'] = JSON.stringify(actualTripToCmp['stops'] ? actualTripToCmp['stops'] : undefined);
             delete actualTripToCmp['id'];
+            delete actualTripToCmp['tmp_shape_id'];
         }
 
         if (actualTrip === undefined || JSON.stringify(actualTripToCmp) !== JSON.stringify(tripToCmp)) {
@@ -737,8 +742,6 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
             newTrip.route_id_id = todayRouteIds[newTrip.route_id].id;
 
-            // To do: iterate thought actual trips, try to find suitable shape and save shape id, if not, call routing
-
             newTrip['stops_info'] = newTrip['stops_info'].map(value => `'${JSON.stringify(value)}'`);
             let newTripId = await dbPostGIS.addTrip(newTrip);
 
@@ -749,26 +752,39 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             dbStats.updateStateProcessingStats('gtfs_trips_added', 1);
             actualTrips[internTripId] = newTrip;
 
-            let interRouteType = '';
+            let tmpShapeId = `${todayRouteIds[newTrip.route_id].route_type}?${JSON.stringify(newTrip.stops)}`;
+            let tmpShapeActualId = null;
 
-            // Reduction of transit modes, currently only tram, rail and road modes are supported
-            switch (todayRouteIds[newTrip.route_id].route_type) {
-                case 0: interRouteType = 'tram'; break;
-                case 2: interRouteType = 'rail'; break;
-                case 3: case 11: case 800: interRouteType = 'road'; break;
-                default: interRouteType = '';
+            for (const tripId in actualTrips) {
+                if (actualTrips[tripId].tmp_shape_id === tmpShapeId) {
+                    tmpShapeActualId = actualTrips[tripId].shape_id;
+                    break;
+                }
             }
 
-            let tmpShapeId = `${interRouteType}?${JSON.stringify(newTrip.stops)}`;
-            if (shapesToCalc[tmpShapeId] === undefined) {
-                shapesToCalc[tmpShapeId] = {
-                    route: newTrip.route_id,
-                    stops: newTrip.stops,
-                    trip_ids: [newTripId],
-                    transportMode: interRouteType
+            if (tmpShapeActualId === null) {
+                let interRouteType = '';
+                // Reduction of transit modes, currently only tram, rail and road modes are supported
+                switch (todayRouteIds[newTrip.route_id].route_type) {
+                    case 0: interRouteType = 'tram'; break;
+                    case 2: interRouteType = 'rail'; break;
+                    case 3: case 11: case 800: interRouteType = 'road'; break;
+                    default: interRouteType = '';
+                }
+
+                tmpShapeId = `${interRouteType}?${JSON.stringify(newTrip.stops)}`;
+                if (shapesToCalc[tmpShapeId] === undefined) {
+                    shapesToCalc[tmpShapeId] = {
+                        route: newTrip.route_id,
+                        stops: newTrip.stops,
+                        trip_ids: [newTripId],
+                        transportMode: interRouteType
+                    }
+                } else {
+                    shapesToCalc[tmpShapeId].trip_ids.push(newTripId);
                 }
             } else {
-                shapesToCalc[tmpShapeId].trip_ids.push(newTripId);
+                await dbPostGIS.updateTripsShapeId([newTripId], tmpShapeActualId);
             }
 
             if (! await dbPostGIS.setTripAsUnServed(newTripId)) {

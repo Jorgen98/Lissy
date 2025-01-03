@@ -8,7 +8,6 @@ const fs = require('fs');
 
 const logService = require('./log.js');
 const dbStats = require('./db-stats.js');
-const gtfsService = require('./gtfs.js');
 
 // .env file include
 dotenv.config();
@@ -811,15 +810,16 @@ async function getTripsDetail(tripIds) {
             continue;
         }
 
-        let tripShapeId = tripGroups.findIndex((inspTrip) => {return inspTrip.stops === `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`});
+        let tripShapeId = tripGroups.findIndex((inspTrip) => {return inspTrip.shape_id === trip.shape_id});
         if (tripShapeId === -1) {
             tripShapeId = tripGroups.length;
-            tripGroups.push({stops: `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`, trips: []});
+            tripGroups.push({shape_id: trip.shape_id, stops: `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`, trips: []});
         }
 
-        trip.dep_time = (new Date(gtfsService.parseTimeFromGTFS(trip.stops_info[0].aT))).valueOf() + trip.stops_info[0].dT;
+        trip.dep_time = (new Date(parseTimeFromGTFS(trip.stops_info[0].aT))).valueOf() + trip.stops_info[0].dT;
         delete trip.stops_info;
         delete trip.stops;
+        delete trip.shape_id;
         tripGroups[tripShapeId].trips.push(trip);
     }
 
@@ -1074,6 +1074,22 @@ function sortRoutes(routeA, routeB) {
     }
     
     return routeA.route_short_name.localeCompare(routeB.route_short_name, 'en', { sensitivity: 'base', numeric: true });
+}
+
+// Try to parse time from GTFS input data
+function parseTimeFromGTFS(input) {
+    try {
+        if (parseInt(input.slice(0,2)) < 10) {
+            return new Date(`1970-01-01T0${input}`);
+        } else if (parseInt(input.slice(0,2)) > 24) {
+            input = `${(parseInt(input.slice(0,2)) - 24).toString()}:${input.slice(2,4)}:${input.slice(4,6)}`;
+            return new Date(`1970-01-02T${input}`);
+        } else {
+            return new Date(`1970-01-01T${input}`);
+        }
+    } catch(error) {
+        return new Date('1970-01-01T00:00:00');
+    }
 }
 
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,

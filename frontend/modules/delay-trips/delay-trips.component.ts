@@ -144,9 +144,8 @@ export class DelayTripsModule implements OnInit {
     // API call for data
     let intervalRoutes = await this.apiGet('getAvailableRoutes', {dates: JSON.stringify(queryDates)});
     let intervalTrips = await this.apiGet('getAvailableTrips', {dates: JSON.stringify(queryDates), route_id: intervalRoutes[0].id});
-    let shape = await this.apiGet('getShape', {shape_id: intervalTrips[2].trips[0].shape_id});
-    let shape1 = await this.apiGet('getShape', {shape_id: intervalTrips[2].trips[1].shape_id});
-    console.log(shape, shape1, intervalTrips[2])
+    let shape = await this.apiGet('getShape', {shape_id: intervalTrips[0].shape_id});
+    console.log(intervalTrips)
 
     // To do: get trip delay data
   }

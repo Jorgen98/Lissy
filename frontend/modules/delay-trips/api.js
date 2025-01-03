@@ -87,6 +87,25 @@ async function processRequest(url, req, res) {
                 }
                 break;
             }
+            // Return available trip real operation data for selected tripId and time interval
+            case 'getTripData': {
+                if (req.query.dates === undefined || req.query.trip_id === undefined) {
+                    res.send(false);
+                } else {
+                    let response = {};
+                    let dates = JSON.parse(req.query.dates);
+
+                    // Get data for every date range
+                    for (const pair of dates) {
+                        let pairData = await dbStats.getTripDataInInterval(parseInt(req.query.trip_id), pair[0], pair[1]);
+                        for (const key in pairData) {
+                            response[key] = pairData[key];
+                        }
+                    }
+                    res.send(response);
+                }
+                break;
+            }
             default: res.send(false);
         }
     } catch (error) {

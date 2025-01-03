@@ -539,7 +539,53 @@ async function getTripIdsInInterval(route_id, start, stop) {
     });
 }
 
+async function getTripDataInInterval(trip_id, start, stop) {
+    let startTime;
+    let stopTime;
+    try {
+        startTime = new Date(start);
+        stopTime = new Date(stop);
+        stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
+    } catch (error) {
+        return [];
+    }
+
+    let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);
+    let query;
+
+    query = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
+    |> range(start: ${startTime}, stop: ${stopTime})
+    |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.operationData} and r.trip_id == ${trip_id.toString()})`;
+
+    let records = {};
+
+    return new Promise((resolve) => {
+        dbQueryAPI.queryRows(query, {
+            next(row, tableMeta) {
+                const o = tableMeta.toObject(row);
+                let dateKey = (new Date(o._time)).setHours(0, 0, 0, 0).valueOf();
+                let primKey = parseInt(o._field.split('-')[0]);
+                let secKey = parseInt(o._field.split('-')[1]);
+                if (records[dateKey] === undefined) {
+                    records[dateKey] = {};
+                }
+                if (records[dateKey][primKey] === undefined) {
+                    records[dateKey][primKey] = {};
+                }
+                records[dateKey][primKey][secKey] = o._value;
+            },
+            error(error) {
+                log('error', error);
+                resolve(false);
+            },
+            complete() {
+                resolve(records);
+            },
+        })
+    });
+}
+
 module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats,
     updateStateProcessingStats, saveRealOperationData, initROProcessingStats,
     updateROProcessingStats, saveROProcessingStats, getAvailableDates, getRoutesIdsInInterval, getTripIdsInInterval,
-    saveRealOperationRoutesData, saveRealOperationTripsData }
+    saveRealOperationRoutesData, saveRealOperationTripsData, getTripDataInInterval }

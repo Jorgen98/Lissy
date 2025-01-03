@@ -85,7 +85,7 @@ export class MapComponent implements AfterViewInit {
         }
 
         let objectLayer = this.layers[object?.layerName];
-        let objectClass = 'stop-icon-base';
+        let objectClass = 'color-base';
         if (object.color === 'palette') {
             if (objectLayer.palette[object.metadata.zone_id] === undefined) {
                 let newColorIdx = Object.keys(objectLayer.palette).length % this.colorPaletteLength;

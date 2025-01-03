@@ -10,3 +10,18 @@
     width: 100%;
     height: calc(100vh - 3.5em);
 }
+
+.routeSelectionDiv {
+    width: 26em;
+    background-color: var(--background);
+    border: 0.15em solid var(--gray-800);
+    border-radius: 0.5em;
+    color: var(--gray-50);
+}
+
+.routeSelectionInnerDiv {
+    margin: 0.5em;
+    row-gap: 1em;
+    display: flex;
+    flex-direction: column;
+}

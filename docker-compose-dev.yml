@@ -31,7 +31,8 @@ services:
     container_name: lissy-db-stats
     image: influxdb:2.7
     volumes:
-      - ./db-stats-data:/var/lib/influxdb
+      - ./db-stats-data/data/:/var/lib/influxdb2
+      - ./db-stats-data/config/:/var/lib/influxdb2
     ports:
       - 8086:8086
     environment:

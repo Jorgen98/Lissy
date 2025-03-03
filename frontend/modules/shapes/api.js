@@ -51,6 +51,10 @@ async function processRequest(url, req, res) {
                 break;
             }
             default: res.send(false);
+
+            // To do: pre danu linku a casovy rozsah vrat dostupne trasy
+            // To do: pre danu trasu vrat polyline
+            // To do: pre danu trasu a cas vrat iba meskania
         }
     } catch (error) {
         log('error', error);

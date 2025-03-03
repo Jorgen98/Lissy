@@ -44,6 +44,10 @@ async function processRequest(url, req, res) {
                     for (const key in response) {
                         if (response[key] < dates.length) {
                             delete response[key];
+                        } else {
+                            if ((await getTripsInInterval(key, dates)).length < 1) {
+                                delete response[key];
+                            }
                         }
                     }
                     res.send(await dbPostGIS.getRoutesDetail(Object.keys(response).map((item) => parseInt(item))));
@@ -55,26 +59,8 @@ async function processRequest(url, req, res) {
                 if (req.query.dates === undefined || req.query.route_id === undefined) {
                     res.send(false);
                 } else {
-                    let response = {};
                     let dates = JSON.parse(req.query.dates);
-
-                    // Get data for every date range
-                    for (const pair of dates) {
-                        let pairData = await dbStats.getTripIdsInInterval(parseInt(req.query.route_id), pair[0], pair[1]);
-
-                        for (const id of pairData) {
-                            if (response[id] === undefined) {
-                                response[id] = 0;
-                            }
-                            response[id]++;
-                        }
-                    }
-                    for (const key in response) {
-                        if (response[key] < dates.length) {
-                            delete response[key];
-                        }
-                    }
-                    res.send(await dbPostGIS.getTripsDetail(Object.keys(response).map((item) => parseInt(item))));
+                    res.send(await getTripsInInterval(req.query.route_id, dates));
                 }
                 break;
             }
@@ -112,6 +98,27 @@ async function processRequest(url, req, res) {
         log('error', error);
         res.send(false);
     }
+}
+
+async function getTripsInInterval(route_id, dates) {
+    let response = {};
+    // Get data for every date range
+    for (const pair of dates) {
+        let pairData = await dbStats.getTripIdsInInterval(parseInt(route_id), pair[0], pair[1]);
+
+        for (const id of pairData) {
+            if (response[id] === undefined) {
+                response[id] = 0;
+            }
+            response[id]++;
+        }
+    }
+    for (const key in response) {
+        if (response[key] < dates.length) {
+            delete response[key];
+        }
+    }
+    return (await dbPostGIS.getTripsDetail(Object.keys(response).map((item) => parseInt(item))));
 }
 
 module.exports = { processRequest, env }

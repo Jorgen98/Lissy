@@ -467,6 +467,14 @@ async function getRoutesIdsInInterval(start, stop) {
 
     let records = {};
 
+    let max = 0;
+    const day = 24 * 60 * 60 * 1000;
+    let idx = 0;
+    while (start <= (stop - idx * day)) {
+        max++;
+        idx++;
+    }
+
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
@@ -484,12 +492,6 @@ async function getRoutesIdsInInterval(start, stop) {
                 resolve(false);
             },
             complete() {
-                let max = 0;
-                for (const key in records) {
-                    if (records[key] > max) {
-                        max = records[key];
-                    }
-                }
                 for (const key in records) {
                     if (records[key] < max) {
                         delete records[key];
@@ -520,20 +522,39 @@ async function getTripIdsInInterval(route_id, start, stop) {
     |> range(start: ${startTime}, stop: ${stopTime})
     |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.operationDataTrips} and r.route_id == ${route_id.toString()})`;
 
-    let records = [];
+    let records = {};
+
+    let max = 0;
+    const day = 24 * 60 * 60 * 1000;
+    let idx = 0;
+    while (start <= (stop - idx * day)) {
+        max++;
+        idx++;
+    }
 
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
-                records = JSON.parse(o._value);
+                let data = JSON.parse(o._value);
+                for (const rec of data) {
+                    if (records[rec] === undefined) {
+                        records[rec] = 0;
+                    }
+                    records[rec]++;
+                }
             },
             error(error) {
                 log('error', error);
                 resolve(false);
             },
             complete() {
-                resolve(records);
+                for (const key in records) {
+                    if (records[key] < max) {
+                        delete records[key];
+                    }
+                }
+                resolve(Object.keys(records).map((item) => parseInt(item)));
             },
         })
     });

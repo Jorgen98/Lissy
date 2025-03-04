@@ -117,6 +117,7 @@ services:
       DOCKER_INFLUXDB_INIT_BUCKET: ${DB_STATS_BUCKET}
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${DB_STATS_TOKEN}
       INFLUXDB_BIND_ADDRESS: 0.0.0.0:8088
+      TZ: "Europe/Bratislava"
     deploy:
       restart_policy:
         condition: on-failure

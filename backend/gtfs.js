@@ -176,9 +176,9 @@ async function unzipAndParseData(response, startTime) {
                         log('success', 'Shapes routing done');
 
                         if (saveTestOutput) {
-                            fs.writeFile(`backups/${(new Date()).toLocaleString()}_shapes.txt`, JSON.stringify(await dbPostGIS.getShapes()), function(error) {
+                            fs.writeFile(`backups/${(new Date()).toISOString()}_shapes.txt`, JSON.stringify(await dbPostGIS.getShapes()), function(error) {
                                 if (error) {
-                                    console.log(error);
+                                    log('error', error);
                                 }
                             });
                         }
@@ -190,7 +190,7 @@ async function unzipAndParseData(response, startTime) {
             })
             .on('error', (error) => {
                 log('error', error);
-               resolve(false);
+                resolve(false);
             });
         } catch(error) {
             log('error', error);
@@ -611,7 +611,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             let stop = actualStopTimes[record].stops_info[idx];
             if (idx === 0) {
                 startTime = parseTimeFromGTFS(actualStopTimes[record].stops_info[0].aT);
-                stop['aT'] = startTime.toTimeString();
+                stop['aT'] = `${startTime.getHours() < 10 ? '0' + startTime.getHours() : startTime.getHours()}:${startTime.getMinutes() < 10 ? '0' + startTime.getMinutes() : startTime.getMinutes()}:${startTime.getSeconds() < 10 ? '0' + startTime.getSeconds() : startTime.getSeconds()}`;
             } else {
                 stop['aT'] = Math.round((parseTimeFromGTFS(stop['aT']).valueOf() - startTime.valueOf()) / 1000);
             }
@@ -991,4 +991,4 @@ function stopsSort(data) {
     return data;
 }
 
-module.exports = { reloadActualSystemState, parseTimeFromGTFS }
+module.exports = { reloadActualSystemState }

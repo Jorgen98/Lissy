@@ -1079,9 +1079,7 @@ function sortRoutes(routeA, routeB) {
 // Try to parse time from GTFS input data
 function parseTimeFromGTFS(input) {
     try {
-        if (parseInt(input.slice(0,2)) < 10) {
-            return new Date(`1970-01-01T0${input}`);
-        } else if (parseInt(input.slice(0,2)) > 24) {
+        if (parseInt(input.slice(0,2)) > 24) {
             input = `${(parseInt(input.slice(0,2)) - 24).toString()}:${input.slice(2,4)}:${input.slice(4,6)}`;
             return new Date(`1970-01-02T${input}`);
         } else {

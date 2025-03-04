@@ -22,22 +22,21 @@ async function processRequest(url, req, res) {
                 res.send(await dbStats.getAvailableDates(true));
                 break;
             }
-            // Return available uniq shapeId for current day
-            case 'getTodayShapes': {
-                res.send(await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess()));
-                break;
-            }
             // Return available uniq shapeId for selected day
             case 'getShapes': {
                 if (req.query.date === undefined) {
                     res.send(false);
                 } else {
-                    let routes = await dbStats.getRoutesIdsInInterval(parseInt(req.query.date), parseInt(req.query.date));
-                    let trips  = [];
-                    for (const route of routes) {
-                        trips = trips.concat(await dbStats.getTripIdsInInterval(route, parseInt(req.query.date), parseInt(req.query.date)));
+                    if (parseInt(req.query.date) === (new Date).setHours(0, 0, 0, 0).valueOf()) {
+                        res.send(await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess()));
+                    } else {
+                        let routes = await dbStats.getRoutesIdsInInterval(parseInt(req.query.date), parseInt(req.query.date));
+                        let trips  = [];
+                        for (const route of routes) {
+                            trips = trips.concat(await dbStats.getTripIdsInInterval(route, parseInt(req.query.date), parseInt(req.query.date)));
+                        }
+                        res.send(await dbPostGIS.getTripsWithUniqueShape(trips));
                     }
-                    res.send(await dbPostGIS.getTripsWithUniqueShape(trips));
                 }
                 break;
             }

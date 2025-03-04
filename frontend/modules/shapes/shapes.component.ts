@@ -117,11 +117,7 @@ export class ShapesModule implements OnInit {
     this.selectedDate = new Date(JSON.parse(JSON.stringify(this.hooverDate)));
 
     // API call for data
-    if (this.selectedDate.valueOf() === (new Date).setHours(0, 0, 0, 0).valueOf()) {
-      this.routes = await this.apiGet('getTodayShapes');
-    } else {
-      this.routes = await this.apiGet('getShapes', {date: this.hooverDate.valueOf().toString()});
-    }
+    this.routes = await this.apiGet('getShapes', {date: this.hooverDate.valueOf().toString()});
 
     if (this.routes.length < 1) {
       this.isRouteSelectionEnabled = false;

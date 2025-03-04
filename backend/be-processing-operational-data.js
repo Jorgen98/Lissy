@@ -216,7 +216,7 @@ async function processRoute(route) {
     }
 
     if (saveTestOutput) {
-        fs.writeFile(`backups/${(new Date()).toLocaleString()}_real_operations_${route.route_id}_stats.txt`, JSON.stringify(testOutput, null, 4), function(error) {
+        fs.writeFile(`backups/${(new Date()).toISOString()}_real_operations_${route.route_id}_stats.txt`, JSON.stringify(testOutput, null, 4), function(error) {
             if (error) {
                 log('error', error);
             }

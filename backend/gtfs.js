@@ -611,7 +611,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             let stop = actualStopTimes[record].stops_info[idx];
             if (idx === 0) {
                 startTime = parseTimeFromGTFS(actualStopTimes[record].stops_info[0].aT);
-                stop['aT'] = startTime.toLocaleTimeString();
+                stop['aT'] = startTime.toTimeString();
             } else {
                 stop['aT'] = Math.round((parseTimeFromGTFS(stop['aT']).valueOf() - startTime.valueOf()) / 1000);
             }

@@ -31,13 +31,22 @@ const db_postgis = new Pool({
     host: process.env.DB_POSTGIS_HOST,
     database: process.env.DB_POSTGIS_DATABASE,
     password: process.env.DB_POSTGIS_PASSWORD,
-    port: 5432
+    port: 5432,
+    connectionTimeoutMillis: 1000,
+    max: 20
 });
+
+
+db_postgis.on('error', function(error) {
+    log('info', `Connected clients: ${db_postgis.totalCount}, Idle clients: ${db_postgis.idleCount}`);
+    log('error', error);
+})
 
 // Function for DB connection create
 async function connectToDB() {
     try {
-        await db_postgis.connect();
+        let client = await db_postgis.connect();
+        client.release(true);
         return true;
     } catch(error) {
         log('error', error);
@@ -1094,4 +1103,4 @@ module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, ad
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
-    getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail }
+    getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, printCurrentClientNums }

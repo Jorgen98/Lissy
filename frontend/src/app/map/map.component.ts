@@ -130,6 +130,10 @@ export class MapComponent implements AfterViewInit {
             objectClass = objectLayer.palette[object.metadata.route_id];
         }
 
+        if (object.color === 'provided' && object.metadata.color === '000000') {
+            object.metadata.color = 'FFFFFF';
+        }
+
         return L.polyline(
             object.latLng,
             { 

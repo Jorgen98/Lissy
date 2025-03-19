@@ -24,18 +24,19 @@ async function processRequest(url, req, res) {
             }
             // Return available uniq shapeId for selected day
             case 'getShapes': {
+                const fullStopsOrder = req.query.fullStopOrder ? true : false;
                 if (req.query.date === undefined) {
                     res.send(false);
                 } else {
                     if (parseInt(req.query.date) === (new Date).setHours(0, 0, 0, 0).valueOf()) {
-                        res.send(await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess()));
+                        res.send(await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess(), fullStopsOrder));
                     } else {
                         let routes = await dbStats.getRoutesIdsInInterval(parseInt(req.query.date), parseInt(req.query.date));
                         let trips  = [];
                         for (const route of routes) {
                             trips = trips.concat(await dbStats.getTripIdsInInterval(route, parseInt(req.query.date), parseInt(req.query.date)));
                         }
-                        res.send(await dbPostGIS.getTripsWithUniqueShape(trips));
+                        res.send(await dbPostGIS.getTripsWithUniqueShape(trips, fullStopsOrder));
                     }
                 }
                 break;
@@ -50,10 +51,6 @@ async function processRequest(url, req, res) {
                 break;
             }
             default: res.send(false);
-
-            // To do: pre danu linku a casovy rozsah vrat dostupne trasy
-            // To do: pre danu trasu vrat polyline
-            // To do: pre danu trasu a cas vrat iba meskania
         }
     } catch (error) {
         log('error', error);

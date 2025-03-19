@@ -604,7 +604,7 @@ async function setTripAsUnServed(id) {
 }
 
 // Get all trips which will be served today and has different shape id
-async function getPlannedTripsWithUniqueShape(routes) {
+async function getPlannedTripsWithUniqueShape(routes, stopsOrder) {
     let result;
     let stops = {};
     try {
@@ -645,6 +645,15 @@ async function getPlannedTripsWithUniqueShape(routes) {
                 continue;
             }
 
+            if (stopsOrder) {
+                let stopNamesOrder = [];
+                for (const stop of trip.stops) {
+                    stopNamesOrder.push(stops[stop]);
+                }
+    
+                trip.stopOrder = stopNamesOrder;
+            }
+
             trip.stops = `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`;
             trips_to_save.push(trip);
             delete trip.row_number;
@@ -669,7 +678,7 @@ async function getPlannedTripsWithUniqueShape(routes) {
 }
 
 // Get all trips according to trip ids and has different shape id
-async function getTripsWithUniqueShape(tripIds) {
+async function getTripsWithUniqueShape(tripIds, stopsOrder) {
     let result;
     let routes = [];
     let stops = {};
@@ -711,6 +720,15 @@ async function getTripsWithUniqueShape(tripIds) {
     for (let trip of result.rows) {
         if (trip.stops.length < 2) {
             continue;
+        }
+
+        if (stopsOrder) {
+            let stopNamesOrder = [];
+            for (const stop of trip.stops) {
+                stopNamesOrder.push(stops[stop]);
+            }
+
+            trip.stopOrder = stopNamesOrder;
         }
 
         trip.stops = `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`;

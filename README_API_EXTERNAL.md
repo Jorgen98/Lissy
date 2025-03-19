@@ -24,6 +24,8 @@ This endpoint returns the time interval for which shape records exist in the DB.
 ### 2. Available routes
 
 > [/lissy/api/shapes/getShapes/{date}]()
+> [/lissy/api/shapes/getShapes?date=1740956400000]()
+> [/lissy/api/shapes/getShapes?date=1742338800000&fullStopOrder=true]()
 
 This endpoint returns all available shapes for the selected date, grouped by route. By default, the endpoint returns a list of JSON documents in the following format:
 
@@ -36,6 +38,7 @@ This endpoint returns all available shapes for the selected date, grouped by rou
 ### 3. Specific shape
 
 > [/lissy/api/shapes/getShape/{shape_id}]()
+> [/lissy/api/shapes/getShape?shape_id=1502]()
 
 This endpoint returns a specific shape for the selected id. By default, the endpoint returns a JSON document in the following format:
 
@@ -63,6 +66,7 @@ This endpoint returns the time interval for which delay records exist in the DB.
 ### 2. Available routes
 
 > [/lissy/api/delayTrips/getAvailableRoutes/{\[\[date, date\]\]}]()
+> [/lissy/api/delayTrips/getAvailableRoutes?dates=[[1740956400000,1740956400000]]]()
 
 This endpoint returns for the selected time range the routes for which any delay records are available. By default, the endpoint returns a list of JSON documents in the following format:
 
@@ -74,6 +78,7 @@ This endpoint returns for the selected time range the routes for which any delay
 ### 3. Available trips
 
 > [/lissy/api/delayTrips/getAvailableTrips/{\[\[date, date\]\]}{route_id}]()
+> [/lissy/api/delayTrips/getAvailableTrips?dates=[[1740956400000,1740956400000]]&route_id=30]()
 
 This endpoint returns the available trips for the selected time range, grouped by their routes. By default, the endpoint returns a list of JSON documents in the following format:
 
@@ -86,6 +91,7 @@ This endpoint returns the available trips for the selected time range, grouped b
 ### 4. Delay data
 
 > [/lissy/api/delayTrips/getTripData/{\[\[date, date\]\]}{trip_id}]()
+> [/lissy/api/delayTrips/getTripData?dates=[[1740956400000,1740956400000]]&trip_id=19204]()
 
 This endpoint returns the delay values stored for the selected time range and trip. The individual entries correspond to elements of a polyline that represents the trip's shape. By default, the endpoint returns a list of JSON objects. The key of each record is the **date** for which the record is valid. Each object then contains records indexed so that they can be matched to individual elements of the trip's route. Example:
 

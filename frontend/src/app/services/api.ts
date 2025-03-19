@@ -42,7 +42,13 @@ export class APIService {
             let queryText = `${this.whoToAsk}${url}?`;
 
             for (const [idx, param] of Object.keys(params).entries()) {
-                queryText += `${param}=${params[param]}`;
+                if (params[param] === 'true') {
+                    queryText += `${param}=true`;
+                } else if (params[param] === 'false') {
+                    queryText += `${param}=false`;
+                } else {
+                    queryText += `${param}=${params[param]}`;
+                }
                 if (idx < (Object.keys(params).length - 1)) {
                     queryText += '&';
                 }

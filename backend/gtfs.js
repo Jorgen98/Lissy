@@ -85,7 +85,7 @@ async function unzipAndParseData(response, startTime) {
     return new Promise((resolve) => {
         try {
             response.pipe(file);
-            
+
             file.on('finish', () => {
                 log('info', 'GTFS file successfully downloaded, parsing content');
 

@@ -24,7 +24,7 @@ async function processRequest(url, req, res) {
             }
             // Return available uniq shapeId for selected day
             case 'getShapes': {
-                const fullStopsOrder = req.query.fullStopOrder ? true : false;
+                const fullStopsOrder = req.query.fullStopOrder === 'true' ? true : false;
                 if (req.query.date === undefined) {
                     res.send(false);
                 } else {

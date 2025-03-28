@@ -22,5 +22,19 @@
             </div>
         </div>
     </div>
+    <div class="messagesElem">
+        <p-toast />
+    </div>
+    <!-- Loading screen -->
+    <div *ngIf="loadingElemVisibility" class="loadingElemBackground"></div>
+    <div *ngIf="loadingElemVisibility" class="loadingElem">
+        <div class="loadingElemContext">
+            <div class="loadingElemCircleDiv">
+                <p-progressSpinner class="loadingElemCircle"/>
+                <span class="loadingElemCircleText">{{ loadingElemPercentage }}</span>
+            </div>
+            <span class="loadingElemMainText">{{ 'UIMessagesService.loading' | translate }}</span>
+        </div>
+    </div>
     <router-outlet></router-outlet>
 </div>

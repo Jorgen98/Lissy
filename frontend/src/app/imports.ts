@@ -8,6 +8,10 @@ import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
 import { CalendarModule } from 'primeng/calendar';
 import { ChartModule } from 'primeng/chart';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { MessagesModule } from 'primeng/messages';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @NgModule({
   imports: [
@@ -20,7 +24,10 @@ import { ChartModule } from 'primeng/chart';
     CommonModule,
     MarkdownModule,
     CalendarModule,
-    ChartModule
+    ChartModule,
+    ProgressSpinnerModule,
+    MessagesModule,
+    ToastModule
   ],
   exports: [
     RouterOutlet,
@@ -32,8 +39,10 @@ import { ChartModule } from 'primeng/chart';
     CommonModule,
     MarkdownModule,
     CalendarModule,
-    ChartModule
-  ],
-  providers: []
+    ChartModule,
+    ProgressSpinnerModule,
+    MessagesModule,
+    ToastModule
+  ]
 })
 export class ImportsModule {}

@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { ImportsModule } from './imports';
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
-import { PrimeNGConfig } from 'primeng/api';
+import { MessageService, PrimeNGConfig } from 'primeng/api';
+import { UIMessagesService } from './services/messages';
 
 @Component({
   selector: 'app-root',
@@ -20,16 +21,28 @@ export class AppComponent {
     { code: 'en', flag: 'CZ' }
   ];
   public selectedLang: {code: string, flag: string} = this.langs[0];
+
+  public loadingElemVisibility = false;
+  public loadingElemPercentage = '0%';
   
   constructor(
     private translate: TranslateService,
     public router: Router,
-    private config: PrimeNGConfig
+    private config: PrimeNGConfig,
+    private msgService: UIMessagesService
   ) {
     this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
     this.translate.setDefaultLang(this.langs[0].code);
     this.translate.use(this.langs[0].code);
     this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
+
+    router.events.subscribe(() => msgService.turnOffLoadingScreen());
+    
+    // Message service - loading events
+    msgService.loadingElemVisibility.subscribe(visibility => this.loadingElemVisibility = visibility);
+    msgService.actualLoadingPercentage.subscribe(percentage => {
+      isNaN(percentage) ? this.loadingElemPercentage = '' : this.loadingElemPercentage = `${percentage}%`;
+    });
   }
 
   public changeLang() {

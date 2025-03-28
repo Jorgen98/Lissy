@@ -15,7 +15,7 @@ const dbStats = require('./db-stats.js');
 
 const tmpFileName = './gtfs.zip';
 const tmpFolderName = './gtfsFiles/'
-const file = fs.createWriteStream(tmpFileName);
+let file = fs.WriteStream;
 
 let todayServiceIDs = [];
 let useAllServices = false;
@@ -45,6 +45,8 @@ async function reloadActualSystemState() {
     }
 
     log('info', 'Downloading file from mestobrno.maps.arcgis.com');
+    file = fs.createWriteStream(tmpFileName);
+
     return new Promise(async (resolve) => {
         https.get(process.env.BE_PROCESSING_GTFS_LINK, async response => {
             dbStats.updateStateProcessingStats('gtfs_file_downloaded', true);

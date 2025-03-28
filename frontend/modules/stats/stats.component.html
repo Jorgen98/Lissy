@@ -3,7 +3,7 @@
   <div class="side-control">
     <div [ngClass]="isCalendarModuleActive ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
       <button pButton type="button" [ngClass]="isCalendarModuleActive ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-        (click)="switchCalendarModuleVisibility()">
+        (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
         <i class="pi pi-calendar"></i>
       </button>
     </div>

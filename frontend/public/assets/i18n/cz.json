@@ -62,5 +62,22 @@
         "monthNamesShort": ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"],
         "today": "Dnes",
         "weekHeader": "Týd"
+    },
+    "UIMessagesService": {
+        "loading": "Načítání dat",
+        "toasts": {
+            "dbConnectError": {
+                "head": "Chyba na straně serveru",
+                "body": "Nelze se připojit k serveru. Kontaktujte prosím správce systému."
+            },
+            "noAvailableDates" : {
+                "head": "Nelze načíst žádná data",
+                "body": "V databázi nejsou k dispozici žádná data."
+            },
+            "noAvailableDataForSelection" : {
+                "head": "Nejsou k dispozici žádná data",
+                "body": "Pro vybraný časový interval nejsou k dispozici žádná data. Zkuste prosím změnit časový interval."
+            }
+        }
     }
 }

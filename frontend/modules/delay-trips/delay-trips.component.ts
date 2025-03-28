@@ -6,6 +6,7 @@ import { ImportsModule } from '../../src/app/imports';
 import { TranslateService } from '@ngx-translate/core';
 import { MapComponent } from '../../src/app/map/map.component';
 import { mapObject, MapService } from '../../src/app/map/map.service';
+import { UIMessagesService } from '../../src/app/services/messages';
 
 interface route {
   route_short_name: string,
@@ -38,12 +39,14 @@ export class DelayTripsModule implements OnInit {
   constructor(
     private apiService: APIService,
     public translate: TranslateService,
-    public mapService: MapService
+    public mapService: MapService,
+    private msgService: UIMessagesService
   ) {}
 
   public moduleFocus: Number = 0;
   public isTodayFunctionEnabled: boolean = true;
   public isRouteSelectionEnabled: boolean = true;
+  public isDateSelectionEnabled: boolean = true;
 
   public selectedDates: Date[] | null = null;
   public hooverDates: Date[] | null = null;
@@ -68,13 +71,24 @@ export class DelayTripsModule implements OnInit {
 
   // On component creation
   public async ngOnInit() {
+    if(!await this.apiService.isConnected()) {
+      this.isRouteSelectionEnabled = false;
+      this.isDateSelectionEnabled = false;
+      this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');
+      return;
+    }
+
+    this.msgService.turnOnLoadingScreenWithoutPercentage();
     let apiDates = await this.apiGet('availableDates');
 
     if (apiDates.start === undefined || apiDates.end === undefined) {
       this.startDate = new Date();
       this.disabledDates.push(new Date());
       this.endDate = new Date();
-      this.isTodayFunctionEnabled = false;
+      this.isDateSelectionEnabled = false;
+      this.isRouteSelectionEnabled = false;
+      this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDates.head', 'UIMessagesService.toasts.noAvailableDates.body');
+      this.msgService.turnOffLoadingScreen();
       return;
     }
 
@@ -128,6 +142,8 @@ export class DelayTripsModule implements OnInit {
       return;
     }
 
+    this.moduleFocus = 0;
+    this.msgService.turnOnLoadingScreenWithoutPercentage();
     this.queryDates = [];
 
     this.hooverDates.sort((a, b) => { return a.valueOf() > b.valueOf() ? 1 : -1});
@@ -162,12 +178,14 @@ export class DelayTripsModule implements OnInit {
       await this.changeRoute();
     } else {
       this.isRouteSelectionEnabled = false;
+      this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
     }
-    this.moduleFocus = 0;
+    this.msgService.turnOffLoadingScreen();
   }
 
   public async changeRoute() {
     if (this.selectedRoute) {
+      this.msgService.turnOnLoadingScreenWithoutPercentage();
       this.tripGroups = await this.apiGet('getAvailableTrips', {dates: JSON.stringify(this.queryDates), route_id: this.selectedRoute.id.toString()});
       if (this.tripGroups.length > 0) {
         for (const group of this.tripGroups) {
@@ -179,25 +197,30 @@ export class DelayTripsModule implements OnInit {
         this.selectedTripGroup = this.tripGroups[0];
         await this.changeTripGroup();
       }
+      this.msgService.turnOffLoadingScreen();
     }
   }
 
   public async changeTripGroup() {
     if (this.selectedTripGroup && this.selectedTripGroup.trips.length > 0) {
+      this.msgService.turnOnLoadingScreenWithoutPercentage();
       this.selectedTripGroupShape = await this.apiGet('getShape', {shape_id: this.selectedTripGroup.shape_id.toString()});
 
       this.selectedTrip = this.selectedTripGroup.trips[0];
       await this.changeTrip();
+      this.msgService.turnOffLoadingScreen();
     }
   }
 
   public async changeTrip() {
     if (this.selectedTrip) {
+      this.msgService.turnOnLoadingScreenWithoutPercentage();
       this.selectedTripData = await this.apiGet('getTripData', {dates: JSON.stringify(this.queryDates), trip_id: this.selectedTrip.id.toString()});
 
       if (Object.keys(this.selectedTripData).length > 0) {
         this.renderData();
       }
+      this.msgService.turnOffLoadingScreen();
     }
   }
 

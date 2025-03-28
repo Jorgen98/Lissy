@@ -6,6 +6,7 @@ import { ImportsModule } from '../../src/app/imports';
 import { TranslateService } from '@ngx-translate/core';
 import { MapComponent } from '../../src/app/map/map.component';
 import { mapObject, MapService } from '../../src/app/map/map.service';
+import { UIMessagesService } from '../../src/app/services/messages';
 
 interface route {
   route_color: string,
@@ -30,12 +31,14 @@ export class ShapesModule implements OnInit {
   constructor(
     private apiService: APIService,
     public translate: TranslateService,
-    public mapService: MapService
+    public mapService: MapService,
+    private msgService: UIMessagesService
   ) {}
 
   public moduleFocus: Number = 0;
   public isTodayFunctionEnabled: boolean = true;
   public isRouteSelectionEnabled: boolean = true;
+  public isDateSelectionEnabled: boolean = true;
 
   public selectedDate: Date | null = null;
   public hooverDate: Date | null = null;
@@ -54,6 +57,14 @@ export class ShapesModule implements OnInit {
 
   // On component creation
   public async ngOnInit() {
+    if(!await this.apiService.isConnected()) {
+      this.isRouteSelectionEnabled = false;
+      this.isDateSelectionEnabled = false;
+      this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');
+      return;
+    }
+
+    this.msgService.turnOnLoadingScreenWithoutPercentage();
     let apiDates = await this.apiGet('availableDates');
 
     if (apiDates.start === undefined || apiDates.end === undefined) {
@@ -61,6 +72,10 @@ export class ShapesModule implements OnInit {
       this.disabledDates.push(new Date());
       this.endDate = new Date();
       this.isTodayFunctionEnabled = false;
+      this.isRouteSelectionEnabled = false;
+      this.isDateSelectionEnabled = false;
+      this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDates.head', 'UIMessagesService.toasts.noAvailableDates.body');
+      this.msgService.turnOffLoadingScreen();
       return;
     }
 
@@ -103,12 +118,13 @@ export class ShapesModule implements OnInit {
   }
 
   public setToday() {
-    this.hooverDate = new Date();
+    this.hooverDate = new Date((new Date()).setHours(0, 0, 0, 0));
   }
 
   // Get available shapes for selected date
   public async getAvailableShapesData() {
-    this.moduleFocus === 0;
+    this.moduleFocus = 0;
+    console.log(this.hooverDate)
 
     if (this.hooverDate === null) {
       return;
@@ -117,7 +133,11 @@ export class ShapesModule implements OnInit {
     this.selectedDate = new Date(JSON.parse(JSON.stringify(this.hooverDate)));
 
     // API call for data
+    this.moduleFocus = 0;
+
+    this.msgService.turnOnLoadingScreenWithoutPercentage();
     this.routes = await this.apiGet('getShapes', {date: this.hooverDate.valueOf().toString()});
+    this.msgService.turnOffLoadingScreen();
 
     if (this.routes.length < 1) {
       this.isRouteSelectionEnabled = false;
@@ -130,15 +150,17 @@ export class ShapesModule implements OnInit {
     }
 
     await this.renderData();
-    this.moduleFocus = 0;
   }
 
+  // Change line's route
   public changeRoute() {
     this.selectedTrip = this.selectedRoute?.trips[0];
     this.renderData();
   }
 
+  // Download actual route shape with stop and put it on map
   public async renderData() {
+    this.msgService.turnOnLoadingScreenWithoutPercentage();
     this.mapService.removeLayer('route');
     this.mapService.addNewLayer({name: 'route', palette: {}, layer: undefined, paletteItemName: 'map.zon'});
 
@@ -146,15 +168,18 @@ export class ShapesModule implements OnInit {
     this.mapService.addNewLayer({name: 'stops', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
 
     if (!this.selectedTrip?.shape_id) {
+      this.msgService.turnOffLoadingScreen();
       return;
     }
 
     let mapData = await this.apiGet('getShape', {shape_id: JSON.stringify(this.selectedTrip?.shape_id)});
 
     if (!mapData.stops || !mapData.coords) {
+      this.msgService.turnOffLoadingScreen();
       return;
     }
 
+    // Put stops on stops layer
     for (const stop of mapData.stops) {
       let mapStop: mapObject = {
         layerName: 'stops',
@@ -172,6 +197,7 @@ export class ShapesModule implements OnInit {
       this.mapService.addToLayer(mapStop);
     }
 
+    // Put route shape on the shapes layer
     for (const routePart of mapData.coords) {
       let mapRoutePart: mapObject = {
         layerName: 'route',
@@ -188,6 +214,7 @@ export class ShapesModule implements OnInit {
     }
 
     this.mapService.fitToLayer('stops');
+    this.msgService.turnOffLoadingScreen();
   }
 
   public closeRouteModule() {

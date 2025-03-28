@@ -15,7 +15,7 @@
     </div>
     <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
       <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-        (click)="switchCalendarModuleVisibility()">
+        (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
         <i class="pi pi-calendar"></i>
       </button>
     </div>

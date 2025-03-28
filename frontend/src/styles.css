@@ -1,5 +1,8 @@
 :root {
     --background: #0f0f11;
+    --warning: #eab308;
+    --error: #ff3d32;
+    --info: #3b82f6;
     --graph-color-a: #eab308;
     --graph-color-b: #3b82f6;
     --graph-color-c: #22c55e;

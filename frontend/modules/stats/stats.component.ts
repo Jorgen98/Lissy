@@ -4,6 +4,7 @@ import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
 import { ImportsModule } from '../../src/app/imports';
 import { TranslateService } from '@ngx-translate/core';
+import { UIMessagesService } from '../../src/app/services/messages';
 
 interface lineGraphData {
   labels: string[],
@@ -23,10 +24,13 @@ export class StatsModule implements OnInit {
   public config: ModuleConfig = config;
   constructor(
     private apiService: APIService,
-    public translate: TranslateService
+    public translate: TranslateService,
+    private msgService: UIMessagesService
   ) {}
 
   public queryData: any;
+
+  public isDateSelectionEnabled: boolean = true;
 
   public isCalendarModuleActive: boolean = false;
   public isTodayFunctionEnabled: boolean = false;
@@ -165,6 +169,12 @@ export class StatsModule implements OnInit {
 
   // On component creation
   public async ngOnInit() {
+    if(!await this.apiService.isConnected()) {
+      this.isDateSelectionEnabled = false;
+      this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');
+      return;
+    }
+
     let apiDates = await this.apiGet('availableDates');
 
     if (apiDates.start === undefined || apiDates.end === undefined) {
@@ -172,6 +182,8 @@ export class StatsModule implements OnInit {
       this.disabledDates.push(new Date());
       this.endDate = new Date();
       this.isTodayFunctionEnabled = false;
+      this.isDateSelectionEnabled = false;
+      this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDates.head', 'UIMessagesService.toasts.noAvailableDates.body');
       return;
     }
 
@@ -221,6 +233,7 @@ export class StatsModule implements OnInit {
       return;
     }
 
+    this.msgService.turnOnLoadingScreenWithoutPercentage();
     let queryDates: Number[][] = [];
 
     this.hooverDates.sort((a, b) => { return a.valueOf() > b.valueOf() ? 1 : -1});
@@ -251,6 +264,7 @@ export class StatsModule implements OnInit {
     this.queryData = await this.apiGet('statistics', {dates: JSON.stringify(queryDates)});
 
     this.renderData();
+    this.msgService.turnOffLoadingScreen();
   }
 
   public renderData(){

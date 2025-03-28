@@ -62,5 +62,22 @@
         "monthNamesShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun","Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         "today": "Today",
         "weekHeader": "Wk"
+    },
+    "UIMessagesService": {
+        "loading": "Loading Data",
+        "toasts": {
+            "dbConnectError": {
+                "head": "Server Error",
+                "body": "Could not connect to Server. Please contact the system administrator."
+            },
+            "noAvailableDates" : {
+                "head": "No Data to Load",
+                "body": "There are no available data in database."
+            },
+            "noAvailableDataForSelection" : {
+                "head": "No Available Data",
+                "body": "There are no available data for your selected date range. Please try to change the date range."
+            }
+        }
     }
 }

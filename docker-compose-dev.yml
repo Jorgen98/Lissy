@@ -57,3 +57,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  db-cache:
+    container_name: lissy-db-cache
+    image: redis:7.4.2
+    restart: always
+    ports:
+      - 6379:6379
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${DB_CACHE_TOKEN}
+    volumes: 
+      - ./db-cache-data:/data
+    healthcheck:
+      test: redis-cli --raw incr ping
+      interval: 5s
+      timeout: 5s
+      retries: 5

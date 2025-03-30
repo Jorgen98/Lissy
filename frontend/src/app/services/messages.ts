@@ -22,7 +22,7 @@ export class UIMessagesService {
 
     public isLoadingEnabled = false;
 
-    // Loading screen
+    // Loading screen handling
     turnOnLoadingScreen() {
         this.actualLoadingPercentage.next(0);
         this.loadingElemVisibility.next(true);

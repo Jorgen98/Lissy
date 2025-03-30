@@ -135,7 +135,7 @@ export class ShapesModule implements OnInit {
     // API call for data
     this.moduleFocus = 0;
 
-    this.msgService.turnOnLoadingScreenWithoutPercentage();
+    this.msgService.turnOnLoadingScreen();
     this.routes = await this.apiGet('getShapes', {date: this.hooverDate.valueOf().toString()});
     this.msgService.turnOffLoadingScreen();
 

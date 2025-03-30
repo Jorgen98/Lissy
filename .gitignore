@@ -1,5 +1,6 @@
 /db-postgis-data
 /db-stats-data
+/db-cache-data
 /backend/node_modules
 /backend/backups
 /backend/gtfs.zip

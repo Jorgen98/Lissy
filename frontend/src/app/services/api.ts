@@ -15,7 +15,7 @@ import { UIMessagesService } from './messages';
 export class APIService {
     constructor(
         private httpClient: HttpClient,
-        private UIMessageService: UIMessagesService
+        private msgService: UIMessagesService
     ) {}
 
     private whoToAsk = environment.apiUrl;
@@ -58,8 +58,11 @@ export class APIService {
                 }
             }
 
-            if (this.UIMessageService.isLoadingEnabled) {
-
+            if (this.msgService.isLoadingEnabled) {
+                if (Object.keys(params).length > 0) {
+                    queryText += '&';
+                }
+                queryText += 'progress=true'
             }
 
             return this.httpClient.get(queryText, {headers: this.headers}).pipe(retry(3));
@@ -71,17 +74,19 @@ export class APIService {
     public genericGet(url: string, params?: {[name: string]: string}): Promise<any> {
         return new Promise((resolve, reject) => {
             this.query(url, params).subscribe(response => {
+                let res = <any>response;
                 if (!response) {
                     resolve(false);
                 } else {
-                    if (this.UIMessageService.isLoadingEnabled) {
-                        if (response.hasOwnProperty('progress')) {
+                    if (this.msgService.isLoadingEnabled) {
+                        if (res.hasOwnProperty('progress')) {
                             let t = this;
+                            this.msgService.actualLoadingPercentage.next(res['progress']);
                             setTimeout(async function(){
                                 resolve(await t.genericGet(url, params));
                             }, 2000);
                         } else {
-                            resolve(response);
+                            resolve(res);
                         }
                     } else {
                         resolve(response);

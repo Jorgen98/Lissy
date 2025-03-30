@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ImportsModule } from './imports';
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
-import { MessageService, PrimeNGConfig } from 'primeng/api';
+import { PrimeNGConfig } from 'primeng/api';
 import { UIMessagesService } from './services/messages';
 
 @Component({
@@ -36,7 +36,7 @@ export class AppComponent {
     this.translate.use(this.langs[0].code);
     this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
 
-    router.events.subscribe(() => msgService.turnOffLoadingScreen());
+    router.events.subscribe((event) => {console.log(event); msgService.turnOffLoadingScreen()});
     
     // Message service - loading events
     msgService.loadingElemVisibility.subscribe(visibility => this.loadingElemVisibility = visibility);

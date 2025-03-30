@@ -9,6 +9,7 @@ const cors = require('cors');
 
 const dbPostGIS = require('./db-postgis.js');
 const dbStats = require('./db-stats.js');
+const dbCache = require('./db-cache.js');
 const logService = require('./log.js');
 
 // modules
@@ -78,7 +79,7 @@ let server = app.listen(7001, async () => {
 
 // Try to connect to DB and refresh net files
 server.on('listening', async () => {
-    if (await dbPostGIS.connectToDB() && await dbStats.isDBConnected()) {
+    if (await dbPostGIS.connectToDB() && await dbStats.isDBConnected() && await dbCache.isDBConnected()) {
         log('success', 'DBs connected');
     } else {
         server.close(() => {

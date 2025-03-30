@@ -6,8 +6,8 @@
   "scripts": {
     "be-processing-start": "DB_POSTGIS_HOST='localhost' DB_STATS_HOST='http://localhost' node -r dotenv/config be-processing.js dotenv_config_path=../env/.env",
     "be-processing-docker": "DB_POSTGIS_HOST='db-postgis' DB_STATS_HOST='http://db-stats' node -r dotenv/config be-processing.js dotenv_config_path=.env",
-    "be-api-start": "API_KEY=false DB_POSTGIS_HOST='localhost' DB_STATS_HOST='http://localhost' node -r dotenv/config be-api.js dotenv_config_path=../env/.env",
-    "be-api-docker": "API_KEY=true DB_POSTGIS_HOST='db-postgis' DB_STATS_HOST='http://db-stats' node -r dotenv/config be-api.js dotenv_config_path=.env"
+    "be-api-start": "API_KEY=false DB_POSTGIS_HOST='localhost' DB_STATS_HOST='http://localhost' DB_CACHE_HOST='localhost' node -r dotenv/config be-api.js dotenv_config_path=../env/.env",
+    "be-api-docker": "API_KEY=true DB_POSTGIS_HOST='db-postgis' DB_STATS_HOST='http://db-stats' DB_CACHE_HOST='db-cache' node -r dotenv/config be-api.js dotenv_config_path=.env"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +19,7 @@
     "dotenv": "^16.3.1",
     "express": "^4.21.1",
     "node-cron": "^3.0.3",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "redis": "^4.7.0"
   }
 }

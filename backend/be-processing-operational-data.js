@@ -67,7 +67,7 @@ async function processServedTrips() {
     for (const route of tripsToProcess) {
         if (!(await processRoute(route))) {
             log('error', 'Failed to process input real operation data');
-            return false;
+            continue;
         };
     }
 

@@ -1,4 +1,4 @@
 development-dbs-only:
-	docker compose -f docker-compose-dev.yml --env-file ./env/.env up db-postgis db-stats --build
+	docker compose -f docker-compose-dev.yml --env-file ./env/.env up db-postgis db-stats db-cache --build
 development-ui-only:
-	docker compose --env-file ./env/.env up proxy fe be-api db-postgis db-stats --build
+	docker compose --env-file ./env/.env up proxy fe be-api db-postgis db-stats db-cache --build

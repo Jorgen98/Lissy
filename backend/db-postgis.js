@@ -36,7 +36,7 @@ const db_postgis = new Pool({
     max: 20
 });
 
-
+// PostGIS DB error handle function
 db_postgis.on('error', function(error) {
     log('info', `Connected clients: ${db_postgis.totalCount}, Idle clients: ${db_postgis.idleCount}`);
     log('error', error);

@@ -41,8 +41,12 @@ async function processRequest(url, req, res) {
                             continue;
                         }
                         for (const item in realOperationData) {
-                            let date = (new Date(item)).setHours(0, 0, 0, 0) - day;
-
+                            let date = new Date(new Date(item) - day);
+                            if (date.getTimezoneOffset() !== -60) {
+                                date = date.setHours(0, 0, 0, 0).valueOf() + 60 * 60 * 1000;
+                            } else {
+                                date = date.setHours(0, 0, 0, 0).valueOf();
+                            }
                             response[date] = {};
 
                             for (const stat in realOperationData[item]) {
@@ -53,8 +57,12 @@ async function processRequest(url, req, res) {
                         }
 
                         for (const item in expectedStateData) {
-                            let date = (new Date(item)).setHours(0, 0, 0, 0);
-
+                            let date = new Date(item);
+                            if (date.getTimezoneOffset() !== -60) {
+                                date = date.setHours(0, 0, 0, 0).valueOf() + 60 * 60 * 1000;
+                            } else {
+                                date = date.setHours(0, 0, 0, 0).valueOf();
+                            }
                             for (const stat in expectedStateData[item]) {
                                 response[date][stat] = expectedStateData[item][stat];
                             }

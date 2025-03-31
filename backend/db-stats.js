@@ -64,8 +64,14 @@ async function getStats(statType, start, stop, latest) {
     let stopTime;
     try {
         startTime = new Date(start);
+        if (startTime.getTimezoneOffset() !== -60) {
+            startTime = new Date(startTime.valueOf() + 60 * 60 * 1000);
+        }
         stopTime = new Date(stop);
         stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
+        if (stopTime.getTimezoneOffset() !== -60) {
+            stopTime = new Date(stopTime.valueOf() + 60 * 60 * 1000);
+        }
     } catch (error) {
         return {};
     }
@@ -397,7 +403,13 @@ async function getAvailableDates(includeToday = false) {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
-                const date = (new Date(o._time)).setHours(0, 0, 0, 0) - day;
+                let date = new Date(o._time);
+
+                if (date.getTimezoneOffset() !== -60) {
+                    date = date.setHours(0, 0, 0, 0) - day + 60 * 60 * 1000;
+                } else {
+                    date = date.setHours(0, 0, 0, 0) - day;
+                }
                 if (records.indexOf(date) === -1) {
                     records.push(date);
                 }
@@ -452,10 +464,19 @@ async function getRoutesIdsInInterval(start, stop) {
     let stopTime;
     try {
         startTime = new Date(start);
+        if (startTime.getTimezoneOffset() !== -60) {
+            startTime = new Date(startTime.valueOf() + 60 * 60 * 1000);
+            start += 60 * 60 * 1000;
+        }
         stopTime = new Date(stop);
         stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
+        if (stopTime.getTimezoneOffset() !== -60) {
+            stopTime = new Date(stopTime.valueOf() + 60 * 60 * 1000);
+            stop += 60 * 60 * 1000;
+        }
     } catch (error) {
-        return [];
+        console.log(error)
+        return {};
     }
 
     let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);
@@ -479,6 +500,7 @@ async function getRoutesIdsInInterval(start, stop) {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
+                console.log(o)
                 const keys = JSON.parse(o._value);
                 for (const key of keys) {
                     if (records[key] === undefined) {
@@ -509,10 +531,16 @@ async function getTripIdsInInterval(route_id, start, stop) {
     let stopTime;
     try {
         startTime = new Date(start);
+        if (startTime.getTimezoneOffset() !== -60) {
+            startTime = new Date(startTime.valueOf() + 60 * 60 * 1000);
+        }
         stopTime = new Date(stop);
         stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
+        if (stopTime.getTimezoneOffset() !== -60) {
+            stopTime = new Date(stopTime.valueOf() + 60 * 60 * 1000);
+        }
     } catch (error) {
-        return [];
+        return {};
     }
 
     let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);
@@ -565,10 +593,16 @@ async function getTripDataInInterval(trip_id, start, stop) {
     let stopTime;
     try {
         startTime = new Date(start);
+        if (startTime.getTimezoneOffset() !== -60) {
+            startTime = new Date(startTime.valueOf() + 60 * 60 * 1000);
+        }
         stopTime = new Date(stop);
         stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
+        if (stopTime.getTimezoneOffset() !== -60) {
+            stopTime = new Date(stopTime.valueOf() + 60 * 60 * 1000);
+        }
     } catch (error) {
-        return [];
+        return {};
     }
 
     let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);

@@ -5,6 +5,7 @@
 const logService = require('../../../backend/log.js');
 const dbStats = require('../../../backend/db-stats.js');
 const dbPostGIS = require('../../../backend/db-postgis.js');
+const dbCache = require('../../../backend/db-cache.js');
 
 const env = require('./config.json');
 
@@ -27,30 +28,62 @@ async function processRequest(url, req, res) {
                 if (req.query.dates === undefined) {
                     res.send(false);
                 } else {
-                    let response = {};
-                    let dates = JSON.parse(req.query.dates);
+                    let cache = await dbCache.setUpValue(req.url, null, null);
 
-                    // Get data for every date range
-                    for (const pair of dates) {
-                        let pairData = await dbStats.getRoutesIdsInInterval(pair[0], pair[1]);
-
-                        for (const id of pairData) {
-                            if (response[id] === undefined) {
-                                response[id] = 0;
-                            }
-                            response[id]++;
+                    if (cache.data !== null) {
+                        res.send(cache.data);
+                    } else {
+                        if (req.query.progress) {
+                            res.send({progress: cache.progress});
                         }
-                    }
-                    for (const key in response) {
-                        if (response[key] < dates.length) {
-                            delete response[key];
-                        } else {
-                            if ((await getTripsInInterval(key, dates)).length < 1) {
+
+                        if (cache.progress > 0 && req.query.progress) {
+                            return;
+                        }
+
+                        let response = {};
+                        let dates = JSON.parse(req.query.dates);
+
+                        // Get data for every date range
+                        for (const [idx, pair] of dates.entries()) {
+                            let pairData = await dbStats.getRoutesIdsInInterval(pair[0], pair[1]);
+
+                            for (const id of pairData) {
+                                if (response[id] === undefined) {
+                                    response[id] = 0;
+                                }
+                                response[id]++;
+                            }
+                            dbCache.setUpValue(req.url, null, Math.floor((idx / dates.length) * 50));
+                        }
+
+                        let fixSize = Object.keys(response).length;
+                        let idx = 0;
+
+                        for (const key in response) {
+                            dbCache.setUpValue(req.url, null, Math.floor((idx / fixSize) * 50) + 50);
+                            if (response[key] < dates.length) {
                                 delete response[key];
+                            } else {
+                                if ((await getTripsInInterval(key, dates)).length < 1) {
+                                    delete response[key];
+                                }
                             }
+                            idx++;
                         }
+
+                        let result = {};
+
+                        if (Object.keys(response).length > 0) {
+                            result = await dbPostGIS.getRoutesDetail(Object.keys(response).map((item) => parseInt(item)));
+                        }
+
+                        if (!req.query.progress) {
+                            res.send(result);
+                        }
+
+                        dbCache.setUpValue(req.url, result, 100);
                     }
-                    res.send(await dbPostGIS.getRoutesDetail(Object.keys(response).map((item) => parseInt(item))));
                 }
                 break;
             }

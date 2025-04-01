@@ -36,7 +36,7 @@ export class AppComponent {
     this.translate.use(this.langs[0].code);
     this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
 
-    router.events.subscribe((event) => {console.log(event); msgService.turnOffLoadingScreen()});
+    router.events.subscribe(() => {msgService.turnOffLoadingScreen()});
     
     // Message service - loading events
     msgService.loadingElemVisibility.subscribe(visibility => this.loadingElemVisibility = visibility);

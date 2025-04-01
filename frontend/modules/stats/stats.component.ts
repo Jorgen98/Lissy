@@ -5,6 +5,7 @@ import * as config from './config.json';
 import { ImportsModule } from '../../src/app/imports';
 import { TranslateService } from '@ngx-translate/core';
 import { UIMessagesService } from '../../src/app/services/messages';
+import * as timeStamp from "../../src/app/services/timeStamps";
 
 interface lineGraphData {
   labels: string[],
@@ -178,23 +179,23 @@ export class StatsModule implements OnInit {
     let apiDates = await this.apiGet('availableDates');
 
     if (apiDates.start === undefined || apiDates.end === undefined) {
-      this.startDate = new Date();
-      this.disabledDates.push(new Date());
-      this.endDate = new Date();
+      this.startDate = new Date(new Date().getTime());
+      this.disabledDates.push(new Date(new Date().getTime()));
+      this.endDate = new Date(new Date().getTime());
       this.isTodayFunctionEnabled = false;
       this.isDateSelectionEnabled = false;
       this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDates.head', 'UIMessagesService.toasts.noAvailableDates.body');
       return;
     }
 
-    this.startDate = new Date(apiDates.start);
+    this.startDate = timeStamp.getDate(apiDates.start);
     for (const date of apiDates.disabled) {
-      this.disabledDates.push(new Date(date));
+      this.disabledDates.push(timeStamp.getDate(date));
     }
-    this.endDate = new Date(apiDates.end);
+    this.endDate = timeStamp.getDate(apiDates.end);
 
-    this.selectedDates = [new Date(apiDates.end)];
-    this.hooverDates = [new Date(apiDates.end)];
+    this.selectedDates = [timeStamp.getDate(apiDates.end)];
+    this.hooverDates = [timeStamp.getDate(apiDates.end)];
 
     // Get dates, when stats are available
     if (!this.disabledDates.find((date) => {return date.valueOf() === (new Date()).setHours(0, 0, 0, 0)}) &&
@@ -234,7 +235,7 @@ export class StatsModule implements OnInit {
     }
 
     this.msgService.turnOnLoadingScreenWithoutPercentage();
-    let queryDates: Number[][] = [];
+    let queryDates: string[][] = [];
 
     this.hooverDates.sort((a, b) => { return a.valueOf() > b.valueOf() ? 1 : -1});
 
@@ -243,22 +244,26 @@ export class StatsModule implements OnInit {
       this.selectedDates.push(new Date(date));
     }
 
+    let UTCHooverDates: string[] = [];
+    for (const date of this.hooverDates) {
+      UTCHooverDates.push(timeStamp.getTimeStamp(date.getTime() - (date.getTimezoneOffset() * 60 * 1000)))
+    }
+
     // Get data for selected dates
-    let day = 24 * 60 * 60 * 1000;
-    let actualDate = this.hooverDates[0].valueOf();
+    let actualDate = UTCHooverDates[0];
     let isGoing = true;
     queryDates.push([actualDate]);
-    while (actualDate < (this.hooverDates[this.hooverDates.length - 1].valueOf() + day)) {
-      if (isGoing && this.hooverDates.findIndex((date) => {return actualDate === date.valueOf()}) === -1) {
-        queryDates[queryDates.length - 1].push(actualDate - day);
+    while (timeStamp.compareTimeStamps(actualDate, timeStamp.addOneDayToTimeStamp(UTCHooverDates[UTCHooverDates.length - 1])) !== 1) {
+      if (isGoing && UTCHooverDates.findIndex((date) => {return actualDate === date}) === -1) {
+        queryDates[queryDates.length - 1].push(timeStamp.removeOneDayToTimeStamp(actualDate));
         isGoing = false;
-      } else if (!isGoing && this.hooverDates.findIndex((date) => {return actualDate === date.valueOf()}) !== -1) {
+      } else if (!isGoing && UTCHooverDates.findIndex((date) => {return actualDate === date}) !== -1) {
         queryDates.push([actualDate]);
         isGoing = true;
       }
-      actualDate += day;
+      actualDate = timeStamp.addOneDayToTimeStamp(actualDate);
     }
-    queryDates[queryDates.length - 1].push(this.hooverDates[this.hooverDates.length - 1].valueOf());
+    queryDates[queryDates.length - 1].push(UTCHooverDates[UTCHooverDates.length - 1]);
 
     // API call for data
     this.queryData = await this.apiGet('statistics', {dates: JSON.stringify(queryDates)});
@@ -412,7 +417,7 @@ export class StatsModule implements OnInit {
 
     // Parse data
     for (const day in this.queryData) {
-      let date = (new Date(parseInt(day))).toLocaleDateString(this.translate.currentLang === 'cz' ? 'cs-CZ' : 'en-GB', {dateStyle: 'medium'});
+      let date = (timeStamp.getDate(day)).toLocaleDateString(this.translate.currentLang === 'cz' ? 'cs-CZ' : 'en-GB', {dateStyle: 'medium'});
 
       for (let i = 0; i < this.systemState.length; i++) {
         this.systemState[i].labels.push(date);

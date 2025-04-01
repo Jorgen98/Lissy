@@ -12,8 +12,7 @@ const dbStats = require('./db-stats.js');
 const logService = require('./log.js');
 const gtfsService = require('./gtfs.js');
 const opProcessingService = require('./be-processing-operational-data.js');
-
-const tmpFileName = './gtfs.zip';
+const timeStamp = require('./timeStamp.js');
 
 // .env file include
 dotenv.config();
@@ -62,8 +61,8 @@ cron.schedule('15 3 * * *', async () => {
 
 // Processing function
 async function processData() {
-    let yesterday = (new Date()).setHours(0, 0, 0, 0).valueOf() - (1000 * 3600 * 24 * 1);
-    let lastGTFSRecord = await dbStats.getStats('expected_state', yesterday, new Date(), true);
+    let today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
+    let lastGTFSRecord = await dbStats.getStats('expected_state', timeStamp.removeOneDayToTimeStamp(today), today, true);
 
     // Main processing switch, depends on actual stateDB data, what will be done
     // 1. Process delay data and actualize system state

@@ -6,6 +6,7 @@ const logService = require('../../../backend/log.js');
 const dbStats = require('../../../backend/db-stats.js');
 const dbPostGIS = require('../../../backend/db-postgis.js');
 const dbCache = require('../../../backend/db-cache.js');
+const timeStamp = require('../../../backend/timeStamp.js');
 
 const env = require('./config.json');
 
@@ -29,35 +30,35 @@ async function processRequest(url, req, res) {
                 if (req.query.date === undefined) {
                     res.send(false);
                 } else {
-                    if (parseInt(req.query.date) === (new Date).setHours(0, 0, 0, 0).valueOf()) {
+                    if (req.query.date === timeStamp.getTimeStamp(timeStamp.getTodayUTC())) {
                         res.send(await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess(), fullStopsOrder));
                     } else {
                         let cache = await dbCache.setUpValue(req.url, null, null);
 
-                        if (cache.data !== null) {
-                            res.send(cache.data);
-                        } else {
-                            if (req.query.progress) {
-                                res.send({progress: cache.progress});
-                            }
+                        //if (cache.data !== null) {
+                            //res.send(cache.data);
+                        //} else {
+                            //if (req.query.progress) {
+                            //    res.send({progress: cache.progress});
+                            //}
 
-                            if (cache.progress > 0 && req.query.progress) {
-                                return;
-                            }
+                            //if (cache.progress > 0 && req.query.progress) {
+                            //    return;
+                            //}
 
-                            let routes = await dbStats.getRoutesIdsInInterval(parseInt(req.query.date), parseInt(req.query.date));
+                            let routes = await dbStats.getRoutesIdsInInterval(req.query.date, req.query.date);
                             let trips  = [];
                             for (const [idx, route] of routes.entries()) {
-                                trips = trips.concat(await dbStats.getTripIdsInInterval(route, parseInt(req.query.date), parseInt(req.query.date)));
-                                dbCache.setUpValue(req.url, null, Math.floor((idx / routes.length) * 100));
+                                trips = trips.concat(await dbStats.getTripIdsInInterval(route, req.query.date, req.query.date));
+                                //dbCache.setUpValue(req.url, null, Math.floor((idx / routes.length) * 100));
                             }
 
-                            if (!req.query.progress) {
+                            //if (!req.query.progress) {
                                 res.send(await dbPostGIS.getTripsWithUniqueShape(trips, fullStopsOrder));
-                            }
+                            //}
 
-                            dbCache.setUpValue(req.url, await dbPostGIS.getTripsWithUniqueShape(trips, fullStopsOrder), 100);
-                        }
+                            //dbCache.setUpValue(req.url, await dbPostGIS.getTripsWithUniqueShape(trips, fullStopsOrder), 100);
+                        //}
                     }
                 }
                 break;

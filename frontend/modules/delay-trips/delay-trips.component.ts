@@ -7,6 +7,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { MapComponent } from '../../src/app/map/map.component';
 import { mapObject, MapService } from '../../src/app/map/map.service';
 import { UIMessagesService } from '../../src/app/services/messages';
+import * as timeStamp from "../../src/app/services/timeStamps";
 
 interface route {
   route_short_name: string,
@@ -15,7 +16,7 @@ interface route {
 
 interface trip {
   id: number,
-  dep_time: number,
+  dep_time: string,
   dep_time_lab: string
 }
 
@@ -41,7 +42,11 @@ export class DelayTripsModule implements OnInit {
     public translate: TranslateService,
     public mapService: MapService,
     private msgService: UIMessagesService
-  ) {}
+  ) {
+    translate.onLangChange.subscribe(async () => {
+      await this.changeRoute();
+    })
+  }
 
   public moduleFocus: Number = 0;
   public isTodayFunctionEnabled: boolean = true;
@@ -54,7 +59,7 @@ export class DelayTripsModule implements OnInit {
   public disabledDates: Date[] = [];
   public endDate: Date = new Date();
 
-  public queryDates: Number[][] = [];
+  public queryDates: string[][] = [];
 
   public routes: route[] = [];
   public selectedRoute: route | undefined = undefined;
@@ -92,18 +97,20 @@ export class DelayTripsModule implements OnInit {
       return;
     }
 
-    this.startDate = new Date(apiDates.start);
+    this.startDate = timeStamp.getDate(apiDates.start);
     for (const date of apiDates.disabled) {
-      this.disabledDates.push(new Date(date));
+      this.disabledDates.push(timeStamp.getDate(date));
     }
-    this.endDate = new Date(apiDates.end);
+    this.endDate = timeStamp.getDate(apiDates.end);
 
-    this.selectedDates = [new Date(apiDates.end)];
-    this.hooverDates = [new Date(apiDates.end)];
+    this.selectedDates = [timeStamp.getDate(apiDates.end)];
+    this.hooverDates = [timeStamp.getDate(apiDates.end)];
+    this.isTodayFunctionEnabled = false;
 
     // Get dates, when stats are available
-    if (!this.disabledDates.find((date) => {return date.valueOf() === (new Date()).setHours(0, 0, 0, 0)}) &&
-      this.startDate.valueOf() <= (new Date()).setHours(0, 0, 0, 0) && (new Date()).setHours(0, 0, 0, 0) <= this.endDate.valueOf()) {
+    let today = timeStamp.getTimeStamp(new Date().getTime());
+    if (!this.disabledDates.find((date) => {return timeStamp.getTimeStamp(date.getTime()) === today}) &&
+      (timeStamp.compareTimeStamps(apiDates.start, today) === -1) && (timeStamp.compareTimeStamps(apiDates.end, today) === 1)) {
       this.isTodayFunctionEnabled = true;
     }
 
@@ -143,7 +150,7 @@ export class DelayTripsModule implements OnInit {
     }
 
     this.moduleFocus = 0;
-    this.msgService.turnOnLoadingScreenWithoutPercentage();
+    this.msgService.turnOnLoadingScreen();
     this.queryDates = [];
 
     this.hooverDates.sort((a, b) => { return a.valueOf() > b.valueOf() ? 1 : -1});
@@ -153,22 +160,26 @@ export class DelayTripsModule implements OnInit {
       this.selectedDates.push(new Date(date));
     }
 
+    let UTCHooverDates: string[] = [];
+    for (const date of this.hooverDates) {
+      UTCHooverDates.push(timeStamp.getTimeStamp(date.getTime() - (date.getTimezoneOffset() * 60 * 1000)))
+    }
+
     // Get data for selected dates
-    let day = 24 * 60 * 60 * 1000;
-    let actualDate = this.hooverDates[0].valueOf();
+    let actualDate = UTCHooverDates[0];
     let isGoing = true;
     this.queryDates.push([actualDate]);
-    while (actualDate < (this.hooverDates[this.hooverDates.length - 1].valueOf() + day)) {
-      if (isGoing && this.hooverDates.findIndex((date) => {return actualDate === date.valueOf()}) === -1) {
-        this.queryDates[this.queryDates.length - 1].push(actualDate - day);
+    while (timeStamp.compareTimeStamps(actualDate, timeStamp.addOneDayToTimeStamp(UTCHooverDates[UTCHooverDates.length - 1])) !== 1) {
+      if (isGoing && UTCHooverDates.findIndex((date) => {return actualDate === date}) === -1) {
+        this.queryDates[this.queryDates.length - 1].push(timeStamp.removeOneDayToTimeStamp(actualDate));
         isGoing = false;
-      } else if (!isGoing && this.hooverDates.findIndex((date) => {return actualDate === date.valueOf()}) !== -1) {
+      } else if (!isGoing && UTCHooverDates.findIndex((date) => {return actualDate === date}) !== -1) {
         this.queryDates.push([actualDate]);
         isGoing = true;
       }
-      actualDate += day;
+      actualDate = timeStamp.addOneDayToTimeStamp(actualDate);
     }
-    this.queryDates[this.queryDates.length - 1].push(this.hooverDates[this.hooverDates.length - 1].valueOf());
+    this.queryDates[this.queryDates.length - 1].push(UTCHooverDates[UTCHooverDates.length - 1]);
 
     // API call for data
     this.routes = await this.apiGet('getAvailableRoutes', {dates: JSON.stringify(this.queryDates)});
@@ -190,7 +201,16 @@ export class DelayTripsModule implements OnInit {
       if (this.tripGroups.length > 0) {
         for (const group of this.tripGroups) {
           for (let trip of group.trips) {
-            trip.dep_time_lab = (new Date(trip.dep_time)).toLocaleTimeString();
+            if (this.translate.currentLang === 'cz') {
+              trip.dep_time_lab = trip.dep_time.slice(0, 5);
+            } else {
+              let hours = parseInt(trip.dep_time.slice(0, 2));
+              if (hours > 12) {
+                trip.dep_time_lab = `${hours - 12}${trip.dep_time.slice(2, 5)} PM`;
+              } else {
+                trip.dep_time_lab = `${trip.dep_time.slice(0, 5)} AM`;
+              }
+            }
           }
         }
 

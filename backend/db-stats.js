@@ -3,11 +3,12 @@
  */
 
 const { flux, InfluxDB, Point } = require('@influxdata/influxdb-client');
-const { PingAPI, DeleteAPI } = require('@influxdata/influxdb-client-apis');
+const { PingAPI } = require('@influxdata/influxdb-client-apis');
 const fs = require('fs');
 const dotenv = require('dotenv');
 
 const logService = require('./log.js');
+const timeStamp = require('./timeStamp.js');
 
 // .env file include
 dotenv.config();
@@ -49,7 +50,7 @@ async function isDBConnected() {
     return new Promise((resolve) => {
         pingAPI.getPing()
             .then(async () => {
-                await getStats(statType.expectedState, new Date((new Date()).valueOf() - 1000), new Date(), false);
+                await getStats(statType.expectedState, timeStamp.getTimeStamp(timeStamp.getTodayUTC()), timeStamp.getTimeStamp(timeStamp.getTodayUTC()), false);
                 resolve(true);
             })
             .catch((error) => {
@@ -62,16 +63,11 @@ async function isDBConnected() {
 async function getStats(statType, start, stop, latest) {
     let startTime;
     let stopTime;
+
     try {
-        startTime = new Date(start);
-        if (startTime.getTimezoneOffset() !== -60) {
-            startTime = new Date(startTime.valueOf() + 60 * 60 * 1000);
-        }
-        stopTime = new Date(stop);
-        stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
-        if (stopTime.getTimezoneOffset() !== -60) {
-            stopTime = new Date(stopTime.valueOf() + 60 * 60 * 1000);
-        }
+        startTime = timeStamp.getDateFromTimeStamp(start);
+        stopTime = timeStamp.getDateFromTimeStamp(stop);
+        stopTime = new Date(stopTime.setUTCHours(23, 59, 59, 0));
     } catch (error) {
         return {};
     }
@@ -404,14 +400,8 @@ async function getAvailableDates(includeToday = false) {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
                 let date = new Date(o._time);
-
-                if (date.getTimezoneOffset() !== -60) {
-                    date = date.setHours(0, 0, 0, 0) - day + 60 * 60 * 1000;
-                } else {
-                    date = date.setHours(0, 0, 0, 0) - day;
-                }
-                if (records.indexOf(date) === -1) {
-                    records.push(date);
+                if (records.indexOf(timeStamp.getTimeStamp(date)) === -1) {
+                    records.push(timeStamp.removeOneDayToTimeStamp(timeStamp.getTimeStamp(date)));
                 }
             },
             error(error) {
@@ -420,16 +410,17 @@ async function getAvailableDates(includeToday = false) {
             },
             async complete() {
                 if (includeToday) {
-                    let yesterday = (new Date()).setHours(0, 0, 0, 0).valueOf();
-                    if (Object.keys(await getStats('expected_state', yesterday, (new Date()).valueOf(), true)).length > 0) {
-                        records.push((new Date()).setHours(0, 0, 0, 0));
+                    let yesterday = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
+                    yesterday = timeStamp.removeOneDayToTimeStamp(yesterday);
+                    if (Object.keys(await getStats('expected_state', yesterday, yesterday, true)).length > 0) {
+                        records.push(timeStamp.addOneDayToTimeStamp(yesterday));
                     }
                 }
                 if (records.length === 0) {
                     resolve({
-                        start: (new Date).setHours(0, 0, 0, 0),
-                        disabled: [(new Date).setHours(0, 0, 0, 0)],
-                        end: (new Date).setHours(0, 0, 0, 0)
+                        start: timeStamp.getTimeStamp(new Date()),
+                        disabled: [timeStamp.getTimeStamp(new Date())],
+                        end: timeStamp.getTimeStamp(new Date())
                     })
                 } else if (records.length < 1) {
                     resolve({
@@ -438,14 +429,14 @@ async function getAvailableDates(includeToday = false) {
                         end: records[0]
                     })
                 } else {
-                    records.sort();
+                    records.sort(timeStamp.compareTimeStamps);
                     let actualDate = records[0];
                     let disabledDates = [];
-                    while (actualDate < (records[records.length - 1])) {
+                    while (timeStamp.compareTimeStamps(actualDate, records[records.length - 1]) !== 1) {
                         if (records.indexOf(actualDate) === -1) {
                             disabledDates.push(actualDate);
                         }
-                        actualDate += day;
+                        actualDate = timeStamp.addOneDayToTimeStamp(actualDate);
                     }
                     resolve({
                         start: records[0],
@@ -463,19 +454,10 @@ async function getRoutesIdsInInterval(start, stop) {
     let startTime;
     let stopTime;
     try {
-        startTime = new Date(start);
-        if (startTime.getTimezoneOffset() !== -60) {
-            startTime = new Date(startTime.valueOf() + 60 * 60 * 1000);
-            start += 60 * 60 * 1000;
-        }
-        stopTime = new Date(stop);
-        stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
-        if (stopTime.getTimezoneOffset() !== -60) {
-            stopTime = new Date(stopTime.valueOf() + 60 * 60 * 1000);
-            stop += 60 * 60 * 1000;
-        }
+        startTime = timeStamp.getDateFromTimeStamp(start);
+        stopTime = timeStamp.getDateFromTimeStamp(stop);
+        stopTime = new Date(stopTime.setUTCHours(23, 59, 59, 0));
     } catch (error) {
-        console.log(error)
         return {};
     }
 
@@ -487,20 +469,18 @@ async function getRoutesIdsInInterval(start, stop) {
     |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.operationDataRoutes})`;
 
     let records = {};
-
     let max = 0;
-    const day = 24 * 60 * 60 * 1000;
     let idx = 0;
-    while (start <= (stop - idx * day)) {
+    while (timeStamp.compareTimeStamps(start, stop) === -1) {
         max++;
         idx++;
+        start = timeStamp.addOneDayToTimeStamp(start);
     }
 
     return new Promise((resolve) => {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
-                console.log(o)
                 const keys = JSON.parse(o._value);
                 for (const key of keys) {
                     if (records[key] === undefined) {
@@ -530,15 +510,9 @@ async function getTripIdsInInterval(route_id, start, stop) {
     let startTime;
     let stopTime;
     try {
-        startTime = new Date(start);
-        if (startTime.getTimezoneOffset() !== -60) {
-            startTime = new Date(startTime.valueOf() + 60 * 60 * 1000);
-        }
-        stopTime = new Date(stop);
-        stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
-        if (stopTime.getTimezoneOffset() !== -60) {
-            stopTime = new Date(stopTime.valueOf() + 60 * 60 * 1000);
-        }
+        startTime = timeStamp.getDateFromTimeStamp(start);
+        stopTime = timeStamp.getDateFromTimeStamp(stop);
+        stopTime = new Date(stopTime.setUTCHours(23, 59, 59, 0));
     } catch (error) {
         return {};
     }
@@ -553,11 +527,11 @@ async function getTripIdsInInterval(route_id, start, stop) {
     let records = {};
 
     let max = 0;
-    const day = 24 * 60 * 60 * 1000;
     let idx = 0;
-    while (start <= (stop - idx * day)) {
+    while (timeStamp.compareTimeStamps(start, stop) === -1) {
         max++;
         idx++;
+        start = timeStamp.addOneDayToTimeStamp(start);
     }
 
     return new Promise((resolve) => {
@@ -592,15 +566,9 @@ async function getTripDataInInterval(trip_id, start, stop) {
     let startTime;
     let stopTime;
     try {
-        startTime = new Date(start);
-        if (startTime.getTimezoneOffset() !== -60) {
-            startTime = new Date(startTime.valueOf() + 60 * 60 * 1000);
-        }
-        stopTime = new Date(stop);
-        stopTime = new Date(stopTime.setHours(23, 59, 59, 0));
-        if (stopTime.getTimezoneOffset() !== -60) {
-            stopTime = new Date(stopTime.valueOf() + 60 * 60 * 1000);
-        }
+        startTime = timeStamp.getDateFromTimeStamp(start);
+        stopTime = timeStamp.getDateFromTimeStamp(stop);
+        stopTime = new Date(stopTime.setUTCHours(23, 59, 59, 0));
     } catch (error) {
         return {};
     }
@@ -618,7 +586,7 @@ async function getTripDataInInterval(trip_id, start, stop) {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
-                let dateKey = (new Date(o._time)).setHours(0, 0, 0, 0).valueOf();
+                let dateKey = timeStamp.getTimeStamp(new Date(o._time));
                 let primKey = parseInt(o._field.split('-')[0]);
                 let secKey = parseInt(o._field.split('-')[1]);
                 if (records[dateKey] === undefined) {

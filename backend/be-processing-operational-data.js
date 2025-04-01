@@ -143,6 +143,7 @@ async function processRoute(route) {
         }
     }
     
+    let processedTripIds = [];
     // Parse records to exact part of trip
     for (const trip of route.trips) {
         let tripShape = activeShapes[trip.shape_id];
@@ -152,9 +153,6 @@ async function processRoute(route) {
         let testInfScoreTable = [];
 
         if (tripShape === undefined || records === undefined) {
-            if (!(await dbStats.saveRealOperationData(trip.id, scoreTable, trip.stops_info[0]))) {
-                return false;
-            }
             dbStats.updateROProcessingStats('trips_without_data', 1);
             await dbPostGIS.setTripAsServed(trip.id);
             continue;
@@ -200,6 +198,8 @@ async function processRoute(route) {
             return false;
         }
 
+        processedTripIds.push(trip.id);
+
         if (saveTestOutput) {
             testOutput.push({trip: trip, shape: JSON.parse(JSON.stringify(tripShape)), delays: testScoreTable, noScore: testInfScoreTable});
         }
@@ -223,7 +223,7 @@ async function processRoute(route) {
         });
     }
 
-    if (!(await dbStats.saveRealOperationTripsData(JSON.stringify(route.trips.map((item) => item.id)), route.id, yesterdayMidNight))) {
+    if (!(await dbStats.saveRealOperationTripsData(JSON.stringify(processedTripIds), route.id, yesterdayMidNight))) {
         return false;
     }
 

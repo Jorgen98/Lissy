@@ -4,6 +4,7 @@
 
 const logService = require('../../../backend/log.js');
 const dbStats = require('../../../backend/db-stats.js');
+const timeStamp = require('../../../backend/timeStamp.js');
 
 const env = require('./config.json');
 
@@ -28,12 +29,11 @@ async function processRequest(url, req, res) {
                 } else {
                     let response = {};
                     let dates = JSON.parse(req.query.dates);
-                    const day = 24 * 60 * 60 * 1000;
 
                     // Get data for every date range
                     for (const pair of dates) {
                         // Get raw data
-                        let realOperationData = await dbStats.getStats('operation_data_stats', pair[0] + day, pair[1] + day);
+                        let realOperationData = await dbStats.getStats('operation_data_stats', timeStamp.addOneDayToTimeStamp(pair[0]), timeStamp.addOneDayToTimeStamp(pair[1]));
                         let expectedStateData = await dbStats.getStats('expected_state', pair[0], pair[1]);
 
                         // Couple real operations data and expected state data
@@ -41,12 +41,7 @@ async function processRequest(url, req, res) {
                             continue;
                         }
                         for (const item in realOperationData) {
-                            let date = new Date(new Date(item) - day);
-                            if (date.getTimezoneOffset() !== -60) {
-                                date = date.setHours(0, 0, 0, 0).valueOf() + 60 * 60 * 1000;
-                            } else {
-                                date = date.setHours(0, 0, 0, 0).valueOf();
-                            }
+                            let date = timeStamp.removeOneDayToTimeStamp(timeStamp.getTimeStamp(item));
                             response[date] = {};
 
                             for (const stat in realOperationData[item]) {
@@ -57,12 +52,7 @@ async function processRequest(url, req, res) {
                         }
 
                         for (const item in expectedStateData) {
-                            let date = new Date(item);
-                            if (date.getTimezoneOffset() !== -60) {
-                                date = date.setHours(0, 0, 0, 0).valueOf() + 60 * 60 * 1000;
-                            } else {
-                                date = date.setHours(0, 0, 0, 0).valueOf();
-                            }
+                            let date = timeStamp.getTimeStamp(item);
                             for (const stat in expectedStateData[item]) {
                                 response[date][stat] = expectedStateData[item][stat];
                             }

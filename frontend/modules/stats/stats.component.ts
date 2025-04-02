@@ -203,6 +203,13 @@ export class StatsModule implements OnInit {
       this.isTodayFunctionEnabled = true;
     }
 
+    // After initialization state
+    if (apiDates.end === apiDates.disabled[apiDates.disabled.length - 1]) {
+      this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDates.head', 'UIMessagesService.toasts.noAvailableDates.body');
+      this.isDateSelectionEnabled = false;
+      return;
+    }
+
     // Get stats for latest date
     this.downloadData();
 

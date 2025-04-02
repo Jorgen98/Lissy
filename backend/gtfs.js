@@ -752,6 +752,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 return false;
             }
 
+            newTrip.id = newTripId;
             dbStats.updateStateProcessingStats('gtfs_trips_added', 1);
             actualTrips[internTripId] = newTrip;
 

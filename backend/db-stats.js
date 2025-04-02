@@ -382,8 +382,8 @@ function updateROProcessingStats(prop, value) {
 // Record stamp for one date consist of expected state valid for that day and
 // real operation data from next day
 async function getAvailableDates(includeToday = false) {
-    let startTime = new Date('2024-01-01');
-    let stopTime = new Date();
+    let startTime = timeStamp.getDateFromTimeStamp("2024-0-1");
+    let stopTime = timeStamp.getTodayUTC();
 
     let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);
     let query;
@@ -410,17 +410,16 @@ async function getAvailableDates(includeToday = false) {
             },
             async complete() {
                 if (includeToday) {
-                    let yesterday = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
-                    yesterday = timeStamp.removeOneDayFromTimeStamp(yesterday);
-                    if (Object.keys(await getStats('expected_state', yesterday, yesterday, true)).length > 0) {
-                        records.push(timeStamp.addOneDayToTimeStamp(yesterday));
+                    let today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
+                    if (Object.keys(await getStats('expected_state', timeStamp.removeOneDayFromTimeStamp(today), today, true)).length > 0) {
+                        records.push(today);
                     }
                 }
                 if (records.length === 0) {
                     resolve({
-                        start: timeStamp.getTimeStamp(new Date()),
-                        disabled: [timeStamp.getTimeStamp(new Date())],
-                        end: timeStamp.getTimeStamp(new Date())
+                        start: timeStamp.getTimeStamp(timeStamp.getTodayUTC()),
+                        disabled: [timeStamp.getTimeStamp(timeStamp.getTodayUTC())],
+                        end: timeStamp.getTimeStamp(timeStamp.getTodayUTC())
                     })
                 } else if (records.length < 1) {
                     resolve({

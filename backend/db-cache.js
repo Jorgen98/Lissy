@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const redis = require('redis');
 
 const logService = require('./log.js');
+const timeStamp = require('./timeStamp.js');
 
 // .env file include
 dotenv.config();
@@ -43,7 +44,7 @@ async function setUpValue(key, data, progress) {
     // Key already exists in cache DB
     if (actualValue !== null) {
         // After defined time, if there will be none request, data will be deleted from cache DB
-        await db_redis.expireAt(key, parseInt((new Date) / 1000) + 60 * 60 * parseInt(process.env.DB_CACHE_DURABILITY));
+        await db_redis.expireAt(key, parseInt((timeStamp.getTodayUTC().getTime()) / 1000) + 60 * 60 * parseInt(process.env.DB_CACHE_DURABILITY));
 
         // Store data from finished operation
         if (data !== null) {

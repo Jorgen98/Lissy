@@ -89,7 +89,6 @@ async function getTripsReadyToProcess() {
     tripsToProcess = await dbPostGIS.getPlannedTrips(activeRoutes);
 
     // Remove trips, which do not finished yet
-
     for (let route of tripsToProcess) {
         let idx = 0;
         while (idx < route.trips.length) {

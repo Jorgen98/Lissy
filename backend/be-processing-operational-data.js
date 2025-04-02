@@ -10,6 +10,7 @@ const dbPostGIS = require('./db-postgis.js');
 const dbStats = require('./db-stats.js');
 const logService = require('./log.js');
 const routingService = require('./routing.js');
+const timeStamp = require('./timeStamp.js');
 
 let tripsToProcess = {};
 let activeShapes = {};
@@ -18,9 +19,9 @@ let progress = 0;
 let lastProgressValue = 0;
 
 const oneDay = 24 * 60 * 60 * 1000;
-let now = new Date();
-let yesterdayMidNight = new Date((new Date()).setHours(0, 0, 0, 0).valueOf() - oneDay);
-let lastTripEnd = new Date(yesterdayMidNight.valueOf());
+let now = timeStamp.getTodayUTC();
+let yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
+let lastTripEnd = timeStamp.getDateFromTimeStamp(timeStamp.getTimeStamp(yesterdayMidNight));
 
 const saveTestOutput = process.env.TEST_OUTPUTS === 'true' ? true : false;
 
@@ -38,9 +39,10 @@ async function processServedTrips() {
     dbStats.initROProcessingStats();
 
     let startTime = performance.now();
-    now = new Date();
-    yesterdayMidNight = new Date((new Date()).setHours(0, 0, 0, 0).valueOf() - oneDay);
-    lastTripEnd = new Date(yesterdayMidNight.valueOf());
+    now = timeStamp.getTodayUTC();
+    yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
+    now = timeStamp.getTodayUTC();
+    lastTripEnd = timeStamp.getDateFromTimeStamp(timeStamp.getTimeStamp(yesterdayMidNight));
 
     // Prepare trips, which should been processed
     log('info', 'Preparing system state data');
@@ -87,14 +89,15 @@ async function getTripsReadyToProcess() {
     tripsToProcess = await dbPostGIS.getPlannedTrips(activeRoutes);
 
     // Remove trips, which do not finished yet
-    let dateString = `${yesterdayMidNight.getFullYear()}-${yesterdayMidNight.getMonth() + 1}-${yesterdayMidNight.getDate()}`;
+
     for (let route of tripsToProcess) {
         let idx = 0;
         while (idx < route.trips.length) {
-            let start = new Date([dateString, route.trips[idx].stops_info[0].aT]);
-            let end = new Date(start.valueOf() + (route.trips[idx].stops_info[1].aT  * 1000));
+            let start = new Date(Date.UTC(yesterdayMidNight.getUTCFullYear(), yesterdayMidNight.getUTCMonth(), yesterdayMidNight.getUTCDate(),
+                route.trips[idx].stops_info[0].aT.slice(0, 2), route.trips[idx].stops_info[0].aT.slice(3, 5), route.trips[idx].stops_info[0].aT.slice(6, 7), 0));
+            let end = new Date(start.getTime() + (route.trips[idx].stops_info[1].aT  * 1000));
 
-            if (end.valueOf() > (now.valueOf() - parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)) {
+            if (end.getTime() > (now.getTime() - parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)) {
                 route.trips.splice(idx, 1);
             } else {
                 route.trips[idx].stops_info = [start, end];
@@ -102,8 +105,8 @@ async function getTripsReadyToProcess() {
                 numOfTripsToProcess++;
             }
 
-            if ((end.valueOf()) > lastTripEnd.valueOf()) {
-                lastTripEnd = new Date(end.valueOf());
+            if ((end.getTime()) > lastTripEnd.getTime()) {
+                lastTripEnd = end;
             }
         }
     }
@@ -142,8 +145,7 @@ async function processRoute(route) {
             }
         }
     }
-    
-    let processedTripIds = [];
+
     // Parse records to exact part of trip
     for (const trip of route.trips) {
         let tripShape = activeShapes[trip.shape_id];
@@ -153,6 +155,9 @@ async function processRoute(route) {
         let testInfScoreTable = [];
 
         if (tripShape === undefined || records === undefined) {
+            if (!(await dbStats.saveRealOperationData(trip.id, scoreTable, trip.stops_info[0]))) {
+                return false;
+            }
             dbStats.updateROProcessingStats('trips_without_data', 1);
             await dbPostGIS.setTripAsServed(trip.id);
             continue;
@@ -198,8 +203,6 @@ async function processRoute(route) {
             return false;
         }
 
-        processedTripIds.push(trip.id);
-
         if (saveTestOutput) {
             testOutput.push({trip: trip, shape: JSON.parse(JSON.stringify(tripShape)), delays: testScoreTable, noScore: testInfScoreTable});
         }
@@ -223,7 +226,7 @@ async function processRoute(route) {
         });
     }
 
-    if (!(await dbStats.saveRealOperationTripsData(JSON.stringify(processedTripIds), route.id, yesterdayMidNight))) {
+    if (!(await dbStats.saveRealOperationTripsData(JSON.stringify(route.trips.map((item) => item.id)), route.id, yesterdayMidNight))) {
         return false;
     }
 
@@ -238,8 +241,8 @@ async function downloadData(lineId, objectId, attempt) {
     let arcGISLinkEnd = ')&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000';
 
     return new Promise(async (resolve) => {
-        https.get(`${arcGISLinkStart} "lastupdate">${yesterdayMidNight.valueOf()} AND "lineid"=${lineId}
-        AND "lastupdate"<${lastTripEnd.valueOf() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}
+        https.get(`${arcGISLinkStart} "lastupdate">${yesterdayMidNight.getTime()} AND "lineid"=${lineId}
+        AND "lastupdate"<${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}
         AND objectid>${objectId} ${arcGISLinkEnd}`, async res => {
             let { statusCode } = res;
             let contentType = res.headers['content-type'];

@@ -171,7 +171,7 @@ export class DelayTripsModule implements OnInit {
     this.queryDates.push([actualDate]);
     while (timeStamp.compareTimeStamps(actualDate, timeStamp.addOneDayToTimeStamp(UTCHooverDates[UTCHooverDates.length - 1])) !== 1) {
       if (isGoing && UTCHooverDates.findIndex((date) => {return actualDate === date}) === -1) {
-        this.queryDates[this.queryDates.length - 1].push(timeStamp.removeOneDayToTimeStamp(actualDate));
+        this.queryDates[this.queryDates.length - 1].push(timeStamp.removeOneDayFromTimeStamp(actualDate));
         isGoing = false;
       } else if (!isGoing && UTCHooverDates.findIndex((date) => {return actualDate === date}) !== -1) {
         this.queryDates.push([actualDate]);

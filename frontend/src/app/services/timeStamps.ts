@@ -36,7 +36,7 @@ export function addOneDayToTimeStamp(timeStamp: string) {
 }
 
 // Move time stamp to past
-export function removeOneDayToTimeStamp(timeStamp: string) {
+export function removeOneDayFromTimeStamp(timeStamp: string) {
     let date = new Date(Date.UTC(parseInt(timeStamp.split('-')[0]), parseInt(timeStamp.split('-')[1]), parseInt(timeStamp.split('-')[2])));
     let dateValue = date.setUTCDate(date.getUTCDate() - 1);
     return getTimeStamp(dateValue);

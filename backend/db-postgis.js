@@ -8,6 +8,7 @@ const fs = require('fs');
 
 const logService = require('./log.js');
 const dbStats = require('./db-stats.js');
+const timeStamp = require('./timeStamp.js');
 
 // .env file include
 dotenv.config();
@@ -111,8 +112,11 @@ async function scanDirectory(location) {
             try {
                 inputData = JSON.parse(rawData);
                 if (inputData.type && inputData.valid && (inputData.hubs || inputData.records)) {
-                    if ((newNets[inputData.type] === undefined || new Date(inputData.valid) > new Date(newNets[inputData.type].valid)) &&
-                        parseInt(actualNetValid[`${inputData.type}_valid`]) < (new Date(inputData.valid)).valueOf()) {
+                    let inputTimeStamp = timeStamp.getDateFromISOTimeStamp(inputData.valid);
+                    inputTimeStamp = inputTimeStamp.getTime();
+                    let actualTypeTimeStamp = parseInt(actualNetValid[`${inputData.type}_valid`]);
+                    if ((newNets[inputData.type] === undefined || newNets[inputData.type].valid < inputTimeStamp) &&
+                        actualTypeTimeStamp < inputTimeStamp) {
                         newNets[inputData.type] = inputData;
                     }
                 }
@@ -177,7 +181,7 @@ async function reloadNet(net, inputData) {
 
     try {
         await db_postgis.query(`INSERT INTO ${net} (geom, conns) VALUES ${query}`);
-        await db_postgis.query(`UPDATE net_stats SET ${net}_valid=${(new Date(inputData.valid)).valueOf()}`);
+        await db_postgis.query(`UPDATE net_stats SET ${net}_valid=${timeStamp.getDateFromTimeStamp(inputData.valid).getTime()}`);
         dbStats.updateStateProcessingStats(`${net}_net_actualized`, true);
         dbStats.updateStateProcessingStats(`${net}_net_hubs`, inputData.hubs.length);
         log('success', `Transit ${net} successfully actualized`);
@@ -239,7 +243,7 @@ async function reloadMidpoints(inputData) {
                 '{"type": "Point", "coordinates": ${JSON.stringify(record.endstopageom)}}',
                 '{"type": "Point", "coordinates": ${JSON.stringify(record.endstopbgeom)}}',
                 '{"type": "MultiLineString", "coordinates": [${JSON.stringify(record.midpoints)}]}')`);
-            await db_postgis.query(`UPDATE net_stats SET midpoints_valid=${(new Date(inputData.valid)).valueOf()}`);
+            await db_postgis.query(`UPDATE net_stats SET midpoints_valid=${timeStamp.getDateFromTimeStamp(inputData.valid).getTime()}`);
 
             dbStats.updateStateProcessingStats('midpoints_actualized', true);
             dbStats.updateStateProcessingStats('midpoints', 1);

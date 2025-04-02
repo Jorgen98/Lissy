@@ -217,7 +217,7 @@ async function saveStateProcessingStats() {
         .intField('routing_time', stateProcessingStats['routing_time'])
         .stringField('problematic_routes', JSON.stringify(stateProcessingStats['problematic_routes']))
         .intField('trips_to_process', stateProcessingStats['trips_to_process'])
-        .timestamp(new Date());
+        .timestamp(timeStamp.getTodayUTC());
         
     writeApi.writePoint(record)
 
@@ -253,7 +253,7 @@ async function saveROProcessingStats() {
         .intField('stored_records', realOperationProcessingStats['stored_records'])
         .intField('trips_without_data', realOperationProcessingStats['trips_without_data'])
         .intField('data_without_trips', realOperationProcessingStats['data_without_trips'])
-        .timestamp(new Date());
+        .timestamp(timeStamp.getTodayUTC());
         
     writeApi.writePoint(record)
 
@@ -401,7 +401,7 @@ async function getAvailableDates(includeToday = false) {
                 const o = tableMeta.toObject(row);
                 let date = new Date(o._time);
                 if (records.indexOf(timeStamp.getTimeStamp(date)) === -1) {
-                    records.push(timeStamp.removeOneDayToTimeStamp(timeStamp.getTimeStamp(date)));
+                    records.push(timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(date)));
                 }
             },
             error(error) {
@@ -411,7 +411,7 @@ async function getAvailableDates(includeToday = false) {
             async complete() {
                 if (includeToday) {
                     let yesterday = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
-                    yesterday = timeStamp.removeOneDayToTimeStamp(yesterday);
+                    yesterday = timeStamp.removeOneDayFromTimeStamp(yesterday);
                     if (Object.keys(await getStats('expected_state', yesterday, yesterday, true)).length > 0) {
                         records.push(timeStamp.addOneDayToTimeStamp(yesterday));
                     }

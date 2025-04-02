@@ -14,6 +14,11 @@ function getDateFromTimeStamp(timeStamp) {
 }
 
 // Convert time stamp into JS UTC date
+function getDateFromISOTimeStamp(timeStamp) {
+    return new Date(Date.UTC(parseInt(timeStamp.split('-')[0]), parseInt(timeStamp.split('-')[1]) - 1, parseInt(timeStamp.split('-')[2])));
+}
+
+// Convert time stamp into JS UTC date
 function getTodayUTC() {
     let now = new Date();
     return new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds()));
@@ -40,10 +45,10 @@ function addOneDayToTimeStamp(timeStamp) {
 }
 
 // Move time stamp to past
-function removeOneDayToTimeStamp(timeStamp) {
+function removeOneDayFromTimeStamp(timeStamp) {
     let date = new Date(Date.UTC(timeStamp.split('-')[0], timeStamp.split('-')[1], timeStamp.split('-')[2]));
     date = date.setUTCDate(date.getUTCDate() - 1);
     return getTimeStamp(date);
 }
 
-module.exports = { getTimeStamp, getDateFromTimeStamp, compareTimeStamps, addOneDayToTimeStamp, removeOneDayToTimeStamp, getTodayUTC }
+module.exports = { getTimeStamp, getDateFromTimeStamp, compareTimeStamps, addOneDayToTimeStamp, removeOneDayFromTimeStamp, getTodayUTC, getDateFromISOTimeStamp }

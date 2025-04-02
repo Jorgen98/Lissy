@@ -41,7 +41,7 @@ async function processRequest(url, req, res) {
                             continue;
                         }
                         for (const item in realOperationData) {
-                            let date = timeStamp.removeOneDayToTimeStamp(timeStamp.getTimeStamp(item));
+                            let date = timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(item));
                             response[date] = {};
 
                             for (const stat in realOperationData[item]) {

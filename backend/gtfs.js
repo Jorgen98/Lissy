@@ -12,6 +12,7 @@ const logService = require('./log.js');
 const dbPostGIS = require('./db-postgis.js');
 const routingService = require('./routing.js');
 const dbStats = require('./db-stats.js');
+const timeStamp = require('./timeStamp.js');
 
 const tmpFileName = './gtfs.zip';
 const tmpFolderName = './gtfsFiles/'
@@ -808,9 +809,9 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 // Function for decoding which services should be operated today
 function getTodayServices(inputCalendarFile, inputDatesFile) {
     todayServiceIDs = [];
-    let today = new Date();
+    let today = timeStamp.getTodayUTC();
     today.setUTCHours(0, 0, 0, 0);
-    const dayOfWeek = today.getDay() === 0 ? 6 : today.getDay() - 1;
+    const dayOfWeek = today.getUTCDay() === 0 ? 6 : today.getUTCDay() - 1;
 
     if (inputCalendarFile?.data === undefined && inputDatesFile?.data === undefined) {
         return false;
@@ -833,7 +834,7 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
                 let start = parseDateFromGTFS(decRecord[8]);
                 let end = parseDateFromGTFS(decRecord[9]);
 
-                if (decRecord[dayOfWeek + 1] === '1' && start <= today && today <= end) {
+                if (decRecord[dayOfWeek + 1] === '1' && start.getTime() <= today.getTime() && today.getTime() <= end.getTime()) {
                     try {
                         todayServiceIDs.push(parseInt(decRecord[0]));
                     } catch (error) {}
@@ -860,14 +861,14 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
 
                 decRecord[2] = decRecord[2].slice(0, 1);
 
-                let date = parseDateFromGTFS(decRecord[1]);
-                if (decRecord[2] === '1' && date.valueOf() === today.valueOf()) {
+                let date = timeStamp.getDateFromISOTimeStamp(decRecord[1]);
+                if (decRecord[2] === '1' && date.getTime() === today.getTime()) {
                     try {
                         if (!todayServiceIDs.find((itm) => { return itm === parseInt(decRecord[0])})) {
                             todayServiceIDs.push(parseInt(decRecord[0]));
                         }
                     } catch (error) {}
-                } else if (decRecord[2] === '2' && date.valueOf() === today.valueOf()) {
+                } else if (decRecord[2] === '2' && date.getTime() === today.getTime()) {
                     try {
                         if (todayServiceIDs.find((itm) => { return itm === parseInt(decRecord[0])})) {
                             let idx = todayServiceIDs.findIndex((itm) => { return itm === parseInt(decRecord[0])});
@@ -923,7 +924,7 @@ function parseDateFromGTFS(input) {
     input = `${input.slice(0, 4)}-${input.slice(4, 6)}-${input.slice(6, 8)}`;
 
     try {
-        return new Date(input);
+        return new timeStamp.getDateFromISOTimeStamp(input);
     } catch(error) {
         return new Date('1970-01-01');
     }

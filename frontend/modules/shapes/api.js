@@ -35,30 +35,30 @@ async function processRequest(url, req, res) {
                     } else {
                         let cache = await dbCache.setUpValue(req.url, null, null);
 
-                        //if (cache.data !== null) {
-                            //res.send(cache.data);
-                        //} else {
-                            //if (req.query.progress) {
-                            //    res.send({progress: cache.progress});
-                            //}
+                        if (cache.data !== null) {
+                            res.send(cache.data);
+                        } else {
+                            if (req.query.progress) {
+                                res.send({progress: cache.progress});
+                            }
 
-                            //if (cache.progress > 0 && req.query.progress) {
-                            //    return;
-                            //}
+                            if (cache.progress > 0 && req.query.progress) {
+                                return;
+                            }
 
                             let routes = await dbStats.getRoutesIdsInInterval(req.query.date, req.query.date);
                             let trips  = [];
                             for (const [idx, route] of routes.entries()) {
                                 trips = trips.concat(await dbStats.getTripIdsInInterval(route, req.query.date, req.query.date));
-                                //dbCache.setUpValue(req.url, null, Math.floor((idx / routes.length) * 100));
+                                dbCache.setUpValue(req.url, null, Math.floor((idx / routes.length) * 100));
                             }
 
-                            //if (!req.query.progress) {
+                            if (!req.query.progress) {
                                 res.send(await dbPostGIS.getTripsWithUniqueShape(trips, fullStopsOrder));
-                            //}
+                            }
 
-                            //dbCache.setUpValue(req.url, await dbPostGIS.getTripsWithUniqueShape(trips, fullStopsOrder), 100);
-                        //}
+                            dbCache.setUpValue(req.url, await dbPostGIS.getTripsWithUniqueShape(trips, fullStopsOrder), 100);
+                        }
                     }
                 }
                 break;

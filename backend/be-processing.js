@@ -62,18 +62,14 @@ cron.schedule('15 3 * * *', async () => {
 // Processing function
 async function processData() {
     let today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
-    let lastGTFSRecord = await dbStats.getStats('expected_state', timeStamp.removeOneDayToTimeStamp(today), today, true);
+    let lastGTFSRecord = await dbStats.getStats('expected_state', timeStamp.removeOneDayFromTimeStamp(today), today, true);
 
     // Main processing switch, depends on actual stateDB data, what will be done
     // 1. Process delay data and actualize system state
     // 2. Actualize system state only
     // 3. Do nothing, we need to wait for next day to process data
     if (Object.keys(lastGTFSRecord).length > 0) {
-        let recordTimeStamp = new Date(Object.keys(lastGTFSRecord)[Object.keys(lastGTFSRecord).length - 1]);
-
-        recordTimeStamp.setHours(0, 0, 0, 0);
-        let timeDiff = ((new Date()).setHours(0, 0, 0, 0).valueOf() - recordTimeStamp.valueOf())
-        if (timeDiff === 0) {
+        if (timeStamp.compareTimeStamps(timeStamp.getTimeStamp(Object.keys(lastGTFSRecord)[Object.keys(lastGTFSRecord).length - 1]), today) === -1) {
             log('info', 'Today system state has been actualized, waiting for next day to process data.');
             return true;
         }
@@ -100,7 +96,7 @@ async function processData() {
     } else {
         log('info', 'There is no actual system state. Starting actualization.');
     }
-    
+
     // Load or reload transit net data
     if (await dbPostGIS.reloadNetFiles()) {
         log('success', 'Net files for routing are loaded');

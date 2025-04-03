@@ -41,5 +41,3 @@ export function removeOneDayFromTimeStamp(timeStamp: string) {
     let dateValue = date.setUTCDate(date.getUTCDate() - 1);
     return getTimeStamp(dateValue);
 }
-
-// Convert time stamp to transport format

@@ -5,6 +5,7 @@ import { mapLayer, mapObject, MapService } from './map.service';
 import { TranslateService } from '@ngx-translate/core';
 import { NgFor } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
+import { delayCategoriesService, delayCategory } from '../services/delayCategories';
 
 @Component({
   selector: 'map',
@@ -25,6 +26,7 @@ export class MapComponent implements AfterViewInit {
     private colorPaletteLength = Object.keys(this.colorPalette).length;
     public actualLegend: String[] = [];
     public legendData: String | null = '';
+    public delayLegendData: String | null = '';
 
     private initMap(): void {
         const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -61,7 +63,8 @@ export class MapComponent implements AfterViewInit {
     constructor(
         private mapService: MapService,
         private translate: TranslateService,
-        private sanitizer: DomSanitizer
+        private sanitizer: DomSanitizer,
+        private delayCategoriesService: delayCategoriesService
     ) {
         this.mapService.addNewLayerObj.subscribe((newLayer) => this.addNewLayer(newLayer));
         this.mapService.addToLayerObj.subscribe((object) => this.addToLayer(object));
@@ -69,6 +72,13 @@ export class MapComponent implements AfterViewInit {
         this.mapService.zoomInObj.subscribe(() => this.map?.zoomIn());
         this.mapService.zoomOutObj.subscribe(() => this.map?.zoomOut());
         this.mapService.fitToLayerObj.subscribe((layerName) => this.fitToLayer(layerName));
+
+        this.delayCategoriesService.showDelayCategories.subscribe((categories) => {
+            this.actualizeDelayCategories(categories);
+        })
+        this.delayCategoriesService.hideDelayCategories.subscribe(() => {
+            this.actualizeDelayCategories([]);
+        })
     }
 
     ngAfterViewInit(): void {
@@ -167,6 +177,42 @@ export class MapComponent implements AfterViewInit {
         }
 
         this.legendData = this.sanitizer.sanitize(1, legendLines.join(''));
+    }
+
+    private actualizeDelayCategories(categories: delayCategory[]) {
+        let legendLines: String[] = [];
+        /*for (const category of categories) {
+            legendLines.push(`
+                <div class="legend-item">
+                    <img class="legend-img ${category.color}" src="./icons/stop.svg"/>
+                    <span class="legend-text">${category.minValue} ${category.maxValue}</span>
+                </div>
+            `)
+        }*/
+        legendLines.push(`
+            <div class="legend-layer-div">
+            <div style="row-gap: 0.5em;display: flex;flex-direction: column;">
+                <div style="font-weight: bold;justify-content: space-between; display: flex;">
+                    <span>Zpoždění</span>
+                </div>
+                <span style="display: flex;"><div style="width: 100%; height: 1.25em; display: flex;position: absolute; align-content: center;">
+                <span style="width: 90%;margin: auto;height: 100%;display: flex;"><div style="height: 50%;background-color: var(--graph-color-a);margin: auto;width: auto;flex-grow: 1;"></div> 
+            </div>
+            <div style="width: 10em;height: 1.25em;display: flex;z-index: 1000;">
+                    <div style="width: 1.25em;background-color: var(--gray-50);border-radius: 1.25em;"></div>
+                    <div style="background-color: var(--graph-color-a);margin: auto;width: auto;flex-grow: 1;"></div>
+                    <div style="width: 1.25em;height: 100%;background-color: var(--gray-50);border-radius: 1.25em;"></div>
+                </div>
+            </span>
+            <div style="font-weight: bold;justify-content: space-between;display: flex;">
+                    <span>0 min.</span>
+                    <span style="font-weight: bold;">Více</span>
+                </div>
+                </div>
+            </div>
+        `)
+
+        this.delayLegendData = this.sanitizer.sanitize(1, `<div class="legend-layer-div">${legendLines.join('')}</div>`);
     }
 
     private addNewLayer(newLayer: mapLayer) {

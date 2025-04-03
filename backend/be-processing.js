@@ -69,7 +69,10 @@ async function processData() {
     // 2. Actualize system state only
     // 3. Do nothing, we need to wait for next day to process data
     if (Object.keys(lastGTFSRecord).length > 0) {
-        if (timeStamp.compareTimeStamps(timeStamp.getTimeStamp(Object.keys(lastGTFSRecord)[Object.keys(lastGTFSRecord).length - 1]), today) === -1) {
+        let latsGTFSRecordTime = timeStamp.getDateFromTimeStamp(timeStamp.getTimeStamp(Object.keys(lastGTFSRecord)[Object.keys(lastGTFSRecord).length - 1]));
+        let todayTime = timeStamp.getTodayUTC().setUTCHours(0, 0, 0, 0);
+
+        if (latsGTFSRecordTime.getTime() >= todayTime) {
             log('info', 'Today system state has been actualized, waiting for next day to process data.');
             return true;
         }

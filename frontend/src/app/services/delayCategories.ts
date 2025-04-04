@@ -37,4 +37,22 @@ export class delayCategoriesService {
     removeDelayCategoriesFromMap() {
         this.hideDelayCategories.next();
     }
+
+    getDelayCategoryByValue(value: number): delayCategory {
+        if (value === undefined) {
+            return {
+                minValue: -Infinity,
+                maxValue: Infinity,
+                color: "#6b7280"
+            }
+        }
+
+        for (const category of this.delayCategories) {
+            if (value >= category.minValue && value < category.maxValue) {
+                return category;
+            }
+        }
+
+        return this.delayCategories[this.delayCategories.length - 1];
+    }
 }

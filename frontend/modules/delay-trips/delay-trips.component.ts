@@ -8,6 +8,7 @@ import { MapComponent } from '../../src/app/map/map.component';
 import { mapObject, MapService } from '../../src/app/map/map.service';
 import { UIMessagesService } from '../../src/app/services/messages';
 import * as timeStamp from "../../src/app/services/timeStamps";
+import { delayCategoriesService } from '../../src/app/services/delayCategories';
 
 interface route {
   route_short_name: string,
@@ -41,7 +42,8 @@ export class DelayTripsModule implements OnInit {
     private apiService: APIService,
     public translate: TranslateService,
     public mapService: MapService,
-    private msgService: UIMessagesService
+    private msgService: UIMessagesService,
+    private delayCategoriesService: delayCategoriesService
   ) {
     translate.onLangChange.subscribe(async () => {
       await this.changeRoute();
@@ -66,8 +68,8 @@ export class DelayTripsModule implements OnInit {
   public tripGroups: tripGroup[] = [];
   public selectedTripGroup: tripGroup | undefined = undefined;
   public selectedTrip: trip | undefined = undefined;
-  public selectedTripGroupShape: {stops: any[], coords: number[][]} | undefined = undefined;
-  public selectedTripData: {[date_key: number]: {[path_group_index: number]: {[path_index: number]: number}}} = {};
+  public selectedTripGroupShape: {stops: any[], coords: number[][][]} | undefined = undefined;
+  public selectedTripData: {[date_key: string]: {[path_group_index: number]: {[path_index: number]: number}}} = {};
 
   // Help function for api requests heading
   private async apiGet(url: string, params?: {[name: string]: string}) {
@@ -228,8 +230,10 @@ export class DelayTripsModule implements OnInit {
 
       this.selectedTrip = this.selectedTripGroup.trips[0];
       await this.changeTrip();
-      this.msgService.turnOffLoadingScreen();
+    } else {
+      this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
     }
+    this.msgService.turnOffLoadingScreen();
   }
 
   public async changeTrip() {
@@ -239,14 +243,20 @@ export class DelayTripsModule implements OnInit {
 
       if (Object.keys(this.selectedTripData).length > 0) {
         this.renderData();
+      } else {
+        this.mapService.removeLayer('route');
+        this.mapService.removeLayer('stops');
+        this.delayCategoriesService.removeDelayCategoriesFromMap();
+        this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
       }
       this.msgService.turnOffLoadingScreen();
     }
   }
 
   public renderData() {
+    this.delayCategoriesService.putDelayCategoriesOnMap();
     this.mapService.removeLayer('route');
-    this.mapService.addNewLayer({name: 'route', palette: {}, layer: undefined, paletteItemName: 'map.zon'});
+    this.mapService.addNewLayer({name: 'route', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
 
     this.mapService.removeLayer('stops');
     this.mapService.addNewLayer({name: 'stops', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
@@ -269,21 +279,26 @@ export class DelayTripsModule implements OnInit {
 
       this.mapService.addToLayer(mapStop);
     }
-/*
-    for (const routePart of mapData.coords) {
-      let mapRoutePart: mapObject = {
-        layerName: 'route',
-        type: 'route',
-        focus: false,
-        latLng: routePart.map((coord: any) => {return {lat: coord[0], lng: coord[1]}}),
-        color: 'provided',
-        metadata: {
-          color: this.selectedRoute?.route_color
-        }
-      }
 
-      this.mapService.addToLayer(mapRoutePart);
-    }*/
+    for (const [routePartIdx, routePart] of this.selectedTripGroupShape.coords.entries()) {
+      for (let idx = 0; idx < (routePart.length - 1); idx++) {
+        const delay = this.selectedTripData[Object.keys(this.selectedTripData)[0]][routePartIdx][idx];
+        const delayCategory = this.delayCategoriesService.getDelayCategoryByValue(delay);
+        
+        let mapRoutePart: mapObject = {
+          layerName: 'route',
+          type: 'route',
+          focus: false,
+          latLng: [{lat: routePart[idx][0], lng: routePart[idx][1]}, {lat: routePart[idx + 1][0], lng: routePart[idx + 1][1]}],
+          color: 'provided',
+          metadata: {
+            color: delayCategory.color
+          }
+        }
+  
+        this.mapService.addToLayer(mapRoutePart);
+      }
+    }
 
     this.mapService.fitToLayer('stops');
   }

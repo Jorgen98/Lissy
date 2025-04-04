@@ -8,7 +8,6 @@ import { MapComponent } from '../../src/app/map/map.component';
 import { mapObject, MapService } from '../../src/app/map/map.service';
 import { UIMessagesService } from '../../src/app/services/messages';
 import * as timeStamp from "../../src/app/services/timeStamps";
-import { delayCategoriesService } from '../../src/app/services/delayCategories';
 
 interface route {
   route_color: string,
@@ -34,8 +33,7 @@ export class ShapesModule implements OnInit {
     private apiService: APIService,
     public translate: TranslateService,
     public mapService: MapService,
-    private msgService: UIMessagesService,
-    private delayCategoriesService: delayCategoriesService
+    private msgService: UIMessagesService
   ) {}
 
   public moduleFocus: Number = 0;
@@ -66,7 +64,7 @@ export class ShapesModule implements OnInit {
       this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');
       return;
     }
-this.delayCategoriesService.putDelayCategoriesOnMap();
+
     this.msgService.turnOnLoadingScreenWithoutPercentage();
     let apiDates = await this.apiGet('availableDates');
 
@@ -124,7 +122,6 @@ this.delayCategoriesService.putDelayCategoriesOnMap();
 
   public setToday() {
     this.hooverDate = new Date();
-    this.delayCategoriesService.removeDelayCategoriesFromMap();
   }
 
   // Get available shapes for selected date

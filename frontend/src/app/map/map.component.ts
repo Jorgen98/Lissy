@@ -26,7 +26,7 @@ export class MapComponent implements AfterViewInit {
     private colorPaletteLength = Object.keys(this.colorPalette).length;
     public actualLegend: String[] = [];
     public legendData: String | null = '';
-    public delayLegendData: String | null = '';
+    public delayLegendData: any = '';
 
     private initMap(): void {
         const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -140,14 +140,14 @@ export class MapComponent implements AfterViewInit {
             objectClass = objectLayer.palette[object.metadata.route_id];
         }
 
-        if (object.color === 'provided' && object.metadata.color === '000000') {
-            object.metadata.color = 'FFFFFF';
+        if (object.color === 'provided' && object.metadata.color === '#000000') {
+            object.metadata.color = '#FFFFFF';
         }
 
         return L.polyline(
             object.latLng,
             { 
-                color: object.color === 'provided' ? `#${object.metadata.color}` : '#000000',
+                color: object.color === 'provided' ? `${object.metadata.color}` : '000000',
                 className: object.color === 'provided' ? '': objectClass
             }
         )
@@ -180,39 +180,55 @@ export class MapComponent implements AfterViewInit {
     }
 
     private actualizeDelayCategories(categories: delayCategory[]) {
-        let legendLines: String[] = [];
-        /*for (const category of categories) {
-            legendLines.push(`
-                <div class="legend-item">
-                    <img class="legend-img ${category.color}" src="./icons/stop.svg"/>
-                    <span class="legend-text">${category.minValue} ${category.maxValue}</span>
-                </div>
+        let legend: String[] = [];
+        let graphColors: String[] = [];
+        let graphText: String[] = [];
+        let graphTextGrid = categories.length > 1 ? `3.75em repeat(${categories.length - 1}, 6.25em) 3.75em` : "5em 5em";
+
+        for (const category of categories) {
+            graphColors.push(`
+                <span class="delay-categories-graph-color" style="background-color: ${category.color}"></span>
             `)
-        }*/
-        legendLines.push(`
-            <div class="legend-layer-div">
-            <div style="row-gap: 0.5em;display: flex;flex-direction: column;">
-                <div style="font-weight: bold;justify-content: space-between; display: flex;">
-                    <span>Zpoždění</span>
-                </div>
-                <span style="display: flex;"><div style="width: 100%; height: 1.25em; display: flex;position: absolute; align-content: center;">
-                <span style="width: 90%;margin: auto;height: 100%;display: flex;"><div style="height: 50%;background-color: var(--graph-color-a);margin: auto;width: auto;flex-grow: 1;"></div> 
-            </div>
-            <div style="width: 10em;height: 1.25em;display: flex;z-index: 1000;">
-                    <div style="width: 1.25em;background-color: var(--gray-50);border-radius: 1.25em;"></div>
-                    <div style="background-color: var(--graph-color-a);margin: auto;width: auto;flex-grow: 1;"></div>
-                    <div style="width: 1.25em;height: 100%;background-color: var(--gray-50);border-radius: 1.25em;"></div>
-                </div>
-            </span>
-            <div style="font-weight: bold;justify-content: space-between;display: flex;">
-                    <span>0 min.</span>
-                    <span style="font-weight: bold;">Více</span>
-                </div>
+        }
+        graphText.push(`
+            <span class="delay-categories-graph-legend-inner-text">0 min.</span>
+        `)
+        for (let idx = 1; idx < categories.length; idx++) {
+            graphText.push(`
+                <span class="delay-categories-graph-legend-inner-text">${categories[idx].minValue} min.</span>
+            `)
+        }
+        graphText.push(`
+            <span class="delay-categories-graph-legend-inner-text">Ostatní</span>
+        `)
+        let graphFills = Array(categories.length - 1).fill(`
+            <span class="delay-categories-graph-color delay-categories-graph-legend-fill"></span>
+            <span class="delay-categories-graph-legend-point"></span>`
+        );
+
+        legend.push(`
+            <div class="delay-categories-main-div">
+                <span>Zpoždění</span>
+                <span class="delay-categories-graph-main">
+                    <div class="delay-categories-graph-outer">
+                        <span class="delay-categories-graph-frame">
+                            ${graphColors.join('')}
+                        </span>
+                    </div>
+                    <div class="delay-categories-graph-legend-outer">
+                        <span class="delay-categories-graph-legend-point"></span>
+                        <span class="delay-categories-graph-color delay-categories-graph-legend-fill"></span>
+                        <span class="delay-categories-graph-legend-point"></span>
+                        ${graphFills.join('')}
+                    </div>
+                </span>
+                <div class="delay-categories-graph-legend-text" style="grid-template-columns: ${graphTextGrid}">
+                    ${graphText.join('')}
                 </div>
             </div>
         `)
 
-        this.delayLegendData = this.sanitizer.sanitize(1, `<div class="legend-layer-div">${legendLines.join('')}</div>`);
+        this.delayLegendData = this.sanitizer.bypassSecurityTrustHtml(`<div class="legend-layer-div">${legend.join('')}</div>`);
     }
 
     private addNewLayer(newLayer: mapLayer) {

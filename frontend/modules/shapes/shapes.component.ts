@@ -209,7 +209,7 @@ export class ShapesModule implements OnInit {
         latLng: routePart.map((coord: any) => {return {lat: coord[0], lng: coord[1]}}),
         color: 'provided',
         metadata: {
-          color: this.selectedRoute?.route_color
+          color: `#${this.selectedRoute?.route_color}`
         }
       }
 

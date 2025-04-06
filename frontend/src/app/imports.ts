@@ -11,6 +11,7 @@ import { ChartModule } from 'primeng/chart';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessagesModule } from 'primeng/messages';
 import { ToastModule } from 'primeng/toast';
+import { SelectButtonModule } from 'primeng/selectbutton';
 
 @NgModule({
   imports: [
@@ -26,7 +27,8 @@ import { ToastModule } from 'primeng/toast';
     ChartModule,
     ProgressSpinnerModule,
     MessagesModule,
-    ToastModule
+    ToastModule,
+    SelectButtonModule
   ],
   exports: [
     RouterOutlet,
@@ -41,7 +43,8 @@ import { ToastModule } from 'primeng/toast';
     ChartModule,
     ProgressSpinnerModule,
     MessagesModule,
-    ToastModule
+    ToastModule,
+    SelectButtonModule
   ]
 })
 export class ImportsModule {}

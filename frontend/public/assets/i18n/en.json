@@ -51,6 +51,14 @@
         "shape": "Route",
         "close": "Close"
     },
+    "delay" : {
+        "trips": "Trip delays",
+        "aggMethod": "Aggregation method",
+        "avg": "Average delay",
+        "sum": "Sum of delays",
+        "max": "Maximum delay",
+        "min": "Minimum delay"
+    },
     "map" : {
         "zone": "Zone"
     },

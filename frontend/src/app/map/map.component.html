@@ -1,5 +1,5 @@
 <div id="map"></div>
 <div class="legend-base-div">
-    <span [innerHtml]="legendData"></span>
-    <span [innerHtml]="delayLegendData"></span>
+    <span *ngIf="enableLegend" [innerHtml]="legendData"></span>
+    <span *ngIf="enableDelayCategories" [innerHtml]="delayLegendData"></span>
 </div>

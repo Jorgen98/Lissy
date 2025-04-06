@@ -3,7 +3,7 @@ import * as L from 'leaflet';
 import { environment } from '../../environments/environment';
 import { mapLayer, mapObject, MapService } from './map.service';
 import { TranslateService } from '@ngx-translate/core';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { delayCategoriesService, delayCategory } from '../services/delayCategories';
 
@@ -12,7 +12,7 @@ import { delayCategoriesService, delayCategory } from '../services/delayCategori
   standalone: true,
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],
-  imports: [ NgFor ]
+  imports: [ NgFor, NgIf ]
 })
 export class MapComponent implements AfterViewInit {
     private map: L.Map | undefined = undefined;
@@ -27,6 +27,9 @@ export class MapComponent implements AfterViewInit {
     public actualLegend: String[] = [];
     public legendData: String | null = '';
     public delayLegendData: any = '';
+
+    public enableLegend: boolean = false;
+    public enableDelayCategories: boolean = false;
 
     private initMap(): void {
         const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -78,6 +81,7 @@ export class MapComponent implements AfterViewInit {
         })
         this.delayCategoriesService.hideDelayCategories.subscribe(() => {
             this.actualizeDelayCategories([]);
+            this.enableDelayCategories = false;
         })
     }
 
@@ -176,7 +180,12 @@ export class MapComponent implements AfterViewInit {
             }
         }
 
-        this.legendData = this.sanitizer.sanitize(1, legendLines.join(''));
+        if (legendLines.length > 0) {
+            this.legendData = this.sanitizer.sanitize(1, legendLines.join(''));
+            this.enableLegend = true;
+        } else {
+            this.enableLegend = false;
+        }
     }
 
     private actualizeDelayCategories(categories: delayCategory[]) {
@@ -184,6 +193,11 @@ export class MapComponent implements AfterViewInit {
         let graphColors: String[] = [];
         let graphText: String[] = [];
         let graphTextGrid = categories.length > 1 ? `3.75em repeat(${categories.length - 1}, 6.25em) 3.75em` : "5em 5em";
+
+        if (categories.length < 1) {
+            this.enableDelayCategories = false;
+            return;
+        }
 
         for (const category of categories) {
             graphColors.push(`
@@ -228,7 +242,12 @@ export class MapComponent implements AfterViewInit {
             </div>
         `)
 
-        this.delayLegendData = this.sanitizer.bypassSecurityTrustHtml(`<div class="legend-layer-div">${legend.join('')}</div>`);
+        if (graphColors.length > 0) {
+            this.enableDelayCategories = true;
+            this.delayLegendData = this.sanitizer.bypassSecurityTrustHtml(`<div class="legend-layer-div">${legend.join('')}</div>`);
+        } else {
+            this.enableDelayCategories = false;
+        }
     }
 
     private addNewLayer(newLayer: mapLayer) {

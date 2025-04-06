@@ -51,6 +51,14 @@
         "shape": "Trasa",
         "close": "Zavřít"
     },
+    "delay" : {
+        "trips": "Zpoždění spojů",
+        "aggMethod": "Agregační metoda",
+        "avg": "Průměrné zpoždění",
+        "sum": "Součet zpoždění",
+        "max": "Maximální zpoždění",
+        "min": "Minimální zpoždění"
+    },
     "map" : {
         "zone": "Zóna"
     },

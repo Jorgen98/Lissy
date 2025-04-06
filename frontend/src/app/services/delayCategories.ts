@@ -38,7 +38,7 @@ export class delayCategoriesService {
         this.hideDelayCategories.next();
     }
 
-    getDelayCategoryByValue(value: number): delayCategory {
+    getDelayCategoryByValue(value: number | undefined): delayCategory {
         if (value === undefined) {
             return {
                 minValue: -Infinity,

@@ -25,6 +25,12 @@
         <i class="pi pi-share-alt"></i>
       </button>
     </div>
+    <div [ngClass]="moduleFocus == 5 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <button pButton type="button" [ngClass]="moduleFocus == 5 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+        (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
+        <i class="pi pi-cog"></i>
+      </button>
+    </div>
   </div>
   <!-- Module content -->
   <div class="content">
@@ -55,6 +61,15 @@
           <div class="calendar-btns-div">
             <button pButton type="button" class="p-link p-datepicker-month" (click)="closeRouteModule()">{{ 'shapes.close' | translate }}</button>
           </div>
+        </div>
+      </div>
+    </div>
+    <!-- Visualization settings -->
+    <div class="side-control-content" *ngIf="moduleFocus == 5">
+      <div class="routeSelectionDiv">
+        <div class="routeSelectionInnerDiv">
+          <h3>{{ 'delay.aggMethod' | translate }}</h3>
+          <p-dropdown [options]="aggregationMethods" [(ngModel)]="selectedAggMethod" optionLabel="label" (onChange)="renderData()"/>
         </div>
       </div>
     </div>

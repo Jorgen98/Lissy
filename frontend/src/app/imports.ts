@@ -12,6 +12,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessagesModule } from 'primeng/messages';
 import { ToastModule } from 'primeng/toast';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { CheckboxModule } from 'primeng/checkbox';
 
 @NgModule({
   imports: [
@@ -28,7 +29,8 @@ import { SelectButtonModule } from 'primeng/selectbutton';
     ProgressSpinnerModule,
     MessagesModule,
     ToastModule,
-    SelectButtonModule
+    SelectButtonModule,
+    CheckboxModule
   ],
   exports: [
     RouterOutlet,
@@ -44,7 +46,8 @@ import { SelectButtonModule } from 'primeng/selectbutton';
     ProgressSpinnerModule,
     MessagesModule,
     ToastModule,
-    SelectButtonModule
+    SelectButtonModule,
+    CheckboxModule
   ]
 })
 export class ImportsModule {}

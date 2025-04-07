@@ -54,10 +54,19 @@
     "delay" : {
         "trips": "Zpoždění spojů",
         "aggMethod": "Agregační metoda",
-        "avg": "Průměrné zpoždění",
-        "sum": "Součet zpoždění",
-        "max": "Maximální zpoždění",
-        "min": "Minimální zpoždění"
+        "avg": "Průměr",
+        "sum": "Součet",
+        "max": "Maximum",
+        "min": "Minimum",
+        "route": "Linka",
+        "shape": "Trasa",
+        "trip": "Spoj",
+        "aggMethodInfo": "Matematická funkce, která se používá při kombinování dat z více dnů.",
+        "showDelayLabels": "Zobrazit hodnoty zpoždění",
+        "showDelayLabelsInfo": "Zobrazení konkrétních hodnot zpoždění pro jednotlivé segmenty trasy podle vybrané metody agregace.",
+        "simplifiedVisualisation": "Zjednodušená analýza zpoždění",
+        "simplifiedVisualisationInfo": "Na mapě nejsou zobrazeny všechny dostupné údaje o zpoždění. Aplikace pracuje pouze s datami z příjezdu vozidla na zastávku.",
+        "allTrips": "Všechny spoje na trase"
     },
     "map" : {
         "zone": "Zóna"

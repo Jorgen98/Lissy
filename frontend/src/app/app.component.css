@@ -231,7 +231,7 @@
     width: 100vw;
     height: calc(100vh - 3.5em);
     opacity: 0.5;
-    z-index: 10000;
+    z-index: 20000;
 }
 
 .loadingElem {
@@ -240,7 +240,7 @@
     width: 100vw;
     height: calc(100vh - 3.5em);
     display: flex;
-    z-index: 10000;
+    z-index: 20000;
 }
 
 .loadingElemContext {

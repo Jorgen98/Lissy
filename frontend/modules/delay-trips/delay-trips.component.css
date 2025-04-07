@@ -25,3 +25,27 @@
     display: flex;
     flex-direction: column;
 }
+
+.side-control-info-text {
+    margin: 0;
+    text-align: justify;
+}
+
+.side-control-head {
+    margin-bottom: 0;
+}
+
+.side-control-checkbox-span {
+    display: flex;
+    flex-direction: row;
+    column-gap: 1em;
+}
+
+.side-control-checkbox-head {
+    margin: auto 0;
+}
+
+.side-control-divider {
+    height: 0.15em;
+    background-color: var(--gray-800);
+}

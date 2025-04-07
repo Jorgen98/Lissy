@@ -76,6 +76,9 @@ export class DelayTripsModule implements OnInit {
     public aggregationMethods: {label: string, operation: 'avg' | 'sum' | 'max' | 'min' }[] = [];
     public selectedAggMethod: {label: string, operation: 'avg' | 'sum' | 'max' | 'min'} | undefined = undefined;
 
+    public showDelayValueLabel: boolean = false;
+    public showSimplifiedDelays: boolean = true;
+
     // Help function for api requests heading
     private async apiGet(url: string, params?: {[name: string]: string}) {
         return await this.apiService.genericGet(`${config.apiPrefix}/${url}`, params);
@@ -237,11 +240,19 @@ export class DelayTripsModule implements OnInit {
                         } else {
                             let hours = parseInt(trip.dep_time.slice(0, 2));
                             if (hours > 12) {
-                            trip.dep_time_lab = `${hours - 12}${trip.dep_time.slice(2, 5)} PM`;
+                                trip.dep_time_lab = `${hours - 12}${trip.dep_time.slice(2, 5)} PM`;
                             } else {
-                            trip.dep_time_lab = `${trip.dep_time.slice(0, 5)} AM`;
+                                trip.dep_time_lab = `${trip.dep_time.slice(0, 5)} AM`;
                             }
                         }
+                    }
+
+                    if (group.trips.length > 1) {
+                        group.trips.push({
+                            id: -1,
+                            dep_time: "",
+                            dep_time_lab: this.translate.instant("delay.allTrips")
+                        })
                     }
                 }
 
@@ -268,10 +279,25 @@ export class DelayTripsModule implements OnInit {
     public async changeTrip() {
         if (this.selectedTrip) {
             this.msgService.turnOnLoadingScreenWithoutPercentage();
-            this.selectedTripData = await this.apiGet('getTripData', {dates: JSON.stringify(this.queryDates), trip_id: this.selectedTrip.id.toString()});
+
+            if (this.selectedTrip.id !== -1) {
+                this.selectedTripData = await this.apiGet('getTripData', {dates: JSON.stringify(this.queryDates), trip_id: this.selectedTrip.id.toString()});
+            } else if (this.selectedTripGroup) {
+                this.selectedTripData = {};
+                for (const trip of this.selectedTripGroup?.trips) {
+                    if (trip.id === -1) {
+                        continue;
+                    }
+                    let inputData = await this.apiGet('getTripData', {dates: JSON.stringify(this.queryDates), trip_id: trip.id.toString()});
+
+                    for (const record in inputData) {
+                        this.selectedTripData[`${record}_${trip.id}`] = inputData[record];
+                    }
+                }
+            }
 
             if (Object.keys(this.selectedTripData).length > 0) {
-                this.renderData();
+                this.renderData(true);
             } else {
                 this.mapService.removeLayer('route');
                 this.mapService.removeLayer('stops');
@@ -282,7 +308,7 @@ export class DelayTripsModule implements OnInit {
         }
     }
 
-    public renderData() {
+    public renderData(focus: boolean) {
         this.mapService.removeLayer('route');
         this.mapService.addNewLayer({name: 'route', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
 
@@ -315,26 +341,28 @@ export class DelayTripsModule implements OnInit {
         }
 
         for (const [routePartIdx, routePart] of this.selectedTripGroupShape.coords.entries()) {
-            for (let idx = 0; idx < (routePart.length - 1); idx++) {
-                let delay = undefined;
-                let numOfDateDelays = 0;
+            let routePartDelay = undefined;
+            if (this.showSimplifiedDelays) {
+                let delays = [];
                 for (const key of Object.keys(this.selectedTripData)) {
                     if (this.selectedTripData[key][routePartIdx]) {
-                        let dateDelay = this.selectedTripData[key][routePartIdx][idx];
-                        if (dateDelay !== undefined) {
-                            if (delay === undefined) {
-                                delay = 0;
-                            }
-                            switch (this.selectedAggMethod?.operation) {
-                                case 'avg': case 'sum': delay += dateDelay; numOfDateDelays += 1; break;
-                                case 'max': delay < dateDelay ? delay = dateDelay : null; break;
-                                case 'min': delay > dateDelay ? delay = dateDelay : null; break;
-                            }
-                        }
+                        delays.push(this.selectedTripData[key][routePartIdx][routePart.length - 2]);
                     }
                 }
-                if (this.selectedAggMethod?.operation === 'avg' && delay !== undefined) {
-                    delay = delay / numOfDateDelays;
+                routePartDelay = this.getActualDelayValue(delays);
+            }
+            for (let idx = 0; idx < (routePart.length - 1); idx++) {
+                let delay = undefined;
+                if (this.showSimplifiedDelays) {
+                    delay = routePartDelay;
+                } else {
+                    let delays = [];
+                    for (const key of Object.keys(this.selectedTripData)) {
+                        if (this.selectedTripData[key][routePartIdx]) {
+                            delays.push(this.selectedTripData[key][routePartIdx][idx]);
+                        }
+                    }
+                    delay = this.getActualDelayValue(delays);
                 }
 
                 const delayCategory = this.delayCategoriesService.getDelayCategoryByValue(delay);
@@ -346,7 +374,9 @@ export class DelayTripsModule implements OnInit {
                     latLng: [{lat: routePart[idx][0], lng: routePart[idx][1]}, {lat: routePart[idx + 1][0], lng: routePart[idx + 1][1]}],
                     color: 'provided',
                     metadata: {
-                        color: delayCategory.color
+                        color: delayCategory.color,
+                        delay_value: this.showDelayValueLabel ? delay : undefined,
+                        agg_method: this.selectedAggMethod?.operation
                     }
                 }
 
@@ -354,7 +384,31 @@ export class DelayTripsModule implements OnInit {
             }
         }
 
-        this.mapService.fitToLayer('stops');
+        if (focus) {
+            this.mapService.fitToLayer('stops');
+        }
+    }
+
+    private getActualDelayValue(delays: number[]) {
+        let delay = undefined;
+        let numOfDateDelays = 0;
+        for (const value of delays) {
+            if (value !== undefined) {
+                if (delay === undefined) {
+                    delay = 0;
+                }
+                switch (this.selectedAggMethod?.operation) {
+                    case 'avg': case 'sum': delay += value; numOfDateDelays += 1; break;
+                    case 'max': delay < value ? delay = value : null; break;
+                    case 'min': delay > value ? delay = value : null; break;
+                }
+            }
+        }
+        if (this.selectedAggMethod?.operation === 'avg' && delay !== undefined) {
+            delay = Math.floor((delay * 1.0) / (numOfDateDelays * 1.0) * 100.0) / 100.0;
+        }
+
+        return delay;
     }
 
     public closeRouteModule() {

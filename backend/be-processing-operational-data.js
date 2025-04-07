@@ -55,6 +55,7 @@ async function processServedTrips() {
     log('info', 'Downloading and storing data from Brno ArcGIS DB');
     if (!await isDBAlive()) {
         dbStats.updateROProcessingStats('is_db_available', false);
+        log('info', 'Brno ArcGIS DB is not available');
     } else {
         dbStats.updateROProcessingStats('is_db_available', true);
     }
@@ -97,6 +98,7 @@ async function getTripsReadyToProcess() {
             let end = new Date(start.getTime() + (route.trips[idx].stops_info[1].aT  * 1000));
 
             if (end.getTime() > (now.getTime() - parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)) {
+                console.log(end.getTime(), now.getTime(), now.getTime() - parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000, route.trips[idx].stops_info)
                 route.trips.splice(idx, 1);
             } else {
                 route.trips[idx].stops_info = [start, end];
@@ -236,6 +238,8 @@ async function processRoute(route) {
 
 // Function for downloading data from Brno ArcGIS DB
 async function downloadData(lineId, objectId, attempt) {
+    // Example DB query
+    // https://gis.brno.cz/ags1/rest/services/Hosted/ODAE_public_transit_positional_feature_service/FeatureServer/0/query?f=json&where=(%22lineid%22=1)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000
     let arcGISLinkStart = 'https://gis.brno.cz/ags1/rest/services/Hosted/ODAE_public_transit_positional_feature_service/FeatureServer/0/query?f=json&where=(';
     let arcGISLinkEnd = ')&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000';
 

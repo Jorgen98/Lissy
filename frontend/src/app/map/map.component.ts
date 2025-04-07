@@ -276,6 +276,18 @@ export class MapComponent implements AfterViewInit {
                 let line = this.createPolyline(object);
                 if (line) {
                     let lineOnMap = line.addTo(this.layers[object.layerName].layer!);
+                    if (object.metadata.delay_value !== undefined) {
+                        let labelHead = "";
+                        switch (object.metadata.agg_method) {
+                            case 'avg': labelHead = this.translate.instant('delay.avg'); break;
+                            case 'sum': labelHead = this.translate.instant('delay.sum'); break;
+                            case 'max': labelHead = this.translate.instant('delay.max'); break;
+                            case 'min': labelHead = this.translate.instant('delay.min'); break;
+                        }
+                        line.bindTooltip(`
+                            <b>${labelHead}: ${object.metadata.delay_value} min.</b>
+                        `);
+                    }
                     bounds = lineOnMap.getBounds();
                 }
                 break;

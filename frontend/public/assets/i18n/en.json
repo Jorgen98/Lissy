@@ -54,10 +54,19 @@
     "delay" : {
         "trips": "Trip delays",
         "aggMethod": "Aggregation method",
-        "avg": "Average delay",
-        "sum": "Sum of delays",
-        "max": "Maximum delay",
-        "min": "Minimum delay"
+        "avg": "Average",
+        "sum": "Sum",
+        "max": "Maximum",
+        "min": "Minimum",
+        "route": "Line",
+        "shape": "Route",
+        "trip": "Trip",
+        "aggMethodInfo": "A mathematical function used when combining data from multiple days.",
+        "showDelayLabels": "Show delay values",
+        "showDelayLabelsInfo": "Display specific delay values for individual route segments according to the selected aggregation method.",
+        "simplifiedVisualisation": "Simplified delay analysis",
+        "simplifiedVisualisationInfo": "Not all available delay data is displayed on the map. The application only works with data from the arrival of the vehicle at the stop.",
+        "allTrips": "All trips on the route"
     },
     "map" : {
         "zone": "Zone"

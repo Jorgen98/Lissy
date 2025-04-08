@@ -6,11 +6,10 @@ import { PrimeNGConfig } from 'primeng/api';
 import { UIMessagesService } from './services/messages';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [ ImportsModule ],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+    selector: 'app-root',
+    imports: [ImportsModule],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.css'
 })
 
 export class AppComponent {

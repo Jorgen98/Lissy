@@ -13,6 +13,7 @@ import { MessagesModule } from 'primeng/messages';
 import { ToastModule } from 'primeng/toast';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { CheckboxModule } from 'primeng/checkbox';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
   imports: [
@@ -30,7 +31,8 @@ import { CheckboxModule } from 'primeng/checkbox';
     MessagesModule,
     ToastModule,
     SelectButtonModule,
-    CheckboxModule
+    CheckboxModule,
+    FontAwesomeModule
   ],
   exports: [
     RouterOutlet,
@@ -47,7 +49,8 @@ import { CheckboxModule } from 'primeng/checkbox';
     MessagesModule,
     ToastModule,
     SelectButtonModule,
-    CheckboxModule
+    CheckboxModule,
+    FontAwesomeModule
   ]
 })
 export class ImportsModule {}

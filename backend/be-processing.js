@@ -52,7 +52,7 @@ cron.schedule('15 2 * * *', async () => {
     };
 });
 // Run another attempt of processing function in case of error of the first attempt
-cron.schedule('15 3 * * *', async () => {
+cron.schedule('15 5 * * *', async () => {
     log('info', 'Running backup scheduled actualization job. Processing real operation data and actualizing transit system');
     if (await processData()) {
         log('success', 'Actualization procedure is done');

@@ -80,6 +80,12 @@
         "today": "Dnes",
         "weekHeader": "Týd"
     },
+    "common": {
+        "calendar": "Výběr časového období",
+        "route": "Výběr zobrazené trasy",
+        "trip": "Výběr spoje",
+        "settings": "Nastavení vizualizace"
+    },
     "UIMessagesService": {
         "loading": "Načítání dat",
         "toasts": {

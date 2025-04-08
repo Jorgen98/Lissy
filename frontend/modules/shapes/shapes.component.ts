@@ -8,6 +8,7 @@ import { MapComponent } from '../../src/app/map/map.component';
 import { mapObject, MapService } from '../../src/app/map/map.service';
 import { UIMessagesService } from '../../src/app/services/messages';
 import * as timeStamp from "../../src/app/services/timeStamps";
+import { faRoute } from '@fortawesome/free-solid-svg-icons';
 
 interface route {
   route_color: string,
@@ -19,11 +20,10 @@ interface route {
 }
 
 @Component({
-  selector: 'shapes',
-  standalone: true,
-  imports: [ ImportsModule, MapComponent ],
-  templateUrl: './shapes.component.html',
-  styleUrl: './shapes.component.css'
+    selector: 'shapes',
+    imports: [ImportsModule, MapComponent],
+    templateUrl: './shapes.component.html',
+    styleUrl: './shapes.component.css'
 })
 
 export class ShapesModule implements OnInit {
@@ -50,6 +50,8 @@ export class ShapesModule implements OnInit {
   public routes: route[] = [];
   public selectedRoute: route | undefined = undefined;
   public selectedTrip: { shape_id: string, stops: string} | undefined = undefined;
+
+  public faIconRoute = faRoute;
 
   // Help function for api requests heading
   private async apiGet(url: string, params?: {[name: string]: string}) {
@@ -194,7 +196,8 @@ export class ShapesModule implements OnInit {
           stop_name: stop.stop_name,
           wheelchair_boarding: stop.wheelchair_boarding,
           zone_id: stop.zone_id
-        }
+        },
+        interactive: true
       }
 
       this.mapService.addToLayer(mapStop);
@@ -210,7 +213,8 @@ export class ShapesModule implements OnInit {
         color: 'provided',
         metadata: {
           color: `#${this.selectedRoute?.route_color}`
-        }
+        },
+        interactive: false
       }
 
       this.mapService.addToLayer(mapRoutePart);

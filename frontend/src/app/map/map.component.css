@@ -42,6 +42,11 @@
     row-gap: 2em;
 }
 
+.zoom-div {
+    bottom: auto;
+    row-gap: 0;
+}
+
 ::ng-deep .legend-layer-div {
     display: flex;
     flex-direction: column;

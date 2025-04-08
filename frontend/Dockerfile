@@ -6,7 +6,7 @@ RUN npm cache clean --force
 COPY ./frontend/ .
 COPY ./env/.env .env
 
-RUN npm install
+RUN npm install --legacy-peer-deps
 RUN npm run build
 
 FROM nginx:latest AS ng

@@ -73,8 +73,7 @@
 
 :host::ng-deep.p-datepicker {
     background-color: var(--background);
-    border: 0.15em solid var(--gray-800);
-    border-radius: 0.5em;
+    border: none;
     color: var(--gray-50);
 }
 

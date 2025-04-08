@@ -1,3 +1,13 @@
+<div class="legend-base-div zoom-div">
+    <button pButton type="button" class="btn-side-menu"
+        (click)="mapService.zoomIn()">
+        <i class="pi pi-search-plus"></i>
+    </button>
+    <button pButton type="button" class="btn-side-menu"
+        (click)="mapService.zoomOut()">
+        <i class="pi pi-search-minus"></i>
+    </button>
+</div>
 <div id="map"></div>
 <div class="legend-base-div">
     <span *ngIf="enableLegend" [innerHtml]="legendData"></span>

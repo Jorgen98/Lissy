@@ -8,11 +8,10 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { delayCategoriesService, delayCategory } from '../services/delayCategories';
 
 @Component({
-  selector: 'map',
-  standalone: true,
-  templateUrl: './map.component.html',
-  styleUrls: ['./map.component.css'],
-  imports: [ NgFor, NgIf ]
+    selector: 'map',
+    templateUrl: './map.component.html',
+    styleUrls: ['./map.component.css'],
+    imports: [ NgIf ]
 })
 export class MapComponent implements AfterViewInit {
     private map: L.Map | undefined = undefined;
@@ -64,7 +63,7 @@ export class MapComponent implements AfterViewInit {
     }
 
     constructor(
-        private mapService: MapService,
+        public mapService: MapService,
         private translate: TranslateService,
         private sanitizer: DomSanitizer,
         private delayCategoriesService: delayCategoriesService
@@ -147,12 +146,13 @@ export class MapComponent implements AfterViewInit {
         if (object.color === 'provided' && object.metadata.color === '#000000') {
             object.metadata.color = '#FFFFFF';
         }
-
+//view-source:https://leafletjs.com/examples/quick-start/example.html
         return L.polyline(
             object.latLng,
             { 
                 color: object.color === 'provided' ? `${object.metadata.color}` : '000000',
-                className: object.color === 'provided' ? '': objectClass
+                className: object.color === 'provided' ? '': objectClass,
+                interactive: object.interactive
             }
         )
     }
@@ -300,7 +300,10 @@ export class MapComponent implements AfterViewInit {
                 .addTo(this.layers[object.layerName].layer!);
                 L.marker(
                     L.latLng(object.latLng[0]),
-                    {icon: this.createStopIcon(object)}
+                    {
+                        icon: this.createStopIcon(object),
+                        interactive: object.interactive
+                    }
                 )
                 .bindTooltip(`<b>${object.metadata.stop_name}</b>`)
                 .addTo(this.layers[object.layerName].layer!);

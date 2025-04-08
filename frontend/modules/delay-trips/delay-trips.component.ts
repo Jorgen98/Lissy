@@ -9,6 +9,7 @@ import { mapObject, MapService } from '../../src/app/map/map.service';
 import { UIMessagesService } from '../../src/app/services/messages';
 import * as timeStamp from "../../src/app/services/timeStamps";
 import { delayCategoriesService } from '../../src/app/services/delayCategories';
+import { faRoute } from '@fortawesome/free-solid-svg-icons';
 
 interface route {
     route_short_name: string,
@@ -29,8 +30,7 @@ interface tripGroup {
 
 @Component({
     selector: 'delay-trips',
-    standalone: true,
-    imports: [ ImportsModule, MapComponent ],
+    imports: [ImportsModule, MapComponent],
     templateUrl: './delay-trips.component.html',
     styleUrl: './delay-trips.component.css'
 })
@@ -78,6 +78,8 @@ export class DelayTripsModule implements OnInit {
 
     public showDelayValueLabel: boolean = false;
     public showSimplifiedDelays: boolean = true;
+
+    public faIconRoute = faRoute;
 
     // Help function for api requests heading
     private async apiGet(url: string, params?: {[name: string]: string}) {
@@ -167,8 +169,8 @@ export class DelayTripsModule implements OnInit {
 
     // Function for settings module switch
     public switchSettingsModuleVisibility() {
-        if (this.moduleFocus !== 5) {
-            this.moduleFocus = 5;
+        if (this.moduleFocus !== 3) {
+            this.moduleFocus = 3;
         } else {
             this.moduleFocus = 0;
         }
@@ -334,7 +336,8 @@ export class DelayTripsModule implements OnInit {
                 color: 'provided',
                 metadata: {
                     stop_name: stop.stop_name
-                }
+                },
+                interactive: true
             }
 
             this.mapService.addToLayer(mapStop);
@@ -377,7 +380,8 @@ export class DelayTripsModule implements OnInit {
                         color: delayCategory.color,
                         delay_value: this.showDelayValueLabel ? delay : undefined,
                         agg_method: this.selectedAggMethod?.operation
-                    }
+                    },
+                    interactive: true
                 }
 
                 this.mapService.addToLayer(mapRoutePart);

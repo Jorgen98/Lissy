@@ -12,6 +12,12 @@
   <div class="content">
     <!-- Calendar -->
     <div class="side-control-content" *ngIf="isCalendarModuleActive">
+      <span class="side-control-head">
+        <h4>{{ 'common.calendar' | translate }}</h4>
+        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchCalendarModuleVisibility()">
+          <i class="pi pi-times"></i>
+        </button>
+      </span>
       <p-calendar class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
         [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
         <ng-template pTemplate="footer">

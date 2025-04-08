@@ -92,9 +92,22 @@
     position: fixed;
     display: flex;
     height: 100%;
-    align-items: center;
-    margin-left: 2em;
     z-index: 10000;
+    border-right: 0.15em solid var(--gray-800);
+    background-color: var(--background);
+    flex-direction: column;
+}
+
+.side-control-head {
+    background-color: var(--gray-800);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 0.5em;
+}
+
+.side-control-close-btn {
+    padding: 0.5em;
+    margin: auto 0
 }
 
 router-outlet {

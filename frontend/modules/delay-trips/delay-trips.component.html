@@ -1,18 +1,6 @@
 <main class="main" *ngIf="config.enabled">
   <!-- Side menu -->
   <div class="side-control">
-    <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-      <button pButton type="button" class="btn-side-menu"
-        (click)="mapService.zoomIn()">
-        <i class="pi pi-search-plus"></i>
-      </button>
-    </div>
-    <div [ngClass]="moduleFocus == 4 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-      <button pButton type="button" class="btn-side-menu"
-        (click)="mapService.zoomOut()">
-        <i class="pi pi-search-minus"></i>
-      </button>
-    </div>
     <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
       <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
         (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
@@ -22,11 +10,11 @@
     <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
       <button pButton type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
         (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-        <i class="pi pi-share-alt"></i>
+        <fa-icon [icon]="faIconRoute"></fa-icon>
       </button>
     </div>
-    <div [ngClass]="moduleFocus == 5 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-      <button pButton type="button" [ngClass]="moduleFocus == 5 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+    <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <button pButton type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
         (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
         <i class="pi pi-cog"></i>
       </button>
@@ -36,6 +24,12 @@
   <div class="content">
     <!-- Calendar -->
     <div class="side-control-content" *ngIf="moduleFocus == 1">
+      <span class="side-control-head">
+        <h4>{{ 'common.calendar' | translate }}</h4>
+        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchCalendarModuleVisibility()">
+          <i class="pi pi-times"></i>
+        </button>
+      </span>
       <p-calendar class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
         [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
         <ng-template pTemplate="footer">
@@ -47,6 +41,12 @@
     </div>
     <!-- Trip selection -->
     <div class="side-control-content" *ngIf="moduleFocus == 2">
+      <span class="side-control-head">
+        <h4>{{ 'common.trip' | translate }}</h4>
+        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchRouteSelectModuleVisibility()">
+          <i class="pi pi-times"></i>
+        </button>
+      </span>
       <div class="routeSelectionDiv">
         <div class="routeSelectionInnerDiv">
           <h3>{{ 'delay.route' | translate }}</h3>
@@ -58,17 +58,20 @@
           <h3>{{ 'delay.trip' | translate }}</h3>
           <p-dropdown [options]="selectedTripGroup?.trips" [(ngModel)]="selectedTrip" optionLabel="dep_time_lab" filter="true"
             filterBy="dep_time_lab" (onChange)="changeTrip()"/>
-          <div class="calendar-btns-div">
-            <button pButton type="button" class="p-link p-datepicker-month" (click)="closeRouteModule()">{{ 'shapes.close' | translate }}</button>
-          </div>
         </div>
       </div>
     </div>
     <!-- Visualization settings -->
-    <div class="side-control-content" *ngIf="moduleFocus == 5">
+    <div class="side-control-content" *ngIf="moduleFocus == 3">
+      <span class="side-control-head">
+        <h4>{{ 'common.settings' | translate }}</h4>
+        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchSettingsModuleVisibility()">
+          <i class="pi pi-times"></i>
+        </button>
+      </span>
       <div class="routeSelectionDiv">
         <div class="routeSelectionInnerDiv">
-          <h4 class="side-control-head">{{ 'delay.aggMethod' | translate }}</h4>
+          <h4 class="side-control-head-text">{{ 'delay.aggMethod' | translate }}</h4>
           <p class="side-control-info-text">{{ 'delay.aggMethodInfo' | translate }}</p>
           <p-dropdown [options]="aggregationMethods" [(ngModel)]="selectedAggMethod" optionLabel="label" (onChange)="renderData(false)"/>
           <span class="side-control-divider"></span>

@@ -1,18 +1,6 @@
 <main class="main" *ngIf="config.enabled">
   <!-- Side menu -->
   <div class="side-control">
-    <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-      <button pButton type="button" class="btn-side-menu"
-        (click)="mapService.zoomIn()">
-        <i class="pi pi-search-plus"></i>
-      </button>
-    </div>
-    <div [ngClass]="moduleFocus == 4 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-      <button pButton type="button" class="btn-side-menu"
-        (click)="mapService.zoomOut()">
-        <i class="pi pi-search-minus"></i>
-      </button>
-    </div>
     <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
       <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
         (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
@@ -22,7 +10,7 @@
     <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
       <button pButton type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
         (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-        <i class="pi pi-share-alt"></i>
+        <fa-icon [icon]="faIconRoute"></fa-icon>
       </button>
     </div>
   </div>
@@ -30,6 +18,12 @@
   <div class="content">
     <!-- Calendar -->
     <div class="side-control-content" *ngIf="moduleFocus == 1">
+      <span class="side-control-head">
+        <h4>{{ 'common.calendar' | translate }}</h4>
+        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchCalendarModuleVisibility()">
+          <i class="pi pi-times"></i>
+        </button>
+      </span>
       <p-calendar class="calendar" [(ngModel)]="hooverDate" [inline]="true" selectionMode="single"
         [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
         <ng-template pTemplate="footer">
@@ -42,6 +36,12 @@
     </div>
     <!-- Shape selection -->
     <div class="side-control-content" *ngIf="moduleFocus == 2">
+      <span class="side-control-head">
+        <h4>{{ 'common.route' | translate }}</h4>
+        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchRouteSelectModuleVisibility()">
+          <i class="pi pi-times"></i>
+        </button>
+      </span>
       <div class="routeSelectionDiv">
         <div class="routeSelectionInnerDiv">
           <h3>{{ 'shapes.route' | translate }}</h3>
@@ -50,9 +50,6 @@
           <h3>{{ 'shapes.shape' | translate }}</h3>
           <p-dropdown [options]="selectedRoute?.trips" [(ngModel)]="selectedTrip" optionLabel="stops" filter="true"
             filterBy="stops" (onChange)="renderData()"/>
-          <div class="calendar-btns-div">
-            <button pButton type="button" class="p-link p-datepicker-month" (click)="closeRouteModule()">{{ 'shapes.close' | translate }}</button>
-          </div>
         </div>
       </div>
     </div>

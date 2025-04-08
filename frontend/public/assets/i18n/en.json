@@ -80,6 +80,12 @@
         "today": "Today",
         "weekHeader": "Wk"
     },
+    "common": {
+        "calendar": "Selecting a time period",
+        "route": "Select the displayed route",
+        "trip": "Select inspected trip",
+        "settings": "Visualization settings"
+    },
     "UIMessagesService": {
         "loading": "Loading Data",
         "toasts": {

@@ -7,7 +7,8 @@ export interface mapObject {
     focus: boolean,
     latLng: {lat: number, lng: number}[],
     color: "base" | "palette" | "provided",
-    metadata: any
+    metadata: any,
+    interactive: boolean
 };
 
 export interface mapLayer {

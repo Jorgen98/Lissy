@@ -2,5 +2,5 @@
     "enabled": true,
     "apiPrefix": "delayTrips",
     "name": "delay.trips",
-    "icon": "pi-share-alt"
+    "icon": "fa-clock"
 }

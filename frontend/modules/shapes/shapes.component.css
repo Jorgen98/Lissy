@@ -26,9 +26,6 @@
 
 .routeSelectionDiv {
     width: 26em;
-    background-color: var(--background);
-    border: 0.15em solid var(--gray-800);
-    border-radius: 0.5em;
     color: var(--gray-50);
 }
 

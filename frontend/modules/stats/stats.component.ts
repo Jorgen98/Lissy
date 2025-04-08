@@ -14,8 +14,7 @@ interface lineGraphData {
 
 @Component({
     selector: 'stats',
-    standalone: true,
-    imports: [ ImportsModule ],
+    imports: [ImportsModule],
     templateUrl: './stats.component.html',
     styleUrl: './stats.component.css'
 })

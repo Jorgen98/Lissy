@@ -146,11 +146,11 @@ export class MapComponent implements AfterViewInit {
         if (object.color === 'provided' && object.metadata.color === '#000000') {
             object.metadata.color = '#FFFFFF';
         }
-//view-source:https://leafletjs.com/examples/quick-start/example.html
+
         return L.polyline(
             object.latLng,
             { 
-                color: object.color === 'provided' ? `${object.metadata.color}` : '000000',
+                color: object.color === 'provided' ? `${object.metadata.color}` : '#FFFFFF',
                 className: object.color === 'provided' ? '': objectClass,
                 interactive: object.interactive
             }
@@ -295,7 +295,10 @@ export class MapComponent implements AfterViewInit {
             case 'stop': {
                 L.marker(
                     L.latLng(object.latLng[0]),
-                    {icon: this.createStopIconShadow()}
+                    {
+                        icon: this.createStopIconShadow(),
+                        interactive: false
+                    }
                 )
                 .addTo(this.layers[object.layerName].layer!);
                 L.marker(
@@ -305,8 +308,23 @@ export class MapComponent implements AfterViewInit {
                         interactive: object.interactive
                     }
                 )
-                .bindTooltip(`<b>${object.metadata.stop_name}</b>`)
-                .addTo(this.layers[object.layerName].layer!);
+                .addTo(this.layers[object.layerName].layer!)
+                .on('click', () => {
+                    L.popup()
+                    .setLatLng(object.latLng[0])
+                    .setContent(`
+                        <div class="stop-main-div">
+                            <img class="stop-img" src="icons/stop-sign.svg">
+                            <span class="stop-content">
+                                ${object.metadata.stop_name ? "<span class='stop-name'>" + object.metadata.stop_name + "</span>": ""}
+                                ${object.metadata.zone_id ? "<span><b>" + this.translate.instant("map.zone") + ":</b> " + object.metadata.zone_id + "</span>": ""}
+                                ${object.metadata.order ? "<span><b>" + this.translate.instant("map.order") + ":</b> " + object.metadata.order + "</span>": ""}
+                                ${object.metadata.wheelchair_boarding === 1 ? "<span>" + this.translate.instant("map.wheelchair") + "</span>": ""}
+                            </span>
+                        </div>
+                    `)
+                    .addTo(this.layers[object.layerName].layer!);
+                })
                 bounds = L.latLngBounds(L.latLng(object.latLng[0]), L.latLng(object.latLng[0]));
                 break;
             }

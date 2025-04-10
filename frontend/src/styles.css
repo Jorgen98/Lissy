@@ -37,9 +37,16 @@
     align-items: center;
     justify-content: center;
     border-right: 0.15em solid var(--gray-800);
-    height: 100%;
+    height: calc(100% - 3.5em);
     position: fixed;
     width: 5em;
+    flex-direction: column;
+}
+
+.side-control-modules {
+    flex-grow: 1;
+    justify-content: center;
+    display: flex;
     flex-direction: column;
 }
 
@@ -108,6 +115,34 @@
 .side-control-close-btn {
     padding: 0.5em;
     margin: auto 0
+}
+
+.side-control-info-text {
+    margin: 0;
+    text-align: justify;
+}
+
+.side-control-head-text {
+    margin-bottom: 0;
+}
+
+.side-control-checkbox-span {
+    display: flex;
+    flex-direction: row;
+    column-gap: 1em;
+}
+
+.side-control-checkbox-head {
+    margin: auto 0;
+}
+
+.side-control-divider {
+    height: 0.15em;
+    background-color: var(--gray-800);
+}
+
+.side-control-checkbox-span:first-child {
+    margin-top: 2em;
 }
 
 router-outlet {

@@ -135,3 +135,24 @@
 ::ng-deep .delay-categories-graph-legend-inner-text:last-child { 
     text-align: end;
 }
+
+::ng-deep .stop-main-div {
+    display: flex;
+    column-gap: 0.5em;
+}
+
+::ng-deep .stop-img {
+    height: 6em;
+    margin: auto;
+}
+
+::ng-deep .stop-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+::ng-deep .stop-name {
+    font-size: larger;
+    font-weight: bold;
+}

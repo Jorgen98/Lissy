@@ -1,18 +1,20 @@
 <main class="main" *ngIf="config.enabled">
   <!-- Side menu -->
   <div class="side-control">
-    <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-      <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-        (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
-        <i class="pi pi-calendar"></i>
-      </button>
-    </div>
-    <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-      <button pButton type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-        (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-        <fa-icon [icon]="faIconRoute"></fa-icon>
-      </button>
-    </div>
+    <span class="side-control-modules">
+      <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+        <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+          (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+          <i class="pi pi-calendar"></i>
+        </button>
+      </div>
+      <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+        <button pButton type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+          (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+          <fa-icon [icon]="faIconRoute"></fa-icon>
+        </button>
+      </div>
+    </span>
     <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
       <button pButton type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
         (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">

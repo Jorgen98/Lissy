@@ -49,7 +49,9 @@
         "loadData": "Načíst Data",
         "route": "Linka",
         "shape": "Trasa",
-        "close": "Zavřít"
+        "close": "Zavřít",
+        "enableZones": "Zobrazit tarifní zóny",
+        "enableRouteColor": "Použít barvu linky ze vstupních dat GTFS"
     },
     "delay" : {
         "trips": "Zpoždění spojů",
@@ -69,7 +71,9 @@
         "allTrips": "Všechny spoje na trase"
     },
     "map" : {
-        "zone": "Zóna"
+        "zone": "Zóna",
+        "wheelchair": "Zastávka má zvýšenou nástupní hranu",
+        "order": "Pořadí zastávky"
     },
     "primeng": {
         "dayNames": ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"],

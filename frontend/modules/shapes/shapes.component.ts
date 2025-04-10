@@ -40,6 +40,7 @@ export class ShapesModule implements OnInit {
   public isTodayFunctionEnabled: boolean = true;
   public isRouteSelectionEnabled: boolean = true;
   public isDateSelectionEnabled: boolean = true;
+  public isSettingsEnabled: boolean = true;
 
   public selectedDate: Date | null = null;
   public hooverDate: Date | null = null;
@@ -50,8 +51,12 @@ export class ShapesModule implements OnInit {
   public routes: route[] = [];
   public selectedRoute: route | undefined = undefined;
   public selectedTrip: { shape_id: string, stops: string} | undefined = undefined;
+  private mapData: {coords: number[][][], stops: any[]} | undefined = undefined;
 
   public faIconRoute = faRoute;
+
+  public enableZonesOnMap: boolean = true;
+  public enableRouteColor: boolean = true;
 
   // Help function for api requests heading
   private async apiGet(url: string, params?: {[name: string]: string}) {
@@ -122,6 +127,15 @@ export class ShapesModule implements OnInit {
     }
   }
 
+  // Function for settings module switch
+  public switchSettingsModuleVisibility() {
+    if (this.moduleFocus !== 3) {
+        this.moduleFocus = 3;
+    } else {
+        this.moduleFocus = 0;
+    }
+  }
+
   public setToday() {
     this.hooverDate = new Date();
   }
@@ -153,16 +167,21 @@ export class ShapesModule implements OnInit {
       this.selectedTrip = this.selectedRoute?.trips[0];
     }
 
-    await this.renderData();
+    await this.changeShape();
   }
 
   // Change line's route
-  public changeRoute() {
+  public async changeRoute() {
     this.selectedTrip = this.selectedRoute?.trips[0];
+    await this.changeShape();
+  }
+
+  public async changeShape() {
+    this.mapData = await this.apiGet('getShape', {shape_id: JSON.stringify(this.selectedTrip?.shape_id)});
     this.renderData();
   }
 
-  // Download actual route shape with stop and put it on map
+  // Put actual route shape on map
   public async renderData() {
     this.msgService.turnOnLoadingScreenWithoutPercentage();
     this.mapService.removeLayer('route');
@@ -171,31 +190,30 @@ export class ShapesModule implements OnInit {
     this.mapService.removeLayer('stops');
     this.mapService.addNewLayer({name: 'stops', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
 
-    if (!this.selectedTrip?.shape_id) {
+    if (!this.selectedTrip?.shape_id || this.mapData === undefined) {
       this.msgService.turnOffLoadingScreen();
       this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
       return;
     }
 
-    let mapData = await this.apiGet('getShape', {shape_id: JSON.stringify(this.selectedTrip?.shape_id)});
-
-    if (!mapData.stops || !mapData.coords) {
+    if (!this.mapData.stops || !this.mapData.coords) {
       this.msgService.turnOffLoadingScreen();
       return;
     }
 
     // Put stops on stops layer
-    for (const stop of mapData.stops) {
+    for (const [idx, stop] of this.mapData.stops.entries()) {
       let mapStop: mapObject = {
         layerName: 'stops',
         type: 'stop',
         focus: false,
         latLng: [{lat: stop.coords[0], lng: stop.coords[1]}],
-        color: 'palette',
+        color: this.enableZonesOnMap ? 'palette' : 'base',
         metadata: {
           stop_name: stop.stop_name,
           wheelchair_boarding: stop.wheelchair_boarding,
-          zone_id: stop.zone_id
+          zone_id: stop.zone_id,
+          order: idx + 1
         },
         interactive: true
       }
@@ -204,13 +222,13 @@ export class ShapesModule implements OnInit {
     }
 
     // Put route shape on the shapes layer
-    for (const routePart of mapData.coords) {
+    for (const routePart of this.mapData.coords) {
       let mapRoutePart: mapObject = {
         layerName: 'route',
         type: 'route',
         focus: false,
         latLng: routePart.map((coord: any) => {return {lat: coord[0], lng: coord[1]}}),
-        color: 'provided',
+        color: this.enableRouteColor ? 'provided' : 'base',
         metadata: {
           color: `#${this.selectedRoute?.route_color}`
         },

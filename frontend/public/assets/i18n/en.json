@@ -68,7 +68,14 @@
         "showDelayLabelsInfo": "Display specific delay values for individual route segments according to the selected aggregation method.",
         "simplifiedVisualisation": "Simplified delay analysis",
         "simplifiedVisualisationInfo": "Not all available delay data is displayed on the map. The application only works with data from the arrival of the vehicle at the stop.",
-        "allTrips": "All trips on the route"
+        "allTrips": "All trips on the route",
+        "delayCategories": "Delay categories",
+        "delayCategoriesInfo": "For better visualization clarity, specific delay values along the route are grouped into categories that can be configured in different ways.",
+        "delayFrom": "Delay from",
+        "delayTo": "Delay to",
+        "addDelayCategory": "New category",
+        "resetCategories": "Reset categories",
+        "other": "Other"
     },
     "map" : {
         "zone": "Zone",

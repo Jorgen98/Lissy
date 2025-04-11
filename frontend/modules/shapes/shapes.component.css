@@ -1,16 +1,3 @@
-.calendar-btns-div {
-    display: flex;
-    justify-content: space-around;
-    border-top: 0.15em solid var(--gray-800);
-    padding-top: 0.5em;
-}
-
-.content {
-    color: var(--gray-50);
-    width: 100%;
-    height: calc(100vh - 3.5em);
-}
-
 .content-graphs {
     color: var(--gray-50);
     margin: 0 2em;
@@ -22,16 +9,4 @@
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
-}
-
-.routeSelectionDiv {
-    width: 26em;
-    color: var(--gray-50);
-}
-
-.routeSelectionInnerDiv {
-    margin: 0.5em;
-    row-gap: 1em;
-    display: flex;
-    flex-direction: column;
 }

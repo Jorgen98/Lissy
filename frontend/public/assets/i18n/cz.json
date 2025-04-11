@@ -68,7 +68,14 @@
         "showDelayLabelsInfo": "Zobrazení konkrétních hodnot zpoždění pro jednotlivé segmenty trasy podle vybrané metody agregace.",
         "simplifiedVisualisation": "Zjednodušená analýza zpoždění",
         "simplifiedVisualisationInfo": "Na mapě nejsou zobrazeny všechny dostupné údaje o zpoždění. Aplikace pracuje pouze s datami z příjezdu vozidla na zastávku.",
-        "allTrips": "Všechny spoje na trase"
+        "allTrips": "Všechny spoje na trase",
+        "delayCategories": "Kategorie zpoždění",
+        "delayCategoriesInfo": "Pro lepší přehlednost vizualizace jsou konkrétní hodnoty zpoždění na trase seskupeny do kategorií, které lze různě konfigurovat.",
+        "delayFrom": "Zpoždění od",
+        "delayTo": "Zpoždění do",
+        "addDelayCategory": "Nová kategorie",
+        "resetCategories": "Resetovat kategorie",
+        "other": "Ostatní"
     },
     "map" : {
         "zone": "Zóna",

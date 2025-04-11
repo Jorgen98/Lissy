@@ -1,24 +1,34 @@
-.calendar-btns-div {
-    display: flex;
-    justify-content: space-around;
-    border-top: 0.15em solid var(--gray-800);
-    padding-top: 0.5em;
+.delay-category-row {
+    display: grid;
+    grid-template-columns: 0.1fr 0.5fr 0.3fr 0.1fr;
 }
 
-.content {
-    color: var(--gray-50);
+.delay-category-row-header {
+    display: grid;
+    grid-template-columns: 0.1fr 0.5fr 0.3fr 0.1fr;
+    background-color: var(--gray-800);
+    font-weight: bold;
+}
+
+.delay-category-text {
+    margin: auto;
+}
+
+:host::ng-deep.delay-category-btn {
+    margin: auto;
+    height: 60%;
+}
+
+:host::ng-deep.delay-category-number {
     width: 100%;
-    height: calc(100vh - 3.5em);
+    height: 60%;
+    margin: auto;
 }
 
-.routeSelectionDiv {
-    width: 26em;
-    color: var(--gray-50);
+.delay-category-color {
+    margin: auto;
 }
 
-.routeSelectionInnerDiv {
-    margin: 0.5em;
-    row-gap: 1em;
+.delay-category-btns-div {
     display: flex;
-    flex-direction: column;
 }

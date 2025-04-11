@@ -1,89 +1,89 @@
 <main class="main" *ngIf="config.enabled">
-  <!-- Side menu -->
-  <div class="side-control">
-    <span class="side-control-modules">
-      <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-        <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-          (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
-          <i class="pi pi-calendar"></i>
-        </button>
-      </div>
-      <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-        <button pButton type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-          (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-          <fa-icon [icon]="faIconRoute"></fa-icon>
-        </button>
-      </div>
-    </span>
-    <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-      <button pButton type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-        (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
-        <i class="pi pi-cog"></i>
-      </button>
-    </div>
-  </div>
-  <!-- Module content -->
-  <div class="content">
-    <!-- Calendar -->
-    <div class="side-control-content" *ngIf="moduleFocus == 1">
-      <span class="side-control-head">
-        <h4>{{ 'common.calendar' | translate }}</h4>
-        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchCalendarModuleVisibility()">
-          <i class="pi pi-times"></i>
-        </button>
-      </span>
-      <p-calendar class="calendar" [(ngModel)]="hooverDate" [inline]="true" selectionMode="single"
-        [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
-        <ng-template pTemplate="footer">
-          <div class="calendar-btns-div">
-            <button *ngIf="isTodayFunctionEnabled" pButton type="button" class="p-link p-datepicker-month" (click)="setToday()">{{ 'shapes.today' | translate }}</button>
-            <button pButton type="button" class="p-link p-datepicker-month" (click)="getAvailableShapesData()" [disabled]="hooverDate == null">{{ 'shapes.loadData' | translate }}</button>
-          </div>
-        </ng-template>
-      </p-calendar>
-    </div>
-    <!-- Shape selection -->
-    <div class="side-control-content" *ngIf="moduleFocus == 2">
-      <span class="side-control-head">
-        <h4>{{ 'common.route' | translate }}</h4>
-        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchRouteSelectModuleVisibility()">
-          <i class="pi pi-times"></i>
-        </button>
-      </span>
-      <div class="routeSelectionDiv">
-        <div class="routeSelectionInnerDiv">
-          <h3>{{ 'shapes.route' | translate }}</h3>
-          <p-dropdown [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" filter="true"
-            filterBy="route_short_name" (onChange)="changeRoute()"/>
-          <h3>{{ 'shapes.shape' | translate }}</h3>
-          <p-dropdown [options]="selectedRoute?.trips" [(ngModel)]="selectedTrip" optionLabel="stops" filter="true"
-            filterBy="stops" (onChange)="changeShape()"/>
+    <!-- Side menu -->
+    <div class="side-control">
+        <span class="side-control-modules">
+            <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+                <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+                    (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+                    <i class="pi pi-calendar"></i>
+                </button>
+            </div>
+            <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+                <button pButton type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+                    (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+                    <fa-icon [icon]="faIconRoute"></fa-icon>
+                </button>
+            </div>
+        </span>
+        <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+            <button pButton type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+                (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
+                <i class="pi pi-cog"></i>
+            </button>
         </div>
-      </div>
     </div>
-    <!-- Visualization settings -->
-    <div class="side-control-content" *ngIf="moduleFocus == 3">
-      <span class="side-control-head">
-        <h4>{{ 'common.settings' | translate }}</h4>
-        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchSettingsModuleVisibility()">
-          <i class="pi pi-times"></i>
-        </button>
-      </span>
-      <div class="routeSelectionDiv">
-        <div class="routeSelectionInnerDiv">
-          <span class="side-control-checkbox-span">
-            <p-checkbox [(ngModel)]="enableZonesOnMap" [binary]="true" (onChange)="renderData()"/>
-            <h4 class="side-control-checkbox-head">{{ 'shapes.enableZones' | translate }}</h4>
-          </span>
-          <span class="side-control-divider"></span>
-          <span class="side-control-checkbox-span">
-            <p-checkbox [(ngModel)]="enableRouteColor" [binary]="true" (onChange)="renderData()"/>
-            <h4 class="side-control-checkbox-head">{{ 'shapes.enableRouteColor' | translate }}</h4>
-          </span>
+    <!-- Module content -->
+    <div class="content">
+        <!-- Calendar -->
+        <div class="side-control-content" *ngIf="moduleFocus == 1">
+            <span class="side-control-head">
+                <h4>{{ 'common.calendar' | translate }}</h4>
+                <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchCalendarModuleVisibility()">
+                <i class="pi pi-times"></i>
+                </button>
+            </span>
+            <p-calendar class="calendar" [(ngModel)]="hooverDate" [inline]="true" selectionMode="single"
+                [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
+                <ng-template pTemplate="footer">
+                <div class="calendar-btns-div">
+                    <button *ngIf="isTodayFunctionEnabled" pButton type="button" class="p-link p-datepicker-month" (click)="setToday()">{{ 'shapes.today' | translate }}</button>
+                    <button pButton type="button" class="p-link p-datepicker-month" (click)="getAvailableShapesData()" [disabled]="hooverDate == null">{{ 'shapes.loadData' | translate }}</button>
+                </div>
+                </ng-template>
+            </p-calendar>
         </div>
-      </div>
+        <!-- Shape selection -->
+        <div class="side-control-content" *ngIf="moduleFocus == 2">
+            <span class="side-control-head">
+                <h4>{{ 'common.route' | translate }}</h4>
+                <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchRouteSelectModuleVisibility()">
+                    <i class="pi pi-times"></i>
+                </button>
+            </span>
+            <div class="side-control-selection-div">
+                <div class="side-control-selection-inner-div">
+                    <h3>{{ 'shapes.route' | translate }}</h3>
+                    <p-dropdown [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" filter="true"
+                        filterBy="route_short_name" (onChange)="changeRoute()"/>
+                    <h3>{{ 'shapes.shape' | translate }}</h3>
+                    <p-dropdown [options]="selectedRoute?.trips" [(ngModel)]="selectedTrip" optionLabel="stops" filter="true"
+                        filterBy="stops" (onChange)="changeShape()"/>
+                </div>
+            </div>
+        </div>
+        <!-- Visualization settings -->
+        <div class="side-control-content" *ngIf="moduleFocus == 3">
+            <span class="side-control-head">
+                <h4>{{ 'common.settings' | translate }}</h4>
+                <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchSettingsModuleVisibility()">
+                <i class="pi pi-times"></i>
+                </button>
+            </span>
+            <div class="side-control-selection-div">
+                <div class="side-control-selection-inner-div">
+                    <span class="side-control-checkbox-span">
+                        <p-checkbox [(ngModel)]="enableZonesOnMap" [binary]="true" (onChange)="renderData()"/>
+                        <h4 class="side-control-checkbox-head">{{ 'shapes.enableZones' | translate }}</h4>
+                    </span>
+                    <span class="side-control-divider"></span>
+                    <span class="side-control-checkbox-span">
+                        <p-checkbox [(ngModel)]="enableRouteColor" [binary]="true" (onChange)="renderData()"/>
+                        <h4 class="side-control-checkbox-head">{{ 'shapes.enableRouteColor' | translate }}</h4>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <!-- Map -->
+        <map></map>
     </div>
-    <!-- Map -->
-    <map></map>
-  </div>
 </main>

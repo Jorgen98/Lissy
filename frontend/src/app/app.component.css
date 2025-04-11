@@ -68,7 +68,7 @@
 }
 
 :host::ng-deep.p-calendar {
-    width: 26em;
+    width: 100%;
 }
 
 :host::ng-deep.p-datepicker {

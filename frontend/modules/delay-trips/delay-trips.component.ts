@@ -8,7 +8,7 @@ import { MapComponent } from '../../src/app/map/map.component';
 import { mapObject, MapService } from '../../src/app/map/map.service';
 import { UIMessagesService } from '../../src/app/services/messages';
 import * as timeStamp from "../../src/app/services/timeStamps";
-import { delayCategoriesService } from '../../src/app/services/delayCategories';
+import { delayCategoriesService, delayCategory } from '../../src/app/services/delayCategories';
 import { faRoute } from '@fortawesome/free-solid-svg-icons';
 
 interface route {
@@ -78,6 +78,8 @@ export class DelayTripsModule implements OnInit {
 
     public showDelayValueLabel: boolean = false;
     public showSimplifiedDelays: boolean = true;
+
+    public delayCategories: delayCategory[] = [];
 
     public faIconRoute = faRoute;
 
@@ -171,6 +173,7 @@ export class DelayTripsModule implements OnInit {
     public switchSettingsModuleVisibility() {
         if (this.moduleFocus !== 3) {
             this.moduleFocus = 3;
+            this.delayCategories = this.delayCategoriesService.getDelayCategories();
         } else {
             this.moduleFocus = 0;
         }
@@ -413,6 +416,30 @@ export class DelayTripsModule implements OnInit {
         }
 
         return delay;
+    }
+
+    public onDelayCategoryChange(idx: number) {
+        this.delayCategoriesService.setDelayCategory(idx, this.delayCategories[idx]);
+        this.delayCategories = this.delayCategoriesService.getDelayCategories();
+        this.renderData(false);
+    }
+
+    public removeDelayCategory(idx: number) {
+        this.delayCategoriesService.removeDelayCategory(idx);
+        this.delayCategories = this.delayCategoriesService.getDelayCategories();
+        this.renderData(false);
+    }
+
+    public addDelayCategory() {
+        this.delayCategoriesService.addNewDelayCategory();
+        this.delayCategories = this.delayCategoriesService.getDelayCategories();
+        this.renderData(false);
+    }
+
+    public resetDelayCategories() {
+        this.delayCategoriesService.resetDelayCategories();
+        this.delayCategories = this.delayCategoriesService.getDelayCategories();
+        this.renderData(false);
     }
 
     public closeRouteModule() {

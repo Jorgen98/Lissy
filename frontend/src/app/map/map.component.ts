@@ -213,7 +213,7 @@ export class MapComponent implements AfterViewInit {
             `)
         }
         graphText.push(`
-            <span class="delay-categories-graph-legend-inner-text">Ostatní</span>
+            <span class="delay-categories-graph-legend-inner-text">${this.translate.instant("delay.other")}</span>
         `)
         let graphFills = Array(categories.length - 1).fill(`
             <span class="delay-categories-graph-color delay-categories-graph-legend-fill"></span>

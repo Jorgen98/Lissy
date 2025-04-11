@@ -1,97 +1,122 @@
 <main class="main" *ngIf="config.enabled">
-  <!-- Side menu -->
-  <div class="side-control">
-    <span class="side-control-modules">
-      <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-        <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-          (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
-          <i class="pi pi-calendar"></i>
-        </button>
-      </div>
-      <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-        <button pButton type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-          (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-          <fa-icon [icon]="faIconRoute"></fa-icon>
-        </button>
-      </div>
-    </span>
-    <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-      <button pButton type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-        (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
-        <i class="pi pi-cog"></i>
-      </button>
-    </div>
-  </div>
-  <!-- Module content -->
-  <div class="content">
-    <!-- Calendar -->
-    <div class="side-control-content" *ngIf="moduleFocus == 1">
-      <span class="side-control-head">
-        <h4>{{ 'common.calendar' | translate }}</h4>
-        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchCalendarModuleVisibility()">
-          <i class="pi pi-times"></i>
-        </button>
-      </span>
-      <p-calendar class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
-        [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
-        <ng-template pTemplate="footer">
-          <div class="calendar-btns-div">
-            <button pButton type="button" class="p-link p-datepicker-month" (click)="downloadRoutesData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
-          </div>
-        </ng-template>
-      </p-calendar>
-    </div>
-    <!-- Trip selection -->
-    <div class="side-control-content" *ngIf="moduleFocus == 2">
-      <span class="side-control-head">
-        <h4>{{ 'common.trip' | translate }}</h4>
-        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchRouteSelectModuleVisibility()">
-          <i class="pi pi-times"></i>
-        </button>
-      </span>
-      <div class="routeSelectionDiv">
-        <div class="routeSelectionInnerDiv">
-          <h3>{{ 'delay.route' | translate }}</h3>
-          <p-dropdown [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" filter="true"
-            filterBy="route_short_name" (onChange)="changeRoute()"/>
-          <h3>{{ 'delay.shape' | translate }}</h3>
-          <p-dropdown [options]="tripGroups" [(ngModel)]="selectedTripGroup" optionLabel="stops" filter="true"
-            filterBy="stops" (onChange)="changeTripGroup()"/>
-          <h3>{{ 'delay.trip' | translate }}</h3>
-          <p-dropdown [options]="selectedTripGroup?.trips" [(ngModel)]="selectedTrip" optionLabel="dep_time_lab" filter="true"
-            filterBy="dep_time_lab" (onChange)="changeTrip()"/>
+    <!-- Side menu -->
+    <div class="side-control">
+        <span class="side-control-modules">
+            <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+                <button pButton type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+                    (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+                    <i class="pi pi-calendar"></i>
+                </button>
+            </div>
+            <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+                <button pButton type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+                    (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+                    <fa-icon [icon]="faIconRoute"></fa-icon>
+                </button>
+            </div>
+        </span>
+        <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+            <button pButton type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+                (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
+                <i class="pi pi-cog"></i>
+            </button>
         </div>
-      </div>
     </div>
-    <!-- Visualization settings -->
-    <div class="side-control-content" *ngIf="moduleFocus == 3">
-      <span class="side-control-head">
-        <h4>{{ 'common.settings' | translate }}</h4>
-        <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchSettingsModuleVisibility()">
-          <i class="pi pi-times"></i>
-        </button>
-      </span>
-      <div class="routeSelectionDiv">
-        <div class="routeSelectionInnerDiv">
-          <h4 class="side-control-head-text">{{ 'delay.aggMethod' | translate }}</h4>
-          <p class="side-control-info-text">{{ 'delay.aggMethodInfo' | translate }}</p>
-          <p-dropdown [options]="aggregationMethods" [(ngModel)]="selectedAggMethod" optionLabel="label" (onChange)="renderData(false)"/>
-          <span class="side-control-divider"></span>
-          <span class="side-control-checkbox-span">
-            <p-checkbox [(ngModel)]="showSimplifiedDelays" [binary]="true" (onChange)="renderData(false)"/>
-            <h4 class="side-control-checkbox-head">{{ 'delay.simplifiedVisualisation' | translate }}</h4>
-          </span>
-          <p class="side-control-info-text">{{ 'delay.simplifiedVisualisationInfo' | translate }}</p>
-          <span class="side-control-divider"></span>
-          <span class="side-control-checkbox-span">
-            <p-checkbox [(ngModel)]="showDelayValueLabel" [binary]="true" (onChange)="renderData(false)"/>
-            <h4 class="side-control-checkbox-head">{{ 'delay.showDelayLabels' | translate }}</h4>
-          </span>
-          <p class="side-control-info-text">{{ 'delay.showDelayLabelsInfo' | translate }}</p>
+    <!-- Module content -->
+    <div class="content">
+        <!-- Calendar -->
+        <div class="side-control-content" *ngIf="moduleFocus == 1">
+            <span class="side-control-head">
+                <h4>{{ 'common.calendar' | translate }}</h4>
+                <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchCalendarModuleVisibility()">
+                    <i class="pi pi-times"></i>
+                </button>
+            </span>
+        <p-calendar class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
+            [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
+            <ng-template pTemplate="footer">
+                <div class="calendar-btns-div">
+                    <button pButton type="button" class="p-link p-datepicker-month" (click)="downloadRoutesData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
+                </div>
+            </ng-template>
+        </p-calendar>
         </div>
-      </div>
+        <!-- Trip selection -->
+        <div class="side-control-content" *ngIf="moduleFocus == 2">
+            <span class="side-control-head">
+                <h4>{{ 'common.trip' | translate }}</h4>
+                <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchRouteSelectModuleVisibility()">
+                    <i class="pi pi-times"></i>
+                </button>
+            </span>
+            <div class="side-control-selection-div">
+                <div class="side-control-selection-inner-div">
+                    <h3>{{ 'delay.route' | translate }}</h3>
+                    <p-dropdown [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" filter="true"
+                        filterBy="route_short_name" (onChange)="changeRoute()"/>
+                    <h3>{{ 'delay.shape' | translate }}</h3>
+                    <p-dropdown [options]="tripGroups" [(ngModel)]="selectedTripGroup" optionLabel="stops" filter="true"
+                        filterBy="stops" (onChange)="changeTripGroup()"/>
+                    <h3>{{ 'delay.trip' | translate }}</h3>
+                    <p-dropdown [options]="selectedTripGroup?.trips" [(ngModel)]="selectedTrip" optionLabel="dep_time_lab" filter="true"
+                        filterBy="dep_time_lab" (onChange)="changeTrip()"/>
+                </div>
+            </div>
+        </div>
+        <!-- Visualization settings -->
+        <div class="side-control-content" *ngIf="moduleFocus == 3">
+            <span class="side-control-head">
+                <h4>{{ 'common.settings' | translate }}</h4>
+                <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchSettingsModuleVisibility()">
+                    <i class="pi pi-times"></i>
+                </button>
+            </span>
+            <div class="side-control-selection-div">
+                <div class="side-control-selection-inner-div">
+                    <h4 class="side-control-head-text">{{ 'delay.aggMethod' | translate }}</h4>
+                    <p class="side-control-info-text">{{ 'delay.aggMethodInfo' | translate }}</p>
+                    <p-dropdown [options]="aggregationMethods" [(ngModel)]="selectedAggMethod" optionLabel="label" (onChange)="renderData(false)"/>
+                    <span class="side-control-divider"></span>
+                    <span class="side-control-checkbox-span">
+                        <p-checkbox [(ngModel)]="showSimplifiedDelays" [binary]="true" (onChange)="renderData(false)"/>
+                        <h4 class="side-control-checkbox-head">{{ 'delay.simplifiedVisualisation' | translate }}</h4>
+                    </span>
+                    <p class="side-control-info-text">{{ 'delay.simplifiedVisualisationInfo' | translate }}</p>
+                    <span class="side-control-divider"></span>
+                    <span class="side-control-checkbox-span">
+                        <p-checkbox [(ngModel)]="showDelayValueLabel" [binary]="true" (onChange)="renderData(false)"/>
+                        <h4 class="side-control-checkbox-head">{{ 'delay.showDelayLabels' | translate }}</h4>
+                    </span>
+                    <p class="side-control-info-text">{{ 'delay.showDelayLabelsInfo' | translate }}</p>
+                    <span class="side-control-divider"></span>
+                    <h4 class="side-control-head-text">{{ 'delay.delayCategories' | translate }}</h4>
+                    <p class="side-control-info-text">{{ 'delay.delayCategoriesInfo' | translate }}</p>
+                    <div class="delay-category-row-header">
+                        <span></span>
+                        <span class="delay-category-text">{{ 'delay.delayFrom' | translate }}</span>
+                        <span class="delay-category-text">{{ 'delay.delayTo' | translate }}</span>
+                        <span></span>
+                    </div>
+                    <div *ngFor="let category of delayCategories; index as i" class="delay-category-row">
+                        <!-- Color -->
+                        <p-colorPicker [(ngModel)]="category.color" class="delay-category-color" (onHide)="onDelayCategoryChange(i)"/>
+                        <p-inputNumber inputStyleClass="delay-category-number" [(ngModel)]="category.minValue" [showButtons]="true" buttonLayout="horizontal" [step]="0.25"
+                            decrementButtonClass="p-link p-datepicker-month delay-category-btn" incrementButtonClass="p-link p-datepicker-month delay-category-btn" suffix=" min."
+                            incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" mode="decimal" (onInput)="onDelayCategoryChange(i)" allowEmpty="false"
+                            [min]="i === 0 ? 0 : delayCategories[i - 1].minValue + 0.25" [max]="i < (delayCategories.length - 1) ? category.maxValue - 0.25 : ''" [disabled]="i === 0 ? true : false"/>
+                        <span class="delay-category-text">{{ i < (delayCategories.length - 1) ? category.minValue + ' min.' : 'delay.other' | translate }}</span>
+                        <button pButton type="button" class="p-link p-datepicker-month delay-category-btn" (click)="removeDelayCategory(i)" *ngIf="delayCategories.length > 1">
+                            <i class="pi pi-trash"></i>
+                        </button>
+                    </div>
+                    <span class="delay-category-btns-div">
+                        <button *ngIf="delayCategories.length < 5" pButton type="button" class="p-link p-datepicker-month delay-category-btn" (click)="addDelayCategory()">{{ 'delay.addDelayCategory' | translate }}</button>
+                        <button pButton type="button" class="p-link p-datepicker-month delay-category-btn" (click)="resetDelayCategories()">{{ 'delay.resetCategories' | translate }}</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <!-- Map -->
+        <map></map>
     </div>
-    <!-- Map -->
-    <map></map>
-  </div>
 </main>

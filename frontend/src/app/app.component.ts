@@ -13,61 +13,61 @@ import { UIMessagesService } from './services/messages';
 })
 
 export class AppComponent {
-  public isDBConnected: boolean = false;
+    public isDBConnected: boolean = false;
 
-  public langs = [
-    { code: 'cz', flag: 'GB' },
-    { code: 'en', flag: 'CZ' }
-  ];
-  public selectedLang: {code: string, flag: string} = this.langs[0];
+    public langs = [
+        { code: 'cz', flag: 'GB' },
+        { code: 'en', flag: 'CZ' }
+    ];
+    public selectedLang: {code: string, flag: string} = this.langs[0];
 
-  public loadingElemVisibility = false;
-  public loadingElemPercentage = '0%';
-  
-  constructor(
-    private translate: TranslateService,
-    public router: Router,
-    private config: PrimeNGConfig,
-    private msgService: UIMessagesService
-  ) {
-    this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
-    this.translate.setDefaultLang(this.langs[0].code);
-    this.translate.use(this.langs[0].code);
-    this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
+    public loadingElemVisibility = false;
+    public loadingElemPercentage = '0%';
 
-    router.events.subscribe(() => {msgService.turnOffLoadingScreen()});
-    
-    // Message service - loading events
-    msgService.loadingElemVisibility.subscribe(visibility => this.loadingElemVisibility = visibility);
-    msgService.actualLoadingPercentage.subscribe(percentage => {
-      isNaN(percentage) ? this.loadingElemPercentage = '' : this.loadingElemPercentage = `${percentage}%`;
-    });
-  }
+    constructor(
+        private translate: TranslateService,
+        public router: Router,
+        private config: PrimeNGConfig,
+        private msgService: UIMessagesService
+    ) {
+        this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
+        this.translate.setDefaultLang(this.langs[0].code);
+        this.translate.use(this.langs[0].code);
+        this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
 
-  public changeLang() {
-    if (this.selectedLang.code === 'cz') {
-      this.selectedLang = this.langs[1];
-    } else {
-      this.selectedLang = this.langs[0];
+        router.events.subscribe(() => {msgService.turnOffLoadingScreen()});
+        
+        // Message service - loading events
+        msgService.loadingElemVisibility.subscribe(visibility => this.loadingElemVisibility = visibility);
+        msgService.actualLoadingPercentage.subscribe(percentage => {
+            isNaN(percentage) ? this.loadingElemPercentage = '' : this.loadingElemPercentage = `${percentage}%`;
+        });
     }
-    this.translate.use(this.selectedLang.code);
-    this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
-  }
 
-  public goToLink(whereTo: string) {
-    let url = '';
-    if (whereTo === 'brno') {
-      url = (this.selectedLang.code === 'en' ? 'https://datahub.brno.cz/' : 'https://data.brno.cz/');
-    } else {
-      url = (this.selectedLang.code === 'en' ? 'https://www.fit.vut.cz/.en' : 'https://www.fit.vut.cz/.cs');
+    public changeLang() {
+        if (this.selectedLang.code === 'cz') {
+            this.selectedLang = this.langs[1];
+        } else {
+            this.selectedLang = this.langs[0];
+        }
+        this.translate.use(this.selectedLang.code);
+        this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
     }
-    window.open(url, "_blank");
-  }
+
+    public goToLink(whereTo: string) {
+        let url = '';
+        if (whereTo === 'brno') {
+            url = (this.selectedLang.code === 'en' ? 'https://datahub.brno.cz/' : 'https://data.brno.cz/');
+        } else {
+            url = (this.selectedLang.code === 'en' ? 'https://www.fit.vut.cz/.en' : 'https://www.fit.vut.cz/.cs');
+        }
+        window.open(url, "_blank");
+    }
 }
 
 export interface ModuleConfig {
-  enabled: boolean,
-  apiPrefix: string,
-  name: string,
-  icon: string
+    enabled: boolean,
+    apiPrefix: string,
+    name: string,
+    icon: string
 }

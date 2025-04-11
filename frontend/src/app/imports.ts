@@ -14,43 +14,49 @@ import { ToastModule } from 'primeng/toast';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { CheckboxModule } from 'primeng/checkbox';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { ColorPickerModule } from 'primeng/colorpicker';
+import { InputNumberModule } from 'primeng/inputnumber';
 
 @NgModule({
-  imports: [
-    RouterOutlet,
-    TranslateModule,
-    RouterLink,
-    ButtonModule,
-    DropdownModule,
-    FormsModule,
-    CommonModule,
-    MarkdownModule,
-    CalendarModule,
-    ChartModule,
-    ProgressSpinnerModule,
-    MessagesModule,
-    ToastModule,
-    SelectButtonModule,
-    CheckboxModule,
-    FontAwesomeModule
-  ],
-  exports: [
-    RouterOutlet,
-    TranslateModule,
-    RouterLink,
-    ButtonModule,
-    DropdownModule,
-    FormsModule,
-    CommonModule,
-    MarkdownModule,
-    CalendarModule,
-    ChartModule,
-    ProgressSpinnerModule,
-    MessagesModule,
-    ToastModule,
-    SelectButtonModule,
-    CheckboxModule,
-    FontAwesomeModule
-  ]
+    imports: [
+        RouterOutlet,
+        TranslateModule,
+        RouterLink,
+        ButtonModule,
+        DropdownModule,
+        FormsModule,
+        CommonModule,
+        MarkdownModule,
+        CalendarModule,
+        ChartModule,
+        ProgressSpinnerModule,
+        MessagesModule,
+        ToastModule,
+        SelectButtonModule,
+        CheckboxModule,
+        FontAwesomeModule,
+        ColorPickerModule,
+        InputNumberModule
+    ],
+    exports: [
+        RouterOutlet,
+        TranslateModule,
+        RouterLink,
+        ButtonModule,
+        DropdownModule,
+        FormsModule,
+        CommonModule,
+        MarkdownModule,
+        CalendarModule,
+        ChartModule,
+        ProgressSpinnerModule,
+        MessagesModule,
+        ToastModule,
+        SelectButtonModule,
+        CheckboxModule,
+        FontAwesomeModule,
+        ColorPickerModule,
+        InputNumberModule
+    ]
 })
 export class ImportsModule {}

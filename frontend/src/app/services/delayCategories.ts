@@ -137,4 +137,20 @@ export class delayCategoriesService {
 
         return this.delayCategories[this.delayCategories.length - 1];
     }
+
+    // Get delay category idx based on provided value
+    // Return idx -1, if provided value is undefined
+    public getDelayCategoryIdxByValue(value: number | undefined): number {
+        if (value === undefined) {
+            return -1
+        }
+
+        for (const [idx, category] of this.delayCategories.entries()) {
+            if (value >= category.minValue && value < category.maxValue) {
+                return idx;
+            }
+        }
+
+        return this.delayCategories.length - 1;
+    }
 }

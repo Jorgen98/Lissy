@@ -80,7 +80,13 @@
     "map" : {
         "zone": "Zone",
         "wheelchair": "The stop has a raised boarding edge",
-        "order": "Stop order"
+        "order": "Stop order",
+        "delayStats": "Trip arrival statistics",
+        "delayStatsNoData": "There are no available data",
+        "avg": "Average delay",
+        "sum": "Sum of delay",
+        "max": "Maximum delay",
+        "min": "Minimum delay"
     },
     "primeng": {
         "dayNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],

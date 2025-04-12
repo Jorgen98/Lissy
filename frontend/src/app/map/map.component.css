@@ -12,6 +12,10 @@
     filter: invert(94%) sepia(68%) saturate(530%) hue-rotate(222deg) brightness(119%) contrast(97%);
 }
 
+::ng-deep .color-base-shadow {
+    filter: opacity(80%) blur(0.3rem) invert(94%) sepia(68%) saturate(530%) hue-rotate(222deg) brightness(119%) contrast(97%);
+}
+
 ::ng-deep .color-background {
     filter: invert(5%) sepia(2%) saturate(2566%) hue-rotate(202deg) brightness(94%) contrast(97%);
 }
@@ -136,11 +140,6 @@
     text-align: end;
 }
 
-::ng-deep .stop-main-div {
-    display: flex;
-    column-gap: 0.5em;
-}
-
 ::ng-deep .stop-img {
     height: 6em;
     margin: auto;
@@ -155,4 +154,35 @@
 ::ng-deep .stop-name {
     font-size: larger;
     font-weight: bold;
+}
+
+::ng-deep .delay-categories-stop-dot {
+    width: 1.5em;
+    display: flex;
+    height: 1.5em;
+    border-radius: 1.5em;
+}
+
+::ng-deep .delay-categories-stop-legend-row {
+    display: flex;
+    flex-direction: row;
+    column-gap: 0.25em;
+}
+
+::ng-deep .delay-categories-stop-text {
+    display: flex;
+    margin: auto auto auto 0;
+}
+
+::ng-deep .delay-categories-stop-legend-main {
+    display: flex;
+    flex-direction: row;
+    column-gap: 0.5em;
+}
+
+::ng-deep .delay-categories-stop-legend-inner {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.25em;
+    margin: auto;
 }

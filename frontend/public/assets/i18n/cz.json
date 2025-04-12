@@ -80,7 +80,13 @@
     "map" : {
         "zone": "Zóna",
         "wheelchair": "Zastávka má zvýšenou nástupní hranu",
-        "order": "Pořadí zastávky"
+        "order": "Pořadí zastávky",
+        "delayStats": "Statistika příchodů spojů",
+        "delayStatsNoData": "Nejsou k dispozici žádná data",
+        "avg": "Průměrné zpoždění",
+        "sum": "Součet zpoždění",
+        "max": "Maximální zpoždění",
+        "min": "Minimální zpoždění"
     },
     "primeng": {
         "dayNames": ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"],

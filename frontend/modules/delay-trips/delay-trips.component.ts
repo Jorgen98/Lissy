@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { APIService } from '../../src/app/services/api';
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
@@ -35,7 +35,7 @@ interface tripGroup {
     styleUrl: './delay-trips.component.css'
 })
 
-export class DelayTripsModule implements OnInit {
+export class DelayTripsModule implements OnInit, OnDestroy {
     static modulConfig: ModuleConfig = config;
     public config: ModuleConfig = config;
     constructor (
@@ -46,8 +46,19 @@ export class DelayTripsModule implements OnInit {
         private delayCategoriesService: delayCategoriesService
     ) {
         translate.onLangChange.subscribe(async () => {
-            await this.changeRoute();
+            this.closeRouteModule();
+            if (this.tripGroups.length > 0) {
+                let selectedTripIdx = this.selectedTripGroup?.trips.findIndex((item) => { return item.id === this.selectedTrip?.id});
+                for (const group of this.tripGroups) {
+                    this.setUpTripsDepTimes(group.trips);
+                }
+
+                if (selectedTripIdx !== undefined) {
+                    this.selectedTrip = this.selectedTripGroup?.trips[selectedTripIdx];
+                }
+            }
             this.setUpAggMethods();
+            this.renderData(false);
         })
     }
 
@@ -136,7 +147,16 @@ export class DelayTripsModule implements OnInit {
         await this.downloadRoutesData();
     }
 
+    // On component destroy
+    public ngOnDestroy() {
+        this.mapService.removeLayer('route');
+        this.mapService.removeLayer('stops');
+    }
+
+    // Set up aggregation methods according to user selected language
     private setUpAggMethods() {
+        const selectedFnIdx = this.aggregationMethods.findIndex((item) => { return item.operation === this.selectedAggMethod?.operation});
+
         this.aggregationMethods = [
             {label: this.translate.instant('delay.avg'), operation: 'avg'},
             {label: this.translate.instant('delay.sum'), operation: 'sum'},
@@ -144,7 +164,12 @@ export class DelayTripsModule implements OnInit {
             {label: this.translate.instant('delay.min'), operation: 'min'}
         ];
 
-        this.selectedAggMethod = this.aggregationMethods[0];
+        // If some function was selected then it is used after translation
+        if (selectedFnIdx === -1) {
+            this.selectedAggMethod = this.aggregationMethods[0];
+        } else {
+            this.selectedAggMethod = this.aggregationMethods[selectedFnIdx];
+        }
     }
 
     // Function for calendar module switch
@@ -183,6 +208,7 @@ export class DelayTripsModule implements OnInit {
         this.hooverDates = [new Date()];
     }
 
+    // Download available lines for selected date interval
     public async downloadRoutesData() {
         if (this.hooverDates === null) {
             return;
@@ -221,6 +247,7 @@ export class DelayTripsModule implements OnInit {
         this.queryDates[this.queryDates.length - 1].push(UTCHooverDates[UTCHooverDates.length - 1]);
 
         // API call for data
+        // Get actual lines
         this.routes = await this.apiGet('getAvailableRoutes', {dates: JSON.stringify(this.queryDates)});
         if (this.routes.length > 0) {
             this.isRouteSelectionEnabled = true;
@@ -233,32 +260,22 @@ export class DelayTripsModule implements OnInit {
         this.msgService.turnOffLoadingScreen();
     }
 
+    // Load available trip data for another route
     public async changeRoute() {
         if (this.selectedRoute) {
             this.msgService.turnOnLoadingScreenWithoutPercentage();
             this.tripGroups = await this.apiGet('getAvailableTrips', {dates: JSON.stringify(this.queryDates), route_id: this.selectedRoute.id.toString()});
             if (this.tripGroups.length > 0) {
                 for (const group of this.tripGroups) {
-                    for (let trip of group.trips) {
-                        if (this.translate.currentLang === 'cz') {
-                            trip.dep_time_lab = trip.dep_time.slice(0, 5);
-                        } else {
-                            let hours = parseInt(trip.dep_time.slice(0, 2));
-                            if (hours > 12) {
-                                trip.dep_time_lab = `${hours - 12}${trip.dep_time.slice(2, 5)} PM`;
-                            } else {
-                                trip.dep_time_lab = `${trip.dep_time.slice(0, 5)} AM`;
-                            }
-                        }
-                    }
-
                     if (group.trips.length > 1) {
                         group.trips.push({
                             id: -1,
                             dep_time: "",
-                            dep_time_lab: this.translate.instant("delay.allTrips")
+                            dep_time_lab: ""
                         })
                     }
+
+                    this.setUpTripsDepTimes(group.trips);
                 }
 
                 this.selectedTripGroup = this.tripGroups[0];
@@ -268,6 +285,30 @@ export class DelayTripsModule implements OnInit {
         }
     }
 
+    // Set trips departure time labels according to user language
+    public setUpTripsDepTimes(trips: {id: number, dep_time: string, dep_time_lab: string}[]) {
+        for (let trip of trips) {
+            if (trip.id === -1) {
+                trip.dep_time_lab = this.translate.instant("delay.allTrips");
+                continue;
+            }
+
+            // 24h format
+            if (this.translate.currentLang === 'cz') {
+                trip.dep_time_lab = trip.dep_time.slice(0, 5);
+            // 12h format
+            } else {
+                let hours = parseInt(trip.dep_time.slice(0, 2));
+                if (hours > 12) {
+                    trip.dep_time_lab = `${hours - 12}${trip.dep_time.slice(2, 5)} PM`;
+                } else {
+                    trip.dep_time_lab = `${trip.dep_time.slice(0, 5)} AM`;
+                }
+            }
+        }
+    }
+
+    // Change trip group (trips with same route shape)
     public async changeTripGroup() {
         if (this.selectedTripGroup && this.selectedTripGroup.trips.length > 0) {
             this.msgService.turnOnLoadingScreenWithoutPercentage();
@@ -281,15 +322,18 @@ export class DelayTripsModule implements OnInit {
         this.msgService.turnOffLoadingScreen();
     }
 
+    // Load trip delay data for selected date interval
     public async changeTrip() {
         if (this.selectedTrip) {
-            this.msgService.turnOnLoadingScreenWithoutPercentage();
-
+            //  Load delay data for one trip
             if (this.selectedTrip.id !== -1) {
+                this.msgService.turnOnLoadingScreenWithoutPercentage();
                 this.selectedTripData = await this.apiGet('getTripData', {dates: JSON.stringify(this.queryDates), trip_id: this.selectedTrip.id.toString()});
+            // Load delay data for whole trip group, e.g. one direction including whole day
             } else if (this.selectedTripGroup) {
+                this.msgService.turnOnLoadingScreen();
                 this.selectedTripData = {};
-                for (const trip of this.selectedTripGroup?.trips) {
+                for (const [idx, trip] of this.selectedTripGroup?.trips.entries()) {
                     if (trip.id === -1) {
                         continue;
                     }
@@ -298,14 +342,17 @@ export class DelayTripsModule implements OnInit {
                     for (const record in inputData) {
                         this.selectedTripData[`${record}_${trip.id}`] = inputData[record];
                     }
+
+                    this.msgService.actualLoadingPercentage.next(Math.floor((idx / this.selectedTripGroup?.trips.length) * 100));
                 }
             }
 
+            // Put delay data on map
             if (Object.keys(this.selectedTripData).length > 0) {
                 this.renderData(true);
             } else {
-                this.mapService.removeLayer('route');
-                this.mapService.removeLayer('stops');
+                this.mapService.clearLayer('route');
+                this.mapService.clearLayer('stops');
                 this.delayCategoriesService.removeDelayCategoriesFromMap();
                 this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
             }
@@ -313,11 +360,13 @@ export class DelayTripsModule implements OnInit {
         }
     }
 
+    // Main map render function
     public renderData(focus: boolean) {
-        this.mapService.removeLayer('route');
+        // Clear map layers
+        this.mapService.clearLayer('route');
         this.mapService.addNewLayer({name: 'route', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
 
-        this.mapService.removeLayer('stops');
+        this.mapService.clearLayer('stops');
         this.mapService.addNewLayer({name: 'stops', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
 
         if (!this.selectedTripGroupShape || !this.selectedTripGroupShape.stops || !this.selectedTripGroupShape.coords) {
@@ -328,40 +377,54 @@ export class DelayTripsModule implements OnInit {
             return;
         }
 
+        // Show delay categories legend
         this.delayCategoriesService.putDelayCategoriesOnMap();
+        let stopArrivalDelays = [];
 
-        for (const stop of this.selectedTripGroupShape.stops) {
-            let mapStop: mapObject = {
-                layerName: 'stops',
-                type: 'stop',
-                focus: false,
-                latLng: [{lat: stop.coords[0], lng: stop.coords[1]}],
-                color: 'provided',
-                metadata: {
-                    stop_name: stop.stop_name
-                },
-                interactive: true
-            }
-
-            this.mapService.addToLayer(mapStop);
-        }
-
+        // Put route on map
         for (const [routePartIdx, routePart] of this.selectedTripGroupShape.coords.entries()) {
             let routePartDelay = undefined;
-            if (this.showSimplifiedDelays) {
-                let delays = [];
-                for (const key of Object.keys(this.selectedTripData)) {
-                    if (this.selectedTripData[key][routePartIdx]) {
-                        delays.push(this.selectedTripData[key][routePartIdx][routePart.length - 2]);
-                    }
+
+            // Get delay values from last shape part before stop
+            let actualStopArrivalDelays = [];
+            for (const key of Object.keys(this.selectedTripData)) {
+                if (this.selectedTripData[key][routePartIdx]) {
+                    actualStopArrivalDelays.push(this.selectedTripData[key][routePartIdx][routePart.length - 2]);
                 }
-                routePartDelay = this.getActualDelayValue(delays);
             }
-            for (let idx = 0; idx < (routePart.length - 1); idx++) {
-                let delay = undefined;
-                if (this.showSimplifiedDelays) {
-                    delay = routePartDelay;
-                } else {
+            stopArrivalDelays.push(actualStopArrivalDelays);
+            // Count one delay value defined by selected aggregation function for whole route part between two stops
+            routePartDelay = this.getActualDelayValue(actualStopArrivalDelays);
+
+            // Put route part on map
+            // In case of simplified visualization there will be only one value for whole route part
+            if (this.showSimplifiedDelays) {
+                // Get delay category according to actual delay value
+                const delayCategory = this.delayCategoriesService.getDelayCategoryByValue(routePartDelay);
+                const routePartName = `${this.selectedTripGroupShape.stops[routePartIdx].stop_name} -> ${this.selectedTripGroupShape.stops[routePartIdx + 1].stop_name}`;
+    
+                // Put route part on map
+                let mapRoutePart: mapObject = {
+                    layerName: 'route',
+                    type: 'route',
+                    focus: false,
+                    latLng: routePart.map((part) => { return {lat: part[0], lng: part[1]}}),
+                    color: 'provided',
+                    metadata: {
+                        route_name: routePartName,
+                        color: delayCategory.color,
+                        delay_value: this.showDelayValueLabel ? routePartDelay : undefined,
+                        agg_method: this.selectedAggMethod?.operation
+                    },
+                    interactive: routePartDelay === undefined || !this.showDelayValueLabel ? false : true,
+                    hoover: true
+                }
+
+                this.mapService.addToLayer(mapRoutePart);
+            // In case of detailed visualization there will be exact value from DB for exact route part
+            } else {
+                for (let idx = 0; idx < (routePart.length - 1); idx++) {
+                    let delay = undefined;
                     let delays = [];
                     for (const key of Object.keys(this.selectedTripData)) {
                         if (this.selectedTripData[key][routePartIdx]) {
@@ -369,33 +432,56 @@ export class DelayTripsModule implements OnInit {
                         }
                     }
                     delay = this.getActualDelayValue(delays);
+                    // Get delay category according to actual delay value
+                    const delayCategory = this.delayCategoriesService.getDelayCategoryByValue(delay);
+    
+                    // Put route part on map
+                    let mapRoutePart: mapObject = {
+                        layerName: 'route',
+                        type: 'route',
+                        focus: false,
+                        latLng: [{lat: routePart[idx][0], lng: routePart[idx][1]}, {lat: routePart[idx + 1][0], lng: routePart[idx + 1][1]}],
+                        color: 'provided',
+                        metadata: {
+                            color: delayCategory.color,
+                            delay_value: this.showDelayValueLabel ? delay : undefined,
+                            agg_method: this.selectedAggMethod?.operation
+                        },
+                        interactive: delay === undefined ? false : true,
+                        hoover: true
+                    }
+    
+                    this.mapService.addToLayer(mapRoutePart);
                 }
-
-                const delayCategory = this.delayCategoriesService.getDelayCategoryByValue(delay);
-
-                let mapRoutePart: mapObject = {
-                    layerName: 'route',
-                    type: 'route',
-                    focus: false,
-                    latLng: [{lat: routePart[idx][0], lng: routePart[idx][1]}, {lat: routePart[idx + 1][0], lng: routePart[idx + 1][1]}],
-                    color: 'provided',
-                    metadata: {
-                        color: delayCategory.color,
-                        delay_value: this.showDelayValueLabel ? delay : undefined,
-                        agg_method: this.selectedAggMethod?.operation
-                    },
-                    interactive: true
-                }
-
-                this.mapService.addToLayer(mapRoutePart);
             }
         }
 
+        // Put stops on map
+        for (const [idx, stop] of this.selectedTripGroupShape.stops.entries()) {
+            let mapStop: mapObject = {
+                layerName: 'stops',
+                type: 'stop',
+                focus: false,
+                latLng: [{lat: stop.coords[0], lng: stop.coords[1]}],
+                color: 'provided',
+                metadata: {
+                    stop_name: stop.stop_name,
+                    delays: idx < 1 ? [] : stopArrivalDelays[idx - 1]
+                },
+                interactive: true,
+                hoover: false
+            }
+
+            this.mapService.addToLayer(mapStop);
+        }
+
+        // In some use cases map should not focus on new objects
         if (focus) {
             this.mapService.fitToLayer('stops');
         }
     }
 
+    // Combine delay values from multiple days or trips intro one using selected aggregation method
     private getActualDelayValue(delays: number[]) {
         let delay = undefined;
         let numOfDateDelays = 0;
@@ -418,31 +504,37 @@ export class DelayTripsModule implements OnInit {
         return delay;
     }
 
+    // Close open control module
+    public closeRouteModule() {
+        this.moduleFocus = 0;
+    }
+
+    // Delay categories CRUD functions
+    // Actualize delay category
     public onDelayCategoryChange(idx: number) {
         this.delayCategoriesService.setDelayCategory(idx, this.delayCategories[idx]);
         this.delayCategories = this.delayCategoriesService.getDelayCategories();
         this.renderData(false);
     }
 
+    // Remove delay category
     public removeDelayCategory(idx: number) {
         this.delayCategoriesService.removeDelayCategory(idx);
         this.delayCategories = this.delayCategoriesService.getDelayCategories();
         this.renderData(false);
     }
 
+    // Add new delay category
     public addDelayCategory() {
         this.delayCategoriesService.addNewDelayCategory();
         this.delayCategories = this.delayCategoriesService.getDelayCategories();
         this.renderData(false);
     }
 
+    // Return delay categories to default state
     public resetDelayCategories() {
         this.delayCategoriesService.resetDelayCategories();
         this.delayCategories = this.delayCategoriesService.getDelayCategories();
         this.renderData(false);
-    }
-
-    public closeRouteModule() {
-        this.moduleFocus = 0;
     }
 }

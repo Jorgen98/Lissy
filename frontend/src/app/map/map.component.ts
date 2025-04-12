@@ -3,7 +3,7 @@ import * as L from 'leaflet';
 import { environment } from '../../environments/environment';
 import { mapLayer, mapObject, MapService } from './map.service';
 import { TranslateService } from '@ngx-translate/core';
-import { NgFor, NgIf } from '@angular/common';
+import { NgIf } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { delayCategoriesService, delayCategory } from '../services/delayCategories';
 
@@ -52,7 +52,11 @@ export class MapComponent implements AfterViewInit {
                         if (t.map) {
                             if (object instanceof L.Marker) {
                                 let icon = object.getIcon();
-                                icon.options.iconSize = [t.map.getZoom() * 1.35, t.map.getZoom() * 1.35];
+                                if (icon.options.className !== 'color-base-shadow') {
+                                    icon.options.iconSize = [t.map.getZoom() * 1.35, t.map.getZoom() * 1.35];
+                                } else {
+                                    icon.options.iconSize = [t.map.getZoom() * 2, t.map.getZoom() * 2];
+                                }
                                 object.setIcon(icon);
                             }
                         }
@@ -60,6 +64,8 @@ export class MapComponent implements AfterViewInit {
                 }
             }
         })
+
+        this.map.on('click', () => { this.mapService.clearLayerObj.next('hoover')});
     }
 
     constructor(
@@ -71,6 +77,7 @@ export class MapComponent implements AfterViewInit {
         this.mapService.addNewLayerObj.subscribe((newLayer) => this.addNewLayer(newLayer));
         this.mapService.addToLayerObj.subscribe((object) => this.addToLayer(object));
         this.mapService.removeLayerObj.subscribe((layerName) => this.removeLayer(layerName));
+        this.mapService.clearLayerObj.subscribe((layerName) => this.clearLayer(layerName));
         this.mapService.zoomInObj.subscribe(() => this.map?.zoomIn());
         this.mapService.zoomOutObj.subscribe(() => this.map?.zoomOut());
         this.mapService.fitToLayerObj.subscribe((layerName) => this.fitToLayer(layerName));
@@ -86,6 +93,8 @@ export class MapComponent implements AfterViewInit {
 
     ngAfterViewInit(): void {
         this.initMap();
+
+        this.mapService.addNewLayer({name: 'hoover', palette: {}, layer: undefined, paletteItemName: ''});
 
         this.translate.onLangChange.subscribe(() => {
             this.actualizeColorLegend();
@@ -127,20 +136,21 @@ export class MapComponent implements AfterViewInit {
         });
     }
 
-    private createPolyline(object: mapObject) {
+    private createStopIconHoover() {
         if (!this.map) {
             return undefined;
         }
 
-        let objectLayer = this.layers[object?.layerName];
-        let objectClass = 'stop-icon-base';
-        if (object.color === 'palette') {
-            if (objectLayer.palette[object.metadata.route_id] === undefined) {
-                let newColorIdx = Object.keys(objectLayer.palette).length % this.colorPaletteLength;
-                objectLayer.palette[object.metadata.route_id] = this.colorPalette[newColorIdx];
-                this.actualizeColorLegend();
-            }
-            objectClass = objectLayer.palette[object.metadata.route_id];
+        return L.icon({
+            iconUrl: 'icons/stop.svg',
+            iconSize: [this.map.getZoom() * 2, this.map.getZoom() * 2],
+            className: "color-base-shadow"
+        });
+    }
+
+    private createPolyline(object: mapObject) {
+        if (!this.map) {
+            return undefined;
         }
 
         if (object.color === 'provided' && object.metadata.color === '#000000') {
@@ -151,8 +161,25 @@ export class MapComponent implements AfterViewInit {
             object.latLng,
             { 
                 color: object.color === 'provided' ? `${object.metadata.color}` : '#FFFFFF',
-                className: object.color === 'provided' ? '': objectClass,
+                weight: 5,
                 interactive: object.interactive
+            }
+        )
+    }
+
+    private createPolylineShadow(object: mapObject) {
+        if (!this.map) {
+            return undefined;
+        }
+
+        return L.polyline(
+            object.latLng,
+            { 
+                color: '#FFFFFF',
+                weight: 12,
+                interactive: false,
+                opacity: 0.4,
+                pane: "tilePane"
             }
         )
     }
@@ -279,20 +306,85 @@ export class MapComponent implements AfterViewInit {
                     if (object.metadata.delay_value !== undefined) {
                         let labelHead = "";
                         switch (object.metadata.agg_method) {
-                            case 'avg': labelHead = this.translate.instant('delay.avg'); break;
-                            case 'sum': labelHead = this.translate.instant('delay.sum'); break;
-                            case 'max': labelHead = this.translate.instant('delay.max'); break;
-                            case 'min': labelHead = this.translate.instant('delay.min'); break;
+                            case 'avg': labelHead = this.translate.instant('map.avg'); break;
+                            case 'sum': labelHead = this.translate.instant('map.sum'); break;
+                            case 'max': labelHead = this.translate.instant('map.max'); break;
+                            case 'min': labelHead = this.translate.instant('map.min'); break;
                         }
-                        line.bindTooltip(`
-                            <b>${labelHead}: ${object.metadata.delay_value} min.</b>
-                        `);
+                        lineOnMap.on('click', (event: L.LeafletEvent) => {
+                            L.popup()
+                            .setLatLng(lineOnMap.getCenter())
+                            .setContent(`
+                                <span class="stop-content">
+                                    ${object.metadata.route_name ? "<span class='stop-name'>" + object.metadata.route_name + "</span>": ""}
+                                    ${"<span>" + labelHead + ": <b>" + object.metadata.delay_value + " min.</b></span>"}
+                                </span>
+                            `)
+                            .addTo(this.layers[object.layerName].layer!)
+                            .on('remove', () => {
+                                this.mapService.clearLayerObj.next('hoover');
+                            });
+
+                            if (object.hoover) {
+                                this.mapService.clearLayerObj.next('hoover');
+                                let hooverLine = this.createPolylineShadow(object);
+                                if (hooverLine) {
+                                    hooverLine.addTo(this.layers['hoover'].layer!);
+                                }
+                            }
+
+                            L.DomEvent.stopPropagation(event);
+                        })
                     }
+
                     bounds = lineOnMap.getBounds();
                 }
                 break;
             }
             case 'stop': {
+                let delayCategories = this.delayCategoriesService.getDelayCategories();
+                let categoriesHtmlElem: any[] = [];
+                let pieChartSegmentsHtmlElem: any[] = [];
+
+                if (object.metadata.delays) {
+                    let delaysCount = 0;
+                    for (let category of delayCategories) {
+                        category.count = 0;
+                    }
+
+                    for (const delay of object.metadata.delays) {
+                        let idx = this.delayCategoriesService.getDelayCategoryIdxByValue(delay);
+
+                        if (idx !== -1) {
+                            delayCategories[idx].count++;
+                            delaysCount++;
+                        }
+                    }
+
+                    
+                    let idx = 0;
+                    let segmentMove = 0;
+                    while (idx < delayCategories.length) {
+                        if (delayCategories[idx].count === 0) {
+                            delayCategories.splice(idx, 1);
+                        } else {
+                            delayCategories[idx].count = Math.floor((delayCategories[idx].count / (delaysCount * 1.0)) * 10000) / 100.0;
+                            pieChartSegmentsHtmlElem.push(`
+                                <circle r="5" cx="10" cy="10" fill="transparent" stroke="${delayCategories[idx].color}" stroke-width="10"
+                                    stroke-dasharray="${delayCategories[idx].count * 0.314} 31.4" stroke-dashoffset="-${segmentMove}"/>
+                            `);
+                            segmentMove += delayCategories[idx].count * 0.314;
+                            categoriesHtmlElem.push(`
+                                <span class="delay-categories-stop-legend-row">
+                                    <span class="delay-categories-stop-dot" style="background-color: ${delayCategories[idx].color};"></span>
+                                    <b class="delay-categories-stop-text">${delayCategories[idx].count}%</b>
+                                </span>
+                            `);
+                            idx++;
+                        }
+                    }
+                }
+
                 L.marker(
                     L.latLng(object.latLng[0]),
                     {
@@ -313,17 +405,34 @@ export class MapComponent implements AfterViewInit {
                     L.popup()
                     .setLatLng(object.latLng[0])
                     .setContent(`
-                        <div class="stop-main-div">
-                            <img class="stop-img" src="icons/stop-sign.svg">
-                            <span class="stop-content">
-                                ${object.metadata.stop_name ? "<span class='stop-name'>" + object.metadata.stop_name + "</span>": ""}
-                                ${object.metadata.zone_id ? "<span><b>" + this.translate.instant("map.zone") + ":</b> " + object.metadata.zone_id + "</span>": ""}
-                                ${object.metadata.order ? "<span><b>" + this.translate.instant("map.order") + ":</b> " + object.metadata.order + "</span>": ""}
-                                ${object.metadata.wheelchair_boarding === 1 ? "<span>" + this.translate.instant("map.wheelchair") + "</span>": ""}
-                            </span>
-                        </div>
+                        <span class="stop-content">
+                            ${object.metadata.stop_name ? "<span class='stop-name'>" + object.metadata.stop_name + "</span>": ""}
+                            ${object.metadata.zone_id ? "<span><b>" + this.translate.instant("map.zone") + ":</b> " + object.metadata.zone_id + "</span>": ""}
+                            ${object.metadata.order ? "<span><b>" + this.translate.instant("map.order") + ":</b> " + object.metadata.order + "</span>": ""}
+                            ${object.metadata.wheelchair_boarding === 1 ? "<span>" + this.translate.instant("map.wheelchair") + "</span>": ""}
+                            ${object.metadata.delays ? "<span><b>" + this.translate.instant("map.delayStats") + "</b></span>": ""}
+                            ${
+                                object.metadata.delays && delayCategories.length > 0 ?
+                                "<span class='delay-categories-stop-legend-main'>" +
+                                    "<span class='delay-categories-stop-legend-inner'><svg height='6em' width='6em' viewBox='0 0 20 20'>" + pieChartSegmentsHtmlElem.join('') + "</svg></span>" +
+                                    "<span class='delay-categories-stop-legend-inner'>" + categoriesHtmlElem.join('') + "</span>" +
+                                "</span>":
+                                object.metadata.delays ? "<span>" + this.translate.instant("map.delayStatsNoData") + "</span>" : ""
+                            }
+                        </span>
                     `)
                     .addTo(this.layers[object.layerName].layer!);
+                    if (object.hoover) {
+                        this.mapService.clearLayerObj.next('hoover');
+                        L.marker(
+                            L.latLng(object.latLng[0]),
+                            {
+                                icon: this.createStopIconHoover(),
+                                interactive: false
+                            }
+                        )
+                        .addTo(this.layers['hoover'].layer!);
+                    }
                 })
                 bounds = L.latLngBounds(L.latLng(object.latLng[0]), L.latLng(object.latLng[0]));
                 break;
@@ -341,6 +450,15 @@ export class MapComponent implements AfterViewInit {
         if (layerToRemove !== undefined && layerToRemove.layer) {
             this.map?.removeLayer(layerToRemove.layer);
             delete this.layers[layerName];
+            this.actualizeColorLegend();
+        }
+    }
+
+    private clearLayer(layerName: string) {
+        let layerToRemove = this.layers[layerName];
+
+        if (layerToRemove !== undefined && layerToRemove.layer) {
+            layerToRemove.layer.clearLayers();
             this.actualizeColorLegend();
         }
     }

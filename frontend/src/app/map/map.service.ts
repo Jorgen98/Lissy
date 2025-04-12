@@ -8,7 +8,8 @@ export interface mapObject {
     latLng: {lat: number, lng: number}[],
     color: "base" | "palette" | "provided",
     metadata: any,
-    interactive: boolean
+    interactive: boolean,
+    hoover: boolean
 };
 
 export interface mapLayer {
@@ -37,6 +38,11 @@ export class MapService {
     public removeLayerObj = new BehaviorSubject<any>(null);
     removeLayer(layerName: string) {
         this.removeLayerObj.next(layerName);
+    }
+
+    public clearLayerObj = new BehaviorSubject<any>(null);
+    clearLayer(layerName: string) {
+        this.clearLayerObj.next(layerName);
     }
 
     public zoomInObj = new BehaviorSubject<any>(null);

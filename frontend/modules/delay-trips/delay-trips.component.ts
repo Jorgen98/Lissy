@@ -447,7 +447,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
                             delay_value: this.showDelayValueLabel ? delay : undefined,
                             agg_method: this.selectedAggMethod?.operation
                         },
-                        interactive: delay === undefined ? false : true,
+                        interactive: delay === undefined || !this.showDelayValueLabel ? false : true,
                         hoover: true
                     }
     

@@ -608,7 +608,7 @@ async function setTripAsUnServed(id) {
 }
 
 // Get all trips which will be served today and has different shape id
-async function getPlannedTripsWithUniqueShape(routes, stopsOrder) {
+async function getPlannedTripsWithUniqueShape(routes) {
     let result;
     let stops = {};
     try {
@@ -649,15 +649,6 @@ async function getPlannedTripsWithUniqueShape(routes, stopsOrder) {
                 continue;
             }
 
-            if (stopsOrder) {
-                let stopNamesOrder = [];
-                for (const stop of trip.stops) {
-                    stopNamesOrder.push(stops[stop]);
-                }
-    
-                trip.stopOrder = stopNamesOrder;
-            }
-
             trip.stops = `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`;
             trips_to_save.push(trip);
             delete trip.row_number;
@@ -682,7 +673,7 @@ async function getPlannedTripsWithUniqueShape(routes, stopsOrder) {
 }
 
 // Get all trips according to trip ids and has different shape id
-async function getTripsWithUniqueShape(tripIds, stopsOrder) {
+async function getTripsWithUniqueShape(tripIds) {
     let result;
     let routes = [];
     let stops = {};
@@ -724,15 +715,6 @@ async function getTripsWithUniqueShape(tripIds, stopsOrder) {
     for (let trip of result.rows) {
         if (trip.stops.length < 2) {
             continue;
-        }
-
-        if (stopsOrder) {
-            let stopNamesOrder = [];
-            for (const stop of trip.stops) {
-                stopNamesOrder.push(stops[stop]);
-            }
-
-            trip.stopOrder = stopNamesOrder;
         }
 
         trip.stops = `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`;
@@ -810,7 +792,7 @@ async function getRoutesDetail(routeIds) {
 }
 
 // Return trips info by given id joined by shape id
-async function getTripsDetail(tripIds) {
+async function getTripsDetail(tripIds, fullStopsOrder) {
     let result;
     let stops = {};
 
@@ -845,6 +827,15 @@ async function getTripsDetail(tripIds) {
         if (tripShapeId === -1) {
             tripShapeId = tripGroups.length;
             tripGroups.push({shape_id: trip.shape_id, stops: `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`, trips: []});
+
+            if (fullStopsOrder) {
+                let stopNamesOrder = [];
+                for (const stop of trip.stops) {
+                    stopNamesOrder.push(stops[stop]);
+                }
+    
+                tripGroups[tripShapeId].stopOrder = stopNamesOrder;
+            }
         }
 
         trip.dep_time = combineGTFSTimes(trip.stops_info[0].aT, trip.stops_info[0].dT);

@@ -89,11 +89,12 @@ async function processRequest(url, req, res) {
             }
             // Return available trips for selected route and time interval
             case 'getAvailableTrips': {
+                const fullStopsOrder = req.query.fullStopOrder === 'true' ? true : false;
                 if (req.query.dates === undefined || req.query.route_id === undefined) {
                     res.send(false);
                 } else {
                     let dates = JSON.parse(req.query.dates);
-                    res.send(await getTripsInInterval(req.query.route_id, dates));
+                    res.send(await getTripsInInterval(req.query.route_id, dates, fullStopsOrder));
                 }
                 break;
             }
@@ -133,7 +134,7 @@ async function processRequest(url, req, res) {
     }
 }
 
-async function getTripsInInterval(route_id, dates) {
+async function getTripsInInterval(route_id, dates, fullStopsOrder) {
     let response = {};
     // Get data for every date range
     for (const pair of dates) {
@@ -151,7 +152,7 @@ async function getTripsInInterval(route_id, dates) {
             delete response[key];
         }
     }
-    return (await dbPostGIS.getTripsDetail(Object.keys(response).map((item) => parseInt(item))));
+    return (await dbPostGIS.getTripsDetail(Object.keys(response).map((item) => parseInt(item)), fullStopsOrder));
 }
 
 module.exports = { processRequest, env }

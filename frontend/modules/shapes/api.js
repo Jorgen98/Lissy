@@ -26,12 +26,11 @@ async function processRequest(url, req, res) {
             }
             // Return available uniq shapeId for selected day
             case 'getShapes': {
-                const fullStopsOrder = req.query.fullStopOrder === 'true' ? true : false;
                 if (req.query.date === undefined) {
                     res.send(false);
                 } else {
                     if (req.query.date === timeStamp.getTimeStamp(timeStamp.getTodayUTC())) {
-                        res.send(await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess(), fullStopsOrder));
+                        res.send(await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess()));
                     } else {
                         let cache = await dbCache.setUpValue(req.url, null, null);
 
@@ -54,10 +53,10 @@ async function processRequest(url, req, res) {
                             }
 
                             if (!req.query.progress) {
-                                res.send(await dbPostGIS.getTripsWithUniqueShape(trips, fullStopsOrder));
+                                res.send(await dbPostGIS.getTripsWithUniqueShape(trips));
                             }
 
-                            dbCache.setUpValue(req.url, await dbPostGIS.getTripsWithUniqueShape(trips, fullStopsOrder), 100);
+                            dbCache.setUpValue(req.url, await dbPostGIS.getTripsWithUniqueShape(trips), 100);
                         }
                     }
                 }

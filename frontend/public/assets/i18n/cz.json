@@ -75,7 +75,11 @@
         "delayTo": "Zpoždění do",
         "addDelayCategory": "Nová kategorie",
         "resetCategories": "Resetovat kategorie",
-        "other": "Ostatní"
+        "other": "Ostatní",
+        "graphs": "Vývoj zpoždění v průběhu jízdy spoje",
+        "graphAggMethodInfo": "Zatímco mapové zobrazení ukazuje vývoj zpoždění v prostoru a čase, účelem jednoduchého čárového grafu je zobrazit vývoj hodnot zpoždění mezi zastávkami. Pokud je však vybráno více dnů nebo více spojů, je nezbytné dostupná data pro lepší přehlednost redukovat. Data můžete seskupit podle dnů, kdy se všechna dostupná data pro vybrané spoje spojí pomocí zvolené agregační funkce do jednoho spoje. Nebo můžete data seskupit podle spojů, kdy se data z různých dnů pro stejný spoj sloučí pomocí agregační funkce.",
+        "graphAggDate": "Spojit podle datumu",
+        "graphAggTrip": "Spojit podle spojů"
     },
     "map" : {
         "zone": "Zóna",

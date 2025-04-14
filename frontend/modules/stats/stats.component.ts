@@ -7,7 +7,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { UIMessagesService } from '../../src/app/services/messages';
 import * as timeStamp from "../../src/app/services/timeStamps";
 
-interface lineGraphData {
+interface graphData {
     labels: string[],
     datasets: any[]
 };
@@ -74,10 +74,10 @@ export class StatsModule implements OnInit {
             tooltip: {
                 callbacks: {
                     label: function(context: any) {
-                    let hours = Math.floor(((parseInt(context.parsed.y) / 1000) / 60) / 60);
-                    let mins = Math.floor((parseInt(context.parsed.y) / 1000) / 60);
-                    let secs = Math.floor((parseInt(context.parsed.y) / 1000) % 60);
-                    return `${hours > 0 ? hours + "h" : ""} ${mins > 0 ? mins + "m" : ""} ${secs > 0 ? secs + "s" : ""}`;
+                        let hours = Math.floor(((parseInt(context.parsed.y) / 1000) / 60) / 60);
+                        let mins = Math.floor((parseInt(context.parsed.y) / 1000) / 60);
+                        let secs = Math.floor((parseInt(context.parsed.y) / 1000) % 60);
+                        return `${hours > 0 ? hours + "h" : ""} ${mins > 0 ? mins + "m" : ""} ${secs > 0 ? secs + "s" : ""}`;
                     }
                 }
             }
@@ -95,10 +95,10 @@ export class StatsModule implements OnInit {
             tooltip: {
                 callbacks: {
                     label: function(context: any) {
-                    let hours = Math.floor(((parseInt(context.parsed.y) / 1000) / 60) / 60);
-                    let mins = Math.floor((parseInt(context.parsed.y) / 1000) / 60);
-                    let secs = Math.floor((parseInt(context.parsed.y) / 1000) % 60);
-                    return `${hours > 0 ? hours + "h" : ""} ${mins > 0 ? mins + "m" : ""} ${secs > 0 ? secs + "s" : ""}`;
+                        let hours = Math.floor(((parseInt(context.parsed.y) / 1000) / 60) / 60);
+                        let mins = Math.floor((parseInt(context.parsed.y) / 1000) / 60);
+                        let secs = Math.floor((parseInt(context.parsed.y) / 1000) % 60);
+                        return `${hours > 0 ? hours + "h" : ""} ${mins > 0 ? mins + "m" : ""} ${secs > 0 ? secs + "s" : ""}`;
                     }
                 }
             }
@@ -127,7 +127,7 @@ export class StatsModule implements OnInit {
             tooltip: {
                 callbacks: {
                     label: function(context: any) {
-                    return `${Math.floor(context.parsed / (context.dataset.data.reduce((total: number, value: number) => { return total + value })) * 100)}%`;
+                        return `${Math.floor(context.parsed / (context.dataset.data.reduce((total: number, value: number) => { return total + value })) * 100)}%`;
                     }
                 }
             }
@@ -149,18 +149,18 @@ export class StatsModule implements OnInit {
     ];
 
     // Graph datasets
-    public systemState: lineGraphData[] = [];
-    public systemStateProcessingTime: lineGraphData = {labels: [], datasets: []};
-    public systemStateRoutingTypes: lineGraphData = {labels: [], datasets: []};
-    public systemStateRoutingSuccess: lineGraphData = {labels: [], datasets: []};
-    public systemStateRoutingTime: lineGraphData = {labels: [], datasets: []};
-    public processingTimes: lineGraphData = {labels: [], datasets: []};
-    public processingDataAll: lineGraphData = {labels: [], datasets: []};
-    public processingDataDownload: lineGraphData = {labels: [], datasets: []};
-    public processingDataSaved: lineGraphData = {labels: [], datasets: []};
-    public processingTripsAll: lineGraphData = {labels: [], datasets: []};
-    public processingTripsPlanned: lineGraphData = {labels: [], datasets: []};
-    public processingTripsExtra: lineGraphData = {labels: [], datasets: []};
+    public systemState: graphData[] = [];
+    public systemStateProcessingTime: graphData = {labels: [], datasets: []};
+    public systemStateRoutingTypes: graphData = {labels: [], datasets: []};
+    public systemStateRoutingSuccess: graphData = {labels: [], datasets: []};
+    public systemStateRoutingTime: graphData = {labels: [], datasets: []};
+    public processingTimes: graphData = {labels: [], datasets: []};
+    public processingDataAll: graphData = {labels: [], datasets: []};
+    public processingDataDownload: graphData = {labels: [], datasets: []};
+    public processingDataSaved: graphData = {labels: [], datasets: []};
+    public processingTripsAll: graphData = {labels: [], datasets: []};
+    public processingTripsPlanned: graphData = {labels: [], datasets: []};
+    public processingTripsExtra: graphData = {labels: [], datasets: []};
 
     // Help function for api requests heading
     private async apiGet(url: string, params?: {[name: string]: string}) {
@@ -291,9 +291,9 @@ export class StatsModule implements OnInit {
             label: '',
             data: [0, 0, 0],
             backgroundColor: [
-            this.documentStyle.getPropertyValue('--graph-color-a'),
-            this.documentStyle.getPropertyValue('--graph-color-b'),
-            this.documentStyle.getPropertyValue('--graph-color-c')
+                this.documentStyle.getPropertyValue('--graph-color-a'),
+                this.documentStyle.getPropertyValue('--graph-color-b'),
+                this.documentStyle.getPropertyValue('--graph-color-c')
             ],
             borderColor: this.documentStyle.getPropertyValue('--background')
         }]};
@@ -304,8 +304,8 @@ export class StatsModule implements OnInit {
             label: '',
             data: [0, 0],
             backgroundColor: [
-            this.documentStyle.getPropertyValue('--graph-color-c'),
-            this.documentStyle.getPropertyValue('--graph-color-d')
+                this.documentStyle.getPropertyValue('--graph-color-c'),
+                this.documentStyle.getPropertyValue('--graph-color-d')
             ],
             borderColor: this.documentStyle.getPropertyValue('--background')
         }]};
@@ -320,8 +320,8 @@ export class StatsModule implements OnInit {
             label: '',
             data: [0, 0],
             backgroundColor: [
-            this.documentStyle.getPropertyValue('--graph-color-a'),
-            this.documentStyle.getPropertyValue('--graph-color-b')
+                this.documentStyle.getPropertyValue('--graph-color-a'),
+                this.documentStyle.getPropertyValue('--graph-color-b')
             ],
             borderColor: this.documentStyle.getPropertyValue('--background')
         }]};
@@ -342,8 +342,8 @@ export class StatsModule implements OnInit {
             label: '',
             data: [0, 0],
             backgroundColor: [
-            this.documentStyle.getPropertyValue('--graph-color-c'),
-            this.documentStyle.getPropertyValue('--graph-color-d'),
+                this.documentStyle.getPropertyValue('--graph-color-c'),
+                this.documentStyle.getPropertyValue('--graph-color-d')
             ],
             borderColor: this.documentStyle.getPropertyValue('--background')
         }]};

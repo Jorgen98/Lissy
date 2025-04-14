@@ -75,7 +75,11 @@
         "delayTo": "Delay to",
         "addDelayCategory": "New category",
         "resetCategories": "Reset categories",
-        "other": "Other"
+        "other": "Other",
+        "graphs": "Trip delay development",
+        "graphAggMethodInfo": "While the map shows the development of delays in space and time, the purpose of the simple line graph is to show the development of delay values between stops. However, if more days or more trips are selected, it is necessary to reduce the available data for better clarity. You can group the data by date, where all available data for the selected trips are combined into a single trip using the selected aggregation function. Or you can group the data by trips, where data from different dates for the same trip is merged using the aggregation function.",
+        "graphAggDate": "Join data by dates",
+        "graphAggTrip": "Join data by trips"
     },
     "map" : {
         "zone": "Zone",

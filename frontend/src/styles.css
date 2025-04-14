@@ -110,6 +110,11 @@
     min-width: 26em;
 }
 
+.side-control-content-full {
+    width: calc(100vw - 5em);
+    overflow-x: scroll;
+}
+
 .side-control-head {
     background-color: var(--gray-800);
     display: flex;

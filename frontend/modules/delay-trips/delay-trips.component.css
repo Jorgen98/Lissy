@@ -32,3 +32,10 @@
 .delay-category-btns-div {
     display: flex;
 }
+
+.content-graphs {
+    color: var(--gray-50);
+    padding: 0 2em;
+    width: 100%;
+    max-width: calc(100vw - 5em);
+}

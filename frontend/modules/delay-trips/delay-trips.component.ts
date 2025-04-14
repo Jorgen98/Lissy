@@ -14,19 +14,24 @@ import { faRoute } from '@fortawesome/free-solid-svg-icons';
 interface route {
     route_short_name: string,
     id: number
-}
+};
 
 interface trip {
     id: number,
     dep_time: string,
     dep_time_lab: string
-}
+};
 
 interface tripGroup {
     shape_id: number,
     stops: string,
     trips: trip[]
-}
+};
+
+interface graphData {
+    labels: string[],
+    datasets: any[]
+};
 
 @Component({
     selector: 'delay-trips',
@@ -59,7 +64,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             }
             this.setUpAggMethods();
             this.renderData(false);
-        })
+        });
     }
 
     public moduleFocus: Number = 0;
@@ -82,7 +87,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
     public selectedTripGroup: tripGroup | undefined = undefined;
     public selectedTrip: trip | undefined = undefined;
     public selectedTripGroupShape: {stops: any[], coords: number[][][]} | undefined = undefined;
-    public selectedTripData: {[date_key: string]: {[path_group_index: number]: {[path_index: number]: number}}} = {};
+    public selectedTripData: {[date_key: string]:{[time_key: string]: {[path_group_index: number]: {[path_index: number]: number}}}} = {};
 
     public aggregationMethods: {label: string, operation: 'avg' | 'sum' | 'max' | 'min' }[] = [];
     public selectedAggMethod: {label: string, operation: 'avg' | 'sum' | 'max' | 'min'} | undefined = undefined;
@@ -93,6 +98,50 @@ export class DelayTripsModule implements OnInit, OnDestroy {
     public delayCategories: delayCategory[] = [];
 
     public faIconRoute = faRoute;
+
+    public tripsGraphData: graphData = {labels: [], datasets: []};
+    public tripsGraphAggFns: {label: string, operation: 'trip' | 'date'}[] = [];
+    public tripsGraphSelAggFn: {label: string, operation: 'trip' | 'date'} | undefined = undefined;
+
+    // Graph options according to type
+    public documentStyle = getComputedStyle(document.documentElement);
+    public graphTimeOptionsLegend = {
+        maintainAspectRatio: false,
+        aspectRatio: 1,
+        plugins: {
+            legend: { labels: { color: this.documentStyle.getPropertyValue('--gray-50')} },
+            tooltip: {
+                callbacks: {
+                    label: function(context: any) {
+                        return context.dataset.label;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    color: this.documentStyle.getPropertyValue('--gray-50')
+                },
+                grid: {
+                    color: this.documentStyle.getPropertyValue('--gray-500'),
+                    drawBorder: false
+                }
+            },
+            y: {
+                ticks: {
+                    callback: (value: any, index: any, ticks: any) => {
+                        return `${value} min.`
+                    },
+                    stepSize: 0.5
+                },
+                grid: {
+                    color: this.documentStyle.getPropertyValue('--gray-500'),
+                    drawBorder: false
+                }
+            }
+        }
+    };
 
     // Help function for api requests heading
     private async apiGet(url: string, params?: {[name: string]: string}) {
@@ -170,6 +219,13 @@ export class DelayTripsModule implements OnInit, OnDestroy {
         } else {
             this.selectedAggMethod = this.aggregationMethods[selectedFnIdx];
         }
+
+        // Set up graph aggregation functions
+        this.tripsGraphAggFns = [
+            {label: this.translate.instant('delay.graphAggDate'), operation: 'date'},
+            {label: this.translate.instant('delay.graphAggTrip'), operation: 'trip'}
+        ];
+        this.tripsGraphSelAggFn = this.tripsGraphAggFns[0];
     }
 
     // Function for calendar module switch
@@ -194,10 +250,19 @@ export class DelayTripsModule implements OnInit, OnDestroy {
         }
     }
 
-    // Function for settings module switch
-    public switchSettingsModuleVisibility() {
+    // Function for stats module switch
+    public switchStatsModuleVisibility() {
         if (this.moduleFocus !== 3) {
             this.moduleFocus = 3;
+        } else {
+            this.moduleFocus = 0;
+        }
+    }
+
+    // Function for settings module switch
+    public switchSettingsModuleVisibility() {
+        if (this.moduleFocus !== 4) {
+            this.moduleFocus = 4;
             this.delayCategories = this.delayCategoriesService.getDelayCategories();
         } else {
             this.moduleFocus = 0;
@@ -324,11 +389,19 @@ export class DelayTripsModule implements OnInit, OnDestroy {
 
     // Load trip delay data for selected date interval
     public async changeTrip() {
+        this.selectedTripData = {};
         if (this.selectedTrip) {
             //  Load delay data for one trip
             if (this.selectedTrip.id !== -1) {
                 this.msgService.turnOnLoadingScreenWithoutPercentage();
-                this.selectedTripData = await this.apiGet('getTripData', {dates: JSON.stringify(this.queryDates), trip_id: this.selectedTrip.id.toString()});
+                let inputData = await this.apiGet('getTripData', {dates: JSON.stringify(this.queryDates), trip_id: this.selectedTrip.id.toString()});
+                for (const record in inputData) {
+                    if (this.selectedTripData[record] === undefined) {
+                        this.selectedTripData[record] = {};
+                    }
+                    // Save retrieved data according to date and trip id
+                    this.selectedTripData[record][this.selectedTrip.id] = inputData[record];
+                }
             // Load delay data for whole trip group, e.g. one direction including whole day
             } else if (this.selectedTripGroup) {
                 this.msgService.turnOnLoadingScreen();
@@ -340,7 +413,11 @@ export class DelayTripsModule implements OnInit, OnDestroy {
                     let inputData = await this.apiGet('getTripData', {dates: JSON.stringify(this.queryDates), trip_id: trip.id.toString()});
 
                     for (const record in inputData) {
-                        this.selectedTripData[`${record}_${trip.id}`] = inputData[record];
+                        if (this.selectedTripData[record] === undefined) {
+                            this.selectedTripData[record] = {};
+                        }
+                        // Save retrieved data according to date and trip id
+                        this.selectedTripData[record][trip.id] = inputData[record];
                     }
 
                     this.msgService.actualLoadingPercentage.next(Math.floor((idx / this.selectedTripGroup?.trips.length) * 100));
@@ -369,6 +446,9 @@ export class DelayTripsModule implements OnInit, OnDestroy {
         this.mapService.clearLayer('stops');
         this.mapService.addNewLayer({name: 'stops', palette: {}, layer: undefined, paletteItemName: 'map.zone'});
 
+        // Clear graph data
+        this.tripsGraphData = {labels: [''], datasets: []};
+
         if (!this.selectedTripGroupShape || !this.selectedTripGroupShape.stops || !this.selectedTripGroupShape.coords) {
             return;
         }
@@ -379,19 +459,117 @@ export class DelayTripsModule implements OnInit, OnDestroy {
 
         // Show delay categories legend
         this.delayCategoriesService.putDelayCategoriesOnMap();
+        // Data for simplified map visualisation
         let stopArrivalDelays = [];
+
+        // Set up graph legend
+        // Prepare clear array for data
+        let labels: string[] = [this.selectedTripGroupShape.stops[0].stop_name];
+        for (const [routePartIdx, routePart] of this.selectedTripGroupShape.coords.entries()) {
+            labels.push(this.selectedTripGroupShape.stops[routePartIdx + 1].stop_name);
+        }
+        this.tripsGraphData.labels = labels;
+        // Chart colors
+        let chars = ['a', 'b', 'c', 'd'];
+        const firstKey = Object.keys(this.selectedTripData)[0];
+
+        // Prepare graph categories
+        if (this.tripsGraphSelAggFn?.operation === 'date') {
+            for (const [keyIdx, key] of Object.keys(this.selectedTripData).entries()) {
+                const graphLabel = timeStamp.getDate(key).toLocaleDateString(this.translate.currentLang);
+                this.tripsGraphData.datasets.push(
+                    {
+                        label: graphLabel,
+                        data: Array(this.selectedTripGroupShape.stops.length).fill(null),
+                        pointStyle: false,
+                        backgroundColor: this.documentStyle.getPropertyValue(`--graph-color-${chars[keyIdx % 4]}`),
+                        borderColor: this.documentStyle.getPropertyValue(`--graph-color-${chars[keyIdx % 4]}`)
+                    }
+                )
+            }
+        } else {
+            for (const [keyIdx, key] of Object.keys(this.selectedTripData[firstKey]).entries()) {
+                const graphLabel = this.selectedTripGroup?.trips.find((trip) => { return trip.id === parseInt(key)})?.dep_time_lab;
+                this.tripsGraphData.datasets.push(
+                    {
+                        label: graphLabel,
+                        data: Array(this.selectedTripGroupShape.stops.length).fill(null),
+                        pointStyle: false,
+                        backgroundColor: this.documentStyle.getPropertyValue(`--graph-color-${chars[keyIdx % 4]}`),
+                        borderColor: this.documentStyle.getPropertyValue(`--graph-color-${chars[keyIdx % 4]}`)
+                    }
+                )
+            }
+        }
+
+        this.tripsGraphData.datasets.sort((a, b) => { return a.label > b.label ? 1 : -1});
+
+        let lastDelayValue: number[] | undefined[] = Array(Object.keys(this.selectedTripData).length).fill(0);
+
+        let actualContinuesDelays: number[][];
+        if (this.tripsGraphSelAggFn?.operation === 'date') {
+            actualContinuesDelays = Array(Object.keys(this.selectedTripData).length).fill(Array(Object.keys(this.selectedTripData[firstKey]).length).fill(0));
+        } else {
+            actualContinuesDelays = Array(Object.keys(this.selectedTripData[firstKey]).length).fill(Array(Object.keys(this.selectedTripData).length).fill(0));
+        }
 
         // Put route on map
         for (const [routePartIdx, routePart] of this.selectedTripGroupShape.coords.entries()) {
             let routePartDelay = undefined;
 
             // Get delay values from last shape part before stop
-            let actualStopArrivalDelays = [];
-            for (const key of Object.keys(this.selectedTripData)) {
-                if (this.selectedTripData[key][routePartIdx]) {
-                    actualStopArrivalDelays.push(this.selectedTripData[key][routePartIdx][routePart.length - 2]);
+            let actualStopArrivalDelays: number[] = [];
+            for (const dateKey of Object.keys(this.selectedTripData)) {
+                for (const tripKey of Object.keys(this.selectedTripData[dateKey])) {
+                    if (this.selectedTripData[dateKey][tripKey][routePartIdx]) {
+                        actualStopArrivalDelays.push(this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2]);
+                    }
                 }
             }
+
+            // Prepare data for graph, take any value between two stops
+            if (this.tripsGraphSelAggFn?.operation === 'date') {
+                // Set graph data for first stop
+                for (const idx in Object.keys(this.selectedTripData)) {
+                    this.tripsGraphData.datasets[idx].data[0] = 0;
+                }
+
+                for (const [dateIdx, dateKey] of Object.keys(this.selectedTripData).entries()) {
+                    for (const [tripIdx, tripKey] of Object.keys(this.selectedTripData[dateKey]).entries()) {
+                        if (this.selectedTripData[dateKey][tripKey][routePartIdx] &&
+                            this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2]) {
+                                actualContinuesDelays[dateIdx][tripIdx] = this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2];
+                        }
+                    }
+                    lastDelayValue[dateIdx] = this.getActualDelayValue(actualContinuesDelays[dateIdx]);
+                }
+
+                // Set up graph data
+                for (const idx in Object.keys(this.selectedTripData)) {
+                    this.tripsGraphData.datasets[idx].data[routePartIdx + 1] = lastDelayValue[idx];
+                }
+            } else {
+                // Set graph data for first stop
+                for (const idx in Object.keys(this.selectedTripData[firstKey])) {
+                    this.tripsGraphData.datasets[idx].data[0] = 0;
+                }
+
+                for (const [tripIdx, tripKey] of Object.keys(this.selectedTripData[firstKey]).entries()) {
+                    for (const [dateIdx, dateKey] of Object.keys(this.selectedTripData).entries()) {
+                        if (this.selectedTripData[dateKey][tripKey] && this.selectedTripData[dateKey][tripKey][routePartIdx] &&
+                            this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2]) {
+                                actualContinuesDelays[tripIdx][dateIdx] = this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2];
+                        }
+                    }
+                    lastDelayValue[tripIdx] = this.getActualDelayValue(actualContinuesDelays[tripIdx]);
+                }
+
+                // Set up graph data
+                for (const idx in Object.keys(this.selectedTripData[firstKey])) {
+                    this.tripsGraphData.datasets[idx].data[routePartIdx + 1] = lastDelayValue[idx];
+                }
+            }
+
             stopArrivalDelays.push(actualStopArrivalDelays);
             // Count one delay value defined by selected aggregation function for whole route part between two stops
             routePartDelay = this.getActualDelayValue(actualStopArrivalDelays);
@@ -425,10 +603,12 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             } else {
                 for (let idx = 0; idx < (routePart.length - 1); idx++) {
                     let delay = undefined;
-                    let delays = [];
-                    for (const key of Object.keys(this.selectedTripData)) {
-                        if (this.selectedTripData[key][routePartIdx]) {
-                            delays.push(this.selectedTripData[key][routePartIdx][idx]);
+                    let delays: number[] = [];
+                    for (const dateKey of Object.keys(this.selectedTripData)) {
+                        for (const tripKey of Object.keys(this.selectedTripData[dateKey])) {
+                            if (this.selectedTripData[dateKey][tripKey][routePartIdx]) {
+                                delays.push(this.selectedTripData[dateKey][tripKey][routePartIdx][idx]);
+                            }
                         }
                     }
                     delay = this.getActualDelayValue(delays);

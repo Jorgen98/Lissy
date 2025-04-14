@@ -14,9 +14,15 @@
                     <fa-icon [icon]="faIconRoute"></fa-icon>
                 </button>
             </div>
+            <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+                <button pButton type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+                    (click)="switchStatsModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+                    <i class="pi pi-chart-line"></i>
+                </button>
+            </div>
         </span>
-        <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-            <button pButton type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+        <div [ngClass]="moduleFocus == 4 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+            <button pButton type="button" [ngClass]="moduleFocus == 4 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
                 (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
                 <i class="pi pi-cog"></i>
             </button>
@@ -63,8 +69,22 @@
                 </div>
             </div>
         </div>
+        <!-- Trip stats -->
+        <div class="side-control-content side-control-content-full" *ngIf="moduleFocus == 3">
+            <span class="side-control-head">
+                <h4>{{ 'delay.graphs' | translate }}</h4>
+                <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchStatsModuleVisibility()">
+                    <i class="pi pi-times"></i>
+                </button>
+            </span>
+            <div class="content-graphs">
+                <p>{{'delay.graphAggMethodInfo' | translate }}</p>
+                <p-dropdown [options]="tripsGraphAggFns" [(ngModel)]="tripsGraphSelAggFn" optionLabel="label" (onChange)="renderData(false)"/>
+                <p-chart type="line" [data]="tripsGraphData" [options]="graphTimeOptionsLegend"/>
+            </div>
+        </div>
         <!-- Visualization settings -->
-        <div class="side-control-content" *ngIf="moduleFocus == 3">
+        <div class="side-control-content" *ngIf="moduleFocus == 4">
             <span class="side-control-head">
                 <h4>{{ 'common.settings' | translate }}</h4>
                 <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchSettingsModuleVisibility()">

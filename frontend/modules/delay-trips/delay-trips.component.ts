@@ -502,15 +502,13 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             }
         }
 
-        this.tripsGraphData.datasets.sort((a, b) => { return a.label > b.label ? 1 : -1});
-
         let lastDelayValue: number[] | undefined[] = Array(Object.keys(this.selectedTripData).length).fill(0);
 
         let actualContinuesDelays: number[][];
         if (this.tripsGraphSelAggFn?.operation === 'date') {
-            actualContinuesDelays = Array(Object.keys(this.selectedTripData).length).fill(Array(Object.keys(this.selectedTripData[firstKey]).length).fill(0));
+            actualContinuesDelays = Array(Object.keys(this.selectedTripData).length).fill(0).map(() => Array(Object.keys(this.selectedTripData[firstKey]).length).fill(0));
         } else {
-            actualContinuesDelays = Array(Object.keys(this.selectedTripData[firstKey]).length).fill(Array(Object.keys(this.selectedTripData).length).fill(0));
+            actualContinuesDelays = Array(Object.keys(this.selectedTripData[firstKey]).length).fill(0).map(() => Array(Object.keys(this.selectedTripData).length).fill(0));
         }
 
         // Put route on map
@@ -537,7 +535,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
                 for (const [dateIdx, dateKey] of Object.keys(this.selectedTripData).entries()) {
                     for (const [tripIdx, tripKey] of Object.keys(this.selectedTripData[dateKey]).entries()) {
                         if (this.selectedTripData[dateKey][tripKey][routePartIdx] &&
-                            this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2]) {
+                            this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2] !== undefined) {
                                 actualContinuesDelays[dateIdx][tripIdx] = this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2];
                         }
                     }
@@ -556,8 +554,8 @@ export class DelayTripsModule implements OnInit, OnDestroy {
 
                 for (const [tripIdx, tripKey] of Object.keys(this.selectedTripData[firstKey]).entries()) {
                     for (const [dateIdx, dateKey] of Object.keys(this.selectedTripData).entries()) {
-                        if (this.selectedTripData[dateKey][tripKey] && this.selectedTripData[dateKey][tripKey][routePartIdx] &&
-                            this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2]) {
+                        if (this.selectedTripData[dateKey][tripKey] && this.selectedTripData[dateKey][tripKey][routePartIdx] !== undefined &&
+                            this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2] !== undefined) {
                                 actualContinuesDelays[tripIdx][dateIdx] = this.selectedTripData[dateKey][tripKey][routePartIdx][routePart.length - 2];
                         }
                     }
@@ -635,6 +633,8 @@ export class DelayTripsModule implements OnInit, OnDestroy {
                 }
             }
         }
+
+        this.tripsGraphData.datasets.sort((a, b) => { return a.label > b.label ? 1 : -1});
 
         // Put stops on map
         for (const [idx, stop] of this.selectedTripGroupShape.stops.entries()) {

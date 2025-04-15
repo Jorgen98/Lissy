@@ -630,6 +630,10 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             delete stop['stop_id'];
             delete stop['stop_sequence'];
         }
+
+        if (actualStopTimes[record].stops_info.length > 1) {
+            actualStopTimes[record].stops_info[actualStopTimes[record].stops_info.length - 1].dT = actualStopTimes[record].stops_info[actualStopTimes[record].stops_info.length - 1].aT;
+        }
     }
 
     actualApiEndpoints = {};
@@ -745,8 +749,9 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
             newTrip.route_id_id = todayRouteIds[newTrip.route_id].id;
 
-            newTrip['stops_info'] = newTrip['stops_info'].map(value => `'${JSON.stringify(value)}'`);
-            let newTripId = await dbPostGIS.addTrip(newTrip);
+            let newTripToAdd = JSON.parse(JSON.stringify(newTrip));
+            newTripToAdd['stops_info'] = newTripToAdd['stops_info'].map(value => `'${JSON.stringify(value)}'`);
+            let newTripId = await dbPostGIS.addTrip(newTripToAdd);
 
             if (newTripId === null) {
                 return false;
@@ -759,10 +764,15 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             let tmpShapeId = `${todayRouteIds[newTrip.route_id].route_type}?${JSON.stringify(newTrip.stops)}`;
             let tmpShapeActualId = null;
 
-            for (const tripId in actualTrips) {
-                if (actualTrips[tripId].tmp_shape_id === tmpShapeId) {
-                    tmpShapeActualId = actualTrips[tripId].shape_id;
-                    break;
+            if (actualTrip.tmp_shape_id === tmpShapeId) {
+                tmpShapeActualId = actualTrip.shape_id;
+                actualTrips[internTripId].tmp_shape_id = tmpShapeId;
+            } else {
+                for (const tripId in actualTrips) {
+                    if (actualTrips[tripId].tmp_shape_id === tmpShapeId) {
+                        tmpShapeActualId = actualTrips[tripId].shape_id;
+                        break;
+                    }
                 }
             }
 
@@ -936,9 +946,13 @@ function parseTimeFromGTFS(input) {
     try {
         if (parseInt(input.slice(0,2)) < 10) {
             return new Date(`1970-01-01T0${input}`);
-        } else if (parseInt(input.slice(0,2)) > 24) {
-            input = `${(parseInt(input.slice(0,2)) - 24).toString()}:${input.slice(2,4)}:${input.slice(4,6)}`;
-            return new Date(`1970-01-02T${input}`);
+        } else if (parseInt(input.slice(0,2)) > 23) {
+            input = `${(parseInt(input.slice(0,2)) - 24).toString()}:${input.slice(3,5)}:${input.slice(6,8)}`;
+            if (parseInt(input.slice(0,2)) < 10) {
+                return new Date(`1970-01-02T0${input}`);
+            } else {
+                return new Date(`1970-01-02T${input}`);
+            }
         } else {
             return new Date(`1970-01-01T${input}`);
         }

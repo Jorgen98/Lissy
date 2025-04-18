@@ -6,7 +6,7 @@
 .delay-category-row-header {
     display: grid;
     grid-template-columns: 0.1fr 0.5fr 0.3fr 0.1fr;
-    background-color: var(--gray-800);
+    background-color: var(--p-gray-800);
     font-weight: bold;
 }
 
@@ -17,12 +17,22 @@
 :host::ng-deep.delay-category-btn {
     margin: auto;
     height: 60%;
+    border: none !important;
+}
+
+:host::ng-deep.delay-category-btn:hover {
+    background-color: transparent;
 }
 
 :host::ng-deep.delay-category-number {
     width: 100%;
-    height: 60%;
+    height: 80%;
     margin: auto;
+    border-radius: var(--p-select-border-radius);
+}
+
+:host::ng-deep.delay-category-number:focus {
+    border-color: var(--p-gray-50);
 }
 
 .delay-category-color {
@@ -31,10 +41,11 @@
 
 .delay-category-btns-div {
     display: flex;
+    justify-content: space-around;
 }
 
 .content-graphs {
-    color: var(--gray-50);
+    color: var(--p-gray-50);
     padding: 0 2em;
     width: 100%;
     max-width: calc(100vw - 5em);

@@ -1,3 +1,8 @@
+/*
+ * App Map
+ * Map manipulation functions
+ */
+
 import { Component, AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
 import { environment } from '../../environments/environment';
@@ -30,6 +35,7 @@ export class MapComponent implements AfterViewInit {
     public enableLegend: boolean = false;
     public enableDelayCategories: boolean = false;
 
+    // Init map
     private initMap(): void {
         const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -44,6 +50,7 @@ export class MapComponent implements AfterViewInit {
             zoomControl: false
         });
 
+        // Change stop icon size according to actual map zoom
         const t = this;
         this.map.on('zoomend', function() {
             for (const layer in t.layers) {
@@ -101,6 +108,7 @@ export class MapComponent implements AfterViewInit {
         });
     }
 
+    // Create stop icon object
     private createStopIcon(object: mapObject) {
         if (!this.map) {
             return undefined;
@@ -109,6 +117,7 @@ export class MapComponent implements AfterViewInit {
         let objectLayer = this.layers[object?.layerName];
         let objectClass = 'color-base';
         if (object.color === 'palette') {
+            // If object color is in palette mode, get color from layer palette
             if (objectLayer.palette[object.metadata.zone_id] === undefined) {
                 let newColorIdx = Object.keys(objectLayer.palette).length % this.colorPaletteLength;
                 objectLayer.palette[object.metadata.zone_id] = this.colorPalette[newColorIdx];
@@ -124,6 +133,7 @@ export class MapComponent implements AfterViewInit {
         });
     }
 
+    // Creates stop svg icon shadow
     private createStopIconShadow() {
         if (!this.map) {
             return undefined;
@@ -136,6 +146,7 @@ export class MapComponent implements AfterViewInit {
         });
     }
 
+    // Creates stop svg icon hoover
     private createStopIconHoover() {
         if (!this.map) {
             return undefined;
@@ -148,6 +159,7 @@ export class MapComponent implements AfterViewInit {
         });
     }
 
+    // Create polyline object
     private createPolyline(object: mapObject) {
         if (!this.map) {
             return undefined;
@@ -167,6 +179,7 @@ export class MapComponent implements AfterViewInit {
         )
     }
 
+    // Create polyline object hoover
     private createPolylineShadow(object: mapObject) {
         if (!this.map) {
             return undefined;
@@ -184,6 +197,7 @@ export class MapComponent implements AfterViewInit {
         )
     }
 
+    // Render color legend for every layer
     private actualizeColorLegend() {
         let legendLines: String[] = [];
         for (const layer in this.layers) {
@@ -215,6 +229,7 @@ export class MapComponent implements AfterViewInit {
         }
     }
 
+    // Render delay categories legend
     private actualizeDelayCategories(categories: delayCategory[]) {
         let legend: String[] = [];
         let graphColors: String[] = [];
@@ -277,6 +292,7 @@ export class MapComponent implements AfterViewInit {
         }
     }
 
+    // Adds new object layer to map
     private addNewLayer(newLayer: mapLayer) {
         if (this.layers[newLayer.name] === undefined) {
             let newLayerGroup = L.featureGroup();
@@ -290,6 +306,7 @@ export class MapComponent implements AfterViewInit {
         }
     }
 
+    // Add new object to map layer
     private addToLayer(object: mapObject) {
         if (this.layers[object?.layerName] === undefined || this.map === undefined ||
             !this.layers[object.layerName].layer) {
@@ -299,12 +316,14 @@ export class MapComponent implements AfterViewInit {
         let bounds: L.LatLngBoundsExpression = this.map.getBounds();
 
         switch (object.type) {
+            // Polyline
             case 'route': {
                 let line = this.createPolyline(object);
                 if (line) {
                     let lineOnMap = line.addTo(this.layers[object.layerName].layer!);
                     if (object.metadata.delay_value !== undefined) {
                         let labelHead = "";
+                        // Count polyline delay value according to provided aggregation function
                         switch (object.metadata.agg_method) {
                             case 'avg': labelHead = this.translate.instant('map.avg'); break;
                             case 'sum': labelHead = this.translate.instant('map.sum'); break;
@@ -325,6 +344,7 @@ export class MapComponent implements AfterViewInit {
                                 this.mapService.clearLayerObj.next('hoover');
                             });
 
+                            // On polyline click, if hoover is enabled
                             if (object.hoover) {
                                 this.mapService.clearLayerObj.next('hoover');
                                 let hooverLine = this.createPolylineShadow(object);
@@ -341,11 +361,13 @@ export class MapComponent implements AfterViewInit {
                 }
                 break;
             }
+            // Stop
             case 'stop': {
                 let delayCategories = this.delayCategoriesService.getDelayCategories();
                 let categoriesHtmlElem: any[] = [];
                 let pieChartSegmentsHtmlElem: any[] = [];
 
+                // Render stop arrival stats, if delays are provided
                 if (object.metadata.delays) {
                     let delaysCount = 0;
                     for (let category of delayCategories) {
@@ -361,7 +383,7 @@ export class MapComponent implements AfterViewInit {
                         }
                     }
 
-                    
+                    // Prepare delay legend
                     let idx = 0;
                     let segmentMove = 0;
                     while (idx < delayCategories.length) {
@@ -401,6 +423,7 @@ export class MapComponent implements AfterViewInit {
                     }
                 )
                 .addTo(this.layers[object.layerName].layer!)
+                // Render stop tooltip on click
                 .on('click', () => {
                     L.popup()
                     .setLatLng(object.latLng[0])
@@ -422,6 +445,7 @@ export class MapComponent implements AfterViewInit {
                         </span>
                     `)
                     .addTo(this.layers[object.layerName].layer!);
+                    // Add stop hoover on click, if enabled
                     if (object.hoover) {
                         this.mapService.clearLayerObj.next('hoover');
                         L.marker(
@@ -444,6 +468,7 @@ export class MapComponent implements AfterViewInit {
         }
     }
 
+    // Remove object layer from map
     private removeLayer(layerName: string) {
         let layerToRemove = this.layers[layerName];
 
@@ -454,6 +479,7 @@ export class MapComponent implements AfterViewInit {
         }
     }
 
+    // Remove all objects from layer
     private clearLayer(layerName: string) {
         let layerToRemove = this.layers[layerName];
 
@@ -463,6 +489,7 @@ export class MapComponent implements AfterViewInit {
         }
     }
 
+    // Fit map view to map layer according to actual layer objects
     private fitToLayer(name: string) {
         let layer = this.layers[name];
 

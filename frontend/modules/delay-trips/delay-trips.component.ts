@@ -72,6 +72,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
     public isRouteSelectionEnabled: boolean = true;
     public isDateSelectionEnabled: boolean = true;
     public isSettingsEnabled: boolean = true;
+    public isStatsModuleEnabled: boolean = true;
 
     public selectedDates: Date[] | null = null;
     public hooverDates: Date[] | null = null;
@@ -109,7 +110,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
         maintainAspectRatio: false,
         aspectRatio: 1,
         plugins: {
-            legend: { labels: { color: this.documentStyle.getPropertyValue('--gray-50')} },
+            legend: { labels: { color: this.documentStyle.getPropertyValue('--p-gray-50')} },
             tooltip: {
                 callbacks: {
                     label: function(context: any) {
@@ -121,10 +122,10 @@ export class DelayTripsModule implements OnInit, OnDestroy {
         scales: {
             x: {
                 ticks: {
-                    color: this.documentStyle.getPropertyValue('--gray-50')
+                    color: this.documentStyle.getPropertyValue('--p-gray-50')
                 },
                 grid: {
-                    color: this.documentStyle.getPropertyValue('--gray-500'),
+                    color: this.documentStyle.getPropertyValue('--p-gray-500'),
                     drawBorder: false
                 }
             },
@@ -136,7 +137,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
                     stepSize: 0.5
                 },
                 grid: {
-                    color: this.documentStyle.getPropertyValue('--gray-500'),
+                    color: this.documentStyle.getPropertyValue('--p-gray-500'),
                     drawBorder: false
                 }
             }
@@ -427,10 +428,12 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             // Put delay data on map
             if (Object.keys(this.selectedTripData).length > 0) {
                 this.renderData(true);
+                this.isStatsModuleEnabled = true;
             } else {
                 this.mapService.clearLayer('route');
                 this.mapService.clearLayer('stops');
                 this.delayCategoriesService.removeDelayCategoriesFromMap();
+                this.isStatsModuleEnabled = false;
                 this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
             }
             this.msgService.turnOffLoadingScreen();

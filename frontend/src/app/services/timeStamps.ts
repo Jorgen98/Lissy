@@ -1,7 +1,7 @@
 /*
  * UTC time stamp handle functions
  *
- * Custom time stamp format is YYYY-MM-DD
+ * System used time stamp format is YYYY-MM-DD
  */
 
 // Convert JS Date to time

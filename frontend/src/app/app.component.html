@@ -1,15 +1,18 @@
 <div class="main">
-    <div class="header">
+    <div class="header" *ngIf="router.url != '/'">
+        <!-- Menu -->
         <div class="header-left">
-            <button *ngIf="router.url != '/'" pButton type="button" class="btn-header" routerLink="/">
+            <button type="button" class="btn-header" routerLink="/">
                 <i class="pi pi-bars"></i>
             </button>
         </div>
+        <!-- Logo -->
         <div class="header-center">
-            <div class="header-link-item" routerLink="/" *ngIf="router.url != '/'">
+            <div class="header-link-item" routerLink="/">
                 <img class="header-link-img" src="./logo.svg"/>
             </div>
         </div>
+        <!-- Modules header -->
         <div class="header-right">
             <div class="header-link-item" (click)="goToLink('fit')">
                 <img class="header-link-img" src="./FIT.png"/>
@@ -22,9 +25,8 @@
             </div>
         </div>
     </div>
-    <div class="messagesElem">
-        <p-toast />
-    </div>
+    <!-- Messages -->
+    <p-toast />
     <!-- Loading screen -->
     <div *ngIf="loadingElemVisibility" class="loadingElemBackground"></div>
     <div *ngIf="loadingElemVisibility" class="loadingElem">

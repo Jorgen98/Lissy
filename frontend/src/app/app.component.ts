@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { ImportsModule } from './imports';
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
-import { PrimeNGConfig } from 'primeng/api';
 import { UIMessagesService } from './services/messages';
+import { PrimeNG } from 'primeng/config';
 
 @Component({
     selector: 'app-root',
@@ -27,19 +27,18 @@ export class AppComponent {
     constructor(
         private translate: TranslateService,
         public router: Router,
-        private config: PrimeNGConfig,
-        private msgService: UIMessagesService
+        private msgService: UIMessagesService,
+        private primeng: PrimeNG
     ) {
         this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
         this.translate.setDefaultLang(this.langs[0].code);
         this.translate.use(this.langs[0].code);
-        this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
+        this.translate.get('primeng').subscribe(res => this.primeng.setTranslation(res));
 
         router.events.subscribe(() => {msgService.turnOffLoadingScreen()});
-        
         // Message service - loading events
-        msgService.loadingElemVisibility.subscribe(visibility => this.loadingElemVisibility = visibility);
-        msgService.actualLoadingPercentage.subscribe(percentage => {
+        msgService.loadingElemVisibility.subscribe((visibility: boolean) => this.loadingElemVisibility = visibility);
+        msgService.actualLoadingPercentage.subscribe((percentage: number) => {
             isNaN(percentage) ? this.loadingElemPercentage = '' : this.loadingElemPercentage = `${percentage}%`;
         });
     }
@@ -51,7 +50,7 @@ export class AppComponent {
             this.selectedLang = this.langs[0];
         }
         this.translate.use(this.selectedLang.code);
-        this.translate.get('primeng').subscribe(res => this.config.setTranslation(res));
+        this.translate.get('primeng').subscribe(res => this.primeng.setTranslation(res));
     }
 
     public goToLink(whereTo: string) {

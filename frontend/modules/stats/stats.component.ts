@@ -51,19 +51,19 @@ export class StatsModule implements OnInit {
           legend: { display: false },
       },
       scales: {
-          x: { ticks: { color: this.documentStyle.getPropertyValue('--gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--gray-500'), drawBorder: false }},
-          y: { ticks: { color: this.documentStyle.getPropertyValue('--gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--gray-500'), drawBorder: false }}
+          x: { ticks: { color: this.documentStyle.getPropertyValue('--p-gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--p-gray-500'), drawBorder: false }},
+          y: { ticks: { color: this.documentStyle.getPropertyValue('--p-gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--p-gray-500'), drawBorder: false }}
       }
     };
     public graphOptionsLegend = {
         maintainAspectRatio: false,
         aspectRatio: 1,
         plugins: {
-            legend: { labels: { color: this.documentStyle.getPropertyValue('--gray-50') }},
+            legend: { labels: { color: this.documentStyle.getPropertyValue('--p-gray-50') }},
         },
         scales: {
-            x: { ticks: { color: this.documentStyle.getPropertyValue('--gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--gray-500'), drawBorder: false }},
-            y: { ticks: { color: this.documentStyle.getPropertyValue('--gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--gray-500'), drawBorder: false }}
+            x: { ticks: { color: this.documentStyle.getPropertyValue('--p-gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--p-gray-500'), drawBorder: false }},
+            y: { ticks: { color: this.documentStyle.getPropertyValue('--p-gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--p-gray-500'), drawBorder: false }}
         }
     };
     public graphTimeOptions = {
@@ -83,15 +83,15 @@ export class StatsModule implements OnInit {
             }
         },
         scales: {
-            x: { ticks: { color: this.documentStyle.getPropertyValue('--gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--gray-500'), drawBorder: false }},
-            y: { ticks: { display: false }, grid: { color: this.documentStyle.getPropertyValue('--gray-500'), drawBorder: false }}
+            x: { ticks: { color: this.documentStyle.getPropertyValue('--p-gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--p-gray-500'), drawBorder: false }},
+            y: { ticks: { display: false }, grid: { color: this.documentStyle.getPropertyValue('--p-gray-500'), drawBorder: false }}
         }
     };
     public graphTimeOptionsLegend = {
         maintainAspectRatio: false,
         aspectRatio: 1,
         plugins: {
-            legend: { labels: { color: this.documentStyle.getPropertyValue('--gray-50')} },
+            legend: { labels: { color: this.documentStyle.getPropertyValue('--p-gray-50')} },
             tooltip: {
                 callbacks: {
                     label: function(context: any) {
@@ -104,15 +104,15 @@ export class StatsModule implements OnInit {
             }
         },
         scales: {
-            x: { ticks: { color: this.documentStyle.getPropertyValue('--gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--gray-500'), drawBorder: false }},
-            y: { ticks: { display: false }, grid: { color: this.documentStyle.getPropertyValue('--gray-500'), drawBorder: false }}
+            x: { ticks: { color: this.documentStyle.getPropertyValue('--p-gray-50') }, grid: { color: this.documentStyle.getPropertyValue('--p-gray-500'), drawBorder: false }},
+            y: { ticks: { display: false }, grid: { color: this.documentStyle.getPropertyValue('--p-gray-500'), drawBorder: false }}
         }
     };
     public graphOptionsDoughnut = {
         maintainAspectRatio: false,
         aspectRatio: 1,
         plugins: {
-            legend: { labels: { color: this.documentStyle.getPropertyValue('--gray-50') } }
+            legend: { labels: { color: this.documentStyle.getPropertyValue('--p-gray-50') } }
         },
         scales: {
             x: { ticks: { display: false }, grid: { display: false }},
@@ -123,7 +123,7 @@ export class StatsModule implements OnInit {
         maintainAspectRatio: false,
         aspectRatio: 1,
         plugins: {
-            legend: { labels: { color: this.documentStyle.getPropertyValue('--gray-50') } },
+            legend: { labels: { color: this.documentStyle.getPropertyValue('--p-gray-50') } },
             tooltip: {
                 callbacks: {
                     label: function(context: any) {

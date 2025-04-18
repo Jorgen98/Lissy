@@ -15,7 +15,7 @@
     display: grid;
     padding: 0.5em 1.5em;
     grid-template-columns: 0.2fr 0.6fr 0.2fr;
-    border-bottom: 0.15em solid var(--gray-800);
+    border-bottom: 0.15em solid var(--p-gray-800);
     min-height: 3.5em;
     position: fixed;
     width: 100%;
@@ -62,167 +62,6 @@
     height: 2.15em;
 }
 
-:host::ng-deep.p-disabled {
-    opacity: 0.5 !important;
-    color: var(--gray-500) !important;
-}
-
-:host::ng-deep.p-calendar {
-    width: 100%;
-}
-
-:host::ng-deep.p-datepicker {
-    background-color: var(--background);
-    border: none;
-    color: var(--gray-50);
-}
-
-:host::ng-deep.p-datepicker-header {
-    background-color: var(--background);
-    border-bottom: 0.15em solid var(--gray-800);
-}
-
-:host::ng-deep.p-datepicker table td.p-datepicker-today > span {
-    color: var(--gray-50);
-    background-color: var(--background);
-    transition: .5s;
-    border: 0.15em solid var(--gray-50);
-}
-
-:host::ng-deep.p-datepicker table td.p-datepicker-today > span:hover {
-    transition: .5s;
-    color: var(--background);
-    background-color: var(--gray-50);
-}
-
-:host::ng-deep.p-datepicker table td > span {
-    transition: .5s;
-}
-
-:host::ng-deep.p-datepicker table td > span:hover {
-    transition: .5s;
-    color: var(--background);
-}
-
-:host::ng-deep.p-datepicker table td > span.p-highlight {
-    color: var(--background);
-    background-color: var(--gray-50);
-}
-
-:host::ng-deep.p-datepicker-decade {
-    color: var(--gray-50);
-}
-
-:host::ng-deep.p-yearpicker-year, :host::ng-deep.p-monthpicker-month {
-    transition: .5s;
-}
-
-:host::ng-deep.p-yearpicker-year:hover, :host::ng-deep.p-monthpicker-month:hover {
-    color: var(--background);
-    transition: .5s;
-}
-
-:host::ng-deep.p-highlight {
-    border: 0.15em solid var(--gray-50);
-    background-color: transparent;
-    color: var(--gray-50);
-}
-
-:host::ng-deep.p-datepicker-year, :host::ng-deep.p-datepicker-month {
-    transition: .5s;
-    color: var(--gray-50);
-    font-weight: 600;
-    padding: 0.5rem;
-    outline: none;
-    box-shadow: none;
-}
-
-:host::ng-deep.p-datepicker-year:hover, :host::ng-deep.p-datepicker-month:hover, :host::ng-deep.p-highlight:hover {
-    color: var(--background);
-    transition: .5s;
-    background-color: var(--gray-50);
-}
-
-:host::ng-deep.p-dropdown {
-    background-color: var(--background);
-    border: 0.2em solid var(--gray-800);
-    border-radius: 0.5em;
-    width: 100%;
-    outline: none;
-    box-shadow: none;
-}
-
-:host::ng-deep.p-dropdown-label {
-    color: var(--gray-50);
-    font-weight: bold;
-}
-
-:host::ng-deep.p-dropdown-panel {
-    background-color: var(--background);
-    border: 0.2em solid var(--gray-800);
-    border-radius: 0.5em;
-}
-
-:host::ng-deep.p-highlight {
-    border: 0.2em solid var(--gray-50);
-    color: var(--gray-50);
-    font-weight: bold;
-}
-
-:host::ng-deep.p-dropdown-item {
-    color: var(--gray-50);
-    font-weight: bold;
-    transition: .5s;
-    border: 0.2em solid transparent;
-    text-wrap: auto;
-}
-
-:host::ng-deep.p-dropdown-item:hover {
-    color: var(--background);
-    font-weight: bold;
-    transition: .5s;
-    border: 0.2em solid var(--gray-50);
-}
-
-:host::ng-deep.p-overlay {
-    max-width: 100%;
-}
-
-:host::ng-deep.p-dropdown-header {
-    background: var(--background);
-    border-bottom: 0.2em solid var(--gray-800);
-}
-
-:host::ng-deep.p-dropdown-filter {
-    outline: none;
-    box-shadow: none;
-    background: transparent;
-    border: none;
-    color: inherit;
-    transition: .5s;
-}
-
-:host::ng-deep.p-dropdown-filter-container {
-    background: var(--background);
-    color: var(--gray-50);
-    transition: .5s;
-    border-radius: 6px;
-}
-
-:host::ng-deep.p-dropdown-filter-container:hover {
-    background: var(--gray-50);
-    color: var(--background);
-    transition: .5s;
-}
-
-.messagesElem {
-    margin-top: 3.5em;
-    position: absolute;
-    background-color: transparent;
-    width: 100vw;
-    height: calc(100vh - 3.5em);
-}
-
 .loadingElemBackground {
     margin-top: 3.5em;
     position: absolute;
@@ -246,7 +85,7 @@
     margin: auto;
     display: grid;
     grid-template-columns: 1fr auto;
-    color: var(--gray-50);
+    color: var(--p-gray-50);
     column-gap: 1em;
 }
 
@@ -275,28 +114,133 @@
     font-weight: bold;
 }
 
-:host::ng-deep.p-toast-top-right {
-    top: 5em;
+:host::ng-deep i {
+    font-size: 1em;
 }
 
-:host::ng-deep.p-toast-message-icon, :host::ng-deep.p-toast-icon-close {
-    color: inherit;
+:host::ng-deep.p-datepicker {
+    display: flex;
 }
 
-:host::ng-deep.p-toast-message-error {
-    background-color: var(--error);
-    border: solid var(--error);
+:host::ng-deep.p-datepicker-panel {
+    background-color: transparent;
+    border: none;
+}
+
+:host::ng-deep.p-datepicker-select-month, :host::ng-deep.p-datepicker-select-year,
+:host::ng-deep.p-datepicker-year, :host::ng-deep.p-datepicker-month,
+:host::ng-deep.p-datepicker-prev-button, :host::ng-deep.p-datepicker-next-button {
+    background-color: transparent;
+    border: none;
+    color: var(--p-gray-50);
+    text-decoration: none;
+    font-size: 1.25em;
+    transition: .5s;
+    padding: 0.25em 0.5em;
+    outline: none;
+    box-shadow: none;
+    opacity: 0.5;
+    margin: 0.25em auto;
+}
+
+:host::ng-deep.p-datepicker-select-month:hover, :host::ng-deep.p-datepicker-select-year:hover,
+:host::ng-deep.p-datepicker-year:hover, :host::ng-deep.p-datepicker-month:hover,
+:host::ng-deep.p-datepicker-prev-button:hover, :host::ng-deep.p-datepicker-next-button:hover {
+    transition: .5s;
+    opacity: 1;
+    background-color: transparent;
+    background: none !important;
+    border: none !important;
+    color: var(--p-gray-50) !important;
+}
+
+:host::ng-deep.p-datepicker-header {
+    border-bottom: 0.15em solid var(--p-gray-800);
+    background-color: transparent;
+}
+
+:host::ng-deep.p-datepicker-day-view {
+    font-size: 1.25em;
+}
+
+:host::ng-deep.p-datepicker-decade {
+    font-size: 1.25em;
+    padding: 0.5em 0;
+}
+
+:host::ng-deep.p-datepicker-today > .p-datepicker-day {
+    background-color: transparent;
+    border: 0.1em solid var(--p-gray-800);
+}
+
+:host::ng-deep.p-datepicker-day {
+    color: var(--p-gray-50);
+    opacity: 0.5;
+    transition: .5s;
+    margin: 0.25em auto;
+    width: 2em;
+    height: 2em;
+}
+
+:host::ng-deep.p-datepicker-day:hover {
+    opacity: 1;
+    background: none !important;
+    color: var(--p-gray-50);
+    transition: .5s;
+}
+
+:host::ng-deep.p-datepicker-day-selected, :host::ng-deep.p-datepicker-day-selected:hover  {
+    background-color: var(--p-gray-50) !important;
     color: var(--background);
+    opacity: 1;
 }
 
-:host::ng-deep.p-toast-message-info {
-    color: var(--info);
-    border: solid var(--info);
-    background-color: var(--background);
+:host::ng-deep.p-disabled {
+    color: var(--p-gray-800);
 }
 
-:host::ng-deep.p-toast-message-warn {
-    color: var(--warning);
-    border: solid var(--warning);
-    background-color: var(--background);
+:host::ng-deep.p-checkbox-checked .p-checkbox-box {
+    background-color: var(--p-gray-50);
+    color: var(--background);
+    border-color: var(--p-gray-50);
+    opacity: 0.5;
+    transition: .5s;
+}
+
+:host::ng-deep.p-checkbox-checked:not(.p-disabled):has(.p-checkbox-input:hover) .p-checkbox-box {
+    background-color: var(--p-gray-50);
+    color: var(--background);
+    border-color: var(--p-gray-50);
+    opacity: 1;
+    transition: .5s;
+}
+
+:host::ng-deep.p-select-filter {
+    border: none;
+}
+
+:host::ng-deep.p-select:not(.p-disabled).p-focus {
+    border-color: var(--p-gray-50);
+}
+
+:host::ng-deep.p-select-option {
+    opacity: 0.5;
+    color: var(--p-gray-50);
+    transition: .5s;
+}
+
+:host::ng-deep.p-select-option:hover, :host::ng-deep.p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
+    opacity: 1.0;
+    transition: .5s;
+    background-color: transparent;
+}
+
+:host::ng-deep.p-select-option.p-select-option-selected, :host::ng-deep.p-select-option.p-select-option-selected.p-focus {
+    background-color: var(--p-gray-50);
+    color: var(--background);
+    opacity: 1.0;
+}
+
+:host::ng-deep.p-toast-message {
+    margin-top: 3em;
 }

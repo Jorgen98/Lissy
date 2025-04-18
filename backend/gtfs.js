@@ -764,14 +764,16 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             let tmpShapeId = `${todayRouteIds[newTrip.route_id].route_type}?${JSON.stringify(newTrip.stops)}`;
             let tmpShapeActualId = null;
 
-            if (actualTrip.tmp_shape_id === tmpShapeId) {
-                tmpShapeActualId = actualTrip.shape_id;
-                actualTrips[internTripId].tmp_shape_id = tmpShapeId;
-            } else {
-                for (const tripId in actualTrips) {
-                    if (actualTrips[tripId].tmp_shape_id === tmpShapeId) {
-                        tmpShapeActualId = actualTrips[tripId].shape_id;
-                        break;
+            if (actualTrip !== undefined  && actualTrip.tmp_shape_id !== undefined) {
+                if (actualTrip.tmp_shape_id === tmpShapeId) {
+                    tmpShapeActualId = actualTrip.shape_id;
+                    actualTrips[internTripId].tmp_shape_id = tmpShapeId;
+                } else {
+                    for (const tripId in actualTrips) {
+                        if (actualTrips[tripId].tmp_shape_id === tmpShapeId) {
+                            tmpShapeActualId = actualTrips[tripId].shape_id;
+                            break;
+                        }
                     }
                 }
             }

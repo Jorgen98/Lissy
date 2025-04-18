@@ -2,4 +2,16 @@
     color: var(--gray-50);
     width: 60vw;
     margin: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.context-menu {
+    display: flex;
+    margin: 2rem 0;
+    justify-content: space-around;
+}
+
+.context-btn {
+    font-size: 1.75rem;
 }

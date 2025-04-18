@@ -2,7 +2,7 @@
     <!-- Side menu -->
     <div class="side-control">
         <div [ngClass]="isCalendarModuleActive ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-        <button pButton type="button" [ngClass]="isCalendarModuleActive ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+        <button type="button" [ngClass]="isCalendarModuleActive ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
             (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
             <i class="pi pi-calendar"></i>
         </button>
@@ -14,19 +14,19 @@
         <div class="side-control-content" *ngIf="isCalendarModuleActive">
             <span class="side-control-head">
                 <h4>{{ 'common.calendar' | translate }}</h4>
-                <button pButton type="button" class="p-link p-datepicker-month side-control-close-btn" (click)="switchCalendarModuleVisibility()">
+                <button type="button" (click)="switchCalendarModuleVisibility()">
                     <i class="pi pi-times"></i>
                 </button>
             </span>
-            <p-calendar class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
+            <p-datepicker class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
                 [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
                 <ng-template pTemplate="footer">
                     <div class="calendar-btns-div">
-                        <button *ngIf="isTodayFunctionEnabled" pButton type="button" class="p-link p-datepicker-month" (click)="setToday()">{{ 'stats.today' | translate }}</button>
-                        <button pButton type="button" class="p-link p-datepicker-month" (click)="downloadData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
+                        <button *ngIf="isTodayFunctionEnabled" type="button" (click)="setToday()">{{ 'stats.today' | translate }}</button>
+                        <button type="button" (click)="downloadData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
                     </div>
                 </ng-template>
-            </p-calendar>
+            </p-datepicker>
         </div>
         <!-- Graphs -->
         <!-- System state -->

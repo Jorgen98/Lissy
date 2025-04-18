@@ -1,6 +1,6 @@
 {
   "name": "lissy-fe",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -23,6 +23,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@ngx-translate/core": "^16.0.3",
     "@ngx-translate/http-loader": "^16.0.0",
+    "@primeng/themes": "^19.1.0",
     "chart.js": "^4.4.6",
     "chartjs-plugin-datalabels": "^2.2.0",
     "dotenv": "^16.4.5",
@@ -31,7 +32,7 @@
     "leaflet": "^1.9.4",
     "ngx-markdown": "^19.1.1",
     "primeicons": "^7.0.0",
-    "primeng": "^17.18.11",
+    "primeng": "^19.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

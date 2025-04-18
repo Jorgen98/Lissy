@@ -4,11 +4,11 @@
     </div>
     <div class="main-item-down">
         <div *ngFor="let module of modules" class="main-btn-div">
-        <button *ngIf="module.enabled" pButton type="button" class="btn-header" routerLink="{{ module.apiPrefix }}">
+        <button *ngIf="module.enabled" type="button" class="btn-header" routerLink="{{ module.apiPrefix }}">
             <div class="main-btn-content" [ngSwitch]="module.icon">
                 <fa-icon *ngSwitchCase="'fa-route'" [icon]="faIconRoute"></fa-icon>
                 <fa-icon *ngSwitchCase="'fa-clock'" [icon]="faIconHourglassHalf"></fa-icon>
-                <i *ngSwitchDefault class="pi {{ module.icon }}"></i>
+                <i *ngSwitchDefault class="main-icon pi {{ module.icon }}"></i>
                 <span class="main-btn-content-text">{{ module.name | translate }}</span>
             </div>
         </button>

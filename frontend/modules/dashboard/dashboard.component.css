@@ -2,7 +2,7 @@
     display: grid;
     width: 100%;
     row-gap: 2em;
-    grid-template-rows: 0.5fr auto
+    grid-template-rows: 0.5fr auto;
 }
 
 .main-item-up {

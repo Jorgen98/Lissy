@@ -17,4 +17,10 @@ export class AboutModule {
     constructor(
         public translate: TranslateService
     ) {}
+
+    public context: number = 0;
+
+    public goToLink(url: string){
+        window.open(url, "_blank");
+    }
 }

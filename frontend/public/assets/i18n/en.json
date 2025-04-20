@@ -1,6 +1,26 @@
 {
     "about": {
-        "name": "About"
+        "name": "About",
+        "header": {
+            "manual": "How to work with app?",
+            "architecture": "What is it composed of?",
+            "development": "How was it made?",
+            "next": "What else do you have?"
+        },
+        "manual": {
+            "header": "User Manual",
+            "info": "Since each dashboard works a little differently, below you will find a simple guide on how to use this application. The individual modules are designed very similarly and share similar control logic, although each module works with a different view of the data. This tutorial should therefore make it easier for you to gain useful knowledge of this application and also show you all the features so that you don't miss any detail.",
+            "steps": {
+                "0_header": "Main menu",
+                "0_info": "When you turn on the application, you will always see the main menu where you can select the module you want to work with. The language selection can be found on the top right.",
+                "1_header": "Selecting data",
+                "1_info": "The main criterion when visualizing any data in an application is to select the date or dates you are interested in. Using the control panel on the left, you can select one or more dates depending on the nature of the module. You then have to confirm the selection itself with the Load Data button. In this way you can, for example, get all the routes of the selected line on a certain day.",
+                "2_header": "Line selection",
+                "2_info": "After selecting the time period you are interested in, the application will allow you to select the line, route and, if applicable, the specific trip you are interested in based on the available data. Using the dashboard on the left, you can see, for example, that your favourite line definitely does not only run between two final stops.",
+                "3_header": "Details and settings",
+                "3_info": "The visualization of the selected data alone can never cover all requirements. Therefore, each module can be configured using the control panel on the bottom left. And since some data only makes sense if you place it in the map space, you can get more details by clicking directly on the objects in the map. For example, you can see which stops are marked as wheelchair accessible in the system."
+            }
+        }
     },
     "stats": {
         "name": "Stats",

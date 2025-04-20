@@ -5,7 +5,7 @@
 
 ::ng-deep .leaflet-control-attribution {
     background: var(--background) !important;
-    color: var(--gray-50);
+    color: var(--p-gray-50);
 }
 
 ::ng-deep .color-base {
@@ -116,7 +116,7 @@
 
 ::ng-deep .delay-categories-graph-legend-point {
     width: 1.25em;
-    background-color: var(--gray-50);
+    background-color: transparent;
     border-radius: 1.25em;
 }
 

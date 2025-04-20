@@ -1,23 +1,23 @@
 <div class="main">
-    <div class="header" *ngIf="router.url != '/'">
+    <div class="header" [ngClass]="router.url == '/' ? 'header-without-border' : ''">
         <!-- Menu -->
         <div class="header-left">
-            <button type="button" class="btn-header" routerLink="/">
+            <button type="button" class="btn-header" routerLink="/" *ngIf="router.url != '/'">
                 <i class="pi pi-bars"></i>
             </button>
         </div>
         <!-- Logo -->
         <div class="header-center">
-            <div class="header-link-item" routerLink="/">
+            <div class="header-link-item" routerLink="/" *ngIf="router.url != '/'">
                 <img class="header-link-img" src="./logo.svg"/>
             </div>
         </div>
         <!-- Modules header -->
         <div class="header-right">
-            <div class="header-link-item" (click)="goToLink('fit')">
+            <div class="header-link-item" (click)="goToLink('fit')" *ngIf="router.url != '/'">
                 <img class="header-link-img" src="./FIT.png"/>
             </div>
-            <div class="header-link-item" (click)="goToLink('brno')">
+            <div class="header-link-item" (click)="goToLink('brno')" *ngIf="router.url != '/'">
                 <img class="header-link-img" src="./brno.png"/>
             </div>
             <div class="header-link-item" (click)="changeLang()">

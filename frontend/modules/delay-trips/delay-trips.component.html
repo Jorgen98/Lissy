@@ -42,7 +42,7 @@
             [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
             <ng-template pTemplate="footer">
                 <div class="calendar-btns-div">
-                    <button type="button" class="p-link p-datepicker-month" (click)="downloadRoutesData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
+                    <button type="button" (click)="downloadRoutesData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
                 </div>
             </ng-template>
         </p-datepicker>

@@ -4,7 +4,6 @@ import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MarkdownModule } from 'ngx-markdown';
 import { ChartModule } from 'primeng/chart';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessagesModule } from 'primeng/messages';
@@ -17,6 +16,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { TabsModule } from 'primeng/tabs';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
+import { StepperModule } from 'primeng/stepper';
+import { ImageModule } from 'primeng/image';
 
 @NgModule({
     imports: [
@@ -26,7 +27,6 @@ import { SelectModule } from 'primeng/select';
         ButtonModule,
         FormsModule,
         CommonModule,
-        MarkdownModule,
         ChartModule,
         ProgressSpinnerModule,
         MessagesModule,
@@ -38,7 +38,9 @@ import { SelectModule } from 'primeng/select';
         InputNumberModule,
         TabsModule,
         DatePickerModule,
-        SelectModule
+        SelectModule,
+        StepperModule,
+        ImageModule
     ],
     exports: [
         RouterOutlet,
@@ -47,7 +49,6 @@ import { SelectModule } from 'primeng/select';
         ButtonModule,
         FormsModule,
         CommonModule,
-        MarkdownModule,
         ChartModule,
         ProgressSpinnerModule,
         MessagesModule,
@@ -59,7 +60,9 @@ import { SelectModule } from 'primeng/select';
         InputNumberModule,
         TabsModule,
         DatePickerModule,
-        SelectModule
+        SelectModule,
+        StepperModule,
+        ImageModule
     ]
 })
 export class ImportsModule {}

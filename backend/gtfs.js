@@ -789,6 +789,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 }
 
                 tmpShapeId = `${interRouteType}?${JSON.stringify(newTrip.stops)}`;
+
                 if (shapesToCalc[tmpShapeId] === undefined) {
                     shapesToCalc[tmpShapeId] = {
                         route: newTrip.route_id,
@@ -815,7 +816,6 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
     dbStats.updateStateProcessingStats('gtfs_trips', Object.keys(actualTrips).length);
     dbStats.updateStateProcessingStats('trips_to_process', tripsToProcess);
-
     return true;
 }
 

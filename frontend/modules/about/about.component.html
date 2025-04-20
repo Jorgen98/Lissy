@@ -1,40 +1,84 @@
 <main class="main" *ngIf="config.enabled">
-    <p-tabs value="0">
-        <p-tablist>
-            <p-tab value="0">Návod na použitie</p-tab>
-            <p-tab value="1">Architektúra aplikácie</p-tab>
-            <p-tab value="2">Vývoj</p-tab>
-            <p-tab value="3">Dexter</p-tab>
-        </p-tablist>
-        <p-tabpanels>
-            <p-tabpanel value="0">
-                <p class="m-0">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-                    ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-                    nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit
-                    anim id est laborum.
-                </p>
-            </p-tabpanel>
-            <p-tabpanel value="1">
-                <p class="m-0">
-                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem
-                    aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                    Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni
-                    dolores eos qui ratione voluptatem sequi nesciunt. Consectetur, adipisci velit, sed quia non numquam eius
-                    modi.
-                </p>
-            </p-tabpanel>
-            <p-tabpanel value="2">
-                <markdown
-                    [src]="translate.currentLang == 'en' ? 'assets/aboutReadMeEN.md' : 'assets/aboutReadMe.md'">
-                </markdown>
-            </p-tabpanel>
-            <p-tabpanel value="3">
-                <markdown
-                    [src]="translate.currentLang == 'en' ? 'assets/aboutReadMeEN.md' : 'assets/aboutReadMe.md'">
-                </markdown>
-            </p-tabpanel>
-        </p-tabpanels>
-    </p-tabs>
+    <!-- Tabs menu -->
+    <span class="tabs-menu">
+        <button type="button" (click)="context = 0" [ngClass]="context == 0 ? 'tabs-btn-active' : 'tabs-btn'">{{ 'about.header.manual' | translate }}</button>
+        <button type="button" (click)="context = 1" [ngClass]="context == 1 ? 'tabs-btn-active' : 'tabs-btn'">{{ 'about.header.architecture' | translate }}</button>
+        <button type="button" (click)="context = 2" [ngClass]="context == 2 ? 'tabs-btn-active' : 'tabs-btn'">{{ 'about.header.development' | translate }}</button>
+        <button type="button" (click)="context = 3" [ngClass]="context == 3 ? 'tabs-btn-active' : 'tabs-btn'">{{ 'about.header.next' | translate }}</button>
+    </span>
+    <!-- Tabs -->
+     <span [ngSwitch]="context">
+        <!-- User manual -->
+        <span *ngSwitchDefault>
+            <h2>{{ 'about.manual.header' | translate }}</h2>
+            <p>{{ 'about.manual.info' | translate }}</p>
+            <p-stepper [value]="1" class="basis-[50rem]">
+                <p-step-list>
+                    <p-step [value]="1">{{ 'about.manual.steps.0_header' | translate }}</p-step>
+                    <p-step [value]="2">{{ 'about.manual.steps.1_header' | translate }}</p-step>
+                    <p-step [value]="3">{{ 'about.manual.steps.2_header' | translate }}</p-step>
+                    <p-step [value]="4">{{ 'about.manual.steps.3_header' | translate }}</p-step>
+                </p-step-list>
+                <p-step-panels>
+                    <p-step-panel [value]="1">
+                        <ng-template #content let-activateCallback="activateCallback">
+                            <p>{{ 'about.manual.steps.0_info' | translate }}</p>
+                            <span class="stepper-img">
+                                <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_0_cz.png' : './manual/manual_0_en.png'" alt="Image" width="500" [preview]="true" />
+                            </span>
+                        </ng-template>
+                    </p-step-panel>
+                    <p-step-panel [value]="2">
+                        <ng-template #content let-activateCallback="activateCallback">
+                            <p>{{ 'about.manual.steps.1_info' | translate }}</p>
+                            <span class="stepper-img">
+                                <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_1_cz.png' : './manual/manual_1_en.png'" alt="Image" width="500" [preview]="true" />
+                            </span>
+                        </ng-template>
+                    </p-step-panel>
+                    <p-step-panel [value]="3">
+                        <ng-template #content let-activateCallback="activateCallback">
+                            <p>{{ 'about.manual.steps.2_info' | translate }}</p>
+                            <span class="stepper-img">
+                                <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_2_cz.png' : './manual/manual_2_en.png'" alt="Image" width="500" [preview]="true" />
+                            </span>
+                        </ng-template>
+                    </p-step-panel>
+                    <p-step-panel [value]="4">
+                        <ng-template #content let-activateCallback="activateCallback">
+                            <p>{{ 'about.manual.steps.3_info' | translate }}</p>
+                            <span class="stepper-img">
+                                <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_3_cz.png' : './manual/manual_3_en.png'" alt="Image" width="500" [preview]="true" />
+                            </span>
+                        </ng-template>
+                    </p-step-panel>
+                </p-step-panels>
+            </p-stepper>
+        </span>
+        <span *ngSwitchCase="1">
+            <p>
+                Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem
+                aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+                Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni
+                dolores eos qui ratione voluptatem sequi nesciunt. Consectetur, adipisci velit, sed quia non numquam eius
+                modi.
+            </p>
+        </span>
+        <span *ngSwitchCase="2">
+        </span>
+        <span *ngSwitchCase="3">
+            <h2>Dexter&#64;FIT</h2>
+            <p>{{ 'about.next.dexter' | translate }}</p>
+            <button type="button" (click)="goToLink('https://dexter.fit.vutbr.cz')">Dexter&#64;FIT</button>
+            <h2>Trasy liniek</h2>
+            <p>{{ 'about.next.lineShaper' | translate }}</p>
+            <button type="button" (click)="goToLink('https://dexter.fit.vutbr.cz/lineShaper')">LineShaper</button>
+            <h2>Data Brno</h2>
+            <p>{{ 'about.next.brno' | translate }}</p>
+            <button type="button" (click)="goToLink('https://data.brno.cz')">Data Brno</button>
+            <h2>Kontakt</h2>
+            <p>{{ 'about.next.contact' | translate }}</p>
+            <button type="button" (click)="goToLink('https://www.fit.vut.cz/person/ilazur')">Juraj Lazúr</button>
+        </span>
+     </span>
 </main>

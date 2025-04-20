@@ -1,6 +1,32 @@
 {
     "about": {
-        "name": "O aplikaci"
+        "name": "O aplikaci",
+        "header": {
+            "manual": "Jak na to?",
+            "architecture": "Z čeho se skládá?",
+            "development": "Jak to vzniklo?",
+            "next": "Co dalšího tam máte?"
+        },
+        "manual": {
+            "header": "Uživatelský manuál",
+            "info": "Protože každý dashboard funguje trochu jinak, níže najdete jednoduchý návod, jak tuto aplikaci používat. Jednotlivé moduly jsou navrženy velmi podobně a sdílejí podobnou logiku ovládání, přestože každý modul pracuje s jiným pohledem na data. Tento návod by vám tedy měl usnadnit získání užitečných znalostí z této aplikace a také vám ukázat všechny funkce, aby vám neunikl žádný detail.",
+            "steps": {
+                "0_header": "Hlavní menu",
+                "0_info": "Po zapnutí aplikace se vždy zobrazí hlavní nabídka, kde můžete vybrat modul, se kterým chcete pracovat. Výběr jazyka najdete vpravo nahoře.",
+                "1_header": "Výběr data",
+                "1_info": "Hlavním kritériem při vizualizaci jakýchkoli dat v aplikaci je výběr data nebo dat, která vás zajímají. Pomocí ovládacího panelu vlevo můžete vybrat jeden nebo více dnů v závislosti na povaze modulu. Samotný výběr pak musíte potvrdit tlačítkem Načíst data. Tímto způsobem můžete například získat všechny trasy vybrané linky v určitý den.",
+                "2_header": "Výběr linky",
+                "2_info": "Po výběru časového období, které vás zajímá, vám aplikace na základě dostupných dat umožní vybrat linku, trasu a případně i konkrétní spoj, o které máte zájem. Pomocí ovládacího panelu vlevo můžete například zjistit, že vaše oblíbená linka rozhodně nejezdí pouze mezi dvěma konečnými zastávkami.",
+                "3_header": "Detaily a nastavení",
+                "3_info": "Samotná vizualizace vybraných dat nikdy nemůže pokrýt všechny požadavky. Proto lze každý modul konfigurovat pomocí ovládacího panelu vlevo dole. A protože některá data mají smysl pouze tehdy, když je umístíte do prostoru mapy, můžete získat další podrobnosti kliknutím přímo na objekty v mapě. Můžete tak například zjistit, které zastávky jsou v systému označeny jako bezbariérové."
+            }
+        },
+        "next": {
+            "dexter": "At the level of university research, it is not always possible to get a realistic feel for solving various information technology problems. However, some outputs can be published in a form that is accessible to the general public. That is also the case of this tool, which was first developed as part of a master's and later a doctoral thesis. However, within our research group we are also working on other areas related to information systems, various data and smart cities. If you are interested in this topic, be sure to click here:",
+            "lineShaper": "Another tool you can try out was developed to solve a specific routing problem in cooperation with KORDIS JMK. This tool is used to generate physical routes of the lines of the South Moravian Region, similar to those used by this tool. You can find it here:",
+            "brno": "An important part of our research is the use of open data sources in standardised formats so that the results of our research can be used in other cities. Therefore, this application uses datasets from the statutory city of Brno. If you want to see what kind of data is used for example by the municipality, be sure to click here:",
+            "contact": "The application is constantly evolving and the stored data is used for example by students in their theses. We are gradually trying to remove bugs and further develop the application. If you still found any bugs, had any other curious questions or ideas on how to improve the app, be sure to contact me:"
+        }
     },
     "stats": {
         "name": "Statistiky",

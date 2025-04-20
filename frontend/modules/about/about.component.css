@@ -15,3 +15,33 @@
 .context-btn {
     font-size: 1.75rem;
 }
+
+.about-tab-component {
+    margin-top: 2em;
+}
+
+.about-tab-header {
+    margin-bottom: 2em;
+}
+
+.tabs-menu {
+    display: flex;
+    justify-content: space-around;
+    margin: 2em 0;
+}
+
+.tabs-btn {
+    border-bottom: 0.15em solid transparent;
+    border-radius: 0;
+}
+
+.tabs-btn-active {
+    border-bottom: 0.15em solid var(--p-gray-50);
+    border-radius: 0;
+    opacity: 1.0;
+}
+
+.stepper-img {
+    display: flex;
+    justify-content: center;
+}

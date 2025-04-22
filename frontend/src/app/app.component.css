@@ -278,3 +278,7 @@
 :host::ng-deep p-image {
     border: 0.15em solid var(--p-gray-800);
 }
+
+:host::ng-deep.p-image-preview {
+    height: 100%;
+}

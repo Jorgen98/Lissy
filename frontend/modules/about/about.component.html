@@ -55,17 +55,110 @@
                 </p-step-panels>
             </p-stepper>
         </span>
+        <!-- Architecture -->
         <span *ngSwitchCase="1">
-            <p>
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem
-                aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni
-                dolores eos qui ratione voluptatem sequi nesciunt. Consectetur, adipisci velit, sed quia non numquam eius
-                modi.
-            </p>
+            <h2>{{ 'about.architecture.header' | translate }}</h2>
+            <p>{{ 'about.architecture.header_info' | translate }}</p>
+            <h3>{{ 'about.architecture.server.header' | translate }}</h3>
+            <p>{{ 'about.architecture.server.header_info' | translate }}</p>
+            <h4>{{ 'about.architecture.server.system_header' | translate }}</h4>
+            <p>{{ 'about.architecture.server.system_info' | translate }}</p>
+            <span class="stepper-img">
+                <p-image src="./about/gtfs.svg" alt="Image" width="500" [preview]="true" />
+            </span>
+            <h4>{{ 'about.architecture.server.routes_header' | translate }}</h4>
+            <p>{{ 'about.architecture.server.routes_info' | translate }}</p>
+            <h4>{{ 'about.architecture.server.processing_header' | translate }}</h4>
+            <p>{{ 'about.architecture.server.processing_info' | translate }}</p>
+            <span class="stepper-img">
+                <p-image src="./about/processing.svg" alt="Image" width="800" [preview]="true" />
+            </span>
+            <h3>{{ 'about.architecture.client.header' | translate }}</h3>
+            <p>{{ 'about.architecture.client.header_info' | translate }}</p>
+            <h4>{{ 'about.architecture.client.client.shapes_header' | translate }}</h4>
+            <p>{{ 'about.architecture.client.client.shapes_info' | translate }}</p>
+            <span class="stepper-img">
+                <p-image src="./about/shape.png" alt="Image" width="500" [preview]="true" />
+            </span>
+            <h4>{{ 'about.architecture.client.client.delay_trips_header' | translate }}</h4>
+            <p>{{ 'about.architecture.client.client.delay_trips_info' | translate }}</p>
+            <span class="stepper-img">
+                <p-image src="./about/trip_delay.png" alt="Image" width="300" [preview]="true" />
+            </span>
         </span>
+        <!-- Development history -->
         <span *ngSwitchCase="2">
+            <h2>{{ 'about.development.header' | translate }}</h2>
+            <p>{{ 'about.development.info' | translate }}</p>
+            <h3>2025</h3>
+            <ul>
+                <li>{{ 'about.development.2025.0' | translate }}</li>
+                <li>{{ 'about.development.2025.1' | translate }}</li>
+            </ul>
+            <span class="stepper-img">
+                <p-image src="./development/2025_0.png" alt="Image" width="300" [preview]="true" />
+            </span>
+            <h3>2024</h3>
+            <ul>
+                <li>{{ 'about.development.2024.0' | translate }}</li>
+            </ul>
+            <button type="button" (click)="goToLink('https://www.vut.cz/studenti/zav-prace/detail/154340')">{{ 'common.bp' | translate }}</button>
+            <ul>
+                <li>{{ 'about.development.2024.1' | translate }}</li>
+            </ul>
+            <button type="button" (click)="goToLink('https://dexter.fit.vutbr.cz/lineShaper')">LineShaper</button>
+            <ul>
+                <li>{{ 'about.development.2024.2' | translate }}</li>
+                <li>{{ 'about.development.2024.3' | translate }}</li>
+            </ul>
+            <button type="button" (click)="goToLink('https://www.fit.vut.cz/research/publication/c193353')">{{ 'common.article' | translate }}</button>
+            <h3>2023</h3>
+            <ul>
+                <li>{{ 'about.development.2023.0' | translate }}</li>
+            </ul>
+            <span class="stepper-img">
+                <p-image src="./development/2023_0.png" alt="Image" width="500" [preview]="true" />
+            </span>
+            <ul>
+                <li>{{ 'about.development.2023.1' | translate }}</li>
+            </ul>
+            <button type="button" (click)="goToLink('https://excel.fit.vutbr.cz/submissions/2023/013/13_poster.pdf')">{{ 'common.poster' | translate }}</button>
+            <button type="button" (click)="goToLink('https://youtu.be/SoA0mQxcK-k')">Video</button>
+            <ul>
+                <li>{{ 'about.development.2023.2' | translate }}</li>
+            </ul>
+            <button type="button" (click)="goToLink('https://www.vut.cz/studenti/zav-prace/detail/146479')">{{ 'common.dp' | translate }}</button>
+            <ul>
+                <li>{{ 'about.development.2023.3' | translate }}</li>
+                <li>{{ 'about.development.2023.4' | translate }}</li>
+            </ul>
+            <span class="stepper-img">
+                <p-image src="./development/2023_1.png" alt="Image" width="300" [preview]="true" />
+            </span>
+            <ul>
+                <li>{{ 'about.development.2023.5' | translate }}</li>
+            </ul>
+            <button type="button" (click)="goToLink('https://www.fit.vut.cz/research/publication/c188364')">{{ 'common.article' | translate }}</button>
+            <h3>2022</h3>
+            <ul>
+                <li>{{ 'about.development.2022.0' | translate }}</li>
+            </ul>
+            <button type="button" (click)="goToLink('https://data.brno.cz/datasets/e8aa121910df41bb9a28e4ca34a263c7_0')">Dataset</button>
+            <ul>
+                <li>{{ 'about.development.2022.1' | translate }}</li>
+            </ul>
+            <span class="stepper-img">
+                <p-image src="./development/2022_0.png" alt="Image" width="500" [preview]="true" />
+            </span>
+            <ul>
+                <li>{{ 'about.development.2022.2' | translate }}</li>
+                <li>{{ 'about.development.2022.3' | translate }}</li>
+            </ul>
+            <span class="stepper-img">
+                <p-image src="./development/2022_1.svg" alt="Image" width="500" [preview]="true" />
+            </span>
         </span>
+        <!-- What next -->
         <span *ngSwitchCase="3">
             <h2>Dexter&#64;FIT</h2>
             <p>{{ 'about.next.dexter' | translate }}</p>

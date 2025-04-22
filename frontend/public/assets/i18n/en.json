@@ -20,6 +20,64 @@
                 "3_header": "Details and settings",
                 "3_info": "The visualization of the selected data alone can never cover all requirements. Therefore, each module can be configured using the control panel on the bottom left. And since some data only makes sense if you place it in the map space, you can get more details by clicking directly on the objects in the map. For example, you can see which stops are marked as wheelchair accessible in the system."
             }
+        },
+        "architecture": {
+            "header": "Application architecture",
+            "header_info": "The architecture design is based on the MVC pattern, so it can be divided into database, server and user parts. Each of these parts can then be divided into further functional units.",
+            "server": {
+                "header": "Server",
+                "header_info": "The server part of the application takes care of communication with databases, maintains the current image of the transport system and processes data from real operation. The system works with a total of 3 databases. The first database contains data describing the transport system, the second database contains data from real operation and the third database is used to increase the performance of the client application. The basis of the whole application is to maintain an up-to-date picture of the transport system.",
+                "system_header": "The transport system and its updates",
+                "system_info": "Whether it is an analysis of the transport system or the search for a suitable connection, knowledge of the structure, the image of the transport system is essential. Simply put, the structure of the transport system contains information about exactly when a trip departs from a selected stop. The system itself maintains an internal representation of the transport system consisting of lines, routes and trips, which is updated daily. As input to the system update, a publicly available dataset in GTFS format is used. The structure and indexing of the objects in it are designed to preserve the internal relationships of the system and their changes over time. The relationships between objects are essential if we want to analyse the system over the long term. There are different ways to model these relationships within transport systems. This application uses route shapes.",
+                "routes_header": "Line routing",
+                "routes_info": "The line route has several meanings. One way a route can be defined is by a fixed sequence of stops. In the case of larger transport systems, a single line usually contains several routes, where there are various shortened variants in addition to the normal route. If we extend the route definition to include the streets that the vehicle serving the route must traverse, we obtain the physical line route - shape. The physical infrastructure is the one that shows the least change over time. Therefore, it seems to be the best solution to model the relationships in the transport system using only the physical infrastructure. However, available datasets describing transport systems do not always contain physical line routes. Therefore, this application also includes a transport network routing module that computes and maintains the actual shapes of the routes.",
+                "processing_header": "Real operation data processing",
+                "processing_info": "One of the hypotheses of the dissertation, within which this application is developed, is that all operational data is changed only at points that are important to the system. For example, the number of passengers changes generally only at the stop, so we only need one value for each pair of stops. In the case of delays, this logic can be applied to intersections. Within the application, this approach is implemented using a data processing algorithm. The input is records from public transport vehicles that are assigned to each section of the physical route of the corresponding line. In this way, data reduction is achieved while maintaining internal relationships. This algorithm is illustrated in the figure below."
+            },
+            "client": {
+                "header": "Client application",
+                "header_info": "While the server part of the application takes care of maintaining the structure of the transport system and processing the data, the client application visualizes the stored data. Depending on the intended use, the application contains several modules that provide different views of the stored data.",
+                "client": {
+                    "shapes_header": "Line routes",
+                    "shapes_info": "As described above, the shapes are essential to the functionality of this application. The line routes module simply makes available all shapes within the transport system. By selecting a specific date, you can see that your favourite line definitely does not only run between two termini, but some trips serve very interesting stops.",
+                    "delay_trips_header": "Trip delays",
+                    "delay_trips_info": "If, on the other hand, you're wondering whether your regular trip is running late every day, the Trip Delays module will give you the answer. By selecting a specific date, route and departure time from the departure stop, you can find out where and by how much the selected trip was delayed. For example, if you select multiple days, you can compare the delay of a single trip on different days of the week. In addition, you can click on a specific stop to see, for example, what percentage of trips arrived at that stop with zero delays."
+                }
+            }
+        },
+        "development": {
+            "header": "Application development",
+            "info": "At the beginning of the application development, a database with records of public transport vehicle delays was made available on the Data Brno portal. This started the development of a system that would compress, store, analyse and further use this data. From the original master thesis, the developed application became the basis for the dissertation, which aims to link individual, public and shared transport in the planning of daily journeys. The application you are working with is the second version of the original tool and is constantly evolving. Below you will find a chronological overview of the development of the whole application and other outputs related to the application.",
+            "2025": {
+                "0": "At the beginning of the year, the basic part of the second version of the application enters testing.",
+                "1": "Launch a test run of the complete second version of the tool you are currently working with."
+            },
+            "2024": {
+                "0": "Data from the application are used in the bachelor thesis of Krištof Paulík, who dealt with the improvement of connection search using delay prediction.",
+                "1": "Within the cooperation with KORDIS JMK, a new revised routing module is being developed in the next application, which is based on the first version of the application. You can try it in the LineShaper application.",
+                "2": "The deployment of the application brought new requirements and revealed errors in the original design, and work on the second tool version has begun.",
+                "3": "The results of testing the computational complexity of the first version of the application are published in a paper presented at a conference in Slovakia."
+            },
+            "2023": {
+                "0": "Completion of the first version of the application.",
+                "1": "Presentation of the proposed transformation algorithm and the whole application at the Excel@FIT student conference.",
+                "2": "Successful defence of the diploma thesis in which the first version of this application was created.",
+                "3": "Test deployment of the application and its publication on Data Brno.",
+                "4": "The test operation brought the need to redesign the internal model of the transport system structure.",
+                "5": "The results were published in a paper presented at a conference in Poland."
+            },
+            "2022": {
+                "0": "Publication of a database with records of delays of IDS JMK vehicles on the Data Brno website. First proposal of transformation algorithm for compression of stored data.",
+                "1": "First test attempts of data processing, first designs of visualization dashboard.",
+                "2": "By completing the requirements obtained from Data Brno, the solution to the problem becomes the assignment of the diploma thesis.",
+                "3": "Solving the unavailability of physical shapes by implementing a routing module. Completion of the design of the first version of the application."
+            }
+        },
+        "next": {
+            "dexter": "At the level of university research, it is not always possible to get a realistic feel for solving various information technology problems. However, some outputs can be published in a form that is accessible to the general public. That is also the case of this tool, which was first developed as part of a master's and later a doctoral thesis. However, within our research group we are also working on other areas related to information systems, various data and smart cities. If you are interested in this topic, be sure to click here:",
+            "lineShaper": "Another tool you can try out was developed to solve a specific routing problem in cooperation with KORDIS JMK. This tool is used to generate physical routes of the lines of the South Moravian Region, similar to those used by this tool. You can find it here:",
+            "brno": "An important part of our research is the use of open data sources in standardised formats so that the results of our research can be used in other cities. Therefore, this application uses datasets from the statutory city of Brno. If you want to see what kind of data is used for example by the municipality, be sure to click here:",
+            "contact": "The application is constantly evolving and the stored data is used for example by students in their theses. We are gradually trying to remove bugs and further develop the application. If you still found any bugs, had any other curious questions or ideas on how to improve the app, be sure to contact me:"
         }
     },
     "stats": {
@@ -125,7 +183,11 @@
         "calendar": "Selecting a time period",
         "route": "Select the displayed route",
         "trip": "Select inspected trip",
-        "settings": "Visualization settings"
+        "settings": "Visualization settings",
+        "bp": "Bachelor Thesis",
+        "dp": "Diploma Thesis",
+        "article": "Paper",
+        "poster": "Poster"
     },
     "UIMessagesService": {
         "loading": "Loading Data",

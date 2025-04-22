@@ -209,12 +209,18 @@ router-outlet {
     padding-top: 3.5em;
 }
 
+about {
+    background-color: var(--background);
+}
+
 dashboard {
     display: flex;
     flex-grow: 1;
+    background-color: var(--background);
 }
 
 stats {
     display: flex;
     flex-grow: 1;
+    background-color: var(--background);
 }

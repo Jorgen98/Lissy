@@ -3,7 +3,7 @@
         "name": "O aplikaci",
         "header": {
             "manual": "Jak na to?",
-            "architecture": "Z čeho se skládá?",
+            "architecture": "Z čeho se to skládá?",
             "development": "Jak to vzniklo?",
             "next": "Co dalšího tam máte?"
         },
@@ -21,11 +21,63 @@
                 "3_info": "Samotná vizualizace vybraných dat nikdy nemůže pokrýt všechny požadavky. Proto lze každý modul konfigurovat pomocí ovládacího panelu vlevo dole. A protože některá data mají smysl pouze tehdy, když je umístíte do prostoru mapy, můžete získat další podrobnosti kliknutím přímo na objekty v mapě. Můžete tak například zjistit, které zastávky jsou v systému označeny jako bezbariérové."
             }
         },
+        "architecture": {
+            "header": "Architektura aplikace",
+            "header_info": "Návrh architektury je založen na vzoru MVC, takže jej lze rozdělit na databázovou, serverovou a uživatelskou část. Každou z těchto částí pak lze rozdělit na další funkční celky.",
+            "server": {
+                "header": "Server",
+                "header_info": "Serverová část aplikace se stará o komunikaci s databázemi, udržuje aktuální obraz dopravního systému a zpracovává data z reálného provozu. Systém pracuje celkem se 3 databázemi. První databáze obsahuje údaje popisující dopravní systém, druhá databáze obsahuje údaje z reálného provozu a třetí databáze slouží ke zvýšení výkonu klientské aplikace. Základem celé aplikace je udržování aktuálního obrazu dopravního systému.",
+                "system_header": "Dopravní systém a jeho aktualizace",
+                "system_info": "Ať už se jedná o analýzu dopravního systému nebo hledání vhodného spojení, znalost struktury, obrazu dopravního systému je nezbytná. Zjednodušeně řečeno, struktura dopravního systému obsahuje informace o tom, kdy přesně spoj z vybrané zastávky odjíždí. Samotný systém si udržuje interní reprezentaci dopravního systému složenou z linek, tras a spojů, která je každý den aktualizována. Jako vstup pro aktualizaci systému se používá veřejně dostupný soubor dat ve formátu GTFS. Struktura a indexace objektů v něm jsou navrženy tak, aby zachovávaly vnitřní vztahy systému a jejich změny v čase. Vztahy mezi objekty jsou nepostradatelné, pokud chceme systém dlouhodobě analyzovat. Existují různé způsoby, jak tyto vztahy v rámci dopravních systémů modelovat. Tato aplikace využívá trasy linek.",
+                "routes_header": "Trasování linek",
+                "routes_info": "Trasa linky má několik významů. Jedním ze způsobů, jak lze trasu definovat, je pevně stanovená posloupnost zastávek. V případě větších dopravních systémů obsahuje jedna linka obvykle několik tras, kde kromě běžné trasy existují i různé zkrácené varianty. Pokud definici trasy rozšíříme o ulice, kterými musí vozidlo obsluhující linku projet, získáme fyzickou trasu linky. Právě fyzická infrastruktura vykazuje v průběhu času nejmenší změny. Proto se jeví jako nejlepší řešení modelovat vztahy v dopravním systému pouze pomocí fyzické infrastruktury. Dostupné soubory dat popisující dopravní systémy však ne vždy obsahují fyzické trasy linek. Proto tato aplikace obsahuje také modul pro trasování po dopravních sítích, který počítá a udržuje skutečné fyzické trasy linek.",
+                "processing_header": "Zpracování provozních dat",
+                "processing_info": "Jednou z hypotéz disertační práce, v jejímž rámci je tato aplikace vyvíjena, je, že veškeré provozní údaje se mění pouze v bodech, které jsou pro systém důležité. Například počet cestujících se obecně mění pouze na zastávce, takže potřebujeme pouze jednu hodnotu pro každou dvojici zastávek. V případě zpoždění lze tuto logiku aplikovat na křižovatky. V rámci aplikace je tento přístup implementován pomocí algoritmu zpracování dat. Vstupem jsou záznamy z vozidel MHD, které jsou přiřazeny ke každému úseku fyzické trasy příslušné linky. Tímto způsobem dochází k redukci dat při zachování vnitřních vztahů. Tento algoritmus je znázorněn na obrázku níže."
+            },
+            "client": {
+                "header": "Uživatelská aplikace",
+                "header_info": "Zatímco serverová část aplikace se stará o udržování struktury dopravního systému a zpracování dat, klientská aplikace vizualizuje uložená data. V závislosti na zamýšleném využití obsahuje aplikace několik modulů, které poskytují různé pohledy na uložená data.",
+                "client": {
+                    "shapes_header": "Trasy linek",
+                    "shapes_info": "Jak bylo popsáno výše, pro funkčnost této aplikace jsou zásadní fyzické trasy linek. Modul linkových tras jednoduše zpřístupňuje všechny trasy v rámci dopravního systému. Výběrem konkrétního data můžete zjistit, že vaše oblíbená linka rozhodně nejezdí jen mezi dvěma koncovými zastávkami, ale některé trasy obsluhují velmi zajímavé zastávky.",
+                    "delay_trips_header": "Zpoždění spojů",
+                    "delay_trips_info": "Pokud vás naopak zajímá, zda vaše pravidelný spoj jezdí každý den se zpožděním, odpověď vám poskytne modul Zpoždění spojů. Výběrem konkrétního data, linky a času odjezdu z výchozí zastávky můžete zjistit, kde a o kolik se vybraný spoj zpozdil. Pokud vyberete více dnů, můžete například porovnat zpoždění jednoho spoje v různých dnech týdne. Kromě toho můžete po kliknutí na konkrétní zastávku zjistit například to, kolik procent spojů přijelo do této zastávky s nulovým zpožděním."
+                }
+            }
+        },
+        "development": {
+            "header": "Vývoj aplikace",
+            "info": "Na počátku vývoje této aplikace byla zpřístupněna databáze se záznamy zpoždění vozidel MHD na portálu Data Brno. Tím byl zahájen vývoj systému, který by tato data komprimoval, ukládal, analyzoval a dále využíval. Z původní diplomové práce se vyvinutá aplikace stala základem pro disertační práci, jejímž cílem je propojení individuální, veřejné a sdílené dopravy při plánování každodenních cest. Aplikace, se kterou pracujete, je druhou verzí původního nástroje a neustále se vyvíjí. Níže naleznete chronologický přehled vývoje celé aplikace a dalších výstupů souvisejících s touto aplikací.",
+            "2025": {
+                "0": "Na začátku roku vstupuje do testování základní část druhé verze aplikace.",
+                "1": "Spuštění testovacího provozu kompletní druhé verze nástroje, se kterým právě pracujete."
+            },
+            "2024": {
+                "0": "Data z aplikace jsou použita v bakalářské práci Krištofa Paulíka, který se zabýval zlepšením vyhledávání spojení pomocí predikce zpoždění.",
+                "1": "V rámci spolupráce se společností KORDIS JMK vzniká v další aplikaci nový přepracovaný modul routingu, který vychází z první verze aplikace. Můžete si jej vyzkoušet v aplikaci LineShaper.",
+                "2": "Nasazení aplikace přineslo nové požadavky a odhalilo chyby v původním návrhu, začíná práce na druhé verzi nástroje.",
+                "3": "Výsledky testování výpočetní složitosti první verze aplikace jsou zveřejněny v článku prezentovaném na konferenci na Slovensku."
+            },
+            "2023": {
+                "0": "Dokončení první verze aplikace.",
+                "1": "Prezentace navrženého transformačního algoritmu a celé aplikace na studentské konferenci Excel@FIT.",
+                "2": "Úspěšná obhajoba diplomové práce, v jejímž rámci byla vytvořena první verze této aplikace.",
+                "3": "Testovací nasazení aplikace a její publikace na Data Brno.",
+                "4": "Zkušební provoz přinesl potřebu přepracovat vnitřní model struktury dopravního systému.",
+                "5": "Výsledky byly zveřejněny v článku prezentovaném na konferenci v Polsku."
+            },
+            "2022": {
+                "0": "Zveřejnění databáze se záznamy zpoždění vozidel IDS JMK na webu Data Brno. První návrh transformačního algoritmu pro kompresi uložených dat.",
+                "1": "První zkušební pokusy zpracování dat, první návrhy vizualizačního dashboardu.",
+                "2": "Dokončením požadavků získaných od Data Brno se řešení problému stává zadáním diplomové práce.",
+                "3": "Řešení nedostupnosti fyzických tras linek pomocí implementace trasovacího modulu. Dokončení návrhu první verze aplikace."
+            }
+        },
         "next": {
-            "dexter": "At the level of university research, it is not always possible to get a realistic feel for solving various information technology problems. However, some outputs can be published in a form that is accessible to the general public. That is also the case of this tool, which was first developed as part of a master's and later a doctoral thesis. However, within our research group we are also working on other areas related to information systems, various data and smart cities. If you are interested in this topic, be sure to click here:",
-            "lineShaper": "Another tool you can try out was developed to solve a specific routing problem in cooperation with KORDIS JMK. This tool is used to generate physical routes of the lines of the South Moravian Region, similar to those used by this tool. You can find it here:",
-            "brno": "An important part of our research is the use of open data sources in standardised formats so that the results of our research can be used in other cities. Therefore, this application uses datasets from the statutory city of Brno. If you want to see what kind of data is used for example by the municipality, be sure to click here:",
-            "contact": "The application is constantly evolving and the stored data is used for example by students in their theses. We are gradually trying to remove bugs and further develop the application. If you still found any bugs, had any other curious questions or ideas on how to improve the app, be sure to contact me:"
+            "dexter": "Na úrovni univerzitního výzkumu není vždy možné získat hmatatelny obraz řešení různých problémů z oblasti informačních technologií. Některé výstupy však lze publikovat ve formě, která je přístupná široké veřejnosti. To je i případ tohoto nástroje, který byl nejprve vyvinut jako součást magisterské a později doktorské práce. V rámci naší výzkumné skupiny se však zabýváme i dalšími oblastmi souvisejícími s informačními systémy, různými daty a chytrými městy. Pokud vás toto téma zajímá, určitě klikněte sem:",
+            "lineShaper": "Další nástroj, který si můžete vyzkoušet, byl vyvinut pro řešení specifického problému trasování ve spolupráci se společností KORDIS JMK. Tento nástroj slouží k vygenerování fyzických tras tratí Jihomoravského kraje, podobných těm, které používá tento nástroj. Najdete jej zde:",
+            "brno": "Důležitou součástí našeho výzkumu je využívání otevřených zdrojů dat ve standardizovaných formátech, aby výsledky našeho výzkumu mohly být použity i v jiných městech. Proto tato aplikace využívá datové sady ze statutárního města Brna. Pokud se chcete podívat, jaká data používá například magistrát, určitě klikněte sem:",
+            "contact": "Aplikace se neustále vyvíjí a uložené údaje využívají například studenti ve svých diplomových pracích. Postupně se snažíme odstraňovat chyby a aplikaci dále rozvíjet. Pokud jste přesto našli nějaké chyby, měli jiné zvídavé dotazy nebo nápady, jak aplikaci vylepšit, určitě mě kontaktujte:"
         }
     },
     "stats": {
@@ -131,7 +183,11 @@
         "calendar": "Výběr časového období",
         "route": "Výběr zobrazené trasy",
         "trip": "Výběr spoje",
-        "settings": "Nastavení vizualizace"
+        "settings": "Nastavení vizualizace",
+        "bp": "Bakalářská práce",
+        "dp": "Diplomová práce",
+        "article": "Článek",
+        "poster": "Plakát"
     },
     "UIMessagesService": {
         "loading": "Načítání dat",

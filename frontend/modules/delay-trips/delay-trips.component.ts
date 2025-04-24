@@ -68,11 +68,11 @@ export class DelayTripsModule implements OnInit, OnDestroy {
     }
 
     public moduleFocus: Number = 0;
-    public isTodayFunctionEnabled: boolean = true;
-    public isRouteSelectionEnabled: boolean = true;
-    public isDateSelectionEnabled: boolean = true;
-    public isSettingsEnabled: boolean = true;
-    public isStatsModuleEnabled: boolean = true;
+    public isTodayFunctionEnabled: boolean = false;
+    public isRouteSelectionEnabled: boolean = false;
+    public isDateSelectionEnabled: boolean = false;
+    public isSettingsEnabled: boolean = false;
+    public isStatsModuleEnabled: boolean = false;
 
     public selectedDates: Date[] | null = null;
     public hooverDates: Date[] | null = null;
@@ -152,9 +152,6 @@ export class DelayTripsModule implements OnInit, OnDestroy {
     // On component creation
     public async ngOnInit() {
         if(!await this.apiService.isConnected()) {
-            this.isRouteSelectionEnabled = false;
-            this.isDateSelectionEnabled = false;
-            this.isSettingsEnabled = false;
             this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');
             return;
         }
@@ -168,9 +165,6 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             this.startDate = new Date();
             this.disabledDates.push(new Date());
             this.endDate = new Date();
-            this.isDateSelectionEnabled = false;
-            this.isSettingsEnabled = false;
-            this.isRouteSelectionEnabled = false;
             this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDates.head', 'UIMessagesService.toasts.noAvailableDates.body');
             this.msgService.turnOffLoadingScreen();
             return;
@@ -194,6 +188,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
         }
 
         // Get stats for latest date
+        this.isDateSelectionEnabled = true;
         await this.downloadRoutesData();
     }
 
@@ -316,14 +311,26 @@ export class DelayTripsModule implements OnInit, OnDestroy {
         // Get actual lines
         this.routes = await this.apiGet('getAvailableRoutes', {dates: JSON.stringify(this.queryDates)});
         if (this.routes.length > 0) {
-            this.isRouteSelectionEnabled = true;
+            this.routes.sort(this.sortRoutes);
             this.selectedRoute = this.routes[0];
             await this.changeRoute();
+            this.isRouteSelectionEnabled = true;
         } else {
             this.isRouteSelectionEnabled = false;
             this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
         }
         this.msgService.turnOffLoadingScreen();
+    }
+
+    // Help function for route sorting according to its short names
+    private sortRoutes(routeA: any, routeB: any) {
+        if (routeA.route_type > routeB.route_type) {
+            return 1;
+        } else if (routeA.route_type < routeB.route_type) {
+            return -1;
+        }
+        
+        return routeA.route_short_name.localeCompare(routeB.route_short_name, 'en', { sensitivity: 'base', numeric: true });
     }
 
     // Load available trip data for another route
@@ -383,6 +390,8 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             this.selectedTrip = this.selectedTripGroup.trips[0];
             await this.changeTrip();
         } else {
+            this.isSettingsEnabled = false;
+            this.isStatsModuleEnabled = false;
             this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
         }
         this.msgService.turnOffLoadingScreen();
@@ -429,11 +438,13 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             if (Object.keys(this.selectedTripData).length > 0) {
                 this.renderData(true);
                 this.isStatsModuleEnabled = true;
+                this.isSettingsEnabled = true;
             } else {
                 this.mapService.clearLayer('route');
                 this.mapService.clearLayer('stops');
                 this.delayCategoriesService.removeDelayCategoriesFromMap();
                 this.isStatsModuleEnabled = false;
+                this.isSettingsEnabled = false;
                 this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
             }
             this.msgService.turnOffLoadingScreen();

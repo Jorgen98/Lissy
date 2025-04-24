@@ -660,6 +660,8 @@ async function getPlannedTripsWithUniqueShape(routes) {
         delete route.route_type;
     }
 
+    routes.sort(sortRoutes);
+
     let idx = 0;
     while (idx < routes.length) {
         if (routes[idx].trips.length < 1) {
@@ -784,7 +786,6 @@ async function getRoutesDetail(routeIds) {
     routes.sort(sortRoutes);
     idx = 0;
     while (idx < routes.length) {
-        delete routes[idx].route_type;
         idx++;
     }
 

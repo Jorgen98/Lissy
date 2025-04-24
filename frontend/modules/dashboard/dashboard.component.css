@@ -11,9 +11,10 @@
 
 .main-item-down {
     margin: 0 auto auto auto;
-    display: flex;
+    display: grid;
     row-gap: 4em;
     column-gap: 4em;
+    grid-template-columns: auto auto auto auto;
 }
 
 .main-btn-div {
@@ -34,4 +35,16 @@
 
 .logo-img {
     width: 30em;
+}
+
+@media only screen and (max-width: 1100px) {
+    .main-item-down {
+        grid-template-columns: auto auto;
+    }
+}
+
+@media only screen and (max-width: 700px) {
+    .main-item-down {
+        grid-template-columns: auto;
+    }
 }

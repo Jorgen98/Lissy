@@ -25,8 +25,6 @@
             </div>
         </div>
     </div>
-    <!-- Messages -->
-    <p-toast />
     <!-- Loading screen -->
     <div *ngIf="loadingElemVisibility" class="loadingElemBackground"></div>
     <div *ngIf="loadingElemVisibility" class="loadingElem">
@@ -38,5 +36,8 @@
             <span class="loadingElemMainText">{{ 'UIMessagesService.loading' | translate }}</span>
         </div>
     </div>
+    <!-- Modules -->
     <router-outlet></router-outlet>
+    <!-- Messages -->
+    <p-toast />
 </div>

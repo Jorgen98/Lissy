@@ -234,7 +234,8 @@ export class MapComponent implements AfterViewInit {
         let legend: String[] = [];
         let graphColors: String[] = [];
         let graphText: String[] = [];
-        let graphTextGrid = categories.length > 1 ? `3.75em repeat(${categories.length - 1}, 6.25em) 3.75em` : "5em 5em";
+        let graphTextGrid = categories.length > 1 ? `1fr repeat(${categories.length - 1}, 2fr) 1fr` : "repeat(2, 1fr)";
+        let graphFillGrid = categories.length > 1 ? `repeat(${categories.length}, 1fr)` : "1fr";
 
         if (categories.length < 1) {
             this.enableDelayCategories = false;
@@ -257,26 +258,12 @@ export class MapComponent implements AfterViewInit {
         graphText.push(`
             <span class="delay-categories-graph-legend-inner-text">${this.translate.instant("delay.other")}</span>
         `)
-        let graphFills = Array(categories.length - 1).fill(`
-            <span class="delay-categories-graph-color delay-categories-graph-legend-fill"></span>
-            <span class="delay-categories-graph-legend-point"></span>`
-        );
 
         legend.push(`
             <div class="delay-categories-main-div">
                 <span>Zpoždění</span>
-                <span class="delay-categories-graph-main">
-                    <div class="delay-categories-graph-outer">
-                        <span class="delay-categories-graph-frame">
-                            ${graphColors.join('')}
-                        </span>
-                    </div>
-                    <div class="delay-categories-graph-legend-outer">
-                        <span class="delay-categories-graph-legend-point"></span>
-                        <span class="delay-categories-graph-color delay-categories-graph-legend-fill"></span>
-                        <span class="delay-categories-graph-legend-point"></span>
-                        ${graphFills.join('')}
-                    </div>
+                <span class="delay-categories-graph-frame" style="grid-template-columns: ${graphFillGrid}">
+                    ${graphColors.join('')}
                 </span>
                 <div class="delay-categories-graph-legend-text" style="grid-template-columns: ${graphTextGrid}">
                     ${graphText.join('')}

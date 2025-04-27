@@ -187,7 +187,12 @@
         "bp": "Bakalářská práce",
         "dp": "Diplomová práce",
         "article": "Článek",
-        "poster": "Plakát"
+        "poster": "Plakát",
+        "mainMenu": "Hlavní menu",
+        "settingsMenu": "Nastavení",
+        "visualizationMenu": "Vizualizace",
+        "czech": "Česky",
+        "english": "English"
     },
     "UIMessagesService": {
         "loading": "Načítání dat",

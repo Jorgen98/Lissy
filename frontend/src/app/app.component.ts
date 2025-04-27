@@ -24,7 +24,7 @@ export class AppComponent {
     public loadingElemVisibility = false;
     public loadingElemPercentage = '0%';
 
-    constructor(
+    constructor (
         private translate: TranslateService,
         public router: Router,
         private msgService: UIMessagesService,

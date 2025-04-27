@@ -2,6 +2,7 @@
     <div class="main-item-up">
         <img class="logo-img" src="./logo.svg"/>
     </div>
+    <!-- Modules -->
     <div class="main-item-down">
         <div *ngFor="let module of modules" class="main-btn-div">
         <button *ngIf="module.enabled" type="button" class="btn-header" routerLink="{{ module.apiPrefix }}">
@@ -12,6 +13,33 @@
                 <span class="main-btn-content-text">{{ module.name | translate }}</span>
             </div>
         </button>
+        </div>
+    </div>
+    <!-- Mobile menu -->
+    <div class="mobile-header">
+        <div class="mobile-header-item">
+            <button type="button" class="mobile-btn-header" (click)="switchMobileSubMenuVisibility()">
+                <i class="pi pi-cog"></i>
+                <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
+            </button>
+        </div>
+    </div>
+    <div class="mobile-submenu" *ngIf="moduleFocus === -1">
+        <span class="mobile-head">
+            <h3>{{ 'common.settingsMenu' | translate }}</h3>
+            <button type="button" (click)="switchMobileSubMenuVisibility()">
+            <i class="pi pi-times"></i>
+            </button>
+        </span>
+        <div class="mobile-header-item">
+            <button type="button" class="mobile-menu-btn" (click)="translate.use('en')" *ngIf="translate.currentLang === 'cz'">
+                <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
+                <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
+            </button>
+            <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')" *ngIf="translate.currentLang === 'en'">
+                <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
+                <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
+            </button>
         </div>
     </div>
 </main>

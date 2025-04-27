@@ -20,7 +20,18 @@ export class AboutModule {
 
     public context: number = 0;
 
+    public moduleFocus: Number = 0;
+
     public goToLink(url: string){
         window.open(url, "_blank");
+    }
+
+    // Show option menu on mobile devices
+    public switchMobileSubMenuVisibility() {
+        if (this.moduleFocus !== -1) {
+            this.moduleFocus = -1;
+        } else {
+            this.moduleFocus = 0;
+        }
     }
 }

@@ -62,3 +62,11 @@
         row-gap: 2em;
     }
 }
+
+@media only screen and (max-width: 700px) {
+    .tabs-menu {
+        grid-template-columns: auto;
+        row-gap: 1em;
+        margin: 0.5em auto;
+    }
+}

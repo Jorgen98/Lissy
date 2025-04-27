@@ -28,6 +28,50 @@
             </button>
         </div>
     </div>
+    <!-- Mobile menu -->
+    <div class="mobile-header">
+        <div class="mobile-header-item">
+            <button type="button" class="mobile-btn-header" routerLink="/">
+                <i class="pi pi-home"></i>
+                <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
+            </button>
+        </div>
+        <div class="mobile-header-item">
+            <button type="button" class="mobile-btn-header" (click)="switchMobileOptionsVisibility()">
+                <i class="pi pi-bars"></i>
+                <p class="mobile-btn-text">{{ 'common.visualizationMenu' | translate }}</p>
+            </button>
+        </div>
+        <div class="mobile-header-item">
+            <button type="button" class="mobile-btn-header" (click)="switchSettingsModuleVisibility()">
+                <i class="pi pi-cog"></i>
+                <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
+            </button>
+        </div>
+    </div>
+    <!-- Mobile menu submenu -->
+    <div class="mobile-submenu" *ngIf="moduleFocus === -2">
+        <span class="mobile-head">
+            <h4>{{ 'common.visualizationMenu' | translate }}</h4>
+            <button type="button" (click)="switchMobileOptionsVisibility()">
+            <i class="pi pi-times"></i>
+            </button>
+        </span>
+        <div>
+            <button type="button" class="mobile-menu-btn" (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+                <i class="pi pi-calendar mobile-icon"></i>
+                <p class="mobile-menu-text">{{ 'common.calendar' | translate }}</p>
+            </button>
+            <button type="button" class="mobile-menu-btn" (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+                <fa-icon [icon]="faIconRoute"></fa-icon>
+                <p class="mobile-menu-text">{{ 'common.route' | translate }}</p>
+            </button>
+            <button type="button" class="mobile-menu-btn" (click)="switchStatsModuleVisibility()" [disabled]="!isStatsModuleEnabled">
+                <i class="pi pi-chart-line mobile-icon"></i>
+                <p class="mobile-menu-text">{{ 'delay.graphs' | translate }}</p>
+            </button>
+        </div>
+    </div>
     <!-- Module content -->
     <div class="content">
         <!-- Calendar -->
@@ -93,6 +137,16 @@
             </span>
             <div class="side-control-selection-div">
                 <div class="side-control-selection-inner-div">
+                    <div class="mobile-header-item">
+                        <button type="button" class="mobile-menu-btn" (click)="translate.use('en')" *ngIf="translate.currentLang === 'cz'">
+                            <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
+                            <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
+                        </button>
+                        <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')" *ngIf="translate.currentLang === 'en'">
+                            <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
+                            <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
+                        </button>
+                    </div>
                     <h4 class="side-control-head-text">{{ 'delay.aggMethod' | translate }}</h4>
                     <p class="side-control-info-text">{{ 'delay.aggMethodInfo' | translate }}</p>
                     <p-select [options]="aggregationMethods" [(ngModel)]="selectedAggMethod" optionLabel="label" (onChange)="renderData(false)"/>
@@ -124,7 +178,7 @@
                             decrementButtonClass="delay-category-btn" incrementButtonClass="delay-category-btn" suffix=" min."
                             incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" mode="decimal" (onInput)="onDelayCategoryChange(i)" allowEmpty="false"
                             [min]="i === 0 ? 0 : delayCategories[i - 1].minValue + 0.25" [max]="i < (delayCategories.length - 1) ? category.maxValue - 0.25 : ''" [disabled]="i === 0 ? true : false"/>
-                        <span class="delay-category-text">{{ i < (delayCategories.length - 1) ? category.minValue + ' min.' : 'delay.other' | translate }}</span>
+                        <span class="delay-category-text">{{ i < (delayCategories.length - 1) ? category.maxValue + ' min.' : 'delay.other' | translate }}</span>
                         <button type="button" class="delay-category-btn" (click)="removeDelayCategory(i)" *ngIf="delayCategories.length > 1">
                             <i class="pi pi-trash"></i>
                         </button>

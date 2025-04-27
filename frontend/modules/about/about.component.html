@@ -6,6 +6,39 @@
         <button type="button" (click)="context = 2" [ngClass]="context == 2 ? 'tabs-btn-active' : 'tabs-btn'">{{ 'about.header.development' | translate }}</button>
         <button type="button" (click)="context = 3" [ngClass]="context == 3 ? 'tabs-btn-active' : 'tabs-btn'">{{ 'about.header.next' | translate }}</button>
     </span>
+    <!-- Mobile menu -->
+    <div class="mobile-header">
+        <div class="mobile-header-item">
+            <button type="button" class="mobile-btn-header" routerLink="/">
+                <i class="pi pi-home"></i>
+                <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
+            </button>
+        </div>
+        <div class="mobile-header-item">
+            <button type="button" class="mobile-btn-header" (click)="switchMobileSubMenuVisibility()">
+                <i class="pi pi-cog"></i>
+                <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
+            </button>
+        </div>
+    </div>
+    <div class="mobile-submenu" *ngIf="moduleFocus === -1">
+        <span class="mobile-head">
+            <h3>{{ 'common.settingsMenu' | translate }}</h3>
+            <button type="button" (click)="switchMobileSubMenuVisibility()">
+            <i class="pi pi-times"></i>
+            </button>
+        </span>
+        <div class="mobile-header-item">
+            <button type="button" class="mobile-menu-btn" (click)="translate.use('en')" *ngIf="translate.currentLang === 'cz'">
+                <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
+                <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
+            </button>
+            <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')" *ngIf="translate.currentLang === 'en'">
+                <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
+                <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
+            </button>
+        </div>
+    </div>
     <!-- Tabs -->
      <span [ngSwitch]="context">
         <!-- User manual -->

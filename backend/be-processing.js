@@ -69,8 +69,14 @@ async function processData() {
     // 2. Actualize system state only
     // 3. Do nothing, we need to wait for next day to process data
     if (Object.keys(lastGTFSRecord).length > 0) {
-        let lastGTFSRecordTime = timeStamp.getDateFromTimeStamp(timeStamp.getTimeStamp(Object.keys(lastGTFSRecord)[Object.keys(lastGTFSRecord).length - 1]));
+        let lastGTFSRecordTime = timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(timeStamp.getTodayUTC()));
+        for (const key of Object.keys(lastGTFSRecord)) {
+            if (timeStamp.compareTimeStamps(lastGTFSRecordTime, timeStamp.getTimeStamp(key)) === -1) {
+                lastGTFSRecordTime = timeStamp.getTimeStamp(key);
+            }
+        }
         let todayTime = timeStamp.getTodayUTC().setUTCHours(0, 0, 0, 0);
+        lastGTFSRecordTime = timeStamp.getDateFromTimeStamp(lastGTFSRecordTime);
 
         if (lastGTFSRecordTime.getTime() >= todayTime) {
             log('info', 'Today system state has been actualized, waiting for next day to process data.');

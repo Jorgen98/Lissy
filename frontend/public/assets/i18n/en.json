@@ -187,7 +187,12 @@
         "bp": "Bachelor Thesis",
         "dp": "Diploma Thesis",
         "article": "Paper",
-        "poster": "Poster"
+        "poster": "Poster",
+        "mainMenu": "Main menu",
+        "settingsMenu": "Settings",
+        "visualizationMenu": "Options",
+        "czech": "Česky",
+        "english": "English"
     },
     "UIMessagesService": {
         "loading": "Loading Data",

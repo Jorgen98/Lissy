@@ -25,11 +25,13 @@ export class DashboardModule implements OnInit {
     public config: ModuleConfig = config;
     constructor(
         private apiService: APIService,
-        private translate: TranslateService
+        public translate: TranslateService
     ) {}
 
     public faIconRoute = faRoute;
     public faIconHourglassHalf = faHourglassHalf;
+
+    public moduleFocus: Number = 0;
 
     public isDBConnected: boolean = false;
     public modules: ModuleConfig[] = [
@@ -41,5 +43,14 @@ export class DashboardModule implements OnInit {
 
     public async ngOnInit() {
         this.isDBConnected = await this.apiService.isConnected();
+    }
+
+    // Show language settings on mobile devices
+    public switchMobileSubMenuVisibility() {
+        if (this.moduleFocus !== -1) {
+            this.moduleFocus = -1;
+        } else {
+            this.moduleFocus = 0;
+        }
     }
 }

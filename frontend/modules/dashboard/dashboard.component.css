@@ -47,4 +47,19 @@
     .main-item-down {
         grid-template-columns: auto;
     }
+
+    .logo-img {
+        max-width: 100%;
+        width: 50vw;
+    }
+
+    .main-btn-content {
+        flex-direction: row;
+        column-gap: 1em;
+        font-size: 1em;
+    }
+
+    .main {
+        padding-bottom: 3em;
+    }
 }

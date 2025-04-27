@@ -148,6 +148,8 @@ export class StatsModule implements OnInit {
         "gtfs_trips_added",
     ];
 
+    public moduleFocus = 0;
+
     // Graph datasets
     public systemState: graphData[] = [];
     public systemStateProcessingTime: graphData = {labels: [], datasets: []};
@@ -219,13 +221,35 @@ export class StatsModule implements OnInit {
 
     // Function for calendar module switch
     public switchCalendarModuleVisibility() {
-        if (!this.isCalendarModuleActive && this.selectedDates !== null) {
+        if (this.moduleFocus !== 1 && this.selectedDates !== null) {
             this.hooverDates = [];
             for (const date of this.selectedDates) {
                 this.hooverDates.push(new Date(date));
             }
         }
-        this.isCalendarModuleActive = !this.isCalendarModuleActive;
+        if (this.moduleFocus !== 1) {
+            this.moduleFocus = 1;
+        } else {
+            this.moduleFocus = 0;
+        }
+    }
+
+    // Function for mobile submenu switch
+    public switchMobileSubMenuVisibility() {
+        if (this.moduleFocus !== -1) {
+            this.moduleFocus = -1;
+        } else {
+            this.moduleFocus = 0;
+        }
+    }
+
+    // Function for mobile setting switch
+    public switchMobileOptionsVisibility() {
+        if (this.moduleFocus !== -2) {
+            this.moduleFocus = -2;
+        } else {
+            this.moduleFocus = 0;
+        }
     }
 
     public setToday() {

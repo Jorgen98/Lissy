@@ -299,3 +299,19 @@
 :host::ng-deep.p-overlay {
     max-width: 100%;
 }
+
+@media only screen and (max-width: 700px) {
+    .header {
+        display: none;
+    }
+
+    :host::ng-deep.p-datepicker {
+        width: 100vw;
+    }
+
+    .loadingElem, .loadingElemBackground {
+        margin: 0;
+        height: 100vh;
+        position: fixed;
+    }
+}

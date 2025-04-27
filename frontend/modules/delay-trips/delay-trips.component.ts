@@ -265,6 +265,24 @@ export class DelayTripsModule implements OnInit, OnDestroy {
         }
     }
 
+    // Function for mobile submenu switch
+    public switchMobileSubMenuVisibility() {
+        if (this.moduleFocus !== -1) {
+            this.moduleFocus = -1;
+        } else {
+            this.moduleFocus = 0;
+        }
+    }
+
+    // Function for mobile setting switch
+    public switchMobileOptionsVisibility() {
+        if (this.moduleFocus !== -2) {
+            this.moduleFocus = -2;
+        } else {
+            this.moduleFocus = 0;
+        }
+    }
+
     public setToday() {
         this.hooverDates = [new Date()];
     }

@@ -19,7 +19,7 @@ The tool needs transport network in custom format for the whole monitored transp
  5. In **.env** set **BE_PROCESSING_GTFS_LINK** link to gtfs.zip file discrebing the public transport system
  6. In **.env** set **BE_PROCESSING_ROUTES** regex to which routes do you want to process
  7. Run application with `sudo make run-in-prod` command
- 8. Application is running on **server_ip:7000/lissy**
+ 8. Application is running on **server_ip/lissy**
 
 ### Stop application
 

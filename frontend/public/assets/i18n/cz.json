@@ -192,7 +192,9 @@
         "settingsMenu": "Nastavení",
         "visualizationMenu": "Vizualizace",
         "czech": "Česky",
-        "english": "English"
+        "english": "English",
+        "404Header": "Chyba 404!",
+        "404Text": "Do této oblasti nevede žádná linka. Zkuste to prosím znovu."
     },
     "UIMessagesService": {
         "loading": "Načítání dat",

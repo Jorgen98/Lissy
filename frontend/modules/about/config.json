@@ -1,6 +1,6 @@
 {
     "enabled": true,
-    "apiPrefix": "about",
+    "apiPrefix": "aboutApp",
     "name": "about.name",
     "icon": "pi-info-circle"
 }

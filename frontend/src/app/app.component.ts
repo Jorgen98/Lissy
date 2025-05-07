@@ -32,7 +32,15 @@ export class AppComponent {
     ) {
         this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
         this.translate.setDefaultLang(this.langs[0].code);
-        this.translate.use(this.langs[0].code);
+
+        // Set app language according to user cookies
+        const savedLang = localStorage.getItem('userLang');
+        if (savedLang !== null) {
+            this.translate.use(this.langs[parseInt(savedLang)].code);
+        } else {
+            this.translate.use(this.langs[0].code);
+        }
+
         this.translate.get('primeng').subscribe(res => this.primeng.setTranslation(res));
 
         router.events.subscribe(() => {msgService.turnOffLoadingScreen()});
@@ -46,8 +54,10 @@ export class AppComponent {
     public changeLang() {
         if (this.selectedLang.code === 'cz') {
             this.selectedLang = this.langs[1];
+            localStorage.setItem('userLang', '1');
         } else {
             this.selectedLang = this.langs[0];
+            localStorage.setItem('userLang', '0');
         }
         this.translate.use(this.selectedLang.code);
         this.translate.get('primeng').subscribe(res => this.primeng.setTranslation(res));

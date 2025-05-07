@@ -81,7 +81,7 @@
         }
     },
     "stats": {
-        "name": "Stats",
+        "name": "Statistics",
         "today": "Today",
         "loadData": "Load Data",
         "info": "Various metrics are important indicators when assessing the performance of a proposed algorithm or solution. In the case of this application, the monitored parameters relate to two areas. The first is the structure of the transport system itself, which consists of stops, lines, routes and services. The second area is the real operation data, with the most monitored parameters being the proportion of correctly matched and stored records.",
@@ -192,7 +192,9 @@
         "settingsMenu": "Settings",
         "visualizationMenu": "Options",
         "czech": "Česky",
-        "english": "English"
+        "english": "English",
+        "404Header": "Error 404!",
+        "404Text": "There is no route to this location. Please try it again."
     },
     "UIMessagesService": {
         "loading": "Loading Data",

@@ -11,5 +11,5 @@ RUN npm run build
 
 FROM nginx:latest AS ng
 
-COPY --from=build /dist/src/app/fe/browser /usr/share/nginx/html/lissy
+COPY --from=build /dist/src/app/fe/browser /usr/share/nginx/html
 COPY ./frontend/nginx.conf  /etc/nginx/conf.d/default.conf

@@ -1,5 +1,5 @@
 services:
-  db-postgis:
+  lissy-db-postgis:
     container_name: lissy-db-postgis
     image: postgis/postgis:16-master
     volumes:
@@ -27,7 +27,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  db-stats:
+  lissy-db-stats:
     container_name: lissy-db-stats
     image: influxdb:2.7
     volumes:
@@ -57,7 +57,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  db-cache:
+  lissy-db-cache:
     container_name: lissy-db-cache
     image: redis:7.4.2
     restart: always

@@ -281,6 +281,12 @@ stats {
     background-color: var(--background);
 }
 
+app-page-not-found {
+    width: 100vw;
+    height: calc(100vh - 3em);
+    display: flex;
+}
+
 @media only screen and (max-width: 1500px) {
     .side-control-content {
         width: calc(100% - 5em);

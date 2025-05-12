@@ -784,7 +784,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 let interRouteType = '';
                 // Reduction of transit modes, currently only tram, rail and road modes are supported
                 switch (todayRouteIds[newTrip.route_id].route_type) {
-                    case 0: interRouteType = 'tram'; break;
+                    case 0: case 4: interRouteType = 'tram'; break;
                     case 2: interRouteType = 'rail'; break;
                     case 3: case 11: case 800: interRouteType = 'road'; break;
                     default: interRouteType = '';

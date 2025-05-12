@@ -472,6 +472,7 @@ export class MapComponent implements AfterViewInit {
 
         if (layerToRemove !== undefined && layerToRemove.layer) {
             layerToRemove.layer.clearLayers();
+            layerToRemove.palette = {};
             this.actualizeColorLegend();
         }
     }

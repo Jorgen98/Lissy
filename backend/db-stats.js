@@ -312,6 +312,8 @@ async function saveRealOperationData(tripId, scoreTable, date) {
 async function saveRealOperationRoutesData(ids, date) {
     const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
 
+    ids = JSON.stringify(JSON.parse(ids).concat(await getRoutesIdsInInterval(timeStamp.getTimeStamp(date), timeStamp.getTimeStamp(date))));
+
     let record = new Point(measurementStats)
         .tag('stat_type', statType.operationDataRoutes)
         .stringField('route_ids', ids)
@@ -333,6 +335,8 @@ async function saveRealOperationRoutesData(ids, date) {
 // Function for saving transit system used trips intro DB
 async function saveRealOperationTripsData(ids, route_id, date) {
     const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
+
+    ids = JSON.stringify(JSON.parse(ids).concat(await getTripIdsInInterval(route_id, timeStamp.getTimeStamp(date), timeStamp.getTimeStamp(date))));
 
     let record = new Point(measurementStats)
         .tag('stat_type', statType.operationDataTrips)
@@ -457,7 +461,7 @@ async function getRoutesIdsInInterval(start, stop) {
         stopTime = timeStamp.getDateFromTimeStamp(stop);
         stopTime = new Date(stopTime.setUTCHours(23, 59, 59, 0));
     } catch (error) {
-        return {};
+        return [];
     }
 
     let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);

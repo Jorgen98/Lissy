@@ -6,7 +6,7 @@
 
 // Convert JS Date to time
 export function getDate(timeStamp: string) {
-    return new Date(`${parseInt(timeStamp.split('-')[0])}-${parseInt(timeStamp.split('-')[1]) + 1}-${parseInt(timeStamp.split('-')[2])}`);
+    return new Date(`${parseInt(timeStamp.split('-')[0])}/${parseInt(timeStamp.split('-')[1]) + 1}/${parseInt(timeStamp.split('-')[2])}`);
 }
 
 // Convert JS Date to time

@@ -75,7 +75,14 @@ async function processRequest(url, req, res) {
         }
     } catch (error) {
         log('error', error);
-        res.send(false);
+
+        if (!res.finished) {
+            res.send(false);
+        }
+
+        if (req.query.progress) {
+            dbCache.setUpValue(req.url, false, 100);
+        }
     }
 }
 

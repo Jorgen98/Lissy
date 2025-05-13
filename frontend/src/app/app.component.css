@@ -9,6 +9,7 @@
     background-color: var(--background);
     display: flex;
     flex-direction: column;
+    color: var(--p-gray-50);
 }
 
 .header {
@@ -175,6 +176,7 @@
 :host::ng-deep.p-datepicker-today > .p-datepicker-day {
     background-color: transparent;
     border: 0.1em solid var(--p-gray-800);
+    color: var(--background);
 }
 
 :host::ng-deep.p-datepicker-day {
@@ -231,6 +233,7 @@
     opacity: 0.5;
     color: var(--p-gray-50);
     transition: .5s;
+    background-color: var(--background);
 }
 
 :host::ng-deep.p-select-option:hover, :host::ng-deep.p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
@@ -247,6 +250,12 @@
 
 :host::ng-deep.p-toast-message {
     margin-top: 3em;
+}
+
+:host::ng-deep.p-toast {
+    max-width: calc(100vw - 2em);
+    right: 1em !important;
+    top: 1em;
 }
 
 :host::ng-deep.p-step-number, :host::ng-deep.p-step-title, :host::ng-deep.p-step-active .p-step-title,
@@ -300,6 +309,10 @@
     max-width: 100%;
 }
 
+:host::ng-deep.p-steppanel {
+    color: var(--p-gray-50);
+}
+
 @media only screen and (max-width: 700px) {
     .header {
         display: none;
@@ -313,5 +326,9 @@
         margin: 0;
         height: 100vh;
         position: fixed;
+    }
+
+    :host::ng-deep.p-toast-message {
+        margin-top: 0;
     }
 }

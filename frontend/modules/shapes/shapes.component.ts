@@ -181,17 +181,19 @@ export class ShapesModule implements OnInit, OnDestroy {
         this.routes = await this.apiGet('getShapes', {date: timeStamp.getTimeStamp(this.hooverDate.getTime() - (this.hooverDate.getTimezoneOffset() * 60 * 1000))});
         this.msgService.turnOffLoadingScreen();
 
-        if (this.routes.length < 1) {
+        if (!this.routes || this.routes.length < 1) {
             this.isRouteSelectionEnabled = false;
             this.selectedRoute = undefined;
             this.selectedTrip = undefined;
+
+            this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');
         } else {
             this.isRouteSelectionEnabled = true;
             this.selectedRoute = this.routes[0];
             this.selectedTrip = this.selectedRoute?.trips[0];
-        }
 
-        await this.changeShape();
+            await this.changeShape();
+        }
     }
 
     // Change line's route

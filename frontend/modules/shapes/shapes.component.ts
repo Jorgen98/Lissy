@@ -186,7 +186,7 @@ export class ShapesModule implements OnInit, OnDestroy {
             this.selectedRoute = undefined;
             this.selectedTrip = undefined;
 
-            this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');
+            this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
         } else {
             this.isRouteSelectionEnabled = true;
             this.selectedRoute = this.routes[0];

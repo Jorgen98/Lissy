@@ -174,9 +174,11 @@ async function unzipAndParseData(response, startTime) {
                             log('error', 'Routing trip shapes has failed');
                             fs.rmSync(tmpFolderName, { recursive: true });
                             resolve(false);
+                            shapesToCalc = {};
                             return;
                         }
                         log('success', 'Shapes routing done');
+                        shapesToCalc = {};
 
                         if (saveTestOutput) {
                             fs.writeFile(`backups/${(new Date()).toISOString()}_shapes.txt`, JSON.stringify(await dbPostGIS.getShapes()), function(error) {
@@ -908,8 +910,13 @@ async function getNewShapes() {
         let progress = 0;
         let lastProgressValue = 0;
         let startTime = performance.now();
+        let actualRoute = 0;
 
         for (const task in shapesToCalc) {
+            if (shapesToCalc[task].route !== actualRoute) {
+                actualRoute = shapesToCalc[task].route;
+                log('info', `Routing shapes of route ${actualRoute}`);
+            }
             let retVal = await routingService.computeShape(shapesToCalc[task]);
             progress += (1 / Object.keys(shapesToCalc).length) * 100;
             if (Math.floor(progress) > lastProgressValue) {

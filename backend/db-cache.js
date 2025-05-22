@@ -43,13 +43,21 @@ async function setUpValue(key, data, progress) {
 
     // Key already exists in cache DB
     if (actualValue !== null) {
-        // After defined time, if there will be none request, data will be deleted from cache DB
-        await db_redis.expireAt(key, parseInt((timeStamp.getTodayUTC().getTime()) / 1000) + 60 * 60 * parseInt(process.env.DB_CACHE_DURABILITY));
+        // If cache was empty, do not prolonge the cache record live
+        console.log(actualValue)
+        if (!(actualValue.data?.length < 1 || actualValue.data === null || Object.keys(actualValue.data).length < 1)) {
+            await db_redis.expireAt(key, parseInt((timeStamp.getTodayUTC().getTime()) / 1000) + 60 * 60 * parseInt(process.env.DB_CACHE_DURABILITY));
+        }
 
         // Store data from finished operation
         if (data !== null) {
             try {
                 await db_redis.set(key, JSON.stringify({progress: 100, data: data}));
+                // If result of the operation was empty, set record live only for 10 minut
+                // After 10 minutes, the operation can be repeated
+                if (data.length < 1 || Object.keys(data).length < 1) {
+                    await db_redis.expireAt(key, parseInt((timeStamp.getTodayUTC().getTime()) / 1000) + 60 * 15);
+                }
                 return true;
             } catch(error) {
                 log('error', error);

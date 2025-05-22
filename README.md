@@ -2,7 +2,7 @@
 
 ## Public Transport System Analysis Tool
 
-The application autonomously monitors and records the behaviour of transport system. After the initial start-up, an initialization procedure takes place, after which the initial model of the transport system is located in the application. The regular data processing follows at 2:15 a.m. every day. The processed data can be visualised and analysed using the client application.
+The application autonomously monitors and records the behaviour of transport system. After the initial start-up, an initialization procedure takes place, after which the initial model of the transport system is located in the application. The regular data processing follows at 3:00 a.m. every day. The processed data can be visualised and analysed using the client application.
 
 ## Note on transport networks
 

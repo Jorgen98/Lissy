@@ -408,6 +408,9 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             this.selectedTrip = this.selectedTripGroup.trips[0];
             await this.changeTrip();
         } else {
+            this.mapService.clearLayer('route');
+            this.mapService.clearLayer('stops');
+            this.delayCategoriesService.removeDelayCategoriesFromMap();
             this.isSettingsEnabled = false;
             this.isStatsModuleEnabled = false;
             this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');

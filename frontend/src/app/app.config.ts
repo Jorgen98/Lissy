@@ -4,7 +4,6 @@ import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateLoader } from "@ngx-translate/core";
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideMarkdown } from 'ngx-markdown';
 import { MessageService } from 'primeng/api';
 import Aura from '@primeng/themes/aura';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -21,7 +20,6 @@ export const appConfig: ApplicationConfig = {
         provideRouter(routes),
         provideAnimations(),
         provideHttpClient(),
-        provideMarkdown(),
         provideAnimationsAsync(),
         providePrimeNG({
             theme: {

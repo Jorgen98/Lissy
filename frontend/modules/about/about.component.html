@@ -54,7 +54,7 @@
                 </p-step-list>
                 <p-step-panels>
                     <p-step-panel [value]="1">
-                        <ng-template #content let-activateCallback="activateCallback">
+                        <ng-template #content>
                             <p>{{ 'about.manual.steps.0_info' | translate }}</p>
                             <span class="stepper-img">
                                 <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_0_cz.png' : './manual/manual_0_en.png'" alt="Image" width="500" [preview]="true" />
@@ -62,7 +62,7 @@
                         </ng-template>
                     </p-step-panel>
                     <p-step-panel [value]="2">
-                        <ng-template #content let-activateCallback="activateCallback">
+                        <ng-template #content>
                             <p>{{ 'about.manual.steps.1_info' | translate }}</p>
                             <span class="stepper-img">
                                 <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_1_cz.png' : './manual/manual_1_en.png'" alt="Image" width="500" [preview]="true" />
@@ -70,7 +70,7 @@
                         </ng-template>
                     </p-step-panel>
                     <p-step-panel [value]="3">
-                        <ng-template #content let-activateCallback="activateCallback">
+                        <ng-template #content>
                             <p>{{ 'about.manual.steps.2_info' | translate }}</p>
                             <span class="stepper-img">
                                 <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_2_cz.png' : './manual/manual_2_en.png'" alt="Image" width="500" [preview]="true" />
@@ -78,7 +78,7 @@
                         </ng-template>
                     </p-step-panel>
                     <p-step-panel [value]="4">
-                        <ng-template #content let-activateCallback="activateCallback">
+                        <ng-template #content>
                             <p>{{ 'about.manual.steps.3_info' | translate }}</p>
                             <span class="stepper-img">
                                 <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_3_cz.png' : './manual/manual_3_en.png'" alt="Image" width="500" [preview]="true" />

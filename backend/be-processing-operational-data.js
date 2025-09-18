@@ -60,11 +60,11 @@ async function processServedTrips() {
         dbStats.updateROProcessingStats('is_db_available', true);
     }
 
-    // Try to parse and save data downloaded from Brno ArcGIS DB
     if (!(await dbStats.saveRealOperationRoutesData(JSON.stringify(tripsToProcess.map((item) => item.id)), yesterdayMidNight))) {
         return false;
     }
 
+    // Try to parse and save data downloaded from Brno ArcGIS DB
     progress = 0;
     lastProgressValue = 0;
     for (const route of tripsToProcess) {
@@ -128,19 +128,19 @@ async function processRoute(route) {
     dbStats.updateROProcessingStats('downloaded_records', inputOperationData.length);
     let dataToProcess = {};
     for (const record of inputOperationData) {
-        if (record.attributes.isinactive === 'false') {
-            if (dataToProcess[record.attributes.routeid] === undefined) {
-                dataToProcess[record.attributes.routeid] = [];
+        if (record.isinactive === 'false') {
+            if (dataToProcess[record.routeid] === undefined) {
+                dataToProcess[record.routeid] = [];
             }
 
-            if (dataToProcess[record.attributes.routeid].length < 1 ||
-                (dataToProcess[record.attributes.routeid][dataToProcess[record.attributes.routeid].length - 1].time -
-                    record.attributes.lastupdate) < (parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)) {
-                dataToProcess[record.attributes.routeid].push({
-                    lat: record.attributes.lat,
-                    lng: record.attributes.lng,
-                    time: record.attributes.lastupdate,
-                    delay: record.attributes.delay
+            if (dataToProcess[record.routeid].length < 1 ||
+                (dataToProcess[record.routeid][dataToProcess[record.routeid].length - 1].time -
+                    record.lastupdate) < (parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)) {
+                dataToProcess[record.routeid].push({
+                    lat: record.lat,
+                    lng: record.lng,
+                    time: record.lastupdate,
+                    delay: record.delay
                 })
             }
         }
@@ -238,14 +238,16 @@ async function processRoute(route) {
 // Function for downloading data from Brno ArcGIS DB
 async function downloadData(lineId, objectId, attempt) {
     // Example DB query
-    // https://gis.brno.cz/ags1/rest/services/Hosted/ODAE_public_transit_positional_feature_service/FeatureServer/0/query?f=json&where=(%22lineid%22=1)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000
-    let arcGISLinkStart = 'https://gis.brno.cz/ags1/rest/services/Hosted/ODAE_public_transit_positional_feature_service/FeatureServer/0/query?f=json&where=(';
-    let arcGISLinkEnd = ')&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000';
+    // https://walter.fit.vutbr.cz/ben/records?object_id=1&line_id=1&from=1758015083523&to=1758306424823
 
     return new Promise(async (resolve) => {
-        https.get(`${arcGISLinkStart} "lastupdate">${yesterdayMidNight.getTime()} AND "lineid"=${lineId}
-        AND "lastupdate"<${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}
-        AND objectid>${objectId} ${arcGISLinkEnd}`, async res => {
+        https.get({
+            hostname: "walter.fit.vutbr.cz",
+            path: `/ben/records?object_id=${objectId}&line_id=${lineId}&from=${yesterdayMidNight.getTime()}&to=${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}`,
+            headers: {
+                authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
+            },
+        }, async res => {
             let { statusCode } = res;
             let contentType = res.headers['content-type'];
 
@@ -269,11 +271,11 @@ async function downloadData(lineId, objectId, attempt) {
             res.on('end', async () => {
                 try {
                     const parsedData = JSON.parse(rawData);
-                    if (parsedData.features === undefined || parsedData.features.length < 1) {
+                    if (parsedData === undefined || parsedData.length < 1) {
                         resolve([]);
                     } else {
-                        let nextData = await downloadData(lineId, parsedData.features[parsedData.features.length - 1].attributes.objectid, 0);
-                        resolve(nextData.concat(parsedData.features));
+                        let nextData = await downloadData(lineId, parsedData[parsedData.length - 1].objectid, 0);
+                        resolve(nextData.concat(parsedData));
                     }
                 } catch (e) {
                     resolve([]);

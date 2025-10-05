@@ -134,3 +134,23 @@ This endpoint returns the delay values stored for the selected time range and tr
 	}
 
 The delay records for a given day in this case refer to the 0 and 1 inter-stop segment and specifically, for **the zero segment**, only to the segment between coords `1` and `2` with delay value *0* and for **the first segment** to the segment between coords `0` and `1` point with delay value *1*.
+
+## Weather
+
+The following endpoints returns historical weather data of defined points of interest.
+
+### 1. All points
+
+> [/lissy/api/weather/data/{from}{to}]()
+
+> [/lissy/api/weather/data?from=1735686000000&to=1767222000000]()
+
+### 2. Selected point
+
+> [/lissy/api/weather/data/{from}{to}{positionId}]()
+
+> [/lissy/api/weather/data?from=1735686000000&to=1767222000000&positionId=0]()
+
+### 3. Available positions
+
+> [/lissy/api/weather/positions]()

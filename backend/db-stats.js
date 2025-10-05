@@ -26,7 +26,8 @@ const statType = {
     operationData: 'operation_data', // Real operation processed data
     operationDataStats: 'operation_data_stats', // Real operation processing stats
     operationDataRoutes: 'operation_data_routes', // Routes metadata
-    operationDataTrips: 'operation_data_trips' // Trips metadata
+    operationDataTrips: 'operation_data_trips', // Trips metadata
+    weather: 'weather' // Weather
 }
 
 // Variable for transit system state processing stats
@@ -611,7 +612,92 @@ async function getTripDataInInterval(trip_id, start, stop) {
     });
 }
 
+// Function for saving weather stats intro DB
+async function saveWeatherData(inputData, positionId) {
+    const writeApi = db_influx.getWriteApi(process.env.DB_STATS_ORG, process.env.DB_STATS_BUCKET);
+
+    // Delete unusable parameters
+    delete inputData.coord;
+    delete inputData.base;
+    delete inputData.dt;
+    delete inputData.sys;
+    delete inputData.timezone;
+    delete inputData.id;
+    delete inputData.name;
+    delete inputData.cod;
+
+    let record = new Point(measurementStats)
+        .tag('stat_type', statType.weather)
+        .tag('positionId', positionId)
+        .stringField('weather', JSON.stringify(inputData))
+        .timestamp(timeStamp.getTodayUTC());
+
+    writeApi.writePoint(record);
+
+    return new Promise((resolve) => {
+        writeApi.close().then(async () => {
+            resolve(true);
+        })
+        .catch((error) => {
+            log('error', error)
+            resolve(false);
+        })
+    });
+}
+
+async function getWeatherDataInInterval(positionId, start, stop) {
+    let startTime;
+    let stopTime;
+    try {
+        startTime = new Date(start);
+        stopTime = new Date(stop);
+    } catch (error) {
+        return {};
+    }
+
+    let dbQueryAPI = db_influx.getQueryApi(process.env.DB_STATS_ORG);
+    let query;
+
+    if (positionId !== null) {
+        query = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
+            |> range(start: ${startTime}, stop: ${stopTime})
+            |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.weather} and r.positionId == "position_${positionId}")`;
+    } else {
+        query = flux`from(bucket: "${process.env.DB_STATS_BUCKET}")
+            |> range(start: ${startTime}, stop: ${stopTime})
+            |> filter(fn: (r) => r._measurement == ${measurementStats} and r.stat_type == ${statType.weather})`;
+    }
+
+    let records = {};
+
+    return new Promise((resolve) => {
+        dbQueryAPI.queryRows(query, {
+            next(row, tableMeta) {
+                const o = tableMeta.toObject(row);
+                let dateKey = (new Date(o._time)).setUTCSeconds(0, 0);
+
+                if (records[dateKey.valueOf()] === undefined) {
+                    records[dateKey.valueOf()] = {};
+                }
+
+                if (positionId === null) {
+                    records[dateKey.valueOf()][o.positionId.split('_')[1]] = JSON.parse(o._value);
+                } else {
+                    records[dateKey.valueOf()][positionId] = JSON.parse(o._value);
+                }
+            },
+            error(error) {
+                log('error', error);
+                resolve(false);
+            },
+            complete() {
+                resolve(records);
+            },
+        })
+    });
+}
+
 module.exports = { isDBConnected, getStats, saveStateProcessingStats, initStateProcessingStats,
     updateStateProcessingStats, saveRealOperationData, initROProcessingStats,
     updateROProcessingStats, saveROProcessingStats, getAvailableDates, getRoutesIdsInInterval, getTripIdsInInterval,
-    saveRealOperationRoutesData, saveRealOperationTripsData, getTripDataInInterval }
+    saveRealOperationRoutesData, saveRealOperationTripsData, getTripDataInInterval, saveWeatherData, getWeatherDataInInterval }

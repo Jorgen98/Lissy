@@ -13,6 +13,7 @@ const logService = require('./log.js');
 const gtfsService = require('./gtfs.js');
 const opProcessingService = require('./be-processing-operational-data.js');
 const timeStamp = require('./timeStamp.js');
+const weather = require('./be-weather.js');
 
 // .env file include
 dotenv.config();
@@ -58,6 +59,10 @@ cron.schedule('59 4 * * *', async () => {
         log('success', 'Actualization procedure is done');
     };
 });
+// Get actual weather
+cron.schedule('* * * * *' , async () => {
+    weather.getCurrentData();
+})
 
 // Processing function
 async function processData() {

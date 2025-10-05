@@ -11,6 +11,7 @@ const dbPostGIS = require('./db-postgis.js');
 const dbStats = require('./db-stats.js');
 const dbCache = require('./db-cache.js');
 const logService = require('./log.js');
+const weather = require('./be-weather.js');
 
 // modules
 const modules = [
@@ -60,6 +61,8 @@ async function verifyToken(req, res, next) {
             log('error', error);
             res.send(false);
         }
+    } else if (url[2] === 'weather') {
+        weather.handleAPIReq(req, url[3], res);
     } else {
         for (const module of modules) {
             if (module.env.apiPrefix === url[2] && module.env.enabled) {

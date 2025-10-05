@@ -18,7 +18,6 @@ let numOfTripsToProcess = 0;
 let progress = 0;
 let lastProgressValue = 0;
 
-const oneDay = 24 * 60 * 60 * 1000;
 let now = timeStamp.getTodayUTC();
 let yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
 let lastTripEnd = timeStamp.getDateFromTimeStamp(timeStamp.getTimeStamp(yesterdayMidNight));
@@ -295,11 +294,14 @@ async function downloadData(lineId, objectId, attempt) {
 
 // Help function for check, if Brno ArcGIS DB is online
 async function isDBAlive() {
-    let arcGISLinkStart = 'https://gis.brno.cz/ags1/rest/services/Hosted/ODAE_public_transit_positional_feature_service/FeatureServer/0/query?f=json&where=(';
-    let arcGISLinkEnd = ')&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000';
-
     return new Promise(async (resolve) => {
-        https.get(`${arcGISLinkStart} objectid>0 ${arcGISLinkEnd}`, async res => {
+        https.get({
+            hostname: "walter.fit.vutbr.cz",
+            path: `/ben/records?object_id=0`,
+            headers: {
+                authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
+            },
+        }, async res => {
             let { statusCode } = res;
             let contentType = res.headers['content-type'];
 

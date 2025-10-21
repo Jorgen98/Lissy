@@ -214,6 +214,8 @@ async function deleteNet(net) {
         ids.push(id.id);
     }
 
+    // Temporally disabled according to adding new lines
+    /*
     if (ids.length > 0) {
         try {
             await db_postgis.query(`UPDATE trips SET is_active=false, is_today=false WHERE shape_id IN (${ids})`);
@@ -222,7 +224,7 @@ async function deleteNet(net) {
             log('error', error);
             return false;
         }
-    }
+    }*/
 
     return true;
 }

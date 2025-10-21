@@ -2,3 +2,9 @@ development-dbs-only:
 	docker compose -f docker-compose-dev.yml --env-file ./env/.env up lissy-db-postgis lissy-db-stats lissy-db-cache --build
 development-ui-only:
 	docker compose --env-file ./env/.env up lissy-proxy-server lissy-fe lissy-be-api lissy-db-postgis lissy-db-stats lissy-db-cache --build
+reset:
+	rm -rf ./db-cache-data
+	rm -rf ./db-postgis-data
+	rm -rf ./db-stats-data
+	yes | docker container prune
+	yes | docker image prune -a

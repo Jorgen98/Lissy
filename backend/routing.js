@@ -289,7 +289,7 @@ async function findConnection(trip, stopALatLng, stopBLatLng) {
                     nextHubs = [];
                 }
             }
-        } while (nextHubs.length === 1 && !possibilities[curIndx].finished);
+        } while (nextHubs.length === 1 && !possibilities[curIndx].finished && possibilities[curIndx].visited.length < 10000);
 
         // If we find the finish, there is no need to continue in search
         if (possibilities[curIndx].finished) {

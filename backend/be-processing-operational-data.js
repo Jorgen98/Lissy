@@ -242,7 +242,7 @@ async function downloadData(lineId, objectId, attempt) {
     return new Promise(async (resolve) => {
         https.get({
             hostname: "walter.fit.vutbr.cz",
-            path: `/ben/records?object_id=${objectId}&line_id=${lineId}&from=${yesterdayMidNight.getTime()}&to=${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}`,
+            path: `/ben/delayRecords?object_id=${objectId}&line_id=${lineId}&from=${yesterdayMidNight.getTime()}&to=${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}`,
             headers: {
                 authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
             },

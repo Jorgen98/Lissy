@@ -6,7 +6,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { MessagesModule } from 'primeng/messages';
 import { ToastModule } from 'primeng/toast';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -29,7 +28,6 @@ import { ImageModule } from 'primeng/image';
         CommonModule,
         ChartModule,
         ProgressSpinnerModule,
-        MessagesModule,
         ToastModule,
         SelectButtonModule,
         CheckboxModule,
@@ -51,7 +49,6 @@ import { ImageModule } from 'primeng/image';
         CommonModule,
         ChartModule,
         ProgressSpinnerModule,
-        MessagesModule,
         ToastModule,
         SelectButtonModule,
         CheckboxModule,

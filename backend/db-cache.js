@@ -44,7 +44,6 @@ async function setUpValue(key, data, progress) {
     // Key already exists in cache DB
     if (actualValue !== null) {
         // If cache was empty, do not prolonge the cache record live
-        console.log(actualValue)
         if (!(actualValue.data?.length < 1 || actualValue.data === null || Object.keys(actualValue.data).length < 1)) {
             await db_redis.expireAt(key, parseInt((timeStamp.getTodayUTC().getTime()) / 1000) + 60 * 60 * parseInt(process.env.DB_CACHE_DURABILITY));
         }

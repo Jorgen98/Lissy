@@ -181,7 +181,7 @@ async function reloadNet(net, inputData) {
 
     try {
         await db_postgis.query(`INSERT INTO ${net} (geom, conns) VALUES ${query}`);
-        await db_postgis.query(`UPDATE net_stats SET ${net}_valid=${timeStamp.getDateFromTimeStamp(inputData.valid).getTime()}`);
+        await db_postgis.query(`UPDATE net_stats SET ${net}_valid=${timeStamp.getDateFromISOTimeStamp(inputData.valid).getTime()}`);
         dbStats.updateStateProcessingStats(`${net}_net_actualized`, true);
         dbStats.updateStateProcessingStats(`${net}_net_hubs`, inputData.hubs.length);
         log('success', `Transit ${net} successfully actualized`);

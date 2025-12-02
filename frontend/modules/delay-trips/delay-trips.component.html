@@ -177,7 +177,7 @@
                         <p-inputNumber inputStyleClass="delay-category-number" [(ngModel)]="category.minValue" [showButtons]="true" buttonLayout="horizontal" [step]="0.25"
                             decrementButtonClass="delay-category-btn" incrementButtonClass="delay-category-btn" suffix=" min."
                             incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" mode="decimal" (onInput)="onDelayCategoryChange(i)" allowEmpty="false"
-                            [min]="i === 0 ? 0 : delayCategories[i - 1].minValue + 0.25" [max]="i < (delayCategories.length - 1) ? category.maxValue - 0.25 : ''" [disabled]="i === 0 ? true : false"/>
+                            [min]="i === 0 ? 0 : delayCategories[i - 1].minValue + 0.25" [max]="i < (delayCategories.length - 1) ? category.maxValue - 0.25 : null" [disabled]="i === 0 ? true : false"/>
                         <span class="delay-category-text">{{ i < (delayCategories.length - 1) ? category.maxValue + ' min.' : 'delay.other' | translate }}</span>
                         <button type="button" class="delay-category-btn" (click)="removeDelayCategory(i)" *ngIf="delayCategories.length > 1">
                             <i class="pi pi-trash"></i>

@@ -1,43 +1,55 @@
 <div class="main">
-    <div class="header" [ngClass]="router.url == '/' ? 'header-without-border' : ''">
-        <!-- Menu -->
-        <div class="header-left">
-            <button type="button" class="btn-header" routerLink="/" *ngIf="router.url != '/'">
-                <i class="pi pi-bars"></i>
-            </button>
-        </div>
-        <!-- Logo -->
-        <div class="header-center">
-            <div class="header-link-item" routerLink="/" *ngIf="router.url != '/'">
-                <img class="header-link-img" src="./logo.svg"/>
-            </div>
-        </div>
-        <!-- Modules header -->
-        <div class="header-right">
-            <div class="header-link-item" (click)="goToLink('fit')" *ngIf="router.url != '/'">
-                <img class="header-link-img" src="./FIT.png"/>
-            </div>
-            <div class="header-link-item" (click)="goToLink('brno')" *ngIf="router.url != '/'">
-                <img class="header-link-img" src="./brno.png"/>
-            </div>
-            <div class="header-link-item" (click)="changeLang()">
-                <img class="header-link-img header-lang-item" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/' + selectedLang.flag + '.svg'"/>
-            </div>
-        </div>
+  <div class="header" [ngClass]="router.url == '/' ? 'header-without-border' : ''">
+    <!-- Menu -->
+    <div class="header-left">
+      @if (router.url != '/') {
+        <button type="button" class="btn-header" routerLink="/">
+          <i class="pi pi-bars"></i>
+        </button>
+      }
     </div>
-    <!-- Loading screen -->
-    <div *ngIf="loadingElemVisibility" class="loadingElemBackground"></div>
-    <div *ngIf="loadingElemVisibility" class="loadingElem">
-        <div class="loadingElemContext">
-            <div class="loadingElemCircleDiv">
-                <p-progressSpinner class="loadingElemCircle"/>
-                <span class="loadingElemCircleText">{{ loadingElemPercentage }}</span>
-            </div>
-            <span class="loadingElemMainText">{{ 'UIMessagesService.loading' | translate }}</span>
+    <!-- Logo -->
+    <div class="header-center">
+      @if (router.url != '/') {
+        <div class="header-link-item" routerLink="/">
+          <img class="header-link-img" src="./logo.svg"/>
         </div>
+      }
     </div>
-    <!-- Modules -->
-    <router-outlet></router-outlet>
-    <!-- Messages -->
-    <p-toast />
+    <!-- Modules header -->
+    <div class="header-right">
+      @if (router.url != '/') {
+        <div class="header-link-item" (click)="goToLink('fit')">
+          <img class="header-link-img" src="./FIT.png"/>
+        </div>
+      }
+      @if (router.url != '/') {
+        <div class="header-link-item" (click)="goToLink('brno')">
+          <img class="header-link-img" src="./brno.png"/>
+        </div>
+      }
+      <div class="header-link-item" (click)="changeLang()">
+        <img class="header-link-img header-lang-item" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/' + selectedLang.flag + '.svg'"/>
+      </div>
+    </div>
+  </div>
+  <!-- Loading screen -->
+  @if (loadingElemVisibility) {
+    <div class="loadingElemBackground"></div>
+  }
+  @if (loadingElemVisibility) {
+    <div class="loadingElem">
+      <div class="loadingElemContext">
+        <div class="loadingElemCircleDiv">
+          <p-progressSpinner class="loadingElemCircle"/>
+          <span class="loadingElemCircleText">{{ loadingElemPercentage }}</span>
+        </div>
+        <span class="loadingElemMainText">{{ 'UIMessagesService.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+  <!-- Modules -->
+  <router-outlet></router-outlet>
+  <!-- Messages -->
+  <p-toast />
 </div>

@@ -1,139 +1,155 @@
-<main class="main" *ngIf="config.enabled">
+@if (config.enabled) {
+  <main class="main">
     <!-- Side menu -->
     <div class="side-control">
-        <span class="side-control-modules">
-            <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-                <button type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-                    (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
-                    <i class="pi pi-calendar"></i>
-                </button>
-            </div>
-            <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-                <button type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-                    (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-                    <fa-icon [icon]="faIconRoute"></fa-icon>
-                </button>
-            </div>
-        </span>
-        <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-            <button type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-                (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
-                <i class="pi pi-cog"></i>
-            </button>
+      <span class="side-control-modules">
+        <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+            <i class="pi pi-calendar"></i>
+          </button>
         </div>
+        <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+            <fa-icon [icon]="faIconRoute"></fa-icon>
+          </button>
+        </div>
+      </span>
+      <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+        <button type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+          (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
+          <i class="pi pi-cog"></i>
+        </button>
+      </div>
     </div>
     <!-- Mobile menu -->
     <div class="mobile-header">
-        <div class="mobile-header-item">
-            <button type="button" class="mobile-btn-header" routerLink="/">
-                <i class="pi pi-home"></i>
-                <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
-            </button>
-        </div>
-        <div class="mobile-header-item">
-            <button type="button" class="mobile-btn-header" (click)="switchMobileOptionsVisibility()">
-                <i class="pi pi-bars"></i>
-                <p class="mobile-btn-text">{{ 'common.visualizationMenu' | translate }}</p>
-            </button>
-        </div>
-        <div class="mobile-header-item">
-            <button type="button" class="mobile-btn-header" (click)="switchSettingsModuleVisibility()">
-                <i class="pi pi-cog"></i>
-                <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
-            </button>
-        </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" routerLink="/">
+          <i class="pi pi-home"></i>
+          <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
+        </button>
+      </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchMobileOptionsVisibility()">
+          <i class="pi pi-bars"></i>
+          <p class="mobile-btn-text">{{ 'common.visualizationMenu' | translate }}</p>
+        </button>
+      </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchSettingsModuleVisibility()">
+          <i class="pi pi-cog"></i>
+          <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
+        </button>
+      </div>
     </div>
     <!-- Mobile menu submenu -->
-    <div class="mobile-submenu" *ngIf="moduleFocus === -2">
+    @if (moduleFocus === -2) {
+      <div class="mobile-submenu">
         <span class="mobile-head">
-            <h3>{{ 'common.visualizationMenu' | translate }}</h3>
-            <button type="button" (click)="switchMobileOptionsVisibility()">
+          <h3>{{ 'common.visualizationMenu' | translate }}</h3>
+          <button type="button" (click)="switchMobileOptionsVisibility()">
             <i class="pi pi-times"></i>
-            </button>
+          </button>
         </span>
         <div>
-            <button type="button" class="mobile-menu-btn" (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
-                <i class="pi pi-calendar mobile-icon"></i>
-                <p class="mobile-menu-text">{{ 'common.calendar' | translate }}</p>
-            </button>
-            <button type="button" class="mobile-menu-btn" (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-                <fa-icon [icon]="faIconRoute"></fa-icon>
-                <p class="mobile-menu-text">{{ 'common.route' | translate }}</p>
-            </button>
+          <button type="button" class="mobile-menu-btn" (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+            <i class="pi pi-calendar mobile-icon"></i>
+            <p class="mobile-menu-text">{{ 'common.calendar' | translate }}</p>
+          </button>
+          <button type="button" class="mobile-menu-btn" (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+            <fa-icon [icon]="faIconRoute"></fa-icon>
+            <p class="mobile-menu-text">{{ 'common.route' | translate }}</p>
+          </button>
         </div>
-    </div>
+      </div>
+    }
     <!-- Module content -->
     <div class="content">
-        <!-- Calendar -->
-        <div class="side-control-content" *ngIf="moduleFocus == 1">
-            <span class="side-control-head">
-                <h4>{{ 'common.calendar' | translate }}</h4>
-                <button type="button" (click)="switchCalendarModuleVisibility()">
-                <i class="pi pi-times"></i>
-                </button>
-            </span>
-            <p-datepicker class="calendar" [(ngModel)]="hooverDate" [inline]="true" selectionMode="single"
-                [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
-                <ng-template pTemplate="footer">
-                <div class="calendar-btns-div">
-                    <button *ngIf="isTodayFunctionEnabled" type="button" (click)="setToday()">{{ 'shapes.today' | translate }}</button>
-                    <button type="button" (click)="getAvailableShapesData()" [disabled]="hooverDate == null">{{ 'shapes.loadData' | translate }}</button>
-                </div>
-                </ng-template>
-            </p-datepicker>
+      <!-- Calendar -->
+      @if (moduleFocus == 1) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'common.calendar' | translate }}</h4>
+            <button type="button" (click)="switchCalendarModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <p-datepicker class="calendar" [(ngModel)]="hooverDate" [inline]="true" selectionMode="single"
+            [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
+            <ng-template pTemplate="footer">
+              <div class="calendar-btns-div">
+                @if (isTodayFunctionEnabled) {
+                  <button type="button" (click)="setToday()">{{ 'shapes.today' | translate }}</button>
+                }
+                <button type="button" (click)="getAvailableShapesData()" [disabled]="hooverDate == null">{{ 'shapes.loadData' | translate }}</button>
+              </div>
+            </ng-template>
+          </p-datepicker>
         </div>
-        <!-- Shape selection -->
-        <div class="side-control-content" *ngIf="moduleFocus == 2">
-            <span class="side-control-head">
-                <h4>{{ 'common.route' | translate }}</h4>
-                <button type="button" (click)="switchRouteSelectModuleVisibility()">
-                    <i class="pi pi-times"></i>
-                </button>
-            </span>
-            <div class="side-control-selection-div">
-                <div class="side-control-selection-inner-div">
-                    <h3>{{ 'shapes.route' | translate }}</h3>
-                    <p-select [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" filter="true"
-                        filterBy="route_short_name" (onChange)="changeRoute()"/>
-                    <h3>{{ 'shapes.shape' | translate }}</h3>
-                    <p-select [options]="selectedRoute?.trips" [(ngModel)]="selectedTrip" optionLabel="stops" filter="true"
-                        filterBy="stops" (onChange)="changeShape()"/>
-                </div>
+      }
+      <!-- Shape selection -->
+      @if (moduleFocus == 2) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'common.route' | translate }}</h4>
+            <button type="button" (click)="switchRouteSelectModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'shapes.route' | translate }}</h3>
+              <p-select [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" filter="true"
+                filterBy="route_short_name" (onChange)="changeRoute()"/>
+              <h3>{{ 'shapes.shape' | translate }}</h3>
+              <p-select [options]="selectedRoute?.trips" [(ngModel)]="selectedTrip" optionLabel="stops" filter="true"
+                filterBy="stops" (onChange)="changeShape()"/>
             </div>
+          </div>
         </div>
-        <!-- Visualization settings -->
-        <div class="side-control-content" *ngIf="moduleFocus == 3">
-            <span class="side-control-head">
-                <h4>{{ 'common.settings' | translate }}</h4>
-                <button type="button" (click)="switchSettingsModuleVisibility()">
-                <i class="pi pi-times"></i>
-                </button>
-            </span>
-            <div class="side-control-selection-div">
-                <div class="side-control-selection-inner-div">
-                    <div class="mobile-header-item">
-                        <button type="button" class="mobile-menu-btn" (click)="translate.use('en')" *ngIf="translate.currentLang === 'cz'">
-                            <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
-                            <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
-                        </button>
-                        <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')" *ngIf="translate.currentLang === 'en'">
-                            <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
-                            <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
-                        </button>
-                    </div>
-                    <span class="side-control-checkbox-span">
-                        <p-checkbox [(ngModel)]="enableZonesOnMap" [binary]="true" (onChange)="renderData()"/>
-                        <h4 class="side-control-checkbox-head">{{ 'shapes.enableZones' | translate }}</h4>
-                    </span>
-                    <span class="side-control-divider"></span>
-                    <span class="side-control-checkbox-span">
-                        <p-checkbox [(ngModel)]="enableRouteColor" [binary]="true" (onChange)="renderData()"/>
-                        <h4 class="side-control-checkbox-head">{{ 'shapes.enableRouteColor' | translate }}</h4>
-                    </span>
-                </div>
+      }
+      <!-- Visualization settings -->
+      @if (moduleFocus == 3) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'common.settings' | translate }}</h4>
+            <button type="button" (click)="switchSettingsModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+            <div class="side-control-selection-inner-div">
+              <div class="mobile-header-item">
+                @if (translate.currentLang === 'cz') {
+                  <button type="button" class="mobile-menu-btn" (click)="translate.use('en')">
+                    <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
+                    <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
+                  </button>
+                }
+                @if (translate.currentLang === 'en') {
+                  <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')">
+                    <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
+                    <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
+                  </button>
+                }
+              </div>
+              <span class="side-control-checkbox-span">
+                <p-checkbox [(ngModel)]="enableZonesOnMap" [binary]="true" (onChange)="renderData()"/>
+                <h4 class="side-control-checkbox-head">{{ 'shapes.enableZones' | translate }}</h4>
+              </span>
+              <span class="side-control-divider"></span>
+              <span class="side-control-checkbox-span">
+                <p-checkbox [(ngModel)]="enableRouteColor" [binary]="true" (onChange)="renderData()"/>
+                <h4 class="side-control-checkbox-head">{{ 'shapes.enableRouteColor' | translate }}</h4>
+              </span>
             </div>
+          </div>
         </div>
-        <!-- Map -->
-        <map></map>
+      }
+      <!-- Map -->
+      <map></map>
     </div>
-</main>
+  </main>
+}

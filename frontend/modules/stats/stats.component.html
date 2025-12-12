@@ -1,173 +1,189 @@
-<main class="main" *ngIf="config.enabled">
+@if (config.enabled) {
+  <main class="main">
     <!-- Side menu -->
     <div class="side-control">
-        <div [ngClass]="isCalendarModuleActive ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+      <div [ngClass]="isCalendarModuleActive ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
         <button type="button" [ngClass]="isCalendarModuleActive ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-            (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
-            <i class="pi pi-calendar"></i>
+          (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+          <i class="pi pi-calendar"></i>
         </button>
-        </div>
+      </div>
     </div>
     <!-- Mobile menu -->
     <div class="mobile-header">
-        <div class="mobile-header-item">
-            <button type="button" class="mobile-btn-header" routerLink="/">
-                <i class="pi pi-home"></i>
-                <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
-            </button>
-        </div>
-        <div class="mobile-header-item">
-            <button type="button" class="mobile-btn-header" (click)="switchMobileOptionsVisibility()">
-                <i class="pi pi-bars"></i>
-                <p class="mobile-btn-text">{{ 'common.visualizationMenu' | translate }}</p>
-            </button>
-        </div>
-        <div class="mobile-header-item">
-            <button type="button" class="mobile-btn-header" (click)="switchMobileSubMenuVisibility()">
-                <i class="pi pi-cog"></i>
-                <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
-            </button>
-        </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" routerLink="/">
+          <i class="pi pi-home"></i>
+          <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
+        </button>
+      </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchMobileOptionsVisibility()">
+          <i class="pi pi-bars"></i>
+          <p class="mobile-btn-text">{{ 'common.visualizationMenu' | translate }}</p>
+        </button>
+      </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchMobileSubMenuVisibility()">
+          <i class="pi pi-cog"></i>
+          <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
+        </button>
+      </div>
     </div>
     <!-- Mobile menu submenu -->
-    <div class="mobile-submenu" *ngIf="moduleFocus === -2">
+    @if (moduleFocus === -2) {
+      <div class="mobile-submenu">
         <span class="mobile-head">
-            <h3>{{ 'common.visualizationMenu' | translate }}</h3>
-            <button type="button" (click)="switchMobileOptionsVisibility()">
+          <h3>{{ 'common.visualizationMenu' | translate }}</h3>
+          <button type="button" (click)="switchMobileOptionsVisibility()">
             <i class="pi pi-times"></i>
-            </button>
+          </button>
         </span>
         <div class="mobile-header-item">
-            <button type="button" class="mobile-menu-btn" (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
-                <i class="pi pi-calendar mobile-icon"></i>
-                <p class="mobile-menu-text">{{ 'common.calendar' | translate }}</p>
-            </button>
+          <button type="button" class="mobile-menu-btn" (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+            <i class="pi pi-calendar mobile-icon"></i>
+            <p class="mobile-menu-text">{{ 'common.calendar' | translate }}</p>
+          </button>
         </div>
-    </div>
+      </div>
+    }
     <!-- Mobile menu settings -->
-    <div class="mobile-submenu" *ngIf="moduleFocus === -1">
+    @if (moduleFocus === -1) {
+      <div class="mobile-submenu">
         <span class="mobile-head">
-            <h3>{{ 'common.settingsMenu' | translate }}</h3>
-            <button type="button" (click)="switchMobileSubMenuVisibility()">
+          <h3>{{ 'common.settingsMenu' | translate }}</h3>
+          <button type="button" (click)="switchMobileSubMenuVisibility()">
             <i class="pi pi-times"></i>
-            </button>
+          </button>
         </span>
         <div class="mobile-header-item">
-            <button type="button" class="mobile-menu-btn" (click)="translate.use('en')" *ngIf="translate.currentLang === 'cz'">
-                <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
-                <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
+          @if (translate.currentLang === 'cz') {
+            <button type="button" class="mobile-menu-btn" (click)="translate.use('en')">
+              <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
+              <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
             </button>
-            <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')" *ngIf="translate.currentLang === 'en'">
-                <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
-                <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
+          }
+          @if (translate.currentLang === 'en') {
+            <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')">
+              <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
+              <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
             </button>
+          }
         </div>
-    </div>
+      </div>
+    }
     <!-- Module content -->
     <div class="content">
-        <!-- Calendar -->
-        <div class="side-control-content" *ngIf="moduleFocus === 1">
-            <span class="side-control-head">
-                <h4>{{ 'common.calendar' | translate }}</h4>
-                <button type="button" (click)="switchCalendarModuleVisibility()">
-                    <i class="pi pi-times"></i>
-                </button>
-            </span>
-            <p-datepicker class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
-                [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
-                <ng-template pTemplate="footer">
-                    <div class="calendar-btns-div">
-                        <button *ngIf="isTodayFunctionEnabled" type="button" (click)="setToday()">{{ 'stats.today' | translate }}</button>
-                        <button type="button" (click)="downloadData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
-                    </div>
-                </ng-template>
-            </p-datepicker>
+      <!-- Calendar -->
+      @if (moduleFocus === 1) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'common.calendar' | translate }}</h4>
+            <button type="button" (click)="switchCalendarModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <p-datepicker class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
+            [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
+            <ng-template pTemplate="footer">
+              <div class="calendar-btns-div">
+                @if (isTodayFunctionEnabled) {
+                  <button type="button" (click)="setToday()">{{ 'stats.today' | translate }}</button>
+                }
+                <button type="button" (click)="downloadData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
+              </div>
+            </ng-template>
+          </p-datepicker>
         </div>
-        <!-- Graphs -->
-        <!-- System state -->
+      }
+      <!-- Graphs -->
+      <!-- System state -->
+      <div class="content-graphs">
+        <p>{{ 'stats.info' | translate }}</p>
+        <h2>{{ 'stats.systemStateHead' | translate }}</h2>
+        <p>{{ 'stats.systemStateInfo' | translate }}</p>
+        <div class="content-graphs-cells">
+          <div>
+            <h4>{{'stats.systemStateRoutes' | translate }}</h4>
+            <p-chart type="bar" [data]="systemState[0]" [options]="graphOptionsLegend"/>
+          </div>
+          <div>
+            <h4>{{'stats.systemStateTrips' | translate }}</h4>
+            <p-chart type="bar" [data]="systemState[3]" [options]="graphOptionsLegend"/>
+          </div>
+          <div>
+            <h4>{{'stats.systemStateStops' | translate }}</h4>
+            <p-chart type="bar" [data]="systemState[2]" [options]="graphOptionsLegend"/>
+          </div>
+          <div>
+            <h4>{{'stats.systemStateShapes' | translate }}</h4>
+            <p-chart type="bar" [data]="systemState[1]" [options]="graphOptionsLegend"/>
+          </div>
+        </div>
+        <div>
+          <h4>{{'stats.systemStateProcessingTime' | translate }}</h4>
+          <p>{{'stats.systemStateProcessingTimeInfo' | translate }}</p>
+          <p-chart type="line" [data]="systemStateProcessingTime" [options]="graphTimeOptions"/>
+        </div>
+      </div>
+      <!-- Routing -->
+      @if (isRoutingDataAvailable) {
         <div class="content-graphs">
-            <p>{{ 'stats.info' | translate }}</p>
-            <h2>{{ 'stats.systemStateHead' | translate }}</h2>
-            <p>{{ 'stats.systemStateInfo' | translate }}</p>
-            <div class="content-graphs-cells">
-                <div>
-                    <h4>{{'stats.systemStateRoutes' | translate }}</h4>
-                    <p-chart type="bar" [data]="systemState[0]" [options]="graphOptionsLegend"/>
-                </div>
-                <div>
-                    <h4>{{'stats.systemStateTrips' | translate }}</h4>
-                    <p-chart type="bar" [data]="systemState[3]" [options]="graphOptionsLegend"/>
-                </div>
-                <div>
-                    <h4>{{'stats.systemStateStops' | translate }}</h4>
-                    <p-chart type="bar" [data]="systemState[2]" [options]="graphOptionsLegend"/>
-                </div>
-                <div>
-                    <h4>{{'stats.systemStateShapes' | translate }}</h4>
-                    <p-chart type="bar" [data]="systemState[1]" [options]="graphOptionsLegend"/>
-                </div>
+          <h2>{{'stats.systemStateRouting' | translate }}</h2>
+          <p>{{'stats.systemStateRoutingInfo' | translate }}</p>
+          <div class="content-graphs-cells">
+            <div>
+              <h4>{{'stats.systemStateRoutingType' | translate }}</h4>
+              <p-chart type="doughnut" [data]="systemStateRoutingTypes" [options]="graphOptionsDoughnut"/>
             </div>
             <div>
-                <h4>{{'stats.systemStateProcessingTime' | translate }}</h4>
-                <p>{{'stats.systemStateProcessingTimeInfo' | translate }}</p>
-                <p-chart type="line" [data]="systemStateProcessingTime" [options]="graphTimeOptions"/>
+              <h4>{{'stats.systemStateRoutingSuccess' | translate }}</h4>
+              <p-chart type="doughnut" [data]="systemStateRoutingSuccess" [options]="graphOptionsDoughnutBinary"/>
             </div>
-        </div>
-        <!-- Routing -->
-        <div class="content-graphs" *ngIf="isRoutingDataAvailable">
-            <h2>{{'stats.systemStateRouting' | translate }}</h2>
-            <p>{{'stats.systemStateRoutingInfo' | translate }}</p>
-            <div class="content-graphs-cells">
-                <div>
-                    <h4>{{'stats.systemStateRoutingType' | translate }}</h4>
-                    <p-chart type="doughnut" [data]="systemStateRoutingTypes" [options]="graphOptionsDoughnut"/>
-                </div>
-                <div>
-                    <h4>{{'stats.systemStateRoutingSuccess' | translate }}</h4>
-                    <p-chart type="doughnut" [data]="systemStateRoutingSuccess" [options]="graphOptionsDoughnutBinary"/>
-                </div>
-                <div>
-                    <h4>{{'stats.systemStateRoutingTime' | translate }}</h4>
-                    <p-chart type="line" [data]="systemStateRoutingTime" [options]="graphTimeOptions"/>
-                </div>
-            </div>
-        </div>
-        <!-- Data processing -->
-        <div class="content-graphs">
-            <h2>{{'stats.processingDataHead' | translate }}</h2>
-            <p>{{'stats.processingDataInfo' | translate }}</p>
             <div>
-                <h4>{{'stats.processingDataTimes' | translate }}</h4>
-                <p-chart type="line" [data]="processingTimes" [options]="graphTimeOptionsLegend"/>
+              <h4>{{'stats.systemStateRoutingTime' | translate }}</h4>
+              <p-chart type="line" [data]="systemStateRoutingTime" [options]="graphTimeOptions"/>
             </div>
-            <div class="content-graphs-cells">
-                <div>
-                    <h4>{{'stats.processingDataDownloadRecords' | translate }}</h4>
-                    <p-chart type="bar" [data]="processingDataDownload" [options]="graphOptions"/>
-                </div>
-                <div>
-                    <h4>{{'stats.processingDataSavedRecords' | translate }}</h4>
-                    <p-chart type="bar" [data]="processingDataSaved" [options]="graphOptions"/>
-                </div>
-                <div>
-                    <h4>{{'stats.processingDataRecordsStats' | translate }}</h4>
-                    <p-chart type="doughnut" [data]="processingDataAll" [options]="graphOptionsDoughnutBinary"/>
-                </div>
-            </div>
-            <div class="content-graphs-cells">
-                <div>
-                    <h4>{{'stats.processingDataPlannedTrips' | translate }}</h4>
-                    <p-chart type="bar" [data]="processingTripsPlanned" [options]="graphOptions"/>
-                </div>
-                <div>
-                    <h4>{{'stats.processingDataExtraTrips' | translate }}</h4>
-                    <p-chart type="bar" [data]="processingTripsExtra" [options]="graphOptions"/>
-                </div>
-                <div>
-                    <h4>{{'stats.processingDataTripsRate' | translate }}</h4>
-                    <p-chart type="doughnut" [data]="processingTripsAll" [options]="graphOptionsDoughnutBinary"/>
-                </div>
-            </div>
+          </div>
         </div>
+      }
+      <!-- Data processing -->
+      <div class="content-graphs">
+        <h2>{{'stats.processingDataHead' | translate }}</h2>
+        <p>{{'stats.processingDataInfo' | translate }}</p>
+        <div>
+          <h4>{{'stats.processingDataTimes' | translate }}</h4>
+          <p-chart type="line" [data]="processingTimes" [options]="graphTimeOptionsLegend"/>
+        </div>
+        <div class="content-graphs-cells">
+          <div>
+            <h4>{{'stats.processingDataDownloadRecords' | translate }}</h4>
+            <p-chart type="bar" [data]="processingDataDownload" [options]="graphOptions"/>
+          </div>
+          <div>
+            <h4>{{'stats.processingDataSavedRecords' | translate }}</h4>
+            <p-chart type="bar" [data]="processingDataSaved" [options]="graphOptions"/>
+          </div>
+          <div>
+            <h4>{{'stats.processingDataRecordsStats' | translate }}</h4>
+            <p-chart type="doughnut" [data]="processingDataAll" [options]="graphOptionsDoughnutBinary"/>
+          </div>
+        </div>
+        <div class="content-graphs-cells">
+          <div>
+            <h4>{{'stats.processingDataPlannedTrips' | translate }}</h4>
+            <p-chart type="bar" [data]="processingTripsPlanned" [options]="graphOptions"/>
+          </div>
+          <div>
+            <h4>{{'stats.processingDataExtraTrips' | translate }}</h4>
+            <p-chart type="bar" [data]="processingTripsExtra" [options]="graphOptions"/>
+          </div>
+          <div>
+            <h4>{{'stats.processingDataTripsRate' | translate }}</h4>
+            <p-chart type="doughnut" [data]="processingTripsAll" [options]="graphOptionsDoughnutBinary"/>
+          </div>
+        </div>
+      </div>
     </div>
-</main>
+  </main>
+}

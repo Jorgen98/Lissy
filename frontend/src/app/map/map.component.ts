@@ -8,7 +8,7 @@ import * as L from 'leaflet';
 import { environment } from '../../environments/environment';
 import { mapLayer, mapObject, MapService } from './map.service';
 import { TranslateService } from '@ngx-translate/core';
-import { NgIf } from '@angular/common';
+
 import { DomSanitizer } from '@angular/platform-browser';
 import { delayCategoriesService, delayCategory } from '../services/delayCategories';
 
@@ -16,7 +16,7 @@ import { delayCategoriesService, delayCategory } from '../services/delayCategori
     selector: 'map',
     templateUrl: './map.component.html',
     styleUrls: ['./map.component.css'],
-    imports: [ NgIf ]
+    imports: []
 })
 export class MapComponent implements AfterViewInit {
     private map: L.Map | undefined = undefined;

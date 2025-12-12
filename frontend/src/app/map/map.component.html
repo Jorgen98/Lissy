@@ -1,20 +1,24 @@
 <div class="legend-base-div zoom-div">
-    <!-- Zoom In -->
-    <button pButton type="button" class="btn-side-menu"
-        (click)="mapService.zoomIn()">
-        <i class="pi pi-search-plus"></i>
-    </button>
-    <!-- Zoom Out -->
-    <button pButton type="button" class="btn-side-menu"
-        (click)="mapService.zoomOut()">
-        <i class="pi pi-search-minus"></i>
-    </button>
+  <!-- Zoom In -->
+  <button pButton type="button" class="btn-side-menu"
+    (click)="mapService.zoomIn()">
+    <i class="pi pi-search-plus"></i>
+  </button>
+  <!-- Zoom Out -->
+  <button pButton type="button" class="btn-side-menu"
+    (click)="mapService.zoomOut()">
+    <i class="pi pi-search-minus"></i>
+  </button>
 </div>
 <!-- Main map div -->
 <div id="map"></div>
 <div class="legend-base-div">
-    <!-- Object legend -->
-    <span *ngIf="enableLegend" [innerHtml]="legendData"></span>
-    <!-- Delay categories legend -->
-    <span *ngIf="enableDelayCategories" [innerHtml]="delayLegendData"></span>
+  <!-- Object legend -->
+  @if (enableLegend) {
+    <span [innerHtml]="legendData"></span>
+  }
+  <!-- Delay categories legend -->
+  @if (enableDelayCategories) {
+    <span [innerHtml]="delayLegendData"></span>
+  }
 </div>

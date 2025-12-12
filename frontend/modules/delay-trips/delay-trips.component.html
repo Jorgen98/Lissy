@@ -1,196 +1,218 @@
-<main class="main" *ngIf="config.enabled">
+@if (config.enabled) {
+  <main class="main">
     <!-- Side menu -->
     <div class="side-control">
-        <span class="side-control-modules">
-            <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-                <button type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-                    (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
-                    <i class="pi pi-calendar"></i>
-                </button>
-            </div>
-            <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-                <button type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-                    (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-                    <fa-icon [icon]="faIconRoute"></fa-icon>
-                </button>
-            </div>
-            <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-                <button type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-                    (click)="switchStatsModuleVisibility()" [disabled]="!isStatsModuleEnabled">
-                    <i class="pi pi-chart-line"></i>
-                </button>
-            </div>
-        </span>
-        <div [ngClass]="moduleFocus == 4 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
-            <button type="button" [ngClass]="moduleFocus == 4 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-                (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
-                <i class="pi pi-cog"></i>
-            </button>
+      <span class="side-control-modules">
+        <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button type="button" [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+            <i class="pi pi-calendar"></i>
+          </button>
         </div>
+        <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+            <fa-icon [icon]="faIconRoute"></fa-icon>
+          </button>
+        </div>
+        <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchStatsModuleVisibility()" [disabled]="!isStatsModuleEnabled">
+            <i class="pi pi-chart-line"></i>
+          </button>
+        </div>
+      </span>
+      <div [ngClass]="moduleFocus == 4 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+        <button type="button" [ngClass]="moduleFocus == 4 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+          (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
+          <i class="pi pi-cog"></i>
+        </button>
+      </div>
     </div>
     <!-- Mobile menu -->
     <div class="mobile-header">
-        <div class="mobile-header-item">
-            <button type="button" class="mobile-btn-header" routerLink="/">
-                <i class="pi pi-home"></i>
-                <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
-            </button>
-        </div>
-        <div class="mobile-header-item">
-            <button type="button" class="mobile-btn-header" (click)="switchMobileOptionsVisibility()">
-                <i class="pi pi-bars"></i>
-                <p class="mobile-btn-text">{{ 'common.visualizationMenu' | translate }}</p>
-            </button>
-        </div>
-        <div class="mobile-header-item">
-            <button type="button" class="mobile-btn-header" (click)="switchSettingsModuleVisibility()">
-                <i class="pi pi-cog"></i>
-                <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
-            </button>
-        </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" routerLink="/">
+          <i class="pi pi-home"></i>
+          <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
+        </button>
+      </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchMobileOptionsVisibility()">
+          <i class="pi pi-bars"></i>
+          <p class="mobile-btn-text">{{ 'common.visualizationMenu' | translate }}</p>
+        </button>
+      </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchSettingsModuleVisibility()">
+          <i class="pi pi-cog"></i>
+          <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
+        </button>
+      </div>
     </div>
     <!-- Mobile menu submenu -->
-    <div class="mobile-submenu" *ngIf="moduleFocus === -2">
+    @if (moduleFocus === -2) {
+      <div class="mobile-submenu">
         <span class="mobile-head">
-            <h4>{{ 'common.visualizationMenu' | translate }}</h4>
-            <button type="button" (click)="switchMobileOptionsVisibility()">
+          <h4>{{ 'common.visualizationMenu' | translate }}</h4>
+          <button type="button" (click)="switchMobileOptionsVisibility()">
             <i class="pi pi-times"></i>
-            </button>
+          </button>
         </span>
         <div>
-            <button type="button" class="mobile-menu-btn" (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
-                <i class="pi pi-calendar mobile-icon"></i>
-                <p class="mobile-menu-text">{{ 'common.calendar' | translate }}</p>
-            </button>
-            <button type="button" class="mobile-menu-btn" (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-                <fa-icon [icon]="faIconRoute"></fa-icon>
-                <p class="mobile-menu-text">{{ 'common.route' | translate }}</p>
-            </button>
-            <button type="button" class="mobile-menu-btn" (click)="switchStatsModuleVisibility()" [disabled]="!isStatsModuleEnabled">
-                <i class="pi pi-chart-line mobile-icon"></i>
-                <p class="mobile-menu-text">{{ 'delay.graphs' | translate }}</p>
-            </button>
+          <button type="button" class="mobile-menu-btn" (click)="switchCalendarModuleVisibility()" [disabled]="!isDateSelectionEnabled">
+            <i class="pi pi-calendar mobile-icon"></i>
+            <p class="mobile-menu-text">{{ 'common.calendar' | translate }}</p>
+          </button>
+          <button type="button" class="mobile-menu-btn" (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+            <fa-icon [icon]="faIconRoute"></fa-icon>
+            <p class="mobile-menu-text">{{ 'common.route' | translate }}</p>
+          </button>
+          <button type="button" class="mobile-menu-btn" (click)="switchStatsModuleVisibility()" [disabled]="!isStatsModuleEnabled">
+            <i class="pi pi-chart-line mobile-icon"></i>
+            <p class="mobile-menu-text">{{ 'delay.graphs' | translate }}</p>
+          </button>
         </div>
-    </div>
+      </div>
+    }
     <!-- Module content -->
     <div class="content">
-        <!-- Calendar -->
-        <div class="side-control-content" *ngIf="moduleFocus == 1">
-            <span class="side-control-head">
-                <h4>{{ 'common.calendar' | translate }}</h4>
-                <button type="button" (click)="switchCalendarModuleVisibility()">
-                    <i class="pi pi-times"></i>
-                </button>
-            </span>
-        <p-datepicker class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
+      <!-- Calendar -->
+      @if (moduleFocus == 1) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'common.calendar' | translate }}</h4>
+            <button type="button" (click)="switchCalendarModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <p-datepicker class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
             [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
             <ng-template pTemplate="footer">
-                <div class="calendar-btns-div">
-                    <button type="button" (click)="downloadRoutesData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
-                </div>
+              <div class="calendar-btns-div">
+                <button type="button" (click)="downloadRoutesData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
+              </div>
             </ng-template>
-        </p-datepicker>
+          </p-datepicker>
         </div>
-        <!-- Trip selection -->
-        <div class="side-control-content" *ngIf="moduleFocus == 2">
-            <span class="side-control-head">
-                <h4>{{ 'common.trip' | translate }}</h4>
-                <button type="button" (click)="switchRouteSelectModuleVisibility()">
-                    <i class="pi pi-times"></i>
-                </button>
-            </span>
-            <div class="side-control-selection-div">
-                <div class="side-control-selection-inner-div">
-                    <h3>{{ 'delay.route' | translate }}</h3>
-                    <p-select [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" filter="true"
-                        filterBy="route_short_name" (onChange)="changeRoute()"/>
-                    <h3>{{ 'delay.shape' | translate }}</h3>
-                    <p-select [options]="tripGroups" [(ngModel)]="selectedTripGroup" optionLabel="stops" filter="true"
-                        filterBy="stops" (onChange)="changeTripGroup()"/>
-                    <h3>{{ 'delay.trip' | translate }}</h3>
-                    <p-select [options]="selectedTripGroup?.trips" [(ngModel)]="selectedTrip" optionLabel="dep_time_lab" filter="true"
-                        filterBy="dep_time_lab" (onChange)="changeTrip()"/>
-                </div>
+      }
+      <!-- Trip selection -->
+      @if (moduleFocus == 2) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'common.trip' | translate }}</h4>
+            <button type="button" (click)="switchRouteSelectModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'delay.route' | translate }}</h3>
+              <p-select [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" filter="true"
+                filterBy="route_short_name" (onChange)="changeRoute()"/>
+              <h3>{{ 'delay.shape' | translate }}</h3>
+              <p-select [options]="tripGroups" [(ngModel)]="selectedTripGroup" optionLabel="stops" filter="true"
+                filterBy="stops" (onChange)="changeTripGroup()"/>
+              <h3>{{ 'delay.trip' | translate }}</h3>
+              <p-select [options]="selectedTripGroup?.trips" [(ngModel)]="selectedTrip" optionLabel="dep_time_lab" filter="true"
+                filterBy="dep_time_lab" (onChange)="changeTrip()"/>
             </div>
+          </div>
         </div>
-        <!-- Trip stats -->
-        <div class="side-control-content side-control-content-full" *ngIf="moduleFocus == 3">
-            <span class="side-control-head">
-                <h4>{{ 'delay.graphs' | translate }}</h4>
-                <button type="button" (click)="switchStatsModuleVisibility()">
-                    <i class="pi pi-times"></i>
-                </button>
-            </span>
-            <div class="content-graphs">
-                <p>{{'delay.graphAggMethodInfo' | translate }}</p>
-                <p-select [options]="tripsGraphAggFns" [(ngModel)]="tripsGraphSelAggFn" optionLabel="label" (onChange)="renderData(false)" [style]="{'width':'100%'}"/>
-                <p-chart type="line" [data]="tripsGraphData" [options]="graphTimeOptionsLegend"/>
+      }
+      <!-- Trip stats -->
+      @if (moduleFocus == 3) {
+        <div class="side-control-content side-control-content-full">
+          <span class="side-control-head">
+            <h4>{{ 'delay.graphs' | translate }}</h4>
+            <button type="button" (click)="switchStatsModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="content-graphs">
+            <p>{{'delay.graphAggMethodInfo' | translate }}</p>
+            <p-select [options]="tripsGraphAggFns" [(ngModel)]="tripsGraphSelAggFn" optionLabel="label" (onChange)="renderData(false)" [style]="{'width':'100%'}"/>
+            <p-chart type="line" [data]="tripsGraphData" [options]="graphTimeOptionsLegend"/>
+          </div>
+        </div>
+      }
+      <!-- Visualization settings -->
+      @if (moduleFocus == 4) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'common.settings' | translate }}</h4>
+            <button type="button" (click)="switchSettingsModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+            <div class="side-control-selection-inner-div">
+              <div class="mobile-header-item">
+                @if (translate.currentLang === 'cz') {
+                  <button type="button" class="mobile-menu-btn" (click)="translate.use('en')">
+                    <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
+                    <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
+                  </button>
+                }
+                @if (translate.currentLang === 'en') {
+                  <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')">
+                    <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
+                    <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
+                  </button>
+                }
+              </div>
+              <h4 class="side-control-head-text">{{ 'delay.aggMethod' | translate }}</h4>
+              <p class="side-control-info-text">{{ 'delay.aggMethodInfo' | translate }}</p>
+              <p-select [options]="aggregationMethods" [(ngModel)]="selectedAggMethod" optionLabel="label" (onChange)="renderData(false)"/>
+              <span class="side-control-divider"></span>
+              <span class="side-control-checkbox-span">
+                <p-checkbox [(ngModel)]="showSimplifiedDelays" [binary]="true" (onChange)="renderData(false)"/>
+                <h4 class="side-control-checkbox-head">{{ 'delay.simplifiedVisualisation' | translate }}</h4>
+              </span>
+              <p class="side-control-info-text">{{ 'delay.simplifiedVisualisationInfo' | translate }}</p>
+              <span class="side-control-divider"></span>
+              <span class="side-control-checkbox-span">
+                <p-checkbox [(ngModel)]="showDelayValueLabel" [binary]="true" (onChange)="renderData(false)"/>
+                <h4 class="side-control-checkbox-head">{{ 'delay.showDelayLabels' | translate }}</h4>
+              </span>
+              <p class="side-control-info-text">{{ 'delay.showDelayLabelsInfo' | translate }}</p>
+              <span class="side-control-divider"></span>
+              <h4 class="side-control-head-text">{{ 'delay.delayCategories' | translate }}</h4>
+              <p class="side-control-info-text">{{ 'delay.delayCategoriesInfo' | translate }}</p>
+              <div class="delay-category-row-header">
+                <span></span>
+                <span class="delay-category-text">{{ 'delay.delayFrom' | translate }}</span>
+                <span class="delay-category-text">{{ 'delay.delayTo' | translate }}</span>
+                <span></span>
+              </div>
+              @for (category of delayCategories; track category; let i = $index) {
+                <div class="delay-category-row">
+                  <!-- Color -->
+                  <p-colorPicker [(ngModel)]="category.color" class="delay-category-color" (onHide)="onDelayCategoryChange(i)"/>
+                  <p-inputNumber inputStyleClass="delay-category-number" [(ngModel)]="category.minValue" [showButtons]="true" buttonLayout="horizontal" [step]="0.25"
+                    decrementButtonClass="delay-category-btn" incrementButtonClass="delay-category-btn" suffix=" min."
+                    incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" mode="decimal" (onInput)="onDelayCategoryChange(i)" allowEmpty="false"
+                    [min]="i === 0 ? 0 : delayCategories[i - 1].minValue + 0.25" [max]="i < (delayCategories.length - 1) ? category.maxValue - 0.25 : null" [disabled]="i === 0 ? true : false"/>
+                    <span class="delay-category-text">{{ i < (delayCategories.length - 1) ? category.maxValue + ' min.' : 'delay.other' | translate }}</span>
+                    @if (delayCategories.length > 1) {
+                      <button type="button" class="delay-category-btn" (click)="removeDelayCategory(i)">
+                        <i class="pi pi-trash"></i>
+                      </button>
+                    }
+                  </div>
+                }
+                <span class="delay-category-btns-div">
+                  @if (delayCategories.length < 5) {
+                    <button type="button" (click)="addDelayCategory()">{{ 'delay.addDelayCategory' | translate }}</button>
+                  }
+                  <button type="button" (click)="resetDelayCategories()">{{ 'delay.resetCategories' | translate }}</button>
+                </span>
+              </div>
             </div>
-        </div>
-        <!-- Visualization settings -->
-        <div class="side-control-content" *ngIf="moduleFocus == 4">
-            <span class="side-control-head">
-                <h4>{{ 'common.settings' | translate }}</h4>
-                <button type="button" (click)="switchSettingsModuleVisibility()">
-                    <i class="pi pi-times"></i>
-                </button>
-            </span>
-            <div class="side-control-selection-div">
-                <div class="side-control-selection-inner-div">
-                    <div class="mobile-header-item">
-                        <button type="button" class="mobile-menu-btn" (click)="translate.use('en')" *ngIf="translate.currentLang === 'cz'">
-                            <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
-                            <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
-                        </button>
-                        <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')" *ngIf="translate.currentLang === 'en'">
-                            <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
-                            <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
-                        </button>
-                    </div>
-                    <h4 class="side-control-head-text">{{ 'delay.aggMethod' | translate }}</h4>
-                    <p class="side-control-info-text">{{ 'delay.aggMethodInfo' | translate }}</p>
-                    <p-select [options]="aggregationMethods" [(ngModel)]="selectedAggMethod" optionLabel="label" (onChange)="renderData(false)"/>
-                    <span class="side-control-divider"></span>
-                    <span class="side-control-checkbox-span">
-                        <p-checkbox [(ngModel)]="showSimplifiedDelays" [binary]="true" (onChange)="renderData(false)"/>
-                        <h4 class="side-control-checkbox-head">{{ 'delay.simplifiedVisualisation' | translate }}</h4>
-                    </span>
-                    <p class="side-control-info-text">{{ 'delay.simplifiedVisualisationInfo' | translate }}</p>
-                    <span class="side-control-divider"></span>
-                    <span class="side-control-checkbox-span">
-                        <p-checkbox [(ngModel)]="showDelayValueLabel" [binary]="true" (onChange)="renderData(false)"/>
-                        <h4 class="side-control-checkbox-head">{{ 'delay.showDelayLabels' | translate }}</h4>
-                    </span>
-                    <p class="side-control-info-text">{{ 'delay.showDelayLabelsInfo' | translate }}</p>
-                    <span class="side-control-divider"></span>
-                    <h4 class="side-control-head-text">{{ 'delay.delayCategories' | translate }}</h4>
-                    <p class="side-control-info-text">{{ 'delay.delayCategoriesInfo' | translate }}</p>
-                    <div class="delay-category-row-header">
-                        <span></span>
-                        <span class="delay-category-text">{{ 'delay.delayFrom' | translate }}</span>
-                        <span class="delay-category-text">{{ 'delay.delayTo' | translate }}</span>
-                        <span></span>
-                    </div>
-                    <div *ngFor="let category of delayCategories; index as i" class="delay-category-row">
-                        <!-- Color -->
-                        <p-colorPicker [(ngModel)]="category.color" class="delay-category-color" (onHide)="onDelayCategoryChange(i)"/>
-                        <p-inputNumber inputStyleClass="delay-category-number" [(ngModel)]="category.minValue" [showButtons]="true" buttonLayout="horizontal" [step]="0.25"
-                            decrementButtonClass="delay-category-btn" incrementButtonClass="delay-category-btn" suffix=" min."
-                            incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" mode="decimal" (onInput)="onDelayCategoryChange(i)" allowEmpty="false"
-                            [min]="i === 0 ? 0 : delayCategories[i - 1].minValue + 0.25" [max]="i < (delayCategories.length - 1) ? category.maxValue - 0.25 : null" [disabled]="i === 0 ? true : false"/>
-                        <span class="delay-category-text">{{ i < (delayCategories.length - 1) ? category.maxValue + ' min.' : 'delay.other' | translate }}</span>
-                        <button type="button" class="delay-category-btn" (click)="removeDelayCategory(i)" *ngIf="delayCategories.length > 1">
-                            <i class="pi pi-trash"></i>
-                        </button>
-                    </div>
-                    <span class="delay-category-btns-div">
-                        <button *ngIf="delayCategories.length < 5" type="button" (click)="addDelayCategory()">{{ 'delay.addDelayCategory' | translate }}</button>
-                        <button type="button" (click)="resetDelayCategories()">{{ 'delay.resetCategories' | translate }}</button>
-                    </span>
-                </div>
-            </div>
-        </div>
+          </div>
+        }
         <!-- Map -->
         <map></map>
-    </div>
-</main>
+      </div>
+    </main>
+  }

@@ -7,6 +7,7 @@ const redis = require('redis');
 
 const logService = require('./log.js');
 const timeStamp = require('./timeStamp.js');
+const dbPostGIS = require('./db-postgis.js');
 
 // .env file include
 dotenv.config();
@@ -23,6 +24,8 @@ db_redis.on('error', err => log('error', err));
 function log(type, msg) {
     logService.write(process.env.DB_CACHE_MODULE_NAME, type, msg)
 }
+
+const todayShapesKey = "todayShapes";
 
 // Help function for DB connection test
 async function isDBConnected() {
@@ -88,4 +91,21 @@ async function setUpValue(key, data, progress) {
     }
 }
 
-module.exports = { isDBConnected, setUpValue }
+// Today shapes set up data
+async function setUpTodayShapes() {
+    const newData = await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess());
+    await setUpValue(todayShapesKey, newData, 100);
+    return newData;
+}
+
+// Today shapes return data
+async function getTodayShapes() {
+    return await setUpValue(todayShapesKey, null, null);
+}
+
+// Today shapes clean data
+async function clearTodayShapes() {
+    return await db_redis.del(todayShapesKey);
+}
+
+module.exports = { isDBConnected, setUpValue, setUpTodayShapes, getTodayShapes, clearTodayShapes }

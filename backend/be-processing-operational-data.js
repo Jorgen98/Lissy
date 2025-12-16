@@ -118,7 +118,7 @@ async function processRoute(route) {
     let lineIdString = route.route_id.split(/L|D/)[1];
 
     let startTime = performance.now();
-    let inputOperationData = await downloadData(lineIdString, 0, 0);
+    let inputOperationData = await downloadData(lineIdString, 0, 0, 'ben');
     dbStats.updateROProcessingStats('downloading_time', performance.now() - startTime);
     let testOutput = [];
 
@@ -235,18 +235,26 @@ async function processRoute(route) {
 }
 
 // Function for downloading data from Brno ArcGIS DB
-async function downloadData(lineId, objectId, attempt) {
-    // Example DB query
+async function downloadData(lineId, objectId, attempt, source) {
+    // ArcGIS DB
+    // https://gis.brno.cz/ags1/rest/services/Hosted/ODAE_public_transit_positional_feature_service/FeatureServer/0/query?f=json&where=(%22lineid%22=1)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000
+    const arcGISSetUp = {
+        hostname: "gis.brno.cz",
+        path: `/ags1/rest/services/Hosted/ODAE_public_transit_positional_feature_service/FeatureServer/0/query?f=json&where=(%22"lastupdate">${yesterdayMidNight.getTime()}%22AND%22"lineid"=${lineId}%22AND%22"lastupdate"<${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}%22AND%22objectid>${objectId})&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000`
+    }
+
+    // Websocket data from Ben
     // https://walter.fit.vutbr.cz/ben/records?object_id=1&line_id=1&from=1758015083523&to=1758306424823
+    const walterSetUp = {
+        hostname: "walter.fit.vutbr.cz",
+        path: `/ben/delayRecords?object_id=${objectId}&line_id=${lineId}&from=${yesterdayMidNight.getTime()}&to=${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}`,
+        headers: {
+            authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
+        }
+    }
 
     return new Promise(async (resolve) => {
-        https.get({
-            hostname: "walter.fit.vutbr.cz",
-            path: `/ben/delayRecords?object_id=${objectId}&line_id=${lineId}&from=${yesterdayMidNight.getTime()}&to=${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}`,
-            headers: {
-                authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
-            },
-        }, async res => {
+        https.get(source === 'ben' ? walterSetUp : arcGISSetUp, async res => {
             let { statusCode } = res;
             let contentType = res.headers['content-type'];
 
@@ -271,9 +279,9 @@ async function downloadData(lineId, objectId, attempt) {
                 try {
                     const parsedData = JSON.parse(rawData);
                     if (parsedData === undefined || parsedData.length < 1) {
-                        resolve([]);
+                        resolve(await downloadData(lineId, 0, 0, 'arcGIS'));
                     } else {
-                        let nextData = await downloadData(lineId, parsedData[parsedData.length - 1].objectid, 0);
+                        let nextData = await downloadData(lineId, parsedData[parsedData.length - 1].objectid, 0, source);
                         resolve(nextData.concat(parsedData));
                     }
                 } catch (e) {
@@ -284,7 +292,7 @@ async function downloadData(lineId, objectId, attempt) {
         .on('error', async error => {
             log('error', error);
             if (attempt < 5) {
-                resolve(await downloadData(lineId, objectId, attempt + 1));
+                resolve(await downloadData(lineId, objectId, attempt + 1, source));
             } else {
                 resolve([]);
             }

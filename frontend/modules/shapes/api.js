@@ -30,7 +30,13 @@ async function processRequest(url, req, res) {
                     res.send(false);
                 } else {
                     if (req.query.date === timeStamp.getTimeStamp(timeStamp.getTodayUTC())) {
-                        res.send(await dbPostGIS.getPlannedTripsWithUniqueShape(await dbPostGIS.getActiveRoutesToProcess()));
+                        const cache = await dbCache.getTodayShapes();
+
+                        if (cache.data !== null) {
+                            res.send(cache.data);
+                        } else {
+                            res.send(await dbCache.setUpTodayShapes());
+                        }
                     } else {
                         let cache = await dbCache.setUpValue(req.url, null, null);
 

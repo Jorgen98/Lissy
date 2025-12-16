@@ -4,8 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "be-processing-start": "DB_POSTGIS_HOST='localhost' DB_STATS_HOST='http://localhost' node -r dotenv/config be-processing.js dotenv_config_path=../env/.env",
-    "be-processing-docker": "DB_POSTGIS_HOST='lissy-db-postgis' DB_STATS_HOST='http://lissy-db-stats' node -r dotenv/config be-processing.js dotenv_config_path=.env",
+    "be-processing-start": "DB_POSTGIS_HOST='localhost' DB_STATS_HOST='http://localhost' DB_CACHE_HOST='localhost' node -r dotenv/config be-processing.js dotenv_config_path=../env/.env",
+    "be-processing-docker": "DB_POSTGIS_HOST='lissy-db-postgis' DB_STATS_HOST='http://lissy-db-stats' DB_CACHE_HOST='lissy-db-cache' node -r dotenv/config be-processing.js dotenv_config_path=.env",
     "be-api-start": "API_KEY=false DB_POSTGIS_HOST='localhost' DB_STATS_HOST='http://localhost' DB_CACHE_HOST='localhost' node -r dotenv/config be-api.js dotenv_config_path=../env/.env",
     "be-api-docker": "API_KEY=true DB_POSTGIS_HOST='lissy-db-postgis' DB_STATS_HOST='http://lissy-db-stats' DB_CACHE_HOST='lissy-db-cache' node -r dotenv/config be-api.js dotenv_config_path=.env"
   },

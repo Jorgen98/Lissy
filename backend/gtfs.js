@@ -13,6 +13,7 @@ const dbPostGIS = require('./db-postgis.js');
 const routingService = require('./routing.js');
 const dbStats = require('./db-stats.js');
 const timeStamp = require('./timeStamp.js');
+const dbCache = require('./db-cache.js');
 
 const tmpFileName = './gtfs.zip';
 const tmpFolderName = './gtfsFiles/'
@@ -189,6 +190,10 @@ async function unzipAndParseData(response, startTime) {
                         }
                     }
                     dbStats.updateStateProcessingStats('gtfs_shapes', await dbPostGIS.countShapes());
+
+                    // Today shapes API endpoint reset
+                    await dbCache.clearTodayShapes();
+                    await dbCache.setUpTodayShapes();
 
                     resolve(true);
                 });

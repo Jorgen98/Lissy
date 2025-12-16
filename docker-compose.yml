@@ -7,6 +7,8 @@ services:
         condition: service_healthy
       lissy-db-stats:
         condition: service_healthy
+      lissy-fe:
+        condition: service_healthy
     ports:
       - 80:80
     volumes:
@@ -35,6 +37,12 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "--fail", "http://lissy-fe/"]
+      interval: 5m
+      retries: 3
+      start_period: 30s
+      timeout: 5s
     networks:
       - lissy-network
   lissy-be-processing:

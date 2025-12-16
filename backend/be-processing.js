@@ -9,6 +9,7 @@ const cron = require('node-cron');
 
 const dbPostGIS = require('./db-postgis.js');
 const dbStats = require('./db-stats.js');
+const dbCache = require('./db-cache.js');
 const logService = require('./log.js');
 const gtfsService = require('./gtfs.js');
 const opProcessingService = require('./be-processing-operational-data.js');
@@ -30,7 +31,7 @@ let server = app.listen(null, async () => {
 
 // Try to connect to DB and refresh net files
 server.on('listening', async () => {
-    if (await dbPostGIS.connectToDB() && await dbStats.isDBConnected()) {
+    if (await dbPostGIS.connectToDB() && await dbStats.isDBConnected() && await dbCache.isDBConnected()) {
         log('success', 'DBs connected');
     } else {
         server.close(() => {

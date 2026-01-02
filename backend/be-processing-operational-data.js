@@ -278,6 +278,12 @@ async function downloadData(lineId, objectId, attempt, source) {
             res.on('end', async () => {
                 try {
                     const parsedData = JSON.parse(rawData);
+
+                    if (source === 'arcGIS') {
+                        // To Do: Change to normalized format
+                        parsedData = [];
+                    }
+
                     if (parsedData === undefined || parsedData.length < 1) {
                         resolve(await downloadData(lineId, 0, 0, 'arcGIS'));
                     } else {

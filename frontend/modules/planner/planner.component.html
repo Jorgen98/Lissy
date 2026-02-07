@@ -1,1 +1,38 @@
-<p>planner works!</p>
+@if (config.enabled) {
+  <main class="main">
+    <!-- Side menu -->
+    <div class="side-control">
+
+      <!-- Span with option from the side menu -->
+      <span class="side-control-modules">
+
+      </span>
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="mobile-header">
+
+      <!-- Homepage navigation button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" routerLink="/">
+          <i class="pi pi-home"></i>
+          <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu submenu -->
+    @if (moduleFocus === -2) {
+      <div class="mobile-submenu">
+
+      </div>
+    }
+
+    <!-- Module content -->
+    <div class="content">
+
+      <!-- Map -->
+      <map></map>
+    </div>
+  </main>
+}

@@ -14,7 +14,7 @@
     display: grid;
     row-gap: 4em;
     column-gap: 4em;
-    grid-template-columns: auto auto auto auto;
+    grid-template-columns: auto auto auto auto auto;
 }
 
 .main-btn-div {

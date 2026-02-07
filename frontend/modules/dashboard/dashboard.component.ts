@@ -6,12 +6,14 @@ import { ImportsModule } from '../../src/app/imports';
 import { TranslateService } from '@ngx-translate/core';
 import { faRoute } from '@fortawesome/free-solid-svg-icons';
 import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons';
+import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 
 // Module configs
 import * as configAboutModule from '../about/config.json';
 import * as configStatsModule from '../stats/config.json';
 import * as configShapesModule from '../shapes/config.json';
 import * as configDelayTripsModule from '../delay-trips/config.json';
+import * as configPlannerModule from '../planner/config.json';
 
 @Component({
     selector: 'dashboard',
@@ -30,6 +32,7 @@ export class DashboardModule implements OnInit {
 
     public faIconRoute = faRoute;
     public faIconHourglassHalf = faHourglassHalf;
+    public faIconQuestionMark = faQuestion;
 
     public moduleFocus: Number = 0;
 
@@ -38,7 +41,8 @@ export class DashboardModule implements OnInit {
         configAboutModule,
         configStatsModule,
         configShapesModule,
-        configDelayTripsModule
+        configDelayTripsModule,
+        configPlannerModule
     ]
 
     public async ngOnInit() {

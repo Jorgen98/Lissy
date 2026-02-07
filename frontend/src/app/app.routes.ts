@@ -5,6 +5,7 @@ import { StatsModule } from '../../modules/stats/stats.component';
 import { ShapesModule } from '../../modules/shapes/shapes.component';
 import { DelayTripsModule } from '../../modules/delay-trips/delay-trips.component';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
+import { PlannerModule } from '../../modules/planner/planner.component';
 
 export const routes: Routes = [
     { path: DashboardModule.modulConfig.apiPrefix, component: DashboardModule },
@@ -12,5 +13,6 @@ export const routes: Routes = [
     { path: StatsModule.modulConfig.apiPrefix, component: StatsModule },
     { path: ShapesModule.modulConfig.apiPrefix, component: ShapesModule },
     { path: DelayTripsModule.modulConfig.apiPrefix, component: DelayTripsModule },
+    { path: PlannerModule.modulConfig.apiPrefix, component: PlannerModule },
     { path: '**', component: PageNotFoundComponent }
 ];

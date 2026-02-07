@@ -159,6 +159,9 @@
         "graphAggDate": "Spojit podle datumu",
         "graphAggTrip": "Spojit podle spojů"
     },
+    "planner" : {
+        "name": "Plánovač"
+    },
     "map" : {
         "zone": "Zóna",
         "wheelchair": "Zastávka má zvýšenou nástupní hranu",

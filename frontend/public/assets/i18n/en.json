@@ -159,6 +159,9 @@
         "graphAggDate": "Join data by dates",
         "graphAggTrip": "Join data by trips"
     },
+    "planner" : {
+        "name": "Planner"
+    },
     "map" : {
         "zone": "Zone",
         "wheelchair": "The stop has a raised boarding edge",

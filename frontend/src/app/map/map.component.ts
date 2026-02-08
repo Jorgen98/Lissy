@@ -449,6 +449,24 @@ export class MapComponent implements AfterViewInit {
                 bounds = L.latLngBounds(L.latLng(object.latLng[0]), L.latLng(object.latLng[0]));
                 break;
             }
+            case "location": {
+
+                // Add circle marker to map at current location
+                L.circleMarker(
+                    L.latLng(object.latLng[0]),
+                    {
+                        radius: 6,
+                        color: "#ffffff",
+                        weight: 2,
+                        fill: true,
+                        fillColor: "#3333ff",
+                        fillOpacity: 1,
+                        interactive: false,
+                    }
+                )
+                .addTo(this.layers[object.layerName].layer!);
+                break;
+            }
         }
 
         if (object.focus) {

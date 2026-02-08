@@ -231,7 +231,19 @@
             "noAvailableDataForSelection" : {
                 "head": "Nejsou k dispozici žádná data",
                 "body": "Pro vybraný časový interval nejsou k dispozici žádná data. Zkuste prosím změnit časový interval."
+            },
+            "locationDenied": {
+                "head": "Přístup k poloze byl odepřen",
+                "body": "Získání informací o poloze selhalo, protože stránka neměla potřebná oprávnění."
+            },
+            "locationUnavailable": {
+                "head": "Poloha není dostupná",
+                "body": "Získání polohy selhalo, protože interní zdroj polohy vrátil chybu."
+            },
+            "locationTimeout": {
+                "head": "Vypršel časový limit pro získání polohy",
+                "body": "Čas vyhrazený pro získání informací o poloze vypršel dříve, než byly údaje získány."
             }
-        }
+        }   
     }
 }

@@ -1,0 +1,1 @@
+export type LocationStatus = "default" | "enabled" | "searching" | "disabled";

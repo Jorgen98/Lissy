@@ -11,6 +11,22 @@
       [style.transform]="formCollapsed ? 'rotate(180deg)' : 'rotate(0deg)'"
     />
     <span class="title">{{ "planner.form.title" | translate }}</span>
+    <button 
+      (click)="locationClicked()"
+      [class.blinking]="locationStatus === 'searching'"
+      [class.location-found]="locationStatus === 'enabled'"
+    >
+      <img
+        class="location-btn"
+        src="./planner/location.svg"
+      />
+      @if (locationStatus === "disabled") {
+        <img
+          class="location-disabled"
+          src="./planner/cross-line.svg"
+        />
+      }
+    </button>
   </div>
 
   <!-- Form content -->
@@ -91,10 +107,6 @@
             (input)="tripPoints[0] = $any($event.target).value"
           />
           <div class="point-input-extra">
-            <img
-              [src]="'./planner/current-location.svg'"
-              class="point-input-pointer"
-            />
             <img
               [src]="'./planner/start-marker.svg'"
               class="point-input-pointer"

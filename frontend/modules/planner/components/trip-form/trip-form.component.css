@@ -163,6 +163,14 @@ input[type="text"] {
     border-radius: 20px;
     border: 3px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
 }
+
+.cdk-drag-placeholder {
+  opacity: 0.2;
+}
+
+.cdk-drag-animating {
+  transition: transform 100ms cubic-bezier(0, 0, 0.2, 1);
+}
 /********************************************/
 
 /* Datetime select **************************/

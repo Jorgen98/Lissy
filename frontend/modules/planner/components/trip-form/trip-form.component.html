@@ -77,11 +77,11 @@
     </div>
 
     <!-- Route points -->
-    <div class="trip-points form-section">
+    <div class="trip-points form-section" (cdkDropListDropped)="pointDropped($event)" cdkDropListLockAxis="y" cdkDropList>
 
       <!-- Origin point -->
-      <div class="trip-point">
-        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" />
+      <div class="trip-point" cdkDrag>
+        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
         <div class="point-input-wrapper">
           <input
             type="text"
@@ -89,6 +89,29 @@
             [placeholder]="'planner.form.startPoint' | translate"
             [value]="tripPoints[0]"
             (input)="tripPoints[0] = $any($event.target).value"
+          />
+          <div class="point-input-extra">
+            <img
+              [src]="'./planner/current-location.svg'"
+              class="point-input-pointer"
+            />
+            <img
+              [src]="'./planner/start-marker.svg'"
+              class="point-input-pointer"
+              [title]="'planner.form.markerTooltip' | translate"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Origin point Drag and Drop preview -->
+      <div class="trip-point" *cdkDragPreview>
+        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
+        <div class="point-input-wrapper">
+          <input
+            type="text"
+            [placeholder]="'planner.form.startPoint' | translate"
+            [value]="tripPoints[0]"
           />
           <div class="point-input-extra">
             <img
@@ -118,8 +141,8 @@
         @if ($index !== 0 && $index !== tripPoints.length - 1) {
 
           <!-- Midpoint -->
-          <div class="trip-point">
-            <img [src]="'./planner/drag-chevron.svg'" class="point-drag" />
+          <div class="trip-point" cdkDrag>
+            <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
             <div class="point-input-wrapper">
               <input
                 type="text"
@@ -127,6 +150,31 @@
                 [placeholder]="'planner.form.midpoint' | translate"
                 [value]="tripPoints[$index]"
                 (input)="tripPoints[$index] = $any($event.target).value"
+              />
+              <img
+                [src]="'./planner/midpoint-marker.svg'"
+                class="point-input-pointer point-input-extra"
+                [title]="'planner.form.markerTooltip' | translate"
+              />
+            </div>
+
+            <!-- Remove midpoint button -->
+            <img
+              [src]="'./planner/trash-bin.svg'"
+              class="point-input-pointer remove-midpoint"
+              (click)="tripPoints.splice($index, 1)"
+              [title]="'planner.form.removeMidpointTooltip' | translate"
+            />
+          </div>
+
+          <!-- Midpoint Drag and Drop preview -->
+          <div class="trip-point" *cdkDragPreview>
+            <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
+            <div class="point-input-wrapper">
+              <input
+                type="text"
+                [placeholder]="'planner.form.midpoint' | translate"
+                [value]="tripPoints[$index]"
               />
               <img
                 [src]="'./planner/midpoint-marker.svg'"
@@ -156,8 +204,8 @@
       }
 
       <!-- Destination point -->
-      <div class="trip-point">
-        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" />
+      <div class="trip-point" cdkDrag>
+        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
         <div class="point-input-wrapper">
           <input
             type="text"
@@ -167,6 +215,23 @@
             (input)="
               tripPoints[tripPoints.length - 1] = $any($event.target).value
             "
+          />
+          <img
+            [src]="'./planner/end-marker.svg'"
+            class="point-input-pointer point-input-extra"
+            [title]="'planner.form.markerTooltip' | translate"
+          />
+          </div>
+      </div>
+
+      <!-- Destination point drag and drop preview -->
+      <div class="trip-point" *cdkDragPreview>
+        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
+        <div class="point-input-wrapper">
+          <input
+            type="text"
+            [placeholder]="'planner.form.endPoint' | translate"
+            [value]="tripPoints[tripPoints.length - 1]"
           />
           <img
             [src]="'./planner/end-marker.svg'"

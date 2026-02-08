@@ -2,10 +2,18 @@ import { Component, AfterViewInit } from '@angular/core';
 import { TransportMode } from '../../types/TransportMode';
 import { TranslateService } from '@ngx-translate/core';
 import { ImportsModule } from '../../../../src/app/imports';
+import { 
+    CdkDrag, 
+    CdkDropList, 
+    CdkDragDrop, 
+    moveItemInArray, 
+    CdkDragHandle, 
+    CdkDragPreview 
+} from '@angular/cdk/drag-drop';
 
 @Component({
     selector: 'trip-form',
-    imports: [ImportsModule],
+    imports: [ImportsModule, CdkDrag, CdkDropList, CdkDragHandle, CdkDragPreview],
     templateUrl: './trip-form.component.html',
     styleUrl: './trip-form.component.css',
 })
@@ -53,5 +61,12 @@ export class TripFormComponent implements AfterViewInit {
     // Function called when a transport mode is toggled as on/off
     public modeToggled(mode: TransportMode): void {
         this.modesSelected[mode] = !this.modesSelected[mode];
+    }
+
+    // Function called when a point is dropped after dragged
+    public pointDropped(event: CdkDragDrop<string[]>) {
+
+        // Reorder the tripPoints array
+        moveItemInArray(this.tripPoints, event.previousIndex, event.currentIndex);
     }
 }

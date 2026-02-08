@@ -1,0 +1,218 @@
+/* General ****************************************/
+input {
+    font-weight: bold;
+    font-size: 17px;
+}
+
+button {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+/**************************************************/
+
+/* Main form div and sections ********************/
+.form {
+    position: absolute;
+    width: 380px;
+    right: 0;
+    z-index: 500;
+    border-left: 0.15em solid var(--p-gray-800);
+    border-bottom: 0.15em solid var(--p-gray-800);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; 
+}
+
+.form-section {
+    background-color: var(--background);
+    border-top: 0.15em solid var(--p-gray-800);
+}
+/**************************************************/
+
+/* Form header *****************************/
+.header {
+    background-color: var(--p-gray-800);
+    height: 50px;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 5px;
+}
+
+.title {
+    color: var(--p-gray-50);
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: 550;
+    font-size: large;
+}
+
+.collapse-btn {
+    position: absolute;
+    height: 45px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+/*******************************************/
+
+/* Mode select *****************************/
+.mode-select {
+    height: 75px;
+    padding: 4px 10px;
+}
+
+.mode-select-window {
+    height: 100%;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    border: 2px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+}
+
+.mode-select-legend {
+    font-size: 12px;
+}
+
+.mode-button {
+    width: 100%;
+    font-size: 17px;
+}
+
+.mode-img {
+    height: 20px;
+}
+
+.mode-selected {
+    background-color: var(--p-gray-50);
+    color: var(--background);
+    opacity: 1;    
+}
+
+.mode-selected:hover {
+    opacity: 0.6;
+}
+/*******************************************/
+
+/* Trip points *****************************/
+.trip-points {
+    padding: 10px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1 1 auto;
+}
+
+.trip-point {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.point-drag {
+    cursor: grab;
+}
+
+.point-input-wrapper {
+    width: 100%;
+    position: relative;
+}
+
+input[type="text"] {
+    height: 45px;
+    width: 100%;
+}
+
+.point-input-extra {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 10px;
+}
+
+.point-input-pointer {
+    cursor: pointer;
+}
+
+.last-point-btn {
+    display: flex;
+    gap: 15px;
+}
+
+.remove-midpoint {
+    transition: opacity 0.15s ease;
+}
+
+.remove-midpoint:hover {
+    opacity: 0.8;
+}
+
+.circle-button {
+    height: 35px;
+    width: 35px;
+    background-color: var(--background);
+    border-radius: 20px;
+    border: 3px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+}
+/********************************************/
+
+/* Datetime select **************************/
+.trip-timing {
+    padding: 10px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    gap: 5px;
+}
+
+.datetime {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    height: 50px;
+}
+
+input[type="date"] {
+    width: 130px;
+}
+
+input[type="time"] {
+    width: 85px;
+}
+
+.control-pair {
+    display: flex;
+    gap: 5px;
+}
+
+.departure-radio {
+    margin-bottom: 8px;
+}
+
+input[type="radio"],
+input[type="checkbox"]
+{
+    accent-color: var(--background);
+    transform: scale(1.5);
+}
+/********************************************/
+
+/* Submit button **************************/
+.submit {
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 auto;
+}
+/********************************************/

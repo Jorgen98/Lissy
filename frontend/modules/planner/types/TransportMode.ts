@@ -1,0 +1,1 @@
+export type TransportMode = "publicTransport" | "car" | "walk";

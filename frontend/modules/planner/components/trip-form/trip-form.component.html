@@ -1,0 +1,287 @@
+<div class="form">
+  
+  <!-- Form header -->
+  <div class="header">
+
+    <!-- Form collapse button -->
+    <img
+      class="collapse-btn"
+      src="./planner/chevron.svg"
+      (click)="this.formCollapsed = !this.formCollapsed"
+      [style.transform]="formCollapsed ? 'rotate(180deg)' : 'rotate(0deg)'"
+    />
+    <span class="title">{{ "planner.form.title" | translate }}</span>
+  </div>
+
+  <!-- Form content -->
+  @if (!formCollapsed) {
+    
+    <!-- Mode select section -->
+    <div class="mode-select form-section">
+      <fieldset class="mode-select-window">
+        <legend class="mode-select-legend">
+          {{ "planner.form.modeSelect" | translate }}
+        </legend>
+
+        <!-- Public transport mode select -->
+        <button
+          class="mode-button"
+          [class.mode-selected]="modesSelected.publicTransport"
+          (click)="modeToggled('publicTransport')"
+        >
+          <img
+            [src]="
+              modesSelected.publicTransport
+                ? './planner/pt-dark.svg'
+                : './planner/pt-light.svg'
+            "
+            class="mode-img"
+          />
+          {{ "planner.form.publicTransport" | translate }}
+        </button>
+
+        <!-- Car mode select -->
+        <button
+          class="mode-button"
+          [class.mode-selected]="modesSelected.car"
+          (click)="modeToggled('car')"
+        >
+          <img
+            [src]="
+              modesSelected.car
+                ? './planner/car-dark.svg'
+                : './planner/car-light.svg'
+            "
+            class="mode-img"
+          />
+          {{ "planner.form.car" | translate }}
+        </button>
+
+        <!-- Walk mode select -->
+        <button
+          class="mode-button"
+          [class.mode-selected]="modesSelected.walk"
+          (click)="modeToggled('walk')"
+        >
+          <img
+            [src]="
+              modesSelected.walk
+                ? './planner/walk-dark.svg'
+                : './planner/walk-light.svg'
+            "
+            class="mode-img"
+          />
+          {{ "planner.form.walk" | translate }}
+        </button>
+      </fieldset>
+    </div>
+
+    <!-- Route points -->
+    <div class="trip-points form-section">
+
+      <!-- Origin point -->
+      <div class="trip-point">
+        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" />
+        <div class="point-input-wrapper">
+          <input
+            type="text"
+            id="start-point"
+            [placeholder]="'planner.form.startPoint' | translate"
+            [value]="tripPoints[0]"
+            (input)="tripPoints[0] = $any($event.target).value"
+          />
+          <div class="point-input-extra">
+            <img
+              [src]="'./planner/current-location.svg'"
+              class="point-input-pointer"
+            />
+            <img
+              [src]="'./planner/start-marker.svg'"
+              class="point-input-pointer"
+              [title]="'planner.form.markerTooltip' | translate"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Button to add midpoint -->
+      <button
+        class="circle-button"
+        (click)="tripPoints.splice(1, 0, '')"
+        [title]="'planner.form.addMidpointTooltip' | translate"
+      >
+        +
+      </button>
+
+      <!-- Rendering added midpoints -->
+      @for (point of tripPoints; track $index) {
+        @if ($index !== 0 && $index !== tripPoints.length - 1) {
+
+          <!-- Midpoint -->
+          <div class="trip-point">
+            <img [src]="'./planner/drag-chevron.svg'" class="point-drag" />
+            <div class="point-input-wrapper">
+              <input
+                type="text"
+                id="start-point"
+                [placeholder]="'planner.form.midpoint' | translate"
+                [value]="tripPoints[$index]"
+                (input)="tripPoints[$index] = $any($event.target).value"
+              />
+              <img
+                [src]="'./planner/midpoint-marker.svg'"
+                class="point-input-pointer point-input-extra"
+                [title]="'planner.form.markerTooltip' | translate"
+              />
+            </div>
+
+            <!-- Remove midpoint button -->
+            <img
+              [src]="'./planner/trash-bin.svg'"
+              class="point-input-pointer remove-midpoint"
+              (click)="tripPoints.splice($index, 1)"
+              [title]="'planner.form.removeMidpointTooltip' | translate"
+            />
+          </div>
+
+          <!-- Add midpoint button -->
+          <button
+            class="circle-button"
+            (click)="tripPoints.splice($index + 1, 0, '')"
+            [title]="'planner.form.addMidpointTooltip' | translate"
+          >
+            +
+          </button>
+        }
+      }
+
+      <!-- Destination point -->
+      <div class="trip-point">
+        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" />
+        <div class="point-input-wrapper">
+          <input
+            type="text"
+            id="start-point"
+            [placeholder]="'planner.form.endPoint' | translate"
+            [value]="tripPoints[tripPoints.length - 1]"
+            (input)="
+              tripPoints[tripPoints.length - 1] = $any($event.target).value
+            "
+          />
+          <img
+            [src]="'./planner/end-marker.svg'"
+            class="point-input-pointer point-input-extra"
+            [title]="'planner.form.markerTooltip' | translate"
+          />
+          </div>
+      </div>
+      <div class="last-point-btn">
+
+        <!-- Add midpoint button -->
+        <button
+          class="circle-button"
+          (click)="tripPoints.splice(tripPoints.length, 0, '')"
+          [title]="'planner.form.addMidpointTooltip' | translate"
+        >
+          +
+        </button>
+
+        <!-- Switch midpoint button -->
+        <button
+          class="circle-button"
+          (click)="tripPoints.reverse()"
+          [title]="'planner.form.switchDirectionTooltip' | translate"
+        >
+          ↑↓
+        </button>
+      </div>
+    </div>
+
+    <!-- Date and time picker + return trip -->
+    <div class="trip-timing form-section">
+
+      <!-- Date and time picker -->
+      <div class="datetime">
+        <input type="date" id="dateInput" />
+        <input type="time" id="timeInput" />
+        <div>
+          <div class="control-pair departure-radio">
+            <input
+              type="radio"
+              id="departure"
+              name="time-select"
+              value="departure"
+              checked
+            />
+            <label for="departure">{{
+              "planner.form.departureTime" | translate
+            }}</label
+            ><br />
+          </div>
+          <div class="control-pair">
+            <input
+              type="radio"
+              id="arrival"
+              name="time-select"
+              value="arrival"
+            />
+            <label for="arrival">{{
+              "planner.form.arrivalTime" | translate
+            }}</label
+            ><br />
+          </div>
+        </div>
+      </div>
+
+      <!-- Return trip checkbox-->
+      <div class="control-pair">
+        <input
+          type="checkbox"
+          id="return"
+          [(ngModel)]="returnTripActive"
+        />
+        <label for="return">{{ "planner.form.return" | translate }}</label>
+      </div>
+
+      <!-- Date and time picker for return trip time -->
+      @if (returnTripActive) {
+        <div class="datetime">
+          <input type="date" />
+          <input type="time" />
+          <div>
+            <div class="control-pair departure-radio">
+              <input
+                type="radio"
+                id="departureReturn"
+                name="time-select-return"
+                value="departure"
+                checked
+              />
+              <label for="departure">{{
+                "planner.form.departureTime" | translate
+              }}</label
+              ><br />
+            </div>
+            <div class="control-pair">
+              <input
+                type="radio"
+                id="arrivalReturn"
+                name="time-select-return"
+                value="arrival"
+              />
+              <label for="arrival">{{
+                "planner.form.arrivalTime" | translate
+              }}</label
+              ><br />
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Form submit button -->
+    <div class="submit form-section">
+      <button>{{ "planner.form.submit" | translate }}</button>
+    </div>
+  }
+</div>

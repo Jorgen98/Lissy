@@ -160,7 +160,25 @@
         "graphAggTrip": "Spojit podle spojů"
     },
     "planner" : {
-        "name": "Plánovač"
+        "name": "Plánovač",
+        "form": {
+            "title": "Plán Trasy",
+            "submit": "Naplánovat trasu",
+            "departureTime": "Čas odjezdu",
+            "arrivalTime": "Čas příjezdu",
+            "return": "Návrat zpět",
+            "modeSelect": "Vybrané typy dopravy",
+            "publicTransport": "MHD",
+            "car": "Auto",
+            "walk": "Chůze",
+            "startPoint": "Počateční bod",
+            "endPoint": "Cílový bod",
+            "midpoint": "Mezibod",
+            "addMidpointTooltip": "Přidat mezibod",
+            "removeMidpointTooltip": "Odstranit mezibod",
+            "switchDirectionTooltip": "Otočit směr",
+            "markerTooltip": "Vybrat z mapy"
+        }
     },
     "map" : {
         "zone": "Zóna",

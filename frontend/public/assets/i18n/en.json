@@ -160,7 +160,24 @@
         "graphAggTrip": "Join data by trips"
     },
     "planner" : {
-        "name": "Planner"
+        "name": "Planner",
+        "form": {
+            "title": "Trip Plan",
+            "submit": "Plan trip",
+            "departureTime": "Departure time",
+            "arrivalTime": "Arrival time",
+            "return": "Return trip",
+            "modeSelect": "Selected transport modes",
+            "publicTransport": "PT",
+            "car": "Car",
+            "walk": "Walk",
+            "startPoint": "Origin",
+            "endPoint": "Destination",
+            "midpoint": "Midpoint",
+            "addMidpointTooltip": "Add midpoint",
+            "switchDirectionTooltip": "Reverse direction",
+            "markerTooltip": "Select from map"
+        }
     },
     "map" : {
         "zone": "Zone",

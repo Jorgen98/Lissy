@@ -83,4 +83,10 @@ export class MapService {
     fitToLayer(layerName: string) {
         this.fitToLayerObj.next(layerName);
     }
+
+    // Add extra features to the map
+    public mapFeaturesObj = new Subject<any>();
+    configureMapFeatures(features: { showScale?: boolean }) {
+        this.mapFeaturesObj.next(features);
+    }
 }

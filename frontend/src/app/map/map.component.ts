@@ -88,6 +88,7 @@ export class MapComponent implements AfterViewInit {
         this.mapService.zoomInObj.subscribe(() => this.map?.zoomIn());
         this.mapService.zoomOutObj.subscribe(() => this.map?.zoomOut());
         this.mapService.fitToLayerObj.subscribe((layerName) => this.fitToLayer(layerName));
+        this.mapService.mapFeaturesObj.subscribe((features) => this.configureMapFeatures(features));
 
         this.delayCategoriesService.showDelayCategories.subscribe((categories) => {
             this.actualizeDelayCategories(categories);
@@ -483,6 +484,13 @@ export class MapComponent implements AfterViewInit {
 
         if (layer !== undefined && layer.layer) {
             this.map?.fitBounds(layer.layer.getBounds());
+        }
+    }
+
+    // Add extra features to the map
+    private configureMapFeatures(features: { showScale?: boolean }) {
+        if (features?.showScale) {
+            L.control.scale({ maxWidth: 170, imperial: false }).addTo(this.map!);
         }
     }
 }

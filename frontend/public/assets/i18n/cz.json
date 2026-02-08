@@ -171,7 +171,7 @@
             "publicTransport": "MHD",
             "car": "Auto",
             "walk": "Chůze",
-            "startPoint": "Počateční bod",
+            "startPoint": "Počáteční bod",
             "endPoint": "Cílový bod",
             "midpoint": "Mezibod",
             "addMidpointTooltip": "Přidat mezibod",

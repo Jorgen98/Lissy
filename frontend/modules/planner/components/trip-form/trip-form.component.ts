@@ -44,6 +44,13 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     // Id for current location watch
     private locationWatchId: number = -1; 
 
+    // Getter for number of globally selected transport modes
+    get selectedModesCount(): number {
+        return Number(this.tripData.selectedModesGlobal.publicTransport) 
+            + Number(this.tripData.selectedModesGlobal.car)
+            + Number(this.tripData.selectedModesGlobal.walk);
+    }
+
     constructor(
         public translate: TranslateService,
         private msgService: UIMessagesService,
@@ -76,13 +83,6 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
         this.mapService.removeLayer("currentLocation");
     }
 
-    // Getter for number of globally selected transport modes
-    get selectedModesCount(): number {
-        return Number(this.tripData.selectedModesGlobal.publicTransport) 
-            + Number(this.tripData.selectedModesGlobal.car)
-            + Number(this.tripData.selectedModesGlobal.walk);
-    }
-
     // Function called when a transport mode is toggled as on/off
     // If index is set, the transport mode was set/unset between adjacent points in a trip section, otherwise globally
     public modeToggled(mode: TransportMode, index?: number): void {
@@ -97,48 +97,6 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
 
         // Reorder the tripPoints array
         moveItemInArray(this.tripData.points, event.previousIndex, event.currentIndex);
-    }
-
-    // Function for fetching the current users device location
-    private fetchCurrentLocation() {
-
-        // Start blinking on location button
-        this.locationStatus = "searching";
-
-        // Begin watching for current position updates (15 sec timeout)
-        this.locationWatchId = navigator.geolocation.watchPosition(
-
-            // Clear possible previous current positions and display new one on the map
-            position => {
-                this.locationStatus = "enabled";
-                this.mapService.clearLayer("currentLocation");
-                this.mapService.addToLayer({
-                    layerName: "currentLocation",
-                    type: "location",
-                    focus: false,
-                    latLng: [{ lat: position.coords.latitude, lng: position.coords.longitude }],
-                    color: "base",
-                    interactive: false,
-                    hoover: false,
-                    metadata: {},
-                });
-            }, 
-
-            // Show info toast in case of error and disable current position
-            error => {
-                if (error.code === error.PERMISSION_DENIED)
-                    this.msgService.showMessage("info", "UIMessagesService.toasts.locationDenied.head", "UIMessagesService.toasts.locationDenied.body");
-                else if (error.code === error.POSITION_UNAVAILABLE)
-                    this.msgService.showMessage("info", "UIMessagesService.toasts.locationUnavailable.head", "UIMessagesService.toasts.locationUnavailable.body");
-                else
-                    this.msgService.showMessage("info", "UIMessagesService.toasts.locationTimeout.head", "UIMessagesService.toasts.locationTimeout.body");
-                
-                this.locationStatus = "disabled";
-            },
-            {
-                timeout: 15000
-            }
-        );
     }
 
     // Function for fetching the current location on user request
@@ -197,5 +155,47 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
         // Otherwise remove the section modes between deleted point and the point below it
         else
             this.tripData.sectionModes.splice(position, 1);
+    }
+
+    // Function for fetching the current users device location
+    private fetchCurrentLocation() {
+
+        // Start blinking on location button
+        this.locationStatus = "searching";
+
+        // Begin watching for current position updates (15 sec timeout)
+        this.locationWatchId = navigator.geolocation.watchPosition(
+
+            // Clear possible previous current positions and display new one on the map
+            position => {
+                this.locationStatus = "enabled";
+                this.mapService.clearLayer("currentLocation");
+                this.mapService.addToLayer({
+                    layerName: "currentLocation",
+                    type: "location",
+                    focus: false,
+                    latLng: [{ lat: position.coords.latitude, lng: position.coords.longitude }],
+                    color: "base",
+                    interactive: false,
+                    hoover: false,
+                    metadata: {},
+                });
+            }, 
+
+            // Show info toast in case of error and disable current position
+            error => {
+                if (error.code === error.PERMISSION_DENIED)
+                    this.msgService.showMessage("info", "UIMessagesService.toasts.locationDenied.head", "UIMessagesService.toasts.locationDenied.body");
+                else if (error.code === error.POSITION_UNAVAILABLE)
+                    this.msgService.showMessage("info", "UIMessagesService.toasts.locationUnavailable.head", "UIMessagesService.toasts.locationUnavailable.body");
+                else
+                    this.msgService.showMessage("info", "UIMessagesService.toasts.locationTimeout.head", "UIMessagesService.toasts.locationTimeout.body");
+                
+                this.locationStatus = "disabled";
+            },
+            {
+                timeout: 15000
+            }
+        );
     }
 }

@@ -97,14 +97,14 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     }
 
     // Function called when a point is dropped after dragged
-    public pointDropped(event: CdkDragDrop<string[]>) {
+    public pointDropped(event: CdkDragDrop<string[]>): void {
 
         // Reorder the tripPoints array
         moveItemInArray(this.tripData.points, event.previousIndex, event.currentIndex);
     }
 
     // Function for fetching the current location on user request
-    public locationClicked() {
+    public locationClicked(): void {
 
         // If the location hasnt been fetched before, add a new layer on the map and fetch
         if (this.locationStatus === "default") {
@@ -130,7 +130,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     }
 
     // Function adding a new trip midpoint to the form
-    public addMidpoint(position: number) {
+    public addMidpoint(position: number): void {
 
         // Add new point with empty name at given position
         this.tripData.points.splice(position, 0, '');
@@ -147,7 +147,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     }
 
     // Function deleting trip midpoint from the form
-    public removeMidpoint(position: number) {
+    public removeMidpoint(position: number): void {
 
         // Remove point at given position
         this.tripData.points.splice(position, 1);
@@ -161,7 +161,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
             this.tripData.sectionModes.splice(position, 1);
     }
 
-    private updateSectionModes(mode: TransportMode) {
+    private updateSectionModes(mode: TransportMode): void {
 
         // If only one global mode is now selected, select it for all sections also
         if (this.selectedModesCount === 1) {
@@ -181,7 +181,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     }
 
     // Function for fetching the current users device location
-    private fetchCurrentLocation() {
+    private fetchCurrentLocation(): void {
 
         // Start blinking on location button
         this.locationStatus = "searching";

@@ -187,8 +187,8 @@ input[type="text"] {
 }
 
 .circle-button {
-    height: 35px;
-    width: 35px;
+    height: 40px;
+    width: 40px;
     background-color: var(--background);
     border-radius: 20px;
     border: 3px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
@@ -201,6 +201,35 @@ input[type="text"] {
 
 .cdk-drag-animating {
   transition: transform 100ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.midpoint-mode-select-window {
+    height: 100%;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    border: 2px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    padding: 5px;
+}
+
+.midpoint-mode-select-legend {
+    font-size: 11px;
+}
+
+.midpoint-mode-button {
+    width: 100%;
+}
+
+.midpoint-mode-img {
+    height: 15px;
+}
+
+.midpoint-options-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 /********************************************/
 

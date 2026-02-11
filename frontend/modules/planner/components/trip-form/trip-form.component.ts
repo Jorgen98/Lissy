@@ -5,6 +5,7 @@ import { ImportsModule } from '../../../../src/app/imports';
 import { LocationStatus } from '../../types/LocationStatus';
 import { UIMessagesService } from '../../../../src/app/services/messages';
 import { MapService } from '../../../../src/app/map/map.service';
+import { TripData } from '../../types/TripData';
 import { 
     CdkDrag, 
     CdkDropList, 
@@ -25,18 +26,17 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     // Whether the main trip input for is currently collapsed
     public formCollapsed: Boolean = false;
 
-    // Whether a return trip has been selected
-    public returnTripActive: Boolean = false;
-
-    // Modes currently selected for trip planning
-    public modesSelected: Record<TransportMode, Boolean> = {
-        publicTransport: true,
-        car: true,
-        walk: false,
-    };
-
-    // List with the current values in point/midpoint inputs in the form
-    public tripPoints: String[] = ["", ""];
+    // Object containing information about the trip currently in the form
+    public tripData: TripData = {
+        points: ["", ""],           // Names of points on the trip
+        selectedModesGlobal: {      // Modes globally selected for planning
+            publicTransport: true,
+            car: true, 
+            walk: false,
+        },
+        sectionModes: [],           // Modes selected between adjacent midpoints
+        returnTripActive: false,    // Whether the return trip is active
+    }
 
     // Status of current location availability
     public locationStatus: LocationStatus = "default";
@@ -76,16 +76,27 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
         this.mapService.removeLayer("currentLocation");
     }
 
+    // Getter for number of globally selected transport modes
+    get selectedModesCount(): number {
+        return Number(this.tripData.selectedModesGlobal.publicTransport) 
+            + Number(this.tripData.selectedModesGlobal.car)
+            + Number(this.tripData.selectedModesGlobal.walk);
+    }
+
     // Function called when a transport mode is toggled as on/off
-    public modeToggled(mode: TransportMode): void {
-        this.modesSelected[mode] = !this.modesSelected[mode];
+    // If index is set, the transport mode was set/unset between adjacent points in a trip section, otherwise globally
+    public modeToggled(mode: TransportMode, index?: number): void {
+        if (index !== undefined)
+            this.tripData.sectionModes[index][mode] = !this.tripData.sectionModes[index][mode] 
+        else
+            this.tripData.selectedModesGlobal[mode] = !this.tripData.selectedModesGlobal[mode];
     }
 
     // Function called when a point is dropped after dragged
     public pointDropped(event: CdkDragDrop<string[]>) {
 
         // Reorder the tripPoints array
-        moveItemInArray(this.tripPoints, event.previousIndex, event.currentIndex);
+        moveItemInArray(this.tripData.points, event.previousIndex, event.currentIndex);
     }
 
     // Function for fetching the current users device location
@@ -154,5 +165,37 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
         // Refetch in case of previous user disable or error
         else if (this.locationStatus === "disabled")
             this.fetchCurrentLocation();
+    }
+
+    // Function adding a new trip midpoint to the form
+    public addMidpoint(position: number) {
+
+        // Add new point with empty name at given position
+        this.tripData.points.splice(position, 0, '');
+
+        // If the number of points reaches 3, create two copies of the global selected modes and add that as modes in the two sections
+        if (this.tripData.points.length === 3) {
+            this.tripData.sectionModes[0] = { ...this.tripData.selectedModesGlobal };
+            this.tripData.sectionModes[1] = { ...this.tripData.selectedModesGlobal };
+        }
+
+        // Copy global selected modes to the new created section
+        else 
+            this.tripData.sectionModes.splice(position - 1, 0, { ...this.tripData.selectedModesGlobal });
+    }
+
+    // Function deleting trip midpoint from the form
+    public removeMidpoint(position: number) {
+
+        // Remove point at given position
+        this.tripData.points.splice(position, 1);
+
+        // If the number of points reaches 2, clear the section modes
+        if (this.tripData.points.length == 2)
+            this.tripData.sectionModes = [];
+
+        // Otherwise remove the section modes between deleted point and the point below it
+        else
+            this.tripData.sectionModes.splice(position, 1);
     }
 }

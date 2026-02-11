@@ -42,12 +42,12 @@
         <!-- Public transport mode select -->
         <button
           class="mode-button"
-          [class.mode-selected]="modesSelected.publicTransport"
+          [class.mode-selected]="tripData.selectedModesGlobal.publicTransport"
           (click)="modeToggled('publicTransport')"
         >
           <img
             [src]="
-              modesSelected.publicTransport
+              tripData.selectedModesGlobal.publicTransport
                 ? './planner/pt-dark.svg'
                 : './planner/pt-light.svg'
             "
@@ -59,12 +59,12 @@
         <!-- Car mode select -->
         <button
           class="mode-button"
-          [class.mode-selected]="modesSelected.car"
+          [class.mode-selected]="tripData.selectedModesGlobal.car"
           (click)="modeToggled('car')"
         >
           <img
             [src]="
-              modesSelected.car
+              tripData.selectedModesGlobal.car
                 ? './planner/car-dark.svg'
                 : './planner/car-light.svg'
             "
@@ -76,12 +76,12 @@
         <!-- Walk mode select -->
         <button
           class="mode-button"
-          [class.mode-selected]="modesSelected.walk"
+          [class.mode-selected]="tripData.selectedModesGlobal.walk"
           (click)="modeToggled('walk')"
         >
           <img
             [src]="
-              modesSelected.walk
+              tripData.selectedModesGlobal.walk
                 ? './planner/walk-dark.svg'
                 : './planner/walk-light.svg'
             "
@@ -103,8 +103,8 @@
             type="text"
             id="start-point"
             [placeholder]="'planner.form.startPoint' | translate"
-            [value]="tripPoints[0]"
-            (input)="tripPoints[0] = $any($event.target).value"
+            [value]="tripData.points[0]"
+            (input)="tripData.points[0] = $any($event.target).value"
           />
           <div class="point-input-extra">
             <img
@@ -123,7 +123,7 @@
           <input
             type="text"
             [placeholder]="'planner.form.startPoint' | translate"
-            [value]="tripPoints[0]"
+            [value]="tripData.points[0]"
           />
           <div class="point-input-extra">
             <img
@@ -140,17 +140,82 @@
       </div>
 
       <!-- Button to add midpoint -->
-      <button
-        class="circle-button"
-        (click)="tripPoints.splice(1, 0, '')"
-        [title]="'planner.form.addMidpointTooltip' | translate"
-      >
-        +
-      </button>
+      <div class="midpoint-options-wrapper">
+        <button
+          class="circle-button"
+          (click)="addMidpoint(1)"
+          [title]="'planner.form.addMidpointTooltip' | translate"
+        >
+          +
+        </button>
+
+        <!-- Mode select under origin point if theres at least one midpoint -->
+        @if(tripData.points.length > 2 && selectedModesCount > 1) {
+          <fieldset class="midpoint-mode-select-window">
+            <legend class="midpoint-mode-select-legend">
+              {{ "Typ dopravy mezi body" }}
+            </legend>
+
+            <!-- Public transport mode select -->
+            @if(tripData.selectedModesGlobal.publicTransport) {
+              <button
+                class="midpoint-mode-button"
+                [class.mode-selected]="tripData.sectionModes[0].publicTransport"
+                (click)="modeToggled('publicTransport', 0)"
+              >
+                <img
+                  [src]="
+                    tripData.sectionModes[0].publicTransport
+                      ? './planner/pt-dark.svg'
+                      : './planner/pt-light.svg'
+                  "
+                  class="midpoint-mode-img"
+                />
+              </button>
+            }
+
+            <!-- Car mode select -->
+            @if(tripData.selectedModesGlobal.car) {
+              <button
+                class="midpoint-mode-button"
+                [class.mode-selected]="tripData.sectionModes[0].car"
+                (click)="modeToggled('car', 0)"
+              >
+                <img
+                  [src]="
+                    tripData.sectionModes[0].car
+                      ? './planner/car-dark.svg'
+                      : './planner/car-light.svg'
+                  "
+                  class="midpoint-mode-img"
+                />
+              </button>
+            }
+
+            <!-- Walk mode select -->
+            @if(tripData.selectedModesGlobal.walk) {
+              <button
+                class="midpoint-mode-button"
+                [class.mode-selected]="tripData.sectionModes[0].walk"
+                (click)="modeToggled('walk', 0)"
+              >
+                <img
+                  [src]="
+                    tripData.sectionModes[0].walk
+                      ? './planner/walk-dark.svg'
+                      : './planner/walk-light.svg'
+                  "
+                  class="midpoint-mode-img"
+                />
+              </button>
+            }
+          </fieldset>
+        }
+      </div>
 
       <!-- Rendering added midpoints -->
-      @for (point of tripPoints; track $index) {
-        @if ($index !== 0 && $index !== tripPoints.length - 1) {
+      @for (point of tripData.points; track $index) {
+        @if ($index !== 0 && $index !== tripData.points.length - 1) {
 
           <!-- Midpoint -->
           <div class="trip-point" cdkDrag>
@@ -158,10 +223,9 @@
             <div class="point-input-wrapper">
               <input
                 type="text"
-                id="start-point"
                 [placeholder]="'planner.form.midpoint' | translate"
-                [value]="tripPoints[$index]"
-                (input)="tripPoints[$index] = $any($event.target).value"
+                [value]="tripData.points[$index]"
+                (input)="tripData.points[$index] = $any($event.target).value"
               />
               <img
                 [src]="'./planner/midpoint-marker.svg'"
@@ -174,7 +238,7 @@
             <img
               [src]="'./planner/trash-bin.svg'"
               class="point-input-pointer remove-midpoint"
-              (click)="tripPoints.splice($index, 1)"
+              (click)="removeMidpoint($index)"
               [title]="'planner.form.removeMidpointTooltip' | translate"
             />
           </div>
@@ -186,7 +250,7 @@
               <input
                 type="text"
                 [placeholder]="'planner.form.midpoint' | translate"
-                [value]="tripPoints[$index]"
+                [value]="tripData.points[$index]"
               />
               <img
                 [src]="'./planner/midpoint-marker.svg'"
@@ -199,19 +263,86 @@
             <img
               [src]="'./planner/trash-bin.svg'"
               class="point-input-pointer remove-midpoint"
-              (click)="tripPoints.splice($index, 1)"
+              (click)="removeMidpoint($index)"
               [title]="'planner.form.removeMidpointTooltip' | translate"
             />
           </div>
 
-          <!-- Add midpoint button -->
-          <button
-            class="circle-button"
-            (click)="tripPoints.splice($index + 1, 0, '')"
-            [title]="'planner.form.addMidpointTooltip' | translate"
-          >
-            +
-          </button>
+          <!-- Add midpoint button and mode select between two points-->
+          <div class="midpoint-options-wrapper">
+
+            <!-- Add midpoint button -->
+            <button
+              class="circle-button"
+              (click)="addMidpoint($index + 1)"
+              [title]="'planner.form.addMidpointTooltip' | translate"
+            >
+              +
+            </button>
+
+            <!-- Mode select between adjacent points -->
+            @if(selectedModesCount > 1) {
+              <fieldset class="midpoint-mode-select-window">
+                <legend class="midpoint-mode-select-legend">
+                  {{ "Typ dopravy mezi body" }}
+                </legend>
+
+                <!-- Public transport mode select -->
+                @if(tripData.selectedModesGlobal.publicTransport) {
+                  <button
+                    class="midpoint-mode-button"
+                    [class.mode-selected]="tripData.sectionModes[$index].publicTransport"
+                    (click)="modeToggled('publicTransport', $index)"
+                  >
+                    <img
+                      [src]="
+                        tripData.sectionModes[$index].publicTransport
+                          ? './planner/pt-dark.svg'
+                          : './planner/pt-light.svg'
+                      "
+                      class="midpoint-mode-img"
+                    />
+                  </button>
+                }
+
+                <!-- Car mode select -->
+                @if(tripData.selectedModesGlobal.car) {
+                  <button
+                    class="midpoint-mode-button"
+                    [class.mode-selected]="tripData.sectionModes[$index].car"
+                    (click)="modeToggled('car', $index)"
+                  >
+                    <img
+                      [src]="
+                        tripData.sectionModes[$index].car
+                          ? './planner/car-dark.svg'
+                          : './planner/car-light.svg'
+                      "
+                      class="midpoint-mode-img"
+                    />
+                  </button>
+                }
+
+                <!-- Walk mode select -->
+                @if(tripData.selectedModesGlobal.walk) {
+                  <button
+                    class="midpoint-mode-button"
+                    [class.mode-selected]="tripData.sectionModes[$index].walk"
+                    (click)="modeToggled('walk', $index)"
+                  >
+                    <img
+                      [src]="
+                        tripData.sectionModes[$index].walk
+                          ? './planner/walk-dark.svg'
+                          : './planner/walk-light.svg'
+                      "
+                      class="midpoint-mode-img"
+                    />
+                  </button>
+                }
+              </fieldset>
+            }
+          </div>
         }
       }
 
@@ -221,11 +352,11 @@
         <div class="point-input-wrapper">
           <input
             type="text"
-            id="start-point"
+            id="end-point"
             [placeholder]="'planner.form.endPoint' | translate"
-            [value]="tripPoints[tripPoints.length - 1]"
+            [value]="tripData.points[tripData.points.length - 1]"
             (input)="
-              tripPoints[tripPoints.length - 1] = $any($event.target).value
+              tripData.points[tripData.points.length - 1] = $any($event.target).value
             "
           />
           <img
@@ -243,7 +374,7 @@
           <input
             type="text"
             [placeholder]="'planner.form.endPoint' | translate"
-            [value]="tripPoints[tripPoints.length - 1]"
+            [value]="tripData.points[tripData.points.length - 1]"
           />
           <img
             [src]="'./planner/end-marker.svg'"
@@ -257,7 +388,7 @@
         <!-- Add midpoint button -->
         <button
           class="circle-button"
-          (click)="tripPoints.splice(tripPoints.length, 0, '')"
+          (click)="addMidpoint(tripData.points.length)"
           [title]="'planner.form.addMidpointTooltip' | translate"
         >
           +
@@ -266,7 +397,7 @@
         <!-- Switch midpoint button -->
         <button
           class="circle-button"
-          (click)="tripPoints.reverse()"
+          (click)="tripData.points.reverse()"
           [title]="'planner.form.switchDirectionTooltip' | translate"
         >
           <img [src]="'./planner/double-arrow.svg'" />
@@ -315,13 +446,13 @@
         <input
           type="checkbox"
           id="return"
-          [(ngModel)]="returnTripActive"
+          [(ngModel)]="tripData.returnTripActive"
         />
         <label for="return">{{ "planner.form.return" | translate }}</label>
       </div>
 
       <!-- Date and time picker for return trip time -->
-      @if (returnTripActive) {
+      @if (tripData.returnTripActive) {
         <div class="datetime">
           <input type="date" />
           <input type="time" />

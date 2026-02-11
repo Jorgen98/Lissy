@@ -87,9 +87,13 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     // If index is set, the transport mode was set/unset between adjacent points in a trip section, otherwise globally
     public modeToggled(mode: TransportMode, index?: number): void {
         if (index !== undefined)
-            this.tripData.sectionModes[index][mode] = !this.tripData.sectionModes[index][mode] 
-        else
+            this.tripData.sectionModes[index][mode] = !this.tripData.sectionModes[index][mode];
+        else {
             this.tripData.selectedModesGlobal[mode] = !this.tripData.selectedModesGlobal[mode];
+
+            // Adjust section modes if the global modes were edited
+            this.updateSectionModes(mode);
+        }
     }
 
     // Function called when a point is dropped after dragged
@@ -155,6 +159,25 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
         // Otherwise remove the section modes between deleted point and the point below it
         else
             this.tripData.sectionModes.splice(position, 1);
+    }
+
+    private updateSectionModes(mode: TransportMode) {
+
+        // If only one global mode is now selected, select it for all sections also
+        if (this.selectedModesCount === 1) {
+            if (this.tripData.selectedModesGlobal.publicTransport)
+                this.tripData.sectionModes = this.tripData.sectionModes.map(() => ({ publicTransport: true, car: false, walk: false }));
+            else if (this.tripData.selectedModesGlobal.car)
+                this.tripData.sectionModes = this.tripData.sectionModes.map(() => ({ publicTransport: false, car: true, walk: false }));
+            else
+                this.tripData.sectionModes = this.tripData.sectionModes.map(() => ({ publicTransport: false, car: false, walk: true }));
+
+            return;
+        }
+
+        const global = this.tripData.selectedModesGlobal[mode]; // Store new value of toggled mode (less member access in loop)
+        for (let i = 0; i < this.tripData.sectionModes.length; i++) 
+            this.tripData.sectionModes[i][mode] = global;
     }
 
     // Function for fetching the current users device location

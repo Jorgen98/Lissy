@@ -18,7 +18,8 @@ const modules = [
     require('../frontend/modules/about/api.js'),
     require('../frontend/modules/stats/api.js'),
     require('../frontend/modules/shapes/api.js'),
-    require('../frontend/modules/delay-trips/api.js')
+    require('../frontend/modules/delay-trips/api.js'),
+    require('../frontend/modules/planner/api.js')
 ];
 
 // .env file include

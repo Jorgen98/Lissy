@@ -1,10 +1,19 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
 import { MapComponent } from '../../src/app/map/map.component';
 import { ImportsModule } from '../../src/app/imports';
 import { TripFormComponent } from './components/trip-form/trip-form.component';
 import { MapService } from '../../src/app/map/map.service';
+import { APIService } from '../../src/app/services/api';
+import { UIMessagesService } from '../../src/app/services/messages';
+import { 
+    Component, 
+    AfterViewInit, 
+    ViewChild, 
+    ElementRef, 
+    HostListener,
+    OnInit
+} from '@angular/core';
 
 @Component({
     selector: 'app-planner',
@@ -12,7 +21,7 @@ import { MapService } from '../../src/app/map/map.service';
     templateUrl: './planner.component.html',
     styleUrl: './planner.component.css',
 })
-export class PlannerModule implements AfterViewInit {
+export class PlannerModule implements AfterViewInit, OnInit {
 
     // JSON config file
     static modulConfig: ModuleConfig = config;
@@ -35,12 +44,21 @@ export class PlannerModule implements AfterViewInit {
     private clickSyncFlag: boolean = false;
 
     constructor(
-        private mapService: MapService
+        private mapService: MapService,
+        private apiService: APIService,
+        private msgService: UIMessagesService
     ) {}
 
     ngAfterViewInit(): void {
         // Show map scale
         this.mapService.configureMapFeatures({ showScale: true });
+    }
+
+    async ngOnInit(): Promise<void> {
+
+        // Check if API is running and connected
+        if(!await this.apiService.isConnected())
+            this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');
     }
 
     // Function called when a marker in the form is clicked

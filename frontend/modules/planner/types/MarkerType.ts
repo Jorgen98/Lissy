@@ -1,0 +1,1 @@
+export type MarkerType = "start" | "end" | "midpoint";

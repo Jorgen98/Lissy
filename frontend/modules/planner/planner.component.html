@@ -32,10 +32,27 @@
     <div class="content">
 
       <!-- Trip input form component -->
-      <trip-form />
+      <trip-form (markerClick)="markerClick($event)"/>
 
       <!-- Map -->
       <map></map>
+
+      <!-- Hidden images for the cursor when a trip point is being selected in the map -->
+      <img
+        #startCursor
+        class="cursor-image"
+        [src]="'./planner/start-marker.svg'"
+      />
+      <img
+        #midpointCursor
+        class="cursor-image"
+        [src]="'./planner/midpoint-marker.svg'"
+      />
+      <img
+        #endCursor
+        class="cursor-image"
+        [src]="'./planner/end-marker.svg'"
+      />
     </div>
   </main>
 }

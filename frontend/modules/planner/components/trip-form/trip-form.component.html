@@ -111,6 +111,7 @@
               [src]="'./planner/start-marker.svg'"
               class="point-input-pointer"
               [title]="'planner.form.markerTooltip' | translate"
+              (click)="markerClick.emit('start')"
             />
           </div>
         </div>
@@ -228,6 +229,7 @@
                 (input)="tripData.points[$index] = $any($event.target).value"
               />
               <img
+                (click)="markerClick.emit('midpoint')"
                 [src]="'./planner/midpoint-marker.svg'"
                 class="point-input-pointer point-input-extra"
                 [title]="'planner.form.markerTooltip' | translate"
@@ -363,6 +365,7 @@
             [src]="'./planner/end-marker.svg'"
             class="point-input-pointer point-input-extra"
             [title]="'planner.form.markerTooltip' | translate"
+            (click)="markerClick.emit('end')"
           />
           </div>
       </div>

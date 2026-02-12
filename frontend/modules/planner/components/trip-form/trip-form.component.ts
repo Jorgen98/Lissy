@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, output } from '@angular/core';
 import { TransportMode } from '../../types/TransportMode';
 import { TranslateService } from '@ngx-translate/core';
 import { ImportsModule } from '../../../../src/app/imports';
@@ -6,6 +6,7 @@ import { LocationStatus } from '../../types/LocationStatus';
 import { UIMessagesService } from '../../../../src/app/services/messages';
 import { MapService } from '../../../../src/app/map/map.service';
 import { TripData } from '../../types/TripData';
+import { MarkerType } from '../../types/MarkerType';
 import { 
     CdkDrag, 
     CdkDropList, 
@@ -40,6 +41,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
 
     // Status of current location availability
     public locationStatus: LocationStatus = "default";
+
+    // Output for notifying the parent planner component that a marker has been clicked in the form to select point in the map
+    public markerClick = output<MarkerType>();
 
     // Id for current location watch
     private locationWatchId: number = -1; 

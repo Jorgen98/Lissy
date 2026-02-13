@@ -46,6 +46,11 @@ const modules = [
         name: process.env.FE_MODULE_NAME,
         label: process.env.FE_MODULE_LABEL,
         color: "\x1b[30m"
+    },
+    {
+        name: process.env.BE_PLANNER_MODULE_NAME,
+        label: process.env.BE_PLANNER_MODULE_LABEL,
+        color: "\x1b[94m"
     }
 ]
 

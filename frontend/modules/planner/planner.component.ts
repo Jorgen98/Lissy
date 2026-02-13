@@ -6,6 +6,7 @@ import { TripFormComponent } from './components/trip-form/trip-form.component';
 import { MapService } from '../../src/app/map/map.service';
 import { APIService } from '../../src/app/services/api';
 import { UIMessagesService } from '../../src/app/services/messages';
+import { Stop } from './types/Stop';
 import { 
     Component, 
     AfterViewInit, 
@@ -43,6 +44,9 @@ export class PlannerModule implements AfterViewInit, OnInit {
     // onClick needs to not clear the cursor right after markerClick sets it
     private clickSyncFlag: boolean = false;
 
+    // List of all stops in the transport system with coordinates and names
+    private allStops: Stop[] = []; 
+
     constructor(
         private mapService: MapService,
         private apiService: APIService,
@@ -57,8 +61,24 @@ export class PlannerModule implements AfterViewInit, OnInit {
     async ngOnInit(): Promise<void> {
 
         // Check if API is running and connected
-        if(!await this.apiService.isConnected())
+        if(!await this.apiService.isConnected()) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');
+            return;
+        }
+
+        // Turn on loading screen
+        this.msgService.turnOnLoadingScreenWithoutPercentage();
+
+        // Get list of all stops for autocomplete
+        this.allStops = await this.apiService.genericGet(`${config.apiPrefix}/allStops`);
+        if (!this.allStops) {
+            this.msgService.showMessage('error', 'UIMessagesService.toasts.stopsUnavailable.head', 'UIMessagesService.toasts.stopsUnavailable.body');
+            this.msgService.turnOffLoadingScreen();
+            return;
+        }
+
+        // Turn off loading screen after initialization is done
+        this.msgService.turnOffLoadingScreen();
     }
 
     // Function called when a marker in the form is clicked

@@ -243,6 +243,10 @@
             "locationTimeout": {
                 "head": "Vypršel časový limit pro získání polohy",
                 "body": "Čas vyhrazený pro získání informací o poloze vypršel dříve, než byly údaje získány."
+            },
+            "stopsUnavailable": {
+                "head": "Chyba na straně serveru",
+                "body": "Chyba komunikace se serverem při získávání zastávek."
             }
         }   
     }

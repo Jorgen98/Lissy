@@ -242,6 +242,10 @@
             "locationTimeout": {
                 "head": "Location timed out",
                 "body": "The time allowed to acquire the location was reached before the information was obtained."
+            },
+            "stopsUnavailable": {
+                "head": "Server Error",
+                "body": "Error in communication with server whilst retrieving transport system stops."
             }
         }
     }

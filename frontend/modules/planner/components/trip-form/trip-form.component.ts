@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy, output } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, output, input, OnInit } from '@angular/core';
 import { TransportMode } from '../../types/TransportMode';
 import { TranslateService } from '@ngx-translate/core';
 import { ImportsModule } from '../../../../src/app/imports';
@@ -7,6 +7,11 @@ import { UIMessagesService } from '../../../../src/app/services/messages';
 import { MapService } from '../../../../src/app/map/map.service';
 import { TripData } from '../../types/TripData';
 import { MarkerType } from '../../types/MarkerType';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { FormControl, FormsModule, ReactiveFormsModule, FormArray } from '@angular/forms';
+import { AsyncPipe } from '@angular/common';
+import { Stop } from '../../types/Stop';
+import { debounceTime, map, startWith, Observable } from 'rxjs';
 import { 
     CdkDrag, 
     CdkDropList, 
@@ -18,18 +23,28 @@ import {
 
 @Component({
     selector: 'trip-form',
-    imports: [ImportsModule, CdkDrag, CdkDropList, CdkDragHandle, CdkDragPreview],
+    imports: [
+        ImportsModule, 
+        CdkDrag, 
+        CdkDropList, 
+        CdkDragHandle, 
+        CdkDragPreview, 
+        FormsModule, 
+        MatAutocompleteModule, 
+        ReactiveFormsModule, 
+        AsyncPipe
+    ],
     templateUrl: './trip-form.component.html',
     styleUrl: './trip-form.component.css',
 })
-export class TripFormComponent implements AfterViewInit, OnDestroy {
+export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // Whether the main trip input for is currently collapsed
     public formCollapsed: Boolean = false;
 
     // Object containing information about the trip currently in the form
     public tripData: TripData = {
-        points: ["", ""],           // Names of points on the trip
+        points: [{}, {}],           // Coordinates of points on the trip, start off empty/undefined
         selectedModesGlobal: {      // Modes globally selected for planning
             publicTransport: true,
             car: true, 
@@ -48,6 +63,19 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     // Id for current location watch
     private locationWatchId: number = -1; 
 
+    // Array of transport system stops received from the backend, input from the parent component
+    public stops = input<Stop[]>([]);
+
+    // Each form input has its own list of stops that match the substring entered into the input element for autocomplete
+    // Observable so the autocomplete can be updated while typing
+    public filteredStopsArray: Observable<Stop[]>[] = []
+
+    // Dynamic array of controls for individual trip point inputs
+    public pointControls = new FormArray<FormControl<string>>([
+        new FormControl('', { nonNullable: true }),
+        new FormControl('', { nonNullable: true })
+    ]);
+
     // Getter for number of globally selected transport modes
     get selectedModesCount(): number {
         return Number(this.tripData.selectedModesGlobal.publicTransport) 
@@ -60,6 +88,15 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
         private msgService: UIMessagesService,
         private mapService: MapService,
     ) { }
+
+    ngOnInit(): void {
+
+        // Create and initialize arrays with filtered stops for origin and destination points
+        this.filteredStopsArray = [
+            this.createFilteredStops(0),
+            this.createFilteredStops(1)
+        ];
+    }
 
     ngAfterViewInit(): void {
 
@@ -103,8 +140,19 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     // Function called when a point is dropped after dragged
     public pointDropped(event: CdkDragDrop<string[]>): void {
 
-        // Reorder the tripPoints array
+        // Reorder the necessary arrays after drag and drop movement is finished
         moveItemInArray(this.tripData.points, event.previousIndex, event.currentIndex);
+        moveItemInArray(this.filteredStopsArray, event.previousIndex, event.currentIndex);
+        moveItemInArray(this.pointControls.controls, event.previousIndex, event.currentIndex);
+    }
+
+    // Function called when the button to reverse the trip points is clicked
+    public reverseTripPoints(): void {
+
+        // Reverse content of all necessary arrays
+        this.tripData.points.reverse();
+        this.filteredStopsArray.reverse();
+        this.pointControls.controls.reverse();
     }
 
     // Function for fetching the current location on user request
@@ -136,8 +184,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     // Function adding a new trip midpoint to the form
     public addMidpoint(position: number): void {
 
-        // Add new point with empty name at given position
-        this.tripData.points.splice(position, 0, '');
+        // Add new point with empty coordinates at given position, a new empty input control and array with filtered stops
+        this.tripData.points.splice(position, 0, {});
+        this.pointControls.insert(position, new FormControl('', { nonNullable: true }));
+        this.filteredStopsArray.splice(position, 0, this.createFilteredStops(position));
 
         // If the number of points reaches 3, create two copies of the global selected modes and add that as modes in the two sections
         if (this.tripData.points.length === 3) {
@@ -153,8 +203,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
     // Function deleting trip midpoint from the form
     public removeMidpoint(position: number): void {
 
-        // Remove point at given position
+        // Remove point from the trip data, its form input control and the array of filtered stops
         this.tripData.points.splice(position, 1);
+        this.pointControls.removeAt(position);
+        this.filteredStopsArray.splice(position, 1);
 
         // If the number of points reaches 2, clear the section modes
         if (this.tripData.points.length == 2)
@@ -163,6 +215,15 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
         // Otherwise remove the section modes between deleted point and the point below it
         else
             this.tripData.sectionModes.splice(position, 1);
+    }
+
+    // Function called when a stop has been selected from autocomplete
+    // 'stop' is the selected stop and 'position' holds which trip point the stop was selected for
+    public stopSelected(stop: Stop, position: number) {
+
+        // Store coordinates of selected stop in the main trip data 
+        this.tripData.points[position].lat = stop.lat;
+        this.tripData.points[position].lng = stop.lng;
     }
 
     private updateSectionModes(mode: TransportMode): void {
@@ -223,6 +284,37 @@ export class TripFormComponent implements AfterViewInit, OnDestroy {
             {
                 timeout: 15000
             }
+        );
+    }
+
+    // Create observable for filtered stops for specific input given by 'position'
+    private createFilteredStops(position: number): Observable<Stop[]> {
+
+        // Subscribe to the valueChanges event of that point control
+        return this.pointControls.at(position).valueChanges.pipe(
+
+            // Always initialize form control with empty string for autocomplete
+            startWith(''),
+
+            // Wait 200ms after user stops typing for better performance
+            debounceTime(200),
+
+            // value is the current value in the user input
+            map(value => {
+
+                // Get the value in lowercase
+                const search = (value ?? '').toLowerCase();
+
+                // Only autocomplete with at least two characters 
+                if (search.length < 2) 
+                    return [];
+                
+                // Return stops whose names (lowercase) contain the substring geiven by user input
+                // Only get first 20 for performance
+                return this.stops()
+                    .filter(stop => stop.name.toLowerCase().includes(search))
+                    .slice(0, 20);
+            })
         );
     }
 }

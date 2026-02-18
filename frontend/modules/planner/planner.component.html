@@ -32,7 +32,7 @@
     <div class="content">
 
       <!-- Trip input form component -->
-      <trip-form (markerClick)="markerClick($event)"/>
+      <trip-form (markerClick)="markerClick($event)" [stops]="allStops"/>
 
       <!-- Map -->
       <map></map>

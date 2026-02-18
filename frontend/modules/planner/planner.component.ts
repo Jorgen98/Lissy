@@ -45,7 +45,7 @@ export class PlannerModule implements AfterViewInit, OnInit {
     private clickSyncFlag: boolean = false;
 
     // List of all stops in the transport system with coordinates and names
-    private allStops: Stop[] = []; 
+    public allStops: Stop[] = []; 
 
     constructor(
         private mapService: MapService,
@@ -70,12 +70,14 @@ export class PlannerModule implements AfterViewInit, OnInit {
         this.msgService.turnOnLoadingScreenWithoutPercentage();
 
         // Get list of all stops for autocomplete
-        this.allStops = await this.apiService.genericGet(`${config.apiPrefix}/allStops`);
-        if (!this.allStops) {
+        const stops = await this.apiService.genericGet(`${config.apiPrefix}/allStops`);
+        if (!stops) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.stopsUnavailable.head', 'UIMessagesService.toasts.stopsUnavailable.body');
             this.msgService.turnOffLoadingScreen();
             return;
         }
+
+        this.allStops = stops.stops;
 
         // Turn off loading screen after initialization is done
         this.msgService.turnOffLoadingScreen();

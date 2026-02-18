@@ -1,5 +1,5 @@
 export type Stop = {
     lat: number,
-    lon: number,
+    lng: number,
     name: string,
 };

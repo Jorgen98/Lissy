@@ -103,9 +103,14 @@
             type="text"
             id="start-point"
             [placeholder]="'planner.form.startPoint' | translate"
-            [value]="tripData.points[0]"
-            (input)="tripData.points[0] = $any($event.target).value"
+            [formControl]="pointControls.controls[0]"
+            [matAutocomplete]="autoOrigin"
           />
+          <mat-autocomplete #autoOrigin="matAutocomplete">
+            @for (stop of filteredStopsArray[0] | async; track $index) {
+              <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, 0)">{{ stop.name }}</mat-option>
+            }
+          </mat-autocomplete>
           <div class="point-input-extra">
             <img
               [src]="'./planner/start-marker.svg'"
@@ -124,7 +129,6 @@
           <input
             type="text"
             [placeholder]="'planner.form.startPoint' | translate"
-            [value]="tripData.points[0]"
           />
           <div class="point-input-extra">
             <img
@@ -215,7 +219,7 @@
       </div>
 
       <!-- Rendering added midpoints -->
-      @for (point of tripData.points; track $index) {
+      @for (control of pointControls.controls; track $index) {
         @if ($index !== 0 && $index !== tripData.points.length - 1) {
 
           <!-- Midpoint -->
@@ -225,9 +229,14 @@
               <input
                 type="text"
                 [placeholder]="'planner.form.midpoint' | translate"
-                [value]="tripData.points[$index]"
-                (input)="tripData.points[$index] = $any($event.target).value"
+                [formControl]="control"
+                [matAutocomplete]="autoMid"
               />
+              <mat-autocomplete #autoMid="matAutocomplete">
+                @for (stop of filteredStopsArray[$index] | async; track $index) {
+                  <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, $index)">{{ stop.name }}</mat-option>
+                }
+              </mat-autocomplete>
               <img
                 (click)="markerClick.emit('midpoint')"
                 [src]="'./planner/midpoint-marker.svg'"
@@ -356,11 +365,14 @@
             type="text"
             id="end-point"
             [placeholder]="'planner.form.endPoint' | translate"
-            [value]="tripData.points[tripData.points.length - 1]"
-            (input)="
-              tripData.points[tripData.points.length - 1] = $any($event.target).value
-            "
+            [formControl]="pointControls.controls[this.tripData.points.length - 1]"
+            [matAutocomplete]="autoDest"
           />
+          <mat-autocomplete #autoDest="matAutocomplete">
+            @for (stop of filteredStopsArray[this.tripData.points.length - 1] | async; track $index) {
+              <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, this.tripData.points.length - 1)">{{ stop.name }}</mat-option>
+            }
+          </mat-autocomplete>
           <img
             [src]="'./planner/end-marker.svg'"
             class="point-input-pointer point-input-extra"
@@ -377,7 +389,6 @@
           <input
             type="text"
             [placeholder]="'planner.form.endPoint' | translate"
-            [value]="tripData.points[tripData.points.length - 1]"
           />
           <img
             [src]="'./planner/end-marker.svg'"
@@ -400,7 +411,7 @@
         <!-- Switch midpoint button -->
         <button
           class="circle-button"
-          (click)="tripData.points.reverse()"
+          (click)="reverseTripPoints()"
           [title]="'planner.form.switchDirectionTooltip' | translate"
         >
           <img [src]="'./planner/double-arrow.svg'" />

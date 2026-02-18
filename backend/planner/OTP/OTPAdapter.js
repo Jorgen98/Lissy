@@ -20,7 +20,7 @@ class OTPAdapter extends IRoutePlanner {
         // Translate the returned stops to expected form 
         const stops = response.data.stations.map(station => ({
             lat: station.lat,
-            lon: station.lon,
+            lng: station.lon,
             name: station.name
         }));
 

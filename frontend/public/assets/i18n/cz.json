@@ -177,7 +177,8 @@
             "addMidpointTooltip": "Přidat mezibod",
             "removeMidpointTooltip": "Odstranit mezibod",
             "switchDirectionTooltip": "Otočit směr",
-            "markerTooltip": "Vybrat z mapy"
+            "markerTooltip": "Vybrat z mapy",
+            "myLocation": "Moje poloha"
         }
     },
     "map" : {

@@ -107,6 +107,9 @@
             [matAutocomplete]="autoOrigin"
           />
           <mat-autocomplete #autoOrigin="matAutocomplete">
+            @if (locationStatus !== "disabled") {
+              <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(0)">{{ 'planner.form.myLocation' | translate }}</mat-option>
+            }
             @for (stop of filteredStopsArray[0] | async; track $index) {
               <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, 0)">{{ stop.name }}</mat-option>
             }
@@ -233,6 +236,9 @@
                 [matAutocomplete]="autoMid"
               />
               <mat-autocomplete #autoMid="matAutocomplete">
+                @if (locationStatus !== "disabled") {
+                  <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked($index)">{{ 'planner.form.myLocation' | translate }}</mat-option>
+                }
                 @for (stop of filteredStopsArray[$index] | async; track $index) {
                   <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, $index)">{{ stop.name }}</mat-option>
                 }
@@ -369,6 +375,9 @@
             [matAutocomplete]="autoDest"
           />
           <mat-autocomplete #autoDest="matAutocomplete">
+            @if (locationStatus !== "disabled") {
+              <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(this.tripData.points.length - 1)">{{ 'planner.form.myLocation' | translate }}</mat-option>
+            }
             @for (stop of filteredStopsArray[this.tripData.points.length - 1] | async; track $index) {
               <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, this.tripData.points.length - 1)">{{ stop.name }}</mat-option>
             }

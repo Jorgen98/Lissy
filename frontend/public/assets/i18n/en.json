@@ -176,7 +176,8 @@
             "midpoint": "Midpoint",
             "addMidpointTooltip": "Add midpoint",
             "switchDirectionTooltip": "Reverse direction",
-            "markerTooltip": "Select from map"
+            "markerTooltip": "Select from map",
+            "myLocation": "My location"
         }
     },
     "map" : {

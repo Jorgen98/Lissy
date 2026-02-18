@@ -57,6 +57,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
     // Status of current location availability
     public locationStatus: LocationStatus = "default";
 
+    // Current location coordinates
+    private currentLocation: { lat?: number, lng?: number } = {};
+
     // Output for notifying the parent planner component that a marker has been clicked in the form to select point in the map
     public markerClick = output<MarkerType>();
 
@@ -156,7 +159,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
     }
 
     // Function for fetching the current location on user request
-    public locationClicked(): void {
+    public locationClicked(tripPointPosition?: number): void {
 
         // If the location hasnt been fetched before, add a new layer on the map and fetch
         if (this.locationStatus === "default") {
@@ -166,19 +169,32 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
                 palette: {},
                 paletteItemName: "",
             });
-            this.fetchCurrentLocation();
+            this.fetchCurrentLocation(tripPointPosition);
         }
 
-        // If the location is currently shown, disable it, clear watch and layer
+        // If the location is currently shown and the current location was chosen as a trip point, store it in trip data
+        else if (this.locationStatus === "enabled" && tripPointPosition !== undefined)
+            this.tripData.points[tripPointPosition] = this.currentLocation;
+
+        // If the location is currently shown, disable it, clear watch and layer, clear current location
         else if (this.locationStatus === "enabled") {
             this.locationStatus = "disabled";
             navigator.geolocation.clearWatch(this.locationWatchId);
             this.mapService.clearLayer("currentLocation");
+            this.currentLocation = {};
+
+            // Clear trip points which have current location selected
+            this.pointControls.controls.forEach((control, index) => {
+                if (control.value === "Moje poloha" || control.value === "My location") {
+                    control.setValue("");
+                    this.tripData.points[index] = {};
+                }
+            });
         }
 
         // Refetch in case of previous user disable or error
         else if (this.locationStatus === "disabled")
-            this.fetchCurrentLocation();
+            this.fetchCurrentLocation(tripPointPosition);
     }
 
     // Function adding a new trip midpoint to the form
@@ -246,7 +262,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
     }
 
     // Function for fetching the current users device location
-    private fetchCurrentLocation(): void {
+    private fetchCurrentLocation(tripPointPosition?: number): void {
 
         // Start blinking on location button
         this.locationStatus = "searching";
@@ -268,6 +284,14 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
                     hoover: false,
                     metadata: {},
                 });
+
+                // Store acquired location coordinates
+                this.currentLocation.lat = position.coords.latitude;
+                this.currentLocation.lng = position.coords.longitude;
+                
+                // If the current position is being fetched as a result of it being selected as a trip point, store it for that point
+                if (tripPointPosition !== undefined)
+                    this.tripData.points[tripPointPosition] = this.currentLocation;
             }, 
 
             // Show info toast in case of error and disable current position
@@ -280,6 +304,15 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.msgService.showMessage("info", "UIMessagesService.toasts.locationTimeout.head", "UIMessagesService.toasts.locationTimeout.body");
                 
                 this.locationStatus = "disabled";
+                this.currentLocation = {};
+
+                // Clear trip points which have current location selected
+                this.pointControls.controls.forEach((control, index) => {
+                    if (control.value === "Moje poloha" || control.value === "My location") {
+                        control.setValue("");
+                        this.tripData.points[index] = {};
+                    }
+                });
             },
             {
                 timeout: 15000

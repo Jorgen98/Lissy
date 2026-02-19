@@ -224,6 +224,7 @@
       <!-- Rendering added midpoints -->
       @for (control of pointControls.controls; track $index) {
         @if ($index !== 0 && $index !== tripData.points.length - 1) {
+          @let outerIdx = $index;
 
           <!-- Midpoint -->
           <div class="trip-point" cdkDrag>
@@ -240,7 +241,7 @@
                   <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked($index)">{{ 'planner.form.myLocation' | translate }}</mat-option>
                 }
                 @for (stop of filteredStopsArray[$index] | async; track $index) {
-                  <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, $index)">{{ stop.name }}</mat-option>
+                  <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, outerIdx)">{{ stop.name }}</mat-option>
                 }
               </mat-autocomplete>
               <img

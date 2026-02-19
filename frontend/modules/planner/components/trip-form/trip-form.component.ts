@@ -122,9 +122,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
     ngOnDestroy(): void {
 
-        // Clear watching for current location and remove current location layer
+        // Clear watching for current location and remove existing layers
         navigator.geolocation.clearWatch(this.locationWatchId);
         this.mapService.removeLayer("currentLocation");
+        this.mapService.removeLayer("tripPoints");
     }
 
     // Function called when a transport mode is toggled as on/off
@@ -240,6 +241,29 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         // Store coordinates of selected stop in the main trip data 
         this.tripData.points[position].lat = stop.lat;
         this.tripData.points[position].lng = stop.lng;
+
+        // Add map layer for markers if it hasnt been added before
+        // Wont be readded repearedly, map service does a check for existence 
+        this.mapService.addNewLayer({
+            name: "tripPoints",
+            layer: undefined,
+            palette: {},
+            paletteItemName: "",
+        });
+
+        // Add a marker to the new/existing layer for the trip point
+        this.mapService.addToLayer({
+            layerName: "tripPoints",
+            type: "tripPoint",
+            focus: false,
+            latLng: [{ lat: stop.lat, lng: stop.lng }],
+            color: "base",
+            metadata: {
+                pointType: position === 0 ? "start" : (position === this.tripData.points.length - 1 ? "end" : "midpoint"),
+            },
+            interactive: false,
+            hoover: false,
+        });
     }
 
     private updateSectionModes(mode: TransportMode): void {

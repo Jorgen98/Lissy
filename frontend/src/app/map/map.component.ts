@@ -59,7 +59,9 @@ export class MapComponent implements AfterViewInit {
                         if (t.map) {
                             if (object instanceof L.Marker) {
                                 let icon = object.getIcon();
-                                if (icon.options.className !== 'color-base-shadow') {
+                                if (icon.options.className === 'trip-point') {
+                                    icon.options.iconSize = [t.map.getZoom() * 2.2, t.map.getZoom() * 2.2];
+                                } else if (icon.options.className !== 'color-base-shadow') {
                                     icon.options.iconSize = [t.map.getZoom() * 1.35, t.map.getZoom() * 1.35];
                                 } else {
                                     icon.options.iconSize = [t.map.getZoom() * 2, t.map.getZoom() * 2];
@@ -465,6 +467,21 @@ export class MapComponent implements AfterViewInit {
                     }
                 )
                 .addTo(this.layers[object.layerName].layer!);
+                break;
+            }
+            case "tripPoint": {
+
+                // Add marker for the trip point with custom marker icon
+                L.marker(
+                    L.latLng(object.latLng[0]),
+                    {
+                        icon: L.icon({ 
+                            iconUrl: `planner/${object.metadata.pointType}-marker.svg`,
+                            className: 'trip-point',
+                            iconSize: [this.map.getZoom() * 2.2, this.map.getZoom() * 2.2],
+                        }),
+                    }
+                ).addTo(this.layers[object.layerName].layer!);
                 break;
             }
         }

@@ -1,3 +1,10 @@
+/*
+ * File: trip-form.component.css
+ * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * CSS styles file for the trip form component used in the planner.
+ */
+
 /* General ****************************************/
 input {
     font-weight: bold;

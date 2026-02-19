@@ -1,3 +1,10 @@
+/*
+ * File: api.js
+ * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * File for processing API requests for the planner module.
+ */
+
 const env = require('./config.json');
 const logService = require('../../../backend/log.js');
 
@@ -11,7 +18,7 @@ function log(type, msg) {
 }
 
 // Main request processing function
-async function processRequest(url, req, res) {
+async function processRequest(url, _, res) {
 
     // Get the selected service identifier from .env file
     const selectedPlannerService = process.env.BE_PLANNER_MODULE_SERVICE;

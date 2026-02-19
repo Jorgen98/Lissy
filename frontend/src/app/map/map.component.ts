@@ -1,6 +1,9 @@
 /*
  * App Map
  * Map manipulation functions
+ *
+ * Authors: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
 import { Component, AfterViewInit } from '@angular/core';

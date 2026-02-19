@@ -1,3 +1,10 @@
+/*
+ * App routing file
+ *
+ * Authors: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ */
+
 import { Routes } from '@angular/router';
 import { AboutModule } from '../../modules/about/about.component';
 import { DashboardModule } from '../../modules/dashboard/dashboard.component';

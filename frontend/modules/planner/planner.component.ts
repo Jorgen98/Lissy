@@ -1,3 +1,10 @@
+/*
+ * File: planner.component.ts
+ * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ * 
+ * Main class component for the planner module.
+ */
+
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
 import { MapComponent } from '../../src/app/map/map.component';

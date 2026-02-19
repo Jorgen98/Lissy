@@ -1,6 +1,9 @@
 /*
  * App Map
  * Public map service methods
+ *
+ * Authors: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
 import { Injectable } from '@angular/core';

@@ -1,3 +1,10 @@
+/*
+ * File: trip-form.component.ts
+ * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * Class for the trip form component used in the planner module.
+ */
+
 import { Component, AfterViewInit, OnDestroy, output, input, OnInit } from '@angular/core';
 import { TransportMode } from '../../types/TransportMode';
 import { TranslateService } from '@ngx-translate/core';

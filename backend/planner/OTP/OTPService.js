@@ -1,3 +1,10 @@
+/*
+ * File: OTPService.js
+ * Author: Adam Vcelar (xvcelaa00)
+ *
+ * Class responsible for accessing the OTP instance.
+ */
+
 const logService = require('../../log.js');
 const queries = require('./gqlQueries.js');
 

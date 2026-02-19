@@ -1,3 +1,10 @@
+/*
+ * File: IRoutePlanner.js
+ * Author: Adam Vcelar (xvcelaa00)
+ *
+ * Interface for external route planners to implement.
+ */
+
 const logService = require('../log.js')
 const dotenv = require('dotenv');
 

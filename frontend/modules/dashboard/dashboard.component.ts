@@ -1,3 +1,11 @@
+/*
+ * File: dashboard.component.ts
+ * Author: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * Main class component for the dashboard module.
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { APIService } from '../../src/app/services/api';
 import * as config from './config.json';

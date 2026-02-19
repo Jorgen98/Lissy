@@ -1,3 +1,10 @@
+/*
+ * File: OTPAdapter.js
+ * Author: Adam Vcelar (xvcelaa00) 
+ *
+ * Translating adapter class for OpenTripPlanner.
+ */
+
 const IRoutePlanner = require('../IRoutePlanner.js').IRoutePlanner;     // RoutePlanner interface
 
 /* 

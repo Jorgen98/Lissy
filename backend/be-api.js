@@ -1,5 +1,8 @@
 /*
  * BE API Main File
+
+ * Author: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
 const express = require('express');

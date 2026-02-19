@@ -1,6 +1,11 @@
+/*
+ * File: TripData.ts
+ * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * Custom type containing information about the trip in the trip form.
+ */
 import { TransportMode } from "./TransportMode"
 
-// Custom type containing information about the trip in the trip form
 export type TripData = {
     // Coordinates of the points on the trip
     points: { 

@@ -94,6 +94,7 @@ export class MapComponent implements AfterViewInit {
         this.mapService.zoomOutObj.subscribe(() => this.map?.zoomOut());
         this.mapService.fitToLayerObj.subscribe((layerName) => this.fitToLayer(layerName));
         this.mapService.mapFeaturesObj.subscribe((features) => this.configureMapFeatures(features));
+        this.mapService.redrawLayerObj.subscribe((redrawMetadata) => this.redrawLayer(redrawMetadata));
 
         this.delayCategoriesService.showDelayCategories.subscribe((categories) => {
             this.actualizeDelayCategories(categories);
@@ -472,21 +473,6 @@ export class MapComponent implements AfterViewInit {
                 .addTo(this.layers[object.layerName].layer!);
                 break;
             }
-            case "tripPoint": {
-
-                // Add marker for the trip point with custom marker icon
-                L.marker(
-                    L.latLng(object.latLng[0]),
-                    {
-                        icon: L.icon({ 
-                            iconUrl: `planner/${object.metadata.pointType}-marker.svg`,
-                            className: 'trip-point',
-                            iconSize: [this.map.getZoom() * 2.2, this.map.getZoom() * 2.2],
-                        }),
-                    }
-                ).addTo(this.layers[object.layerName].layer!);
-                break;
-            }
         }
 
         if (object.focus) {
@@ -529,6 +515,41 @@ export class MapComponent implements AfterViewInit {
     private configureMapFeatures(features: { showScale?: boolean }) {
         if (features?.showScale) {
             L.control.scale({ maxWidth: 170, imperial: false }).addTo(this.map!);
+        }
+    }
+
+    // Redraw objects in map layer based on data
+    private redrawLayer(redrawMetadata: { layerName: string, data?: any }) {
+
+        // Get the layer and check its existence
+        const layer = this.layers[redrawMetadata.layerName];
+        if (layer === undefined || layer.layer === undefined)
+            return;
+
+        // Perform redraw operation based on layer
+        if (redrawMetadata.layerName === "tripPoints" && redrawMetadata.data !== undefined) {
+            
+            // Iterate over the trip points (latitudes and longitudes)
+            (redrawMetadata.data as { lat?: number, lng?: number }[]).forEach((point, index) => {
+
+                if (point.lat === undefined || point.lng === undefined)
+                    return;
+
+                // Get point type based on its position in the trip points array
+                const pointType = index === 0 ? "start" : (index === redrawMetadata.data.length - 1 ? "end" : "midpoint"); 
+
+                // Place new marker at the layer for this point
+                L.marker(
+                    L.latLng({ lat: point.lat, lng: point.lng }),
+                    {
+                        icon: L.icon({ 
+                            iconUrl: `planner/${pointType}-marker.svg`,
+                            className: 'trip-point',
+                            iconSize: [this.map!.getZoom() * 2.2, this.map!.getZoom() * 2.2],
+                        }),
+                    }
+                ).addTo(layer.layer!);
+            });
         }
     }
 }

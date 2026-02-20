@@ -155,6 +155,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         moveItemInArray(this.tripData.points, event.previousIndex, event.currentIndex);
         moveItemInArray(this.filteredStopsArray, event.previousIndex, event.currentIndex);
         moveItemInArray(this.pointControls.controls, event.previousIndex, event.currentIndex);
+
+        // Redraw the trip point markers after change in points array
+        this.redrawTripMarkers();
     }
 
     // Function called when the button to reverse the trip points is clicked
@@ -164,6 +167,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         this.tripData.points.reverse();
         this.filteredStopsArray.reverse();
         this.pointControls.controls.reverse();
+
+        // Redraw the trip point markers after change in points array
+        this.redrawTripMarkers();
     }
 
     // Function for fetching the current location on user request
@@ -184,8 +190,8 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         else if (this.locationStatus === "enabled" && tripPointPosition !== undefined) {
             this.tripData.points[tripPointPosition] = this.currentLocation;
 
-            // Add marker at the current location
-            this.addMarkerToMap({ lat: this.currentLocation.lat!, lng: this.currentLocation.lng! }, tripPointPosition);
+            // Redraw the trip point markers with new marker on current location
+            this.redrawTripMarkers();
         }
 
         // If the location is currently shown, disable it, clear watch and layer, clear current location
@@ -202,6 +208,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.tripData.points[index] = {};
                 }
             });
+
+            // Some trip points might have been cleared, redraw markers
+            this.redrawTripMarkers();
         }
 
         // Refetch in case of previous user disable or error
@@ -243,6 +252,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         // Otherwise remove the section modes between deleted point and the point below it
         else
             this.tripData.sectionModes.splice(position, 1);
+
+        // Redraw markers after midpoint has been removed
+        this.redrawTripMarkers();
     }
 
     // Function called when a stop has been selected from autocomplete
@@ -253,8 +265,8 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         this.tripData.points[position].lat = stop.lat;
         this.tripData.points[position].lng = stop.lng;
 
-        // Add marker to the map for the selected stop
-        this.addMarkerToMap(stop, position);
+        // Redraw markers with new point with the stop coordinates
+        this.redrawTripMarkers();
     }
 
     private updateSectionModes(mode: TransportMode): void {
@@ -308,8 +320,8 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
                 if (tripPointPosition !== undefined){
                     this.tripData.points[tripPointPosition] = this.currentLocation;
 
-                    // Add marker at current location
-                    this.addMarkerToMap({ lat: this.currentLocation.lat, lng: this.currentLocation.lng }, tripPointPosition);
+                    // Redraw markers with new point with the location coordinates
+                    this.redrawTripMarkers();
                 }
             }, 
 
@@ -332,6 +344,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
                         this.tripData.points[index] = {};
                     }
                 });
+                
+                // Some trip points might have been cleared, redraw markers
+                this.redrawTripMarkers();
             },
             {
                 timeout: 15000
@@ -370,11 +385,13 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         );
     }
 
-    // Function adding a marker to the leaflet map at given position in the trip
-    private addMarkerToMap(stop: Omit<Stop, "name">, position: number) {
+    // Function calling the map service when the trip point markers need to be redrawn due to updates  
+    private redrawTripMarkers() {
 
-        // Add map layer for markers if it hasnt been added before
-        // Wont be readded repearedly, map service does a check for existence 
+        // Clear the old markers
+        this.mapService.clearLayer("tripPoints");
+
+        // Add new layer if it doesnt exist yet
         this.mapService.addNewLayer({
             name: "tripPoints",
             layer: undefined,
@@ -382,18 +399,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
             paletteItemName: "",
         });
 
-        // Add a marker to the new/existing layer for the trip point
-        this.mapService.addToLayer({
-            layerName: "tripPoints",
-            type: "tripPoint",
-            focus: false,
-            latLng: [{ lat: stop.lat, lng: stop.lng }],
-            color: "base",
-            metadata: {
-                pointType: position === 0 ? "start" : (position === this.tripData.points.length - 1 ? "end" : "midpoint"),
-            },
-            interactive: false,
-            hoover: false,
-        });
+        // Send the trip point coordinates to the map service for marker redraw
+        this.mapService.redrawLayer({ layerName: "tripPoints", data: this.tripData.points });
     }
 }

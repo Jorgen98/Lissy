@@ -14,7 +14,7 @@ export interface mapObject {
     // Name of layer to which should be the object placed
     layerName: string,
     // Type of object
-    type: "stop" | "route" | "location" | "tripPoint",
+    type: "stop" | "route" | "location",
     // Focus map on object after render
     focus: boolean,
     // Object latitude and longitude
@@ -91,5 +91,11 @@ export class MapService {
     public mapFeaturesObj = new Subject<any>();
     configureMapFeatures(features: { showScale?: boolean }) {
         this.mapFeaturesObj.next(features);
+    }
+
+    // Redraw objects in map layer
+    public redrawLayerObj = new Subject<any>();
+    redrawLayer(redrawMetadata: { layerName: string, data?: any }) {
+        this.redrawLayerObj.next(redrawMetadata);
     }
 }

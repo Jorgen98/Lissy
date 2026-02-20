@@ -18,7 +18,7 @@ function log(type, msg) {
 }
 
 // Main request processing function
-async function processRequest(url, _, res) {
+async function processRequest(url, req, res) {
 
     // Get the selected service identifier from .env file
     const selectedPlannerService = process.env.BE_PLANNER_MODULE_SERVICE;
@@ -37,6 +37,12 @@ async function processRequest(url, _, res) {
         // Endpoint to get all stops in the transport system
         case 'allStops': {
             res.send(await adapter.getAllStops());
+            break;
+        }
+
+        // Main endpoint for planning a trip
+        case 'planTrip': {
+            res.send(JSON.parse(req.query.data));   // Echo request back to backend for now
             break;
         }
 

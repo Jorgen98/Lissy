@@ -14,6 +14,7 @@ import { MapService } from '../../src/app/map/map.service';
 import { APIService } from '../../src/app/services/api';
 import { UIMessagesService } from '../../src/app/services/messages';
 import { Stop } from './types/Stop';
+import { TripData } from './types/TripData';
 import { 
     Component, 
     AfterViewInit, 
@@ -118,6 +119,14 @@ export class PlannerModule implements AfterViewInit, OnInit {
         // Make cursor visible
         cursor.style.zIndex = '500';
         cursor.style.display = 'inline';
+    }
+
+    // Function called when a trip is submitted from the form
+    async tripSubmit(tripData: TripData): Promise<void> {
+
+        // Call backend endpoint for planning trip with emitted trip data from the form
+        const response = await this.apiService.genericGet(`${config.apiPrefix}/planTrip`, { data: JSON.stringify(tripData) });
+        console.log(response);
     }
 
     // Function called when the mouse is moved (mousemove event happens)

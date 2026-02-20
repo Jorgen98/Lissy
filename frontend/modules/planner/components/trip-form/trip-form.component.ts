@@ -259,13 +259,26 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
     // Function called when a stop has been selected from autocomplete
     // 'stop' is the selected stop and 'position' holds which trip point the stop was selected for
-    public stopSelected(stop: Stop, position: number) {
+    public stopSelected(stop: Stop, position: number): void {
 
         // Store coordinates of selected stop in the main trip data 
         this.tripData.points[position].lat = stop.lat;
         this.tripData.points[position].lng = stop.lng;
 
         // Redraw markers with new point with the stop coordinates
+        this.redrawTripMarkers();
+    }
+
+    // Function called when the content of a trip point input is cleared
+    public clearTripPoint(position: number): void {
+
+        // Set the value of the corresponding form input control to empty string
+        this.pointControls.controls[position].setValue("");
+
+        // Clear the lat, lng coordinates at the give position
+        this.tripData.points[position] = {};
+
+        // Redraw the trip markers due to change
         this.redrawTripMarkers();
     }
 
@@ -386,7 +399,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
     }
 
     // Function calling the map service when the trip point markers need to be redrawn due to updates  
-    private redrawTripMarkers() {
+    private redrawTripMarkers(): void {
 
         // Clear the old markers
         this.mapService.clearLayer("tripPoints");

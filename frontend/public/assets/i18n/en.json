@@ -177,7 +177,8 @@
             "addMidpointTooltip": "Add midpoint",
             "switchDirectionTooltip": "Reverse direction",
             "markerTooltip": "Select from map",
-            "myLocation": "My location"
+            "myLocation": "My location",
+            "pointClearTooltip": "Clear trip point"
         }
     },
     "map" : {

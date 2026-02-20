@@ -178,7 +178,8 @@
             "removeMidpointTooltip": "Odstranit mezibod",
             "switchDirectionTooltip": "Otočit směr",
             "markerTooltip": "Vybrat z mapy",
-            "myLocation": "Moje poloha"
+            "myLocation": "Moje poloha",
+            "pointClearTooltip": "Obnovit bod"
         }
     },
     "map" : {

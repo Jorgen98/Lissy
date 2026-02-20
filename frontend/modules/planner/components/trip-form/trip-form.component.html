@@ -128,6 +128,12 @@ Main component HTML template file for the trip form used in the planner module.
               [title]="'planner.form.markerTooltip' | translate"
               (click)="markerClick.emit('start')"
             />
+            <img
+              [src]="'./planner/cross.svg'"
+              class="point-input-clear"
+              [title]="'planner.form.pointClearTooltip' | translate"
+              (click)="clearTripPoint(0)"
+            />
           </div>
         </div>
       </div>
@@ -251,12 +257,20 @@ Main component HTML template file for the trip form used in the planner module.
                   <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, outerIdx)">{{ stop.name }}</mat-option>
                 }
               </mat-autocomplete>
-              <img
-                (click)="markerClick.emit('midpoint')"
-                [src]="'./planner/midpoint-marker.svg'"
-                class="point-input-pointer point-input-extra"
-                [title]="'planner.form.markerTooltip' | translate"
-              />
+                <div class="point-input-extra">
+                  <img
+                    [src]="'./planner/midpoint-marker.svg'"
+                    class="point-input-pointer"
+                    [title]="'planner.form.markerTooltip' | translate"
+                    (click)="markerClick.emit('midpoint')"
+                  />
+                  <img
+                    [src]="'./planner/cross.svg'"
+                    class="point-input-clear"
+                    [title]="'planner.form.pointClearTooltip' | translate"
+                    (click)="clearTripPoint(outerIdx)"
+                  />
+                </div>
             </div>
 
             <!-- Remove midpoint button -->
@@ -390,12 +404,20 @@ Main component HTML template file for the trip form used in the planner module.
               <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, this.tripData.points.length - 1)">{{ stop.name }}</mat-option>
             }
           </mat-autocomplete>
-          <img
-            [src]="'./planner/end-marker.svg'"
-            class="point-input-pointer point-input-extra"
-            [title]="'planner.form.markerTooltip' | translate"
-            (click)="markerClick.emit('end')"
-          />
+            <div class="point-input-extra">
+              <img
+                [src]="'./planner/end-marker.svg'"
+                class="point-input-pointer"
+                [title]="'planner.form.markerTooltip' | translate"
+                (click)="markerClick.emit('end')"
+              />
+              <img
+                [src]="'./planner/cross.svg'"
+                class="point-input-clear"
+                [title]="'planner.form.pointClearTooltip' | translate"
+                (click)="clearTripPoint(tripData.points.length - 1)"
+              />
+            </div>
           </div>
       </div>
 

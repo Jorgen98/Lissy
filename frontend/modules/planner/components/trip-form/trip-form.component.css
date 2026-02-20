@@ -167,7 +167,7 @@ input[type="text"] {
 
 .point-input-extra {
     display: flex;
-    gap: 9px;
+    gap: 5px;
     align-items: center;
     position: absolute;
     top: 50%;
@@ -240,6 +240,18 @@ input[type="text"] {
 
 mat-option {
     background-color: var(--p-gray-50) !important;
+}
+
+.point-input-clear {
+    width: 21px;
+    height: 21px;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+}
+
+.point-input-clear:hover {
+    opacity: 0.9;
 }
 /********************************************/
 

@@ -181,8 +181,12 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         }
 
         // If the location is currently shown and the current location was chosen as a trip point, store it in trip data
-        else if (this.locationStatus === "enabled" && tripPointPosition !== undefined)
+        else if (this.locationStatus === "enabled" && tripPointPosition !== undefined) {
             this.tripData.points[tripPointPosition] = this.currentLocation;
+
+            // Add marker at the current location
+            this.addMarkerToMap({ lat: this.currentLocation.lat!, lng: this.currentLocation.lng! }, tripPointPosition);
+        }
 
         // If the location is currently shown, disable it, clear watch and layer, clear current location
         else if (this.locationStatus === "enabled") {
@@ -249,28 +253,8 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         this.tripData.points[position].lat = stop.lat;
         this.tripData.points[position].lng = stop.lng;
 
-        // Add map layer for markers if it hasnt been added before
-        // Wont be readded repearedly, map service does a check for existence 
-        this.mapService.addNewLayer({
-            name: "tripPoints",
-            layer: undefined,
-            palette: {},
-            paletteItemName: "",
-        });
-
-        // Add a marker to the new/existing layer for the trip point
-        this.mapService.addToLayer({
-            layerName: "tripPoints",
-            type: "tripPoint",
-            focus: false,
-            latLng: [{ lat: stop.lat, lng: stop.lng }],
-            color: "base",
-            metadata: {
-                pointType: position === 0 ? "start" : (position === this.tripData.points.length - 1 ? "end" : "midpoint"),
-            },
-            interactive: false,
-            hoover: false,
-        });
+        // Add marker to the map for the selected stop
+        this.addMarkerToMap(stop, position);
     }
 
     private updateSectionModes(mode: TransportMode): void {
@@ -321,8 +305,12 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.currentLocation.lng = position.coords.longitude;
                 
                 // If the current position is being fetched as a result of it being selected as a trip point, store it for that point
-                if (tripPointPosition !== undefined)
+                if (tripPointPosition !== undefined){
                     this.tripData.points[tripPointPosition] = this.currentLocation;
+
+                    // Add marker at current location
+                    this.addMarkerToMap({ lat: this.currentLocation.lat, lng: this.currentLocation.lng }, tripPointPosition);
+                }
             }, 
 
             // Show info toast in case of error and disable current position
@@ -380,5 +368,32 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
                     .slice(0, 20);
             })
         );
+    }
+
+    // Function adding a marker to the leaflet map at given position in the trip
+    private addMarkerToMap(stop: Omit<Stop, "name">, position: number) {
+
+        // Add map layer for markers if it hasnt been added before
+        // Wont be readded repearedly, map service does a check for existence 
+        this.mapService.addNewLayer({
+            name: "tripPoints",
+            layer: undefined,
+            palette: {},
+            paletteItemName: "",
+        });
+
+        // Add a marker to the new/existing layer for the trip point
+        this.mapService.addToLayer({
+            layerName: "tripPoints",
+            type: "tripPoint",
+            focus: false,
+            latLng: [{ lat: stop.lat, lng: stop.lng }],
+            color: "base",
+            metadata: {
+                pointType: position === 0 ? "start" : (position === this.tripData.points.length - 1 ? "end" : "midpoint"),
+            },
+            interactive: false,
+            hoover: false,
+        });
     }
 }

@@ -51,18 +51,31 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
     // Object containing information about the trip currently in the form, initialized to default state
     public tripData: TripData = {
-        points: [{}, {}],           // Coordinates of points on the trip, start off empty/undefined
-        selectedModesGlobal: {      // Modes globally selected for planning
-            publicTransport: true,
-            car: true, 
-            walk: false,
+        points: [{}, {}],   // Coordinates of points on the trip, start off empty/undefined
+
+        // Transport modes used for the trip and its sections
+        modes: {
+            global: {       // Modes globally selected for planning
+                publicTransport: true,
+                car: true, 
+                walk: false,
+            },
+            sections: [],   // Modes selected between adjacent midpoints
         },
-        sectionModes: [],           // Modes selected between adjacent midpoints
-        returnTripActive: false,    // Whether the return trip is active
-        tripDate: "",               // Departure/arrival date of the trip as a string
-        tripTime: "",               // Departure/arrival time of the trip as a string
-        returnTripDate: "",         // Departure/arrival time of the return trip as a string
-        returnTripTime: "",         // Departure/arrival time of the return trip as a string
+
+        // Date and time information about the trip
+        datetime: {
+            tripDate: "",               // Departure/arrival date of the trip as a string
+            tripTime: "",               // Departure/arrival time of the trip as a string
+            datetimeOption: "departure" // If the trip datetime represents departure or arrival time  
+        },
+
+        return: {
+            active: false,              // Whether the return trip is active
+            tripDate: "",               // Departure/arrival time of the return trip as a string
+            tripTime: "",               // Departure/arrival time of the return trip as a string
+            datetimeOption: "departure" // If the return trip datetime represents departure or arrival time 
+        }
     }
 
     // Status of current location availability
@@ -73,6 +86,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
     // Output for notifying the parent planner component that a marker has been clicked in the form to select point in the map
     public markerClick = output<MarkerType>();
+
+    // Output for notifying the parent planner component that a trip request has been submitted by the user
+    public tripSubmit = output<TripData>();
 
     // Id for current location watch
     private locationWatchId: number = -1; 
@@ -92,9 +108,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
     // Getter for number of globally selected transport modes
     get selectedModesCount(): number {
-        return Number(this.tripData.selectedModesGlobal.publicTransport) 
-            + Number(this.tripData.selectedModesGlobal.car)
-            + Number(this.tripData.selectedModesGlobal.walk);
+        const global = this.tripData.modes.global;
+        return Number(global.publicTransport) 
+            + Number(global.car)
+            + Number(global.walk);
     }
 
     constructor(
@@ -125,8 +142,8 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         // Register callback to store the current trip date and time in the form
         // The assignment of datetime needs to happen only after the first Angular change detection cycle is done to avoid errors in this.isFormValid()
         setTimeout(() => {
-            this.tripData.tripDate = `${year}-${month}-${day}`;
-            this.tripData.tripTime = `${hours}:${minutes}`;
+            this.tripData.datetime.tripDate = `${year}-${month}-${day}`;
+            this.tripData.datetime.tripTime = `${hours}:${minutes}`;
         });
     }
 
@@ -142,9 +159,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
     // If index is set, the transport mode was set/unset between adjacent points in a trip section, otherwise globally
     public modeToggled(mode: TransportMode, index?: number): void {
         if (index !== undefined)
-            this.tripData.sectionModes[index][mode] = !this.tripData.sectionModes[index][mode];
+            this.tripData.modes.sections[index][mode] = !this.tripData.modes.sections[index][mode];
         else {
-            this.tripData.selectedModesGlobal[mode] = !this.tripData.selectedModesGlobal[mode];
+            this.tripData.modes.global[mode] = !this.tripData.modes.global[mode];
 
             // Adjust section modes if the global modes were edited
             this.updateSectionModes(mode);
@@ -231,13 +248,13 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
         // If the number of points reaches 3, create two copies of the global selected modes and add that as modes in the two sections
         if (this.tripData.points.length === 3) {
-            this.tripData.sectionModes[0] = { ...this.tripData.selectedModesGlobal };
-            this.tripData.sectionModes[1] = { ...this.tripData.selectedModesGlobal };
+            this.tripData.modes.sections[0] = { ...this.tripData.modes.global };
+            this.tripData.modes.sections[1] = { ...this.tripData.modes.global };
         }
 
         // Copy global selected modes to the new created section
         else 
-            this.tripData.sectionModes.splice(position - 1, 0, { ...this.tripData.selectedModesGlobal });
+            this.tripData.modes.sections.splice(position - 1, 0, { ...this.tripData.modes.global });
     }
 
     // Function deleting trip midpoint from the form
@@ -250,11 +267,11 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
         // If the number of points reaches 2, clear the section modes
         if (this.tripData.points.length == 2)
-            this.tripData.sectionModes = [];
+            this.tripData.modes.sections = [];
 
         // Otherwise remove the section modes between deleted point and the point below it
         else
-            this.tripData.sectionModes.splice(position, 1);
+            this.tripData.modes.sections.splice(position, 1);
 
         // Redraw markers after midpoint has been removed
         this.redrawTripMarkers();
@@ -289,11 +306,11 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
     public isFormValid(): boolean {
 
         // Check if at least one global mode is selected
-        if (!Object.values(this.tripData.selectedModesGlobal).includes(true))
+        if (!Object.values(this.tripData.modes.global).includes(true))
             return false;
 
         // Check if at least one mode is selected for each trip section
-        for (const section of this.tripData.sectionModes) {
+        for (const section of this.tripData.modes.sections) {
             if (!Object.values(section).includes(true))
                 return false;
         }
@@ -305,11 +322,11 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         
         // Check if the date and time of the trip are set in the form 
-        if (this.tripData.tripDate === "" || this.tripData.tripTime === "")
+        if (this.tripData.datetime.tripDate === "" || this.tripData.datetime.tripTime === "")
             return false;
 
         // Check if the return date and time of the trip are set in the form in case the return trip is active
-        if (this.tripData.returnTripActive && (this.tripData.returnTripDate === "" || this.tripData.returnTripTime === ""))
+        if (this.tripData.return.active && (this.tripData.return.tripDate === "" || this.tripData.return.tripTime === ""))
             return false;
 
         return true;
@@ -319,19 +336,19 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
         // If only one global mode is now selected, select it for all sections also
         if (this.selectedModesCount === 1) {
-            if (this.tripData.selectedModesGlobal.publicTransport)
-                this.tripData.sectionModes = this.tripData.sectionModes.map(() => ({ publicTransport: true, car: false, walk: false }));
-            else if (this.tripData.selectedModesGlobal.car)
-                this.tripData.sectionModes = this.tripData.sectionModes.map(() => ({ publicTransport: false, car: true, walk: false }));
+            if (this.tripData.modes.global.publicTransport)
+                this.tripData.modes.sections = this.tripData.modes.sections.map(() => ({ publicTransport: true, car: false, walk: false }));
+            else if (this.tripData.modes.global.car)
+                this.tripData.modes.sections = this.tripData.modes.sections.map(() => ({ publicTransport: false, car: true, walk: false }));
             else
-                this.tripData.sectionModes = this.tripData.sectionModes.map(() => ({ publicTransport: false, car: false, walk: true }));
+                this.tripData.modes.sections = this.tripData.modes.sections.map(() => ({ publicTransport: false, car: false, walk: true }));
 
             return;
         }
 
-        const global = this.tripData.selectedModesGlobal[mode]; // Store new value of toggled mode (less member access in loop)
-        for (let i = 0; i < this.tripData.sectionModes.length; i++) 
-            this.tripData.sectionModes[i][mode] = global;
+        const global = this.tripData.modes.global[mode]; // Store new value of toggled mode (less member access in loop)
+        for (let i = 0; i < this.tripData.modes.sections.length; i++) 
+            this.tripData.modes.sections[i][mode] = global;
     }
 
     // Function for fetching the current users device location

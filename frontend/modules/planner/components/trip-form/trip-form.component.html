@@ -49,12 +49,12 @@ Main component HTML template file for the trip form used in the planner module.
         <!-- Public transport mode select -->
         <button
           class="mode-button"
-          [class.mode-selected]="tripData.selectedModesGlobal.publicTransport"
+          [class.mode-selected]="tripData.modes.global.publicTransport"
           (click)="modeToggled('publicTransport')"
         >
           <img
             [src]="
-              tripData.selectedModesGlobal.publicTransport
+              tripData.modes.global.publicTransport
                 ? './planner/pt-dark.svg'
                 : './planner/pt-light.svg'
             "
@@ -66,12 +66,12 @@ Main component HTML template file for the trip form used in the planner module.
         <!-- Car mode select -->
         <button
           class="mode-button"
-          [class.mode-selected]="tripData.selectedModesGlobal.car"
+          [class.mode-selected]="tripData.modes.global.car"
           (click)="modeToggled('car')"
         >
           <img
             [src]="
-              tripData.selectedModesGlobal.car
+              tripData.modes.global.car
                 ? './planner/car-dark.svg'
                 : './planner/car-light.svg'
             "
@@ -83,12 +83,12 @@ Main component HTML template file for the trip form used in the planner module.
         <!-- Walk mode select -->
         <button
           class="mode-button"
-          [class.mode-selected]="tripData.selectedModesGlobal.walk"
+          [class.mode-selected]="tripData.modes.global.walk"
           (click)="modeToggled('walk')"
         >
           <img
             [src]="
-              tripData.selectedModesGlobal.walk
+              tripData.modes.global.walk
                 ? './planner/walk-dark.svg'
                 : './planner/walk-light.svg'
             "
@@ -178,15 +178,15 @@ Main component HTML template file for the trip form used in the planner module.
             </legend>
 
             <!-- Public transport mode select -->
-            @if(tripData.selectedModesGlobal.publicTransport) {
+            @if(tripData.modes.global.publicTransport) {
               <button
                 class="midpoint-mode-button"
-                [class.mode-selected]="tripData.sectionModes[0].publicTransport"
+                [class.mode-selected]="tripData.modes.sections[0].publicTransport"
                 (click)="modeToggled('publicTransport', 0)"
               >
                 <img
                   [src]="
-                    tripData.sectionModes[0].publicTransport
+                    tripData.modes.sections[0].publicTransport
                       ? './planner/pt-dark.svg'
                       : './planner/pt-light.svg'
                   "
@@ -196,15 +196,15 @@ Main component HTML template file for the trip form used in the planner module.
             }
 
             <!-- Car mode select -->
-            @if(tripData.selectedModesGlobal.car) {
+            @if(tripData.modes.global.car) {
               <button
                 class="midpoint-mode-button"
-                [class.mode-selected]="tripData.sectionModes[0].car"
+                [class.mode-selected]="tripData.modes.sections[0].car"
                 (click)="modeToggled('car', 0)"
               >
                 <img
                   [src]="
-                    tripData.sectionModes[0].car
+                    tripData.modes.sections[0].car
                       ? './planner/car-dark.svg'
                       : './planner/car-light.svg'
                   "
@@ -214,15 +214,15 @@ Main component HTML template file for the trip form used in the planner module.
             }
 
             <!-- Walk mode select -->
-            @if(tripData.selectedModesGlobal.walk) {
+            @if(tripData.modes.global.walk) {
               <button
                 class="midpoint-mode-button"
-                [class.mode-selected]="tripData.sectionModes[0].walk"
+                [class.mode-selected]="tripData.modes.sections[0].walk"
                 (click)="modeToggled('walk', 0)"
               >
                 <img
                   [src]="
-                    tripData.sectionModes[0].walk
+                    tripData.modes.sections[0].walk
                       ? './planner/walk-dark.svg'
                       : './planner/walk-light.svg'
                   "
@@ -327,15 +327,15 @@ Main component HTML template file for the trip form used in the planner module.
                 </legend>
 
                 <!-- Public transport mode select -->
-                @if(tripData.selectedModesGlobal.publicTransport) {
+                @if(tripData.modes.global.publicTransport) {
                   <button
                     class="midpoint-mode-button"
-                    [class.mode-selected]="tripData.sectionModes[$index].publicTransport"
+                    [class.mode-selected]="tripData.modes.sections[$index].publicTransport"
                     (click)="modeToggled('publicTransport', $index)"
                   >
                     <img
                       [src]="
-                        tripData.sectionModes[$index].publicTransport
+                        tripData.modes.sections[$index].publicTransport
                           ? './planner/pt-dark.svg'
                           : './planner/pt-light.svg'
                       "
@@ -345,15 +345,15 @@ Main component HTML template file for the trip form used in the planner module.
                 }
 
                 <!-- Car mode select -->
-                @if(tripData.selectedModesGlobal.car) {
+                @if(tripData.modes.global.car) {
                   <button
                     class="midpoint-mode-button"
-                    [class.mode-selected]="tripData.sectionModes[$index].car"
+                    [class.mode-selected]="tripData.modes.sections[$index].car"
                     (click)="modeToggled('car', $index)"
                   >
                     <img
                       [src]="
-                        tripData.sectionModes[$index].car
+                        tripData.modes.sections[$index].car
                           ? './planner/car-dark.svg'
                           : './planner/car-light.svg'
                       "
@@ -363,15 +363,15 @@ Main component HTML template file for the trip form used in the planner module.
                 }
 
                 <!-- Walk mode select -->
-                @if(tripData.selectedModesGlobal.walk) {
+                @if(tripData.modes.global.walk) {
                   <button
                     class="midpoint-mode-button"
-                    [class.mode-selected]="tripData.sectionModes[$index].walk"
+                    [class.mode-selected]="tripData.modes.sections[$index].walk"
                     (click)="modeToggled('walk', $index)"
                   >
                     <img
                       [src]="
-                        tripData.sectionModes[$index].walk
+                        tripData.modes.sections[$index].walk
                           ? './planner/walk-dark.svg'
                           : './planner/walk-light.svg'
                       "
@@ -463,8 +463,8 @@ Main component HTML template file for the trip form used in the planner module.
 
       <!-- Date and time picker -->
       <div class="datetime">
-        <input type="date" id="dateInput" [(ngModel)]="tripData.tripDate"/>
-        <input type="time" id="timeInput" [(ngModel)]="tripData.tripTime"/>
+        <input type="date" id="dateInput" [(ngModel)]="tripData.datetime.tripDate"/>
+        <input type="time" id="timeInput" [(ngModel)]="tripData.datetime.tripTime"/>
         <div>
           <div class="control-pair departure-radio">
             <input
@@ -472,7 +472,7 @@ Main component HTML template file for the trip form used in the planner module.
               id="departure"
               name="time-select"
               value="departure"
-              checked
+              [(ngModel)]="tripData.datetime.datetimeOption"
             />
             <label for="departure">{{
               "planner.form.departureTime" | translate
@@ -485,6 +485,7 @@ Main component HTML template file for the trip form used in the planner module.
               id="arrival"
               name="time-select"
               value="arrival"
+              [(ngModel)]="tripData.datetime.datetimeOption"
             />
             <label for="arrival">{{
               "planner.form.arrivalTime" | translate
@@ -499,16 +500,16 @@ Main component HTML template file for the trip form used in the planner module.
         <input
           type="checkbox"
           id="return"
-          [(ngModel)]="tripData.returnTripActive"
+          [(ngModel)]="tripData.return.active"
         />
         <label for="return">{{ "planner.form.return" | translate }}</label>
       </div>
 
       <!-- Date and time picker for return trip time -->
-      @if (tripData.returnTripActive) {
+      @if (tripData.return.active) {
         <div class="datetime">
-          <input type="date" [(ngModel)]="tripData.returnTripDate" />
-          <input type="time" [(ngModel)]="tripData.returnTripTime" />
+          <input type="date" [(ngModel)]="tripData.return.tripDate" />
+          <input type="time" [(ngModel)]="tripData.return.tripTime" />
           <div>
             <div class="control-pair departure-radio">
               <input
@@ -516,7 +517,7 @@ Main component HTML template file for the trip form used in the planner module.
                 id="departureReturn"
                 name="time-select-return"
                 value="departure"
-                checked
+                [(ngModel)]="tripData.return.datetimeOption"
               />
               <label for="departure">{{
                 "planner.form.departureTime" | translate
@@ -529,6 +530,7 @@ Main component HTML template file for the trip form used in the planner module.
                 id="arrivalReturn"
                 name="time-select-return"
                 value="arrival"
+                [(ngModel)]="tripData.return.datetimeOption"
               />
               <label for="arrival">{{
                 "planner.form.arrivalTime" | translate
@@ -542,7 +544,12 @@ Main component HTML template file for the trip form used in the planner module.
 
     <!-- Form submit button -->
     <div class="submit form-section">
-      <button [disabled]="!isFormValid()">{{ "planner.form.submit" | translate }}</button>
+      <button 
+        [disabled]="!isFormValid()"
+        (click)="this.tripSubmit.emit(tripData)"
+      >
+        {{ "planner.form.submit" | translate }}
+      </button>
     </div>
   }
 </div>

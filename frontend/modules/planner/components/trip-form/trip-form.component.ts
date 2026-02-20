@@ -49,7 +49,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
     // Whether the main trip input for is currently collapsed
     public formCollapsed: Boolean = false;
 
-    // Object containing information about the trip currently in the form
+    // Object containing information about the trip currently in the form, initialized to default state
     public tripData: TripData = {
         points: [{}, {}],           // Coordinates of points on the trip, start off empty/undefined
         selectedModesGlobal: {      // Modes globally selected for planning
@@ -59,6 +59,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         },
         sectionModes: [],           // Modes selected between adjacent midpoints
         returnTripActive: false,    // Whether the return trip is active
+        tripDate: "",               // Departure/arrival date of the trip as a string
+        tripTime: "",               // Departure/arrival time of the trip as a string
+        returnTripDate: "",         // Departure/arrival time of the return trip as a string
+        returnTripTime: "",         // Departure/arrival time of the return trip as a string
     }
 
     // Status of current location availability
@@ -110,10 +114,6 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
     ngAfterViewInit(): void {
 
-        // Get date and time inputs
-        const dateInput = document.getElementById("dateInput") as HTMLInputElement;
-        const timeInput = document.getElementById("timeInput") as HTMLInputElement
-
         // Get current date and time and get individual elements
         const now = new Date();
         const year = now.getFullYear();
@@ -122,9 +122,12 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
 
-        // Set default date and time value in form to now
-        dateInput.value = `${year}-${month}-${day}`;
-        timeInput.value = `${hours}:${minutes}`;
+        // Register callback to store the current trip date and time in the form
+        // The assignment of datetime needs to happen only after the first Angular change detection cycle is done to avoid errors in this.isFormValid()
+        setTimeout(() => {
+            this.tripData.tripDate = `${year}-${month}-${day}`;
+            this.tripData.tripTime = `${hours}:${minutes}`;
+        });
     }
 
     ngOnDestroy(): void {
@@ -280,6 +283,36 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
 
         // Redraw the trip markers due to change
         this.redrawTripMarkers();
+    }
+
+    // Function for checking if the contents of the form contain all necessary trip data for request
+    public isFormValid(): boolean {
+
+        // Check if at least one global mode is selected
+        if (!Object.values(this.tripData.selectedModesGlobal).includes(true))
+            return false;
+
+        // Check if at least one mode is selected for each trip section
+        for (const section of this.tripData.sectionModes) {
+            if (!Object.values(section).includes(true))
+                return false;
+        }
+
+        // Check if all points have defined coordinates
+        for (const point of this.tripData.points) {
+            if (point.lat === undefined || point.lng === undefined)
+                return false;
+        }
+        
+        // Check if the date and time of the trip are set in the form 
+        if (this.tripData.tripDate === "" || this.tripData.tripTime === "")
+            return false;
+
+        // Check if the return date and time of the trip are set in the form in case the return trip is active
+        if (this.tripData.returnTripActive && (this.tripData.returnTripDate === "" || this.tripData.returnTripTime === ""))
+            return false;
+
+        return true;
     }
 
     private updateSectionModes(mode: TransportMode): void {

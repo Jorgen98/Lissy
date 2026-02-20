@@ -463,8 +463,8 @@ Main component HTML template file for the trip form used in the planner module.
 
       <!-- Date and time picker -->
       <div class="datetime">
-        <input type="date" id="dateInput" />
-        <input type="time" id="timeInput" />
+        <input type="date" id="dateInput" [(ngModel)]="tripData.tripDate"/>
+        <input type="time" id="timeInput" [(ngModel)]="tripData.tripTime"/>
         <div>
           <div class="control-pair departure-radio">
             <input
@@ -507,8 +507,8 @@ Main component HTML template file for the trip form used in the planner module.
       <!-- Date and time picker for return trip time -->
       @if (tripData.returnTripActive) {
         <div class="datetime">
-          <input type="date" />
-          <input type="time" />
+          <input type="date" [(ngModel)]="tripData.returnTripDate" />
+          <input type="time" [(ngModel)]="tripData.returnTripTime" />
           <div>
             <div class="control-pair departure-radio">
               <input
@@ -542,7 +542,7 @@ Main component HTML template file for the trip form used in the planner module.
 
     <!-- Form submit button -->
     <div class="submit form-section">
-      <button>{{ "planner.form.submit" | translate }}</button>
+      <button [disabled]="!isFormValid()">{{ "planner.form.submit" | translate }}</button>
     </div>
   }
 </div>

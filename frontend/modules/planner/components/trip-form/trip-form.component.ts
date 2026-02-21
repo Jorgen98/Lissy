@@ -332,6 +332,32 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         return true;
     }
 
+    // Function called when the user clicks out of a trip point input, checking valid input value
+    public pointInputBlurred(position: number) {
+
+        // Get the value at the given point form control
+        const value = this.pointControls.at(position).value;
+
+        // Check if the value is a valid stop or the current location
+        const isValid = (value === "Moje poloha") || (value === "My location") || this.stops().some(stop => stop.name === value);
+        
+        // If the latest input isnt valid, clear the point and rerender
+        if (!isValid) {
+            this.pointControls.at(position).setValue('');
+            this.tripData.points[position] = {};
+            this.redrawTripMarkers();
+        }
+    }
+
+    // Function called when the user opens (focuses) one of the trip point inputs
+    public pointInputFocused(position: number) {
+
+        // Clear the point form control and trip point, redraw markers
+        this.pointControls.at(position).setValue("");
+        this.tripData.points[position] = {};        
+        this.redrawTripMarkers();
+    }
+
     private updateSectionModes(mode: TransportMode): void {
 
         // If only one global mode is now selected, select it for all sections also

@@ -112,8 +112,9 @@ Main component HTML template file for the trip form used in the planner module.
             [placeholder]="'planner.form.startPoint' | translate"
             [formControl]="pointControls.controls[0]"
             [matAutocomplete]="autoOrigin"
+            (blur)="pointInputBlurred(0)"
           />
-          <mat-autocomplete #autoOrigin="matAutocomplete">
+          <mat-autocomplete #autoOrigin="matAutocomplete" (opened)="pointInputFocused(0)">
             @if (locationStatus !== "disabled") {
               <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(0)">{{ 'planner.form.myLocation' | translate }}</mat-option>
             }
@@ -248,8 +249,9 @@ Main component HTML template file for the trip form used in the planner module.
                 [placeholder]="'planner.form.midpoint' | translate"
                 [formControl]="control"
                 [matAutocomplete]="autoMid"
+                (blur)="pointInputBlurred(outerIdx)"
               />
-              <mat-autocomplete #autoMid="matAutocomplete">
+              <mat-autocomplete #autoMid="matAutocomplete" (opened)="pointInputFocused(outerIdx)">
                 @if (locationStatus !== "disabled") {
                   <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked($index)">{{ 'planner.form.myLocation' | translate }}</mat-option>
                 }
@@ -395,8 +397,9 @@ Main component HTML template file for the trip form used in the planner module.
             [placeholder]="'planner.form.endPoint' | translate"
             [formControl]="pointControls.controls[this.tripData.points.length - 1]"
             [matAutocomplete]="autoDest"
+            (blur)="pointInputBlurred(this.tripData.points.length - 1)"
           />
-          <mat-autocomplete #autoDest="matAutocomplete">
+          <mat-autocomplete #autoDest="matAutocomplete" (opened)="pointInputFocused(this.tripData.points.length - 1)">
             @if (locationStatus !== "disabled") {
               <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(this.tripData.points.length - 1)">{{ 'planner.form.myLocation' | translate }}</mat-option>
             }

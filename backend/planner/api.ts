@@ -1,27 +1,33 @@
 /*
- * File: api.js
+ * File: api.ts
  * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  *
  * File for processing API requests for the planner module.
  */
 
-const env = require('./config.json');
-const logService = require('../../../backend/log.js');
+const logService = require('../log.js');
 
-// Implemented adapters and services
-const OTPAdapter = require('../../../backend/planner/OTP/OTPAdapter.js').OTPAdapter;
-const OTPService = require('../../../backend/planner/OTP/OTPService.js').OTPService;
+import env from '../../frontend/modules/planner/config.json';
+
+// Implemented adapters and services in TypeScript
+import { OTPAdapter } from './OTP/OTPAdapter';
+import { OTPService } from './OTP/OTPService';
 
 // Function for logging 
-function log(type, msg) {
+function log(type: string, msg: string): void {
     logService.write(process.env.FE_MODULE_NAME, type, msg);
 }
 
 // Main request processing function
-async function processRequest(url, req, res) {
+async function processRequest(url: any, req: any, res: any): Promise<void> {
 
     // Get the selected service identifier from .env file
     const selectedPlannerService = process.env.BE_PLANNER_MODULE_SERVICE;
+    if (!selectedPlannerService) {
+        log('error', `A route planner service was not selected`);
+        res.send(null);
+        return;
+    }
 
     // Get new instance of adapter for the selected service 
     const adapter = getPlannerAdapter(selectedPlannerService);
@@ -55,7 +61,7 @@ async function processRequest(url, req, res) {
     }
 }
 
-function getPlannerAdapter(selected) {
+function getPlannerAdapter(selected: string): any {
 
     // Create new instance of selected service and create adapter for it
     switch(selected) {

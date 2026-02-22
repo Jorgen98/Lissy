@@ -22,7 +22,7 @@ const modules = [
     require('../frontend/modules/stats/api.js'),
     require('../frontend/modules/shapes/api.js'),
     require('../frontend/modules/delay-trips/api.js'),
-    require('../frontend/modules/planner/api.js')
+    require('./planner/api.ts'),
 ];
 
 // .env file include

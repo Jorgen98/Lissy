@@ -94,7 +94,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.msgService.turnOnLoadingScreenWithoutPercentage();
 
         // Get list of all stops for autocomplete
-        const stops = await this.apiService.genericGet(`${config.apiPrefix}/allStops`);
+        const stops = await this.apiService.genericGet(`${config.apiPrefix}/allStops`) as { stops: Stop[] } | null;
         if (!stops) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.stopsUnavailable.head', 'UIMessagesService.toasts.stopsUnavailable.body');
             this.msgService.turnOffLoadingScreen();

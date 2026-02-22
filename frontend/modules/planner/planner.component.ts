@@ -128,13 +128,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.markerPosition = marker.position;
 
         // Hide classic cursor on the form and leaflet map elements
-        const map = document.querySelector('#map') as HTMLElement;
-        const form = document.querySelector('.form') as HTMLElement;
-        map.style.cursor = 'none';
-        form.style.cursor = 'none';
-        form.querySelectorAll('*').forEach(element => {
-            (element as HTMLElement).style.cursor = 'none';
-        });
+        this.setCursor('none');
 
         // Select new cursor image based on which marker was clicked in the form
         const cursor = this.getCursorImageElement();
@@ -209,13 +203,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     private resetCursor(): void {
 
         // Reset the original cursor values given by .css files
-        const map = document.querySelector('#map') as HTMLElement;
-        const form = document.querySelector('.form') as HTMLElement;
-        map.style.cursor = '';
-        form.style.cursor = '';
-        form.querySelectorAll('*').forEach(el => {
-            (el as HTMLElement).style.cursor = '';
-        });
+        this.setCursor('');
 
         // Select svg cursor element based on the previously selected marker
         const cursor = this.getCursorImageElement();
@@ -224,6 +212,18 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         cursor.style.display = 'none';
         this.markerType = null;
         this.markerPosition = null;
+    }
+
+    private setCursor(value: string) {
+        const map = document.querySelector('#map') as HTMLElement;
+        const form = document.querySelector('.form') as HTMLElement;
+        const sidebar = document.querySelector('.side-control') as HTMLElement;
+        map.style.cursor = value;
+        form.style.cursor = value;
+        sidebar.style.cursor = value;
+        form.querySelectorAll('*').forEach(el => {
+            (el as HTMLElement).style.cursor = value;
+        });
     }
 
     // Function returning a SVG element that should be used as the new cursor for trip point selection

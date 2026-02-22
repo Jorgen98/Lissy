@@ -156,8 +156,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
         // Update position of the SVG on the cursor
         const cursor = this.getCursorImageElement();
-        cursor.style.left = event.clientX + 'px';
-        cursor.style.top = event.clientY + 'px';
+        cursor.style.left = (event.clientX - 12) + 'px';
+        cursor.style.top = (event.clientY - 30) + 'px';
     }
 
     // Function called when any key is pressed (keyboard event happens)
@@ -189,8 +189,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
             // Initialize position of the SVG on the cursor
             const cursor = this.getCursorImageElement();
-            cursor.style.left = event.clientX + "px";
-            cursor.style.top = event.clientY + "px";
+            cursor.style.left = (event.clientX - 12) + "px";
+            cursor.style.top = (event.clientY - 30) + "px";
             return;
         }
 

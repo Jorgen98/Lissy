@@ -548,6 +548,7 @@ export class MapComponent implements AfterViewInit {
                         icon: L.icon({ 
                             iconUrl: `planner/${pointType}-marker.svg`,
                             className: 'trip-point',
+                            iconAnchor: [12.5, 30],
                             iconSize: [this.map!.getZoom() * 2.2, this.map!.getZoom() * 2.2],
                         }),
                     }

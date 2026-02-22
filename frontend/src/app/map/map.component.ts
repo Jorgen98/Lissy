@@ -77,7 +77,10 @@ export class MapComponent implements AfterViewInit {
             }
         })
 
-        this.map.on('click', () => { this.mapService.clearLayerObj.next('hoover')});
+        this.map.on('click', event => { 
+            this.mapService.clearLayerObj.next('hoover');
+            this.mapService.mapClick(event.latlng);         // Emit coordinates of the click on the map
+        });
     }
 
     constructor(

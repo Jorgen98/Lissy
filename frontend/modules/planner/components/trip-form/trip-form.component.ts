@@ -5,7 +5,6 @@
  * Class for the trip form component used in the planner module.
  */
 
-import { Component, AfterViewInit, OnDestroy, output, input, OnInit } from '@angular/core';
 import { TransportMode } from '../../types/TransportMode';
 import { TranslateService } from '@ngx-translate/core';
 import { ImportsModule } from '../../../../src/app/imports';
@@ -27,6 +26,17 @@ import {
     CdkDragHandle, 
     CdkDragPreview 
 } from '@angular/cdk/drag-drop';
+import { 
+    Component, 
+    AfterViewInit, 
+    OnDestroy, 
+    output, 
+    input, 
+    OnInit, 
+    OnChanges, 
+    SimpleChanges 
+} from '@angular/core';
+
 
 @Component({
     selector: 'trip-form',
@@ -44,7 +54,7 @@ import {
     templateUrl: './trip-form.component.html',
     styleUrl: './trip-form.component.css',
 })
-export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
+export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnChanges {
     
     // Whether the main trip input for is currently collapsed
     public formCollapsed: Boolean = false;
@@ -85,7 +95,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
     private currentLocation: { lat?: number, lng?: number } = {};
 
     // Output for notifying the parent planner component that a marker has been clicked in the form to select point in the map
-    public markerClick = output<MarkerType>();
+    public markerClick = output<{ type: MarkerType, position: number }>();
+
+    // Input from the parent component notifying the child to add coordinates of the map click as a trip point at the given position
+    public mapClickWithMarkerCursor = input<{ coords: L.LatLng, position: number} | null>(null);
 
     // Output for notifying the parent planner component that a trip request has been submitted by the user
     public tripSubmit = output<TripData>();
@@ -127,6 +140,18 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
             this.createFilteredStops(0),
             this.createFilteredStops(1)
         ];
+
+        // Subscribe to language changes
+        this.translate.onLangChange.subscribe(() => {
+
+            // Check if some of the controls have hardcoded my location or point from map values
+            this.pointControls.controls.forEach(control => {
+                if (control.value === "Point from map" || control.value === "Bod z mapy")
+                    control.setValue(this.translate.instant("planner.form.pointFromMap"));
+                else if (control.value === "Moje poloha" || control.value === "My location")
+                    control.setValue(this.translate.instant("planner.form.myLocation"));
+            });
+        });
     }
 
     ngAfterViewInit(): void {
@@ -153,6 +178,21 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         navigator.geolocation.clearWatch(this.locationWatchId);
         this.mapService.removeLayer("currentLocation");
         this.mapService.removeLayer("tripPoints");
+    }
+
+    // Called when the components directives or inputs change 
+    ngOnChanges(changes: SimpleChanges): void {
+
+        // Check if the parent component emitted map coordinates of a click with a trip point position
+        if (changes["mapClickWithMarkerCursor"] && this.mapClickWithMarkerCursor()) {
+
+            // Store the received coordinates into trip data and set value of the form control
+            this.tripData.points[this.mapClickWithMarkerCursor()!.position] = this.mapClickWithMarkerCursor()!.coords; 
+            this.pointControls.controls.at(this.mapClickWithMarkerCursor()!.position)?.setValue(this.translate.instant("planner.form.pointFromMap"));
+
+            // Redraw markers with new trip point
+            this.redrawTripMarkers();
+        }
     }
 
     // Function called when a transport mode is toggled as on/off
@@ -338,8 +378,13 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit {
         // Get the value at the given point form control
         const value = this.pointControls.at(position).value;
 
-        // Check if the value is a valid stop or the current location
-        const isValid = (value === "Moje poloha") || (value === "My location") || this.stops().some(stop => stop.name === value);
+        // Check if the value is a valid stop or the current location or a point from the map
+        const isValid = 
+        (value === "Moje poloha") 
+        || (value === "My location") 
+        || (value === "Point from map") 
+        || (value === "Bod z mapy") 
+        || this.stops().some(stop => stop.name === value);
         
         // If the latest input isnt valid, clear the point and rerender
         if (!isValid) {

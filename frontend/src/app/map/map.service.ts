@@ -98,4 +98,10 @@ export class MapService {
     redrawLayer(redrawMetadata: { layerName: string, data?: any }) {
         this.redrawLayerObj.next(redrawMetadata);
     }
+
+    // Subject emitting coordinates of a click on the map
+    public mapClickObj = new Subject<any>();
+    mapClick(coords: L.LatLng) {
+        this.mapClickObj.next(coords);
+    }
 }

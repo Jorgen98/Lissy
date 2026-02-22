@@ -127,7 +127,7 @@ Main component HTML template file for the trip form used in the planner module.
               [src]="'./planner/start-marker.svg'"
               class="point-input-pointer"
               [title]="'planner.form.markerTooltip' | translate"
-              (click)="markerClick.emit('start')"
+              (click)="markerClick.emit({ type: 'start', position: 0 })"
             />
             <img
               [src]="'./planner/cross.svg'"
@@ -264,7 +264,7 @@ Main component HTML template file for the trip form used in the planner module.
                     [src]="'./planner/midpoint-marker.svg'"
                     class="point-input-pointer"
                     [title]="'planner.form.markerTooltip' | translate"
-                    (click)="markerClick.emit('midpoint')"
+                    (click)="markerClick.emit({ type: 'midpoint', position: outerIdx })"
                   />
                   <img
                     [src]="'./planner/cross.svg'"
@@ -412,7 +412,7 @@ Main component HTML template file for the trip form used in the planner module.
                 [src]="'./planner/end-marker.svg'"
                 class="point-input-pointer"
                 [title]="'planner.form.markerTooltip' | translate"
-                (click)="markerClick.emit('end')"
+                (click)="markerClick.emit({ type: 'end', position: this.tripData.points.length - 1 })"
               />
               <img
                 [src]="'./planner/cross.svg'"

@@ -179,7 +179,8 @@
             "switchDirectionTooltip": "Otočit směr",
             "markerTooltip": "Vybrat z mapy",
             "myLocation": "Moje poloha",
-            "pointClearTooltip": "Obnovit bod"
+            "pointClearTooltip": "Obnovit bod",
+            "pointFromMap": "Bod z mapy"
         }
     },
     "map" : {

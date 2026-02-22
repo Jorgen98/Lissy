@@ -15,13 +15,16 @@ import { APIService } from '../../src/app/services/api';
 import { UIMessagesService } from '../../src/app/services/messages';
 import { Stop } from './types/Stop';
 import { TripData } from './types/TripData';
+import { Subscription } from 'rxjs';
+import { MarkerType } from './types/MarkerType';
 import { 
     Component, 
     AfterViewInit, 
     ViewChild, 
     ElementRef, 
     HostListener,
-    OnInit
+    OnInit,
+    OnDestroy
 } from '@angular/core';
 
 @Component({
@@ -30,7 +33,7 @@ import {
     templateUrl: './planner.component.html',
     styleUrl: './planner.component.css',
 })
-export class PlannerModule implements AfterViewInit, OnInit {
+export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
     // JSON config file
     static modulConfig: ModuleConfig = config;
@@ -44,8 +47,11 @@ export class PlannerModule implements AfterViewInit, OnInit {
     @ViewChild('midpointCursor') midpointCursorRef!: ElementRef<SVGElement>;
     @ViewChild('endCursor') endCursorRef!: ElementRef<SVGElement>;
 
-    // Whether the cursor is currently a map marker
-    private markerCursor: string | null = null;
+    // Type of the currently active marker cursor, null if not currently selected
+    private markerType: MarkerType | null = null;
+
+    // Position of the current active marker cursor in the trip form, null if not currently selected
+    private markerPosition: number | null = null;
 
     // Flag for synchronization between onClick() and markerClick() methods
     // markerClick is used for setting the cursor, onClick is used for clearing it if a click happens oustide the leaflet map
@@ -55,11 +61,21 @@ export class PlannerModule implements AfterViewInit, OnInit {
     // List of all stops in the transport system with coordinates and names
     public allStops: Stop[] = []; 
 
+    // Variable holding a subscribtion to map click events from the map service
+    private mapClickSub: Subscription;
+
+    // Coordinates of a map click and the selected marker position, used as an output variable to the trip form component
+    public clickedCoordsWithMarker: { coords: L.LatLng, position: number } | null = null;
+
     constructor(
         private mapService: MapService,
         private apiService: APIService,
         private msgService: UIMessagesService
-    ) {}
+    ) {
+
+        // Subscribe to map mouse clicks
+        this.mapClickSub = this.mapService.mapClickObj.subscribe(coords => this.mapClicked(coords));
+    }
 
     ngAfterViewInit(): void {
         // Show map scale
@@ -91,18 +107,25 @@ export class PlannerModule implements AfterViewInit, OnInit {
         this.msgService.turnOffLoadingScreen();
     }
 
+    ngOnDestroy(): void {
+
+        // Cancel the map click event subscribtion on component destroy
+        this.mapClickSub.unsubscribe();
+    }
+
     // Function called when a marker in the form is clicked
-    public markerClick(markerType: string): void {
+    public markerClick(marker: { type: MarkerType, position: number }): void {
 
         // Do nothing if the cursor is already a marker
-        if (this.markerCursor)
+        if (this.markerType)
             return;
 
         // Set the flag so onClick method doesnt clear the new cursor image
         this.clickSyncFlag = true;
 
-        // Store the state of the cursor
-        this.markerCursor = markerType;
+        // Store the state of the cursor and marker position in trip form
+        this.markerType = marker.type;
+        this.markerPosition = marker.position;
 
         // Hide classic cursor on the form and leaflet map elements
         const map = document.querySelector('#map') as HTMLElement;
@@ -134,7 +157,7 @@ export class PlannerModule implements AfterViewInit, OnInit {
     public onMouseMove(event: MouseEvent): void {
 
         // If the cursor is not currently a marker, do nothing
-        if (!this.markerCursor)
+        if (!this.markerType)
             return;
 
         // Update position of the SVG on the cursor
@@ -148,7 +171,7 @@ export class PlannerModule implements AfterViewInit, OnInit {
     public onKeyDown(event: KeyboardEvent): void {
 
         // If the cursor is not currently a marker, do nothing
-        if (!this.markerCursor)
+        if (!this.markerType)
             return;
 
         // Continue only if the pressed key was a backspace or escape to stop marker selecting
@@ -163,7 +186,7 @@ export class PlannerModule implements AfterViewInit, OnInit {
     public onClick(event: PointerEvent): void {
 
         // If the cursor is not currently a marker, do nothing
-        if (!this.markerCursor)
+        if (!this.markerType)
             return;
 
         // If the sync flag is currently on, the cursor was just changed to a marker in markerClicked()
@@ -179,10 +202,7 @@ export class PlannerModule implements AfterViewInit, OnInit {
 
         // Get the element which the click occured on
         const clickedElement = event.target as HTMLElement;
-        if (clickedElement.id === "map"){
-            // TODO Place point on map    
-        }
-        else
+        if (clickedElement.id !== "map")
             this.resetCursor();
     }
 
@@ -202,15 +222,29 @@ export class PlannerModule implements AfterViewInit, OnInit {
 
         // Clear the cursor state
         cursor.style.display = 'none';
-        this.markerCursor = null;
+        this.markerType = null;
+        this.markerPosition = null;
     }
 
     // Function returning a SVG element that should be used as the new cursor for trip point selection
     private getCursorImageElement(): SVGElement {
-        if (this.markerCursor === "start")
+        if (this.markerType === "start")
             return this.startCursorRef.nativeElement;
-        else if (this.markerCursor === "end")
+        else if (this.markerType === "end")
             return this.endCursorRef.nativeElement;
         return this.midpointCursorRef.nativeElement;
+    }
+
+    // Function called when a mouse click happens on the leaflet map
+    private mapClicked(coords: L.LatLng): void {
+
+        // If the marker position is currently set, set the clickedCoordsWithMarker to the click coordinates and current marker position
+        // This will be emitted to the trip form component
+        if (this.markerPosition !== null){
+            this.clickedCoordsWithMarker = { coords, position: this.markerPosition };
+
+            // Clear the marker cursor
+            this.resetCursor();
+        }
     }
 }

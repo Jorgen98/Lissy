@@ -39,7 +39,12 @@ Main component HTML template file for the planner module.
     <div class="content">
 
       <!-- Trip input form component -->
-      <trip-form (markerClick)="markerClick($event)" (tripSubmit)="tripSubmit($event)" [stops]="allStops"/>
+      <trip-form 
+        (markerClick)="markerClick($event)" 
+        (tripSubmit)="tripSubmit($event)" 
+        [stops]="allStops" 
+        [mapClickWithMarkerCursor]="clickedCoordsWithMarker" 
+      />
 
       <!-- Map -->
       <map></map>

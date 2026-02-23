@@ -9,6 +9,10 @@ const logService = require('../log.js');
 
 import env from '../../frontend/modules/planner/config.json';
 
+import { TripRequest } from './types/TripRequest';
+import { planTrip } from './routing';
+import { RoutePlanner } from './RoutePlanner';
+
 // Implemented adapters and services in TypeScript
 import { OTPAdapter } from './OTP/OTPAdapter';
 import { OTPService } from './OTP/OTPService';
@@ -48,7 +52,12 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
 
         // Main endpoint for planning a trip
         case 'planTrip': {
-            res.send(JSON.parse(req.query.data));   // Echo request back to backend for now
+
+            // Get the user request as TripRequest object
+            const tripData = JSON.parse(req.query.data) as TripRequest; 
+
+            // Call root function for planning entire trip with the received data and adapter
+            res.send(await planTrip(tripData, adapter));
             break;
         }
 
@@ -61,7 +70,7 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
     }
 }
 
-function getPlannerAdapter(selected: string): any {
+function getPlannerAdapter(selected: string): RoutePlanner | null {
 
     // Create new instance of selected service and create adapter for it
     switch(selected) {

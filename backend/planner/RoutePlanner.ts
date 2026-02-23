@@ -6,6 +6,7 @@
  */
 
 import { Stop } from "../../frontend/modules/planner/types/Stop";
+import { TripSectionInfo } from "./types/TripSectionInfo";
 
 /*
 Interface implemented by individual planner adapters
@@ -14,4 +15,7 @@ export interface RoutePlanner {
 
     // Get all stops for autocomplete in the trip form and for latitude and longitude values
     getAllStops(): Promise<{ stops: Stop[] } | null>
+
+    // Get section of trip between two neighbouring trip points with given modes of transport for the given datetime
+    getTripSection(sectionInfo: TripSectionInfo): Promise<any | null> 
 };

@@ -8,6 +8,7 @@
 import { OTPService } from "./OTPService";
 import { RoutePlanner } from "../RoutePlanner";
 import { Stop } from "../../../frontend/modules/planner/types/Stop";
+import { TripSectionInfo } from "../types/TripSectionInfo";
 
 /* 
 Adapter for OpenTripPlanner2 instance
@@ -34,5 +35,9 @@ export class OTPAdapter implements RoutePlanner {
         }));
 
         return { stops: stops };
+    }
+
+    async getTripSection(sectionInfo: TripSectionInfo): Promise<any | null>  {
+        // Call OTP service and translare the result to a general form
     }
 };

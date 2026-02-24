@@ -119,6 +119,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         new FormControl('', { nonNullable: true })
     ]);
 
+    // Set of trip point indicies for point which are currently tracking the live location
+    private tripPointsWithLocationTracking = new Set<number>();
+
     // Getter for number of globally selected transport modes
     get selectedModesCount(): number {
         const global = this.tripData.modes.global;
@@ -250,6 +253,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         else if (this.locationStatus === "enabled" && tripPointPosition !== undefined) {
             this.tripData.points[tripPointPosition] = this.currentLocation;
 
+            // This trip point is currently tracking the location
+            this.tripPointsWithLocationTracking.add(tripPointPosition);
+
             // Redraw the trip point markers with new marker on current location
             this.redrawTripMarkers();
         }
@@ -266,6 +272,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
                 if (control.value === "Moje poloha" || control.value === "My location") {
                     control.setValue("");
                     this.tripData.points[index] = {};
+
+                    // Remove points from location tracking
+                    this.tripPointsWithLocationTracking.delete(index);
                 }
             });
 
@@ -324,6 +333,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         // Store coordinates of selected stop in the main trip data 
         this.tripData.points[position].lat = stop.lat;
         this.tripData.points[position].lng = stop.lng;
+
+        // Trip point at given position might have been tracking the current location
+        this.tripPointsWithLocationTracking.delete(position);
 
         // Redraw markers with new point with the stop coordinates
         this.redrawTripMarkers();
@@ -428,6 +440,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         // Start blinking on location button
         this.locationStatus = "searching";
 
+        // Start location tracking for the given point
+        if (tripPointPosition !== undefined) 
+            this.tripPointsWithLocationTracking.add(tripPointPosition);
+
         // Begin watching for current position updates (15 sec timeout)
         this.locationWatchId = navigator.geolocation.watchPosition(
 
@@ -450,13 +466,14 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
                 this.currentLocation.lat = position.coords.latitude;
                 this.currentLocation.lng = position.coords.longitude;
                 
-                // If the current position is being fetched as a result of it being selected as a trip point, store it for that point
-                if (tripPointPosition !== undefined){
-                    this.tripData.points[tripPointPosition] = this.currentLocation;
+                // Update coordinates of any trip points that are currently tracking the location
+                this.tripPointsWithLocationTracking.forEach(pointIdx => {
+                    this.tripData.points[pointIdx] = { ...this.currentLocation };
+                })
 
-                    // Redraw markers with new point with the location coordinates
+                // Redraw markers of trip points currently tracking the location if there are any
+                if (this.tripPointsWithLocationTracking.size > 0)
                     this.redrawTripMarkers();
-                }
             }, 
 
             // Show info toast in case of error and disable current position
@@ -476,6 +493,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
                     if (control.value === "Moje poloha" || control.value === "My location") {
                         control.setValue("");
                         this.tripData.points[index] = {};
+
+                        // Remove points from location tracking
+                        this.tripPointsWithLocationTracking.delete(index);
                     }
                 });
                 

@@ -2,7 +2,7 @@
  * File: TripSectionInfo.ts
  * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  *
- * Custom type containing information about a single section of a trip between two neighbouring points.
+ * Custom type containing information about a single section of a trip between two neighbouring points from the trip request.
  */
 
 import { TransportMode } from "../../../frontend/modules/planner/types/TransportMode"

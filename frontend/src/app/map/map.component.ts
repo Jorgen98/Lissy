@@ -62,12 +62,14 @@ export class MapComponent implements AfterViewInit {
                         if (t.map) {
                             if (object instanceof L.Marker) {
                                 let icon = object.getIcon();
+                                const zoom = t.map.getZoom();
                                 if (icon.options.className === 'trip-point') {
-                                    icon.options.iconSize = [t.map.getZoom() * 2.2, t.map.getZoom() * 2.2];
+                                    icon.options.iconSize = [zoom * 2.2, zoom * 2.2];
+                                    icon.options.iconAnchor = [zoom * 2.2 / 2, zoom * 2.2];
                                 } else if (icon.options.className !== 'color-base-shadow') {
-                                    icon.options.iconSize = [t.map.getZoom() * 1.35, t.map.getZoom() * 1.35];
+                                    icon.options.iconSize = [zoom * 1.35, zoom * 1.35];
                                 } else {
-                                    icon.options.iconSize = [t.map.getZoom() * 2, t.map.getZoom() * 2];
+                                    icon.options.iconSize = [zoom * 2, zoom * 2];
                                 }
                                 object.setIcon(icon);
                             }
@@ -542,6 +544,8 @@ export class MapComponent implements AfterViewInit {
                 // Get point type based on its position in the trip points array
                 const pointType = index === 0 ? "start" : (index === redrawMetadata.data.length - 1 ? "end" : "midpoint"); 
 
+                const zoom = this.map!.getZoom();
+
                 // Place new marker at the layer for this point
                 L.marker(
                     L.latLng({ lat: point.lat, lng: point.lng }),
@@ -549,8 +553,8 @@ export class MapComponent implements AfterViewInit {
                         icon: L.icon({ 
                             iconUrl: `planner/${pointType}-marker.svg`,
                             className: 'trip-point',
-                            iconAnchor: [12.5, 30],
-                            iconSize: [this.map!.getZoom() * 2.2, this.map!.getZoom() * 2.2],
+                            iconAnchor: [zoom * 2.2 / 2, zoom * 2.2],
+                            iconSize: [zoom * 2.2, zoom * 2.2],
                         }),
                     }
                 ).addTo(layer.layer!);

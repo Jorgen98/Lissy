@@ -51,4 +51,14 @@ function removeOneDayFromTimeStamp(timeStamp) {
     return getTimeStamp(date);
 }
 
-module.exports = { getTimeStamp, getDateFromTimeStamp, compareTimeStamps, addOneDayToTimeStamp, removeOneDayFromTimeStamp, getTodayUTC, getDateFromISOTimeStamp }
+// Get timezone of device
+function getLocalTimezone() {
+    const UTCoffset = -new Date().getTimezoneOffset();
+    const hours = Math.floor(Math.abs(UTCoffset) / 60);
+    const minutes = Math.abs(UTCoffset) % 60;
+    const sign = UTCoffset >= 0 ? '+' : '-';
+
+    return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+}
+
+module.exports = { getTimeStamp, getDateFromTimeStamp, compareTimeStamps, addOneDayToTimeStamp, removeOneDayFromTimeStamp, getTodayUTC, getDateFromISOTimeStamp, getLocalTimezone }

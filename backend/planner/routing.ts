@@ -9,8 +9,9 @@ import { TransportMode } from "../../frontend/modules/planner/types/TransportMod
 import { RoutePlanner } from "./RoutePlanner";
 import { TripRequest } from "./types/TripRequest";
 import { TripSectionInfo } from "./types/TripSectionInfo";
+import { TripSectionOption } from "./types/TripSectionOption";
 
-export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<any | null> {
+export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripSectionOption[] | null> {
 
     // Specific case where there are only two trip points in the plan
     if (request.points.length === 2) {
@@ -36,4 +37,7 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
         // TODO decide on adequate maximum number of options for the section (3 for now)
         return await planner.getTripSection(sectionInfo, 3);
     }
+
+    // TODO handle trip with midpoints
+    return null;
 }

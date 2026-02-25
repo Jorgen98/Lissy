@@ -17,6 +17,8 @@ import { Stop } from './types/Stop';
 import { TripData } from './types/TripData';
 import { Subscription } from 'rxjs';
 import { MarkerType } from './types/MarkerType';
+import { TripSectionLeg, TripSectionOption } from './types/TripSectionOption';
+import { modeColors } from './utils/modeColors';
 import { 
     Component, 
     AfterViewInit, 
@@ -66,6 +68,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
     // Coordinates of a map click and the selected marker position, used as an output variable to the trip form component
     public clickedCoordsWithMarker: { coords: L.LatLng, position: number } | null = null;
+
+    // List of trip options received from the backend
+    private tripOptions: TripSectionOption[] = [];
 
     constructor(
         private mapService: MapService,
@@ -141,9 +146,25 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     // Function called when a trip is submitted from the form
     async tripSubmit(tripData: TripData): Promise<void> {
 
+        // Turn on loading screen
+        this.msgService.turnOnLoadingScreenWithoutPercentage();
+
         // Call backend endpoint for planning trip with emitted trip data from the form
-        const response = await this.apiService.genericGet(`${config.apiPrefix}/planTrip`, { data: JSON.stringify(tripData) });
-        console.log(response);
+        const tripOptions = await this.apiService.genericGet(`${config.apiPrefix}/planTrip`, { data: JSON.stringify(tripData) }) as TripSectionOption[] | null;
+        if (!tripOptions || tripOptions.length === 0) {
+            this.msgService.showMessage('error', 'UIMessagesService.toasts.tripsNotFound.head', 'UIMessagesService.toasts.tripsNotFound.body');
+            this.msgService.turnOffLoadingScreen();
+            return;
+        }
+
+        // Turn off loading screen after routes are retrieved
+        this.msgService.turnOffLoadingScreen();
+
+        // Store the backend call result in the frontend planner for displaying
+        this.tripOptions = tripOptions;
+
+        // Render one of the trip options for now
+        this.renderTrip(this.tripOptions[0]);
     }
 
     // Function called when the mouse is moved (mousemove event happens)
@@ -246,5 +267,41 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             // Clear the marker cursor
             this.resetCursor();
         }
+    }
+
+    // Function rendering a single trip on the leaflet map using polylines
+    private renderTrip(trip: TripSectionOption): void {
+
+        // Reset routes layer before rendering
+        this.mapService.clearLayer('routes');
+        this.mapService.addNewLayer({name: 'routes', palette: {}, layer: undefined, paletteItemName: ''});
+    
+        // Iterate through each leg and add it to the map layer with color given by GTFS or hardcoded for specific modes
+        trip.legs.forEach(leg => {
+            this.mapService.addToLayer({
+                layerName: "routes",
+                type: "route",
+                focus: false,
+                latLng: leg.points,
+                color: "provided",
+                metadata: {
+                    color: this.getLegColor(leg),
+                    dashed: leg.mode === "CAR" || leg.mode === "WALK",
+                },
+                interactive: true,
+                hoover: false,
+            });
+        });
+    }
+
+    // Function retrieving the color of the leg based on the mode and availability from GTFS
+    private getLegColor(leg: TripSectionLeg): string {
+
+        // If the leg doesnt have a transport system route defined, or the color is not provided, get hardcoded value
+        if (leg.route === null || leg.route.color === null)
+            return modeColors[leg.mode];
+
+        // Otherwise return formatted hex color
+        return `#${leg.route.color}`; 
     }
 }

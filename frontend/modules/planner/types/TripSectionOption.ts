@@ -24,7 +24,7 @@ export type TripSectionLeg = {
     points: {
         lat: number,
         lng: number,
-    }[] | null,
+    }[],
 
     // Place where the leg ends
     to: {
@@ -40,7 +40,6 @@ export type TripSectionLeg = {
         lineId: string | null, // Identifier of the line (line number, e.g. S2, 232, N91)
 
         // Colors preferred for use by the agency sharing the GTFS dataset for this route 
-        // Must be given as a six-digit hexadecimal string without the leading #
         color: string | null,
         textColor: string | null
     } | null

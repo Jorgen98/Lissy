@@ -250,6 +250,10 @@
             "stopsUnavailable": {
                 "head": "Chyba na straně serveru",
                 "body": "Chyba komunikace se serverem při získávání zastávek."
+            },
+            "tripsNotFound": {
+                "head": "Trasa nenalezena",
+                "body": "Trasa vyhovující parametrům zadaným ve formuláři nebyla nalezena."
             }
         }   
     }

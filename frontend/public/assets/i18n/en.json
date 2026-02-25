@@ -249,6 +249,10 @@
             "stopsUnavailable": {
                 "head": "Server Error",
                 "body": "Error in communication with server whilst retrieving transport system stops."
+            },
+            "tripsNotFound": {
+                "head": "Trip not found",
+                "body": "A trip which satisfies parameters entered into the form was not found."
             }
         }
     }

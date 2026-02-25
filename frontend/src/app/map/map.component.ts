@@ -184,7 +184,8 @@ export class MapComponent implements AfterViewInit {
             { 
                 color: object.color === 'provided' ? `${object.metadata.color}` : '#FFFFFF',
                 weight: 5,
-                interactive: object.interactive
+                interactive: object.interactive,
+                dashArray: object.metadata.dashed ? [10, 10] : undefined
             }
         )
     }

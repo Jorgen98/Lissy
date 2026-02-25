@@ -103,7 +103,7 @@ export class OTPAdapter implements RoutePlanner {
         const errors = response.data.planConnection.routingErrors;
         if (errors.length !== 0) {
             errors.forEach(error => {
-                log('error', `Routing error while planing connection with OTP. Error: ${error}`);
+                log('error', `Routing error while planing connection with OTP. Error: ${error.description}`);
             });
             return null;
         }
@@ -140,6 +140,11 @@ export class OTPAdapter implements RoutePlanner {
                         placeName: leg.to.stop?.name ?? null,
                         isTransportStop: leg.to.stop !== null,  
                     },
+                    route: leg.route ? {
+                        lineId: leg.route.shortName,
+                        color: leg.route.color,
+                        textColor: leg.route.textColor,
+                    } : null
                 };
             });
 

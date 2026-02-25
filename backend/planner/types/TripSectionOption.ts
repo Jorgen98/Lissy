@@ -34,6 +34,15 @@ export type TripSectionLeg = {
         isTransportStop: boolean, 
     },
     mode: Mode,     // Mode used for the leg
+
+    // Information about the route the leg uses, may be null for non-transit legs
+    route: {
+        lineId: string | null, // Identifier of the line (line number, e.g. S2, 232, N91)
+
+        // Colors preferred for use by the agency sharing the GTFS dataset for this route 
+        color: string | null,
+        textColor: string | null
+    } | null
 };
 
 // One option for a requested trip section

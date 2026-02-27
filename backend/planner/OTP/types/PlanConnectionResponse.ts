@@ -8,7 +8,7 @@
 import { Mode } from "./Mode";
 
 // One leg of the found connection
-type Leg = {
+export type Leg = {
     distance: number,               // Distance in meters
     duration: number,               // Duration in minutes
 
@@ -55,6 +55,15 @@ type Leg = {
             name: string
         } | null,
     },
+
+    // Information about the trip used for the leg
+    trip: {
+
+        // List of stops on the trip with thier names
+        stops: { 
+            name: string 
+        }[]
+    } | null
 }
 
 // One trip Node (one option for the connection)

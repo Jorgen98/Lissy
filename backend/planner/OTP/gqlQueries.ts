@@ -74,6 +74,11 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                         start        
                         end
                         legs {
+                            trip {
+                                stops {
+                                    name
+                                }
+                            }
                             distance
                             duration
                             from {

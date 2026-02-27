@@ -61,9 +61,9 @@ cron.schedule('59 4 * * *', async () => {
     };
 });
 // Get actual weather
-//cron.schedule('* * * * *' , async () => {
-//    weather.getCurrentData();
-//})
+cron.schedule('* * * * *' , async () => {
+    weather.getCurrentData();
+})
 
 // Processing function
 async function processData() {

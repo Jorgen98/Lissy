@@ -243,6 +243,8 @@ export class OTPAdapter implements RoutePlanner {
         // Find start and end indicies of subshape of the trip shape corresponding to the leg
         const legStartIdx = (shape.stops as { stop_name: string }[]).findIndex(stop => stop.stop_name === legFrom);
         const legEndIdx = (shape.stops as { stop_name: string }[]).findIndex(stop => stop.stop_name === legTo);
+        if (legStartIdx === -1 || legEndIdx === -1)
+            return this.translateGooglePolyline(leg.legGeometry.points);
 
         // Flatten the shape structure into a 1D list of lat, lng objects 
         let coords: { lat: number, lng: number }[] = [];
@@ -267,7 +269,11 @@ export class OTPAdapter implements RoutePlanner {
             return cache.data ?? await dbCache.setUpTodayShapes();  // Store in cache if not cached yet
         }
         else {
-            // TODO use dbCache (see api.js in shapes module)
+
+            // Attempt to get data from cache for day that isnt today
+            const cache = await dbCache.setUpValue(`shapes_${latestDate}`, null, null);
+            if (cache.data !== null)
+                return cache.data;
             
             // Get available routes for the given date
             const routes = await dbStats.getRoutesIdsInInterval(latestDate, latestDate);
@@ -293,6 +299,9 @@ export class OTPAdapter implements RoutePlanner {
                 log('warning', 'No trips found from given tripIds.');
                 return null;
             }
+
+            // Store retrieved data in cache
+            dbCache.setUpValue(`shapes_${latestDate}`, tripsWithShape, 100);
 
             return tripsWithShape;
         }

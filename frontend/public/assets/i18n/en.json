@@ -180,6 +180,10 @@
             "myLocation": "My location",
             "pointClearTooltip": "Clear trip point",
             "pointFromMap": "Point from map"
+        },
+        "itinerary": {
+            "title": "Itinerary",
+            "clearItinerary": "Clear itinerary"
         }
     },
     "map" : {

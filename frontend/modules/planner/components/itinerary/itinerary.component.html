@@ -1,0 +1,62 @@
+<!--
+File: itinerary.component.html
+Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+
+Main component HTML template file for the itinerary used in the planner module.
+-->
+
+<!-- Show itinerary only if trip options are currently defined and stored -->
+@if (tripOptions() !== null) {
+  <div class="itinerary">
+
+    <!-- Itinerary header -->
+    <div class="header">
+      <span class="title">{{ "planner.itinerary.title" | translate }}</span>
+
+      <!-- Button to clear itinerary -->
+      <img 
+        class="trashbin-btn" 
+        src="./planner/trash-bin-light.svg" 
+        (click)="clearItinerary.emit()" 
+        [title]="'planner.itinerary.clearItinerary' | translate" 
+      />
+    </div>
+
+    <!-- List of trip option buttons -->
+    <div class="trip-options form-section">
+
+      @for (option of tripOptions(); track $index) {
+        <button 
+          class="option-button"
+          [class.option-selected]="selectedOptionIdx === $index"
+          (click)="changeTripOption($index)"  
+        >
+
+          <!-- Information about the option start time, end time, distance and duration -->
+          <div class="option-start-end">
+            {{ (option.startDatetime | date: 'HH:mm') + " - " + (option.endDatetime | date: 'HH:mm') }}
+          </div>
+          <div class="option-distance-duration">
+            <div class="option-distance">
+              {{ option.distance | distance }}
+            </div>
+            <div class="option-duration">
+              {{ option.duration | duration }}
+            </div>
+          </div>
+        </button>
+      }
+
+    </div>
+
+    <!-- Detail about trip option sections and legs -->
+    <div class="sections">
+
+    </div>
+
+    <!-- Buttons to export trip option -->
+    <div class="export">
+
+    </div>
+  </div>
+}

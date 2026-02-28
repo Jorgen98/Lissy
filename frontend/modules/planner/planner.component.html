@@ -46,6 +46,8 @@ Main component HTML template file for the planner module.
         [mapClickWithMarkerCursor]="clickedCoordsWithMarker" 
       />
 
+      <itinerary [tripOptions]="tripOptions" (redrawTripOption)="renderTrip($event)" (clearItinerary)="clearItinerary()"/>
+
       <!-- Map -->
       <map></map>
 

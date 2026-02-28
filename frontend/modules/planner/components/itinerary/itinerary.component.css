@@ -1,0 +1,88 @@
+/*
+ * File: itinerary.component.css
+ * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * CSS styles file for the itinerary component used in the planner.
+ */
+
+/* Main itinerary div and sections ********************/
+.itinerary {
+    position: absolute;
+    width: 405px;
+    left: 78px;
+    z-index: 500;
+    border: 0.15em solid var(--p-gray-800);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; 
+    bottom: 30px;
+}
+
+.form-section {
+    background: linear-gradient(var(--p-gray-800), var(--p-gray-800)) top center / 96% 0.15em no-repeat, var(--background);
+}
+/**************************************************/
+
+/* Itinerary header *****************************/
+.trashbin-btn {
+    height: 30px;
+    cursor: pointer;
+    position: absolute;
+    right: 7px;
+}
+
+.header {
+    background-color: var(--p-gray-800);
+    height: 50px;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 5px;
+}
+
+.title {
+    color: var(--p-gray-50);
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: 550;
+    font-size: large;
+}
+/**************************************************/
+
+/* List of found trip options *****************************/
+.trip-options {
+    display: flex;
+    padding: 8px;
+    gap: 8px;
+    justify-content: center;
+}
+
+.option-button {
+    width: 118px;
+    font-size: 17px;
+    border: 2px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    font-size: 16px;
+    gap: 3px;
+}
+
+.option-selected {
+    background-color: var(--p-gray-50);
+    color: var(--background);
+    opacity: 1;
+    border-color: var(--p-gray-50);    
+}
+
+.option-selected:hover {
+    opacity: 0.6;
+}
+
+.option-distance-duration {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+/**************************************************/

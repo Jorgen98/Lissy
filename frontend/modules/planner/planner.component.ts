@@ -10,6 +10,7 @@ import * as config from './config.json';
 import { MapComponent } from '../../src/app/map/map.component';
 import { ImportsModule } from '../../src/app/imports';
 import { TripFormComponent } from './components/trip-form/trip-form.component';
+import { ItineraryComponent } from './components/itinerary/itinerary.component';
 import { MapService } from '../../src/app/map/map.service';
 import { APIService } from '../../src/app/services/api';
 import { UIMessagesService } from '../../src/app/services/messages';
@@ -31,7 +32,7 @@ import {
 
 @Component({
     selector: 'app-planner',
-    imports: [ImportsModule, MapComponent, TripFormComponent],
+    imports: [ImportsModule, MapComponent, TripFormComponent, ItineraryComponent],
     templateUrl: './planner.component.html',
     styleUrl: './planner.component.css',
 })
@@ -70,7 +71,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     public clickedCoordsWithMarker: { coords: L.LatLng, position: number } | null = null;
 
     // List of trip options received from the backend
-    private tripOptions: TripSectionOption[] = [];
+    public tripOptions: TripSectionOption[] | null = null;
 
     constructor(
         private mapService: MapService,
@@ -163,8 +164,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Store the backend call result in the frontend planner for displaying
         this.tripOptions = tripOptions;
 
-        // Render one of the trip options for now
-        this.renderTrip(this.tripOptions[0]);
+        // Render the first trip option
+        this.renderTrip(0);
     }
 
     // Function called when the mouse is moved (mousemove event happens)
@@ -269,12 +270,23 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         }
     }
 
+    public clearItinerary() {
+        this.tripOptions = null;
+        this.mapService.clearLayer('routes');
+    }
+
     // Function rendering a single trip on the leaflet map using polylines
-    private renderTrip(trip: TripSectionOption): void {
+    public renderTrip(index: number): void {
+
+        if (this.tripOptions === null)
+            return;
+
+        // Get trip from the trip options list
+        const trip = this.tripOptions[index];
 
         // Reset routes layer before rendering
         this.mapService.clearLayer('routes');
-        this.mapService.addNewLayer({name: 'routes', palette: {}, layer: undefined, paletteItemName: ''});
+        this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
     
         // Iterate through each leg and add it to the map layer with color given by GTFS or hardcoded for specific modes
         trip.legs.forEach(leg => {

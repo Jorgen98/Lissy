@@ -181,6 +181,10 @@
             "myLocation": "Moje poloha",
             "pointClearTooltip": "Obnovit bod",
             "pointFromMap": "Bod z mapy"
+        },
+        "itinerary": {
+            "title": "Itinerář",
+            "clearItinerary": "Smazat itinerář"
         }
     },
     "map" : {

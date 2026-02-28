@@ -468,7 +468,7 @@ Main component HTML template file for the trip form used in the planner module.
       <div class="datetime">
         <input type="date" id="dateInput" [(ngModel)]="tripData.datetime.tripDate"/>
         <input type="time" id="timeInput" [(ngModel)]="tripData.datetime.tripTime"/>
-        <div>
+        <div class="radio-pair">
           <div class="control-pair departure-radio">
             <input
               type="radio"
@@ -513,7 +513,7 @@ Main component HTML template file for the trip form used in the planner module.
         <div class="datetime">
           <input type="date" [(ngModel)]="tripData.return.tripDate" />
           <input type="time" [(ngModel)]="tripData.return.tripTime" />
-          <div>
+          <div class="radio-pair">
             <div class="control-pair departure-radio">
               <input
                 type="radio"

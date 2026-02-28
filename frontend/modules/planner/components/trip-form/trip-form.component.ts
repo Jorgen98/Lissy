@@ -531,10 +531,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
                     return [];
                 
                 // Return stops whose names (lowercase) contain the substring geiven by user input
-                // Only get first 20 for performance
+                // Only get first 30 for performance
                 return this.stops()
                     .filter(stop => stop.name.toLowerCase().includes(search))
-                    .slice(0, 20);
+                    .slice(0, 30);
             })
         );
     }

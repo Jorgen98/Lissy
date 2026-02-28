@@ -240,6 +240,10 @@ input[type="text"] {
 
 mat-option {
     background-color: var(--p-gray-50) !important;
+    min-height: 0;
+    padding: 10px 5px;
+    border: 1px solid #DDDDDD;
+    font-weight: 600;
 }
 
 .point-input-clear {
@@ -269,7 +273,13 @@ mat-option {
     display: flex;
     width: 100%;
     justify-content: space-between;
-    height: 50px;
+    height: 40px;
+}
+
+.radio-pair {
+    gap: 5px;
+    display: flex;
+    flex-direction: column;
 }
 
 input[type="date"] {
@@ -283,10 +293,7 @@ input[type="time"] {
 .control-pair {
     display: flex;
     gap: 5px;
-}
-
-.departure-radio {
-    margin-bottom: 8px;
+    align-items: center;
 }
 
 input[type="radio"],

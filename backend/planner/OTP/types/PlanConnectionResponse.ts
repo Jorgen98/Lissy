@@ -10,7 +10,7 @@ import { Mode } from "./Mode";
 // One leg of the found connection
 export type Leg = {
     distance: number,               // Distance in meters
-    duration: number,               // Duration in minutes
+    duration: number,               // Duration in seconds
 
     // Information about point where the leg starts
     from: {
@@ -68,7 +68,7 @@ export type Leg = {
 
 // One trip Node (one option for the connection)
 type Node = {  
-    duration: number,   // Duration in minutes
+    duration: number,   // Duration in seconds
     start: string,      // Start time of connection
     end: string,        // End time of connection
     legs: Leg[],        // List of legs in the connection (see above)

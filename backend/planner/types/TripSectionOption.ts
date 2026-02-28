@@ -10,7 +10,7 @@ import { Mode } from "./Mode";
 // One leg of the connection
 export type TripSectionLeg = {
     distance: number,               // Distance in meters
-    duration: number,               // Duration in minutes
+    duration: number,               // Duration in seconds
 
     // Place where the leg starts
     from: {
@@ -48,7 +48,7 @@ export type TripSectionLeg = {
 
 // One option for a requested trip section
 export type TripSectionOption = {
-    duration: number,       // Duration in minutes
+    duration: number,       // Duration in seconds
     distance: number,       // Distance in meters    
     startDatetime: Date,    // Datetime of beginning of the option (UTC)
     endDatetime: Date,      // Datetime of ending of the option (UTC)

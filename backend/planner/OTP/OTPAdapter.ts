@@ -95,7 +95,7 @@ export class OTPAdapter implements RoutePlanner {
             transitModes,
             directModes,
             datetime,
-            numOptions: numOptions !== undefined ? numOptions : null,
+            numOptions: numOptions !== undefined ? numOptions : 0,
         }
         
         // Call OTP service with prepared parameters

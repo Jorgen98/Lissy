@@ -61,7 +61,20 @@ Main component HTML template file for the planner module.
           <div class="side-control-selection-div">
             <div class="side-control-selection-inner-div">
               <h3>{{ 'planner.settings.maxWalkingDistance' | translate }}</h3>
-              <p-select [options]="walkDistanceOptions" optionLabel="option" [(ngModel)]="selectedWalkDistance"/>
+              <div class="walk-distance-input-div">
+                <p-inputnumber 
+                  [(ngModel)]="selectedWalkDistanceKm" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [disabled]="walkDistanceUnlimited"/>Km
+              </div>
+              <span class="side-control-checkbox-span">
+                <p-checkbox [binary]="true" [(ngModel)]="walkDistanceUnlimited">
+                  <ng-template pTemplate="icon">
+                    <i class="pi pi-check"></i>
+                  </ng-template>
+                </p-checkbox>
+                <p class="side-control-checkbox-head">{{ 'planner.settings.unlimitedWalkDistance' | translate }}</p>
+              </span>
             </div>
           </div>
         </div>

@@ -187,7 +187,8 @@
         },
         "settings": {
             "walkingPreferences": "Walking preferences",
-            "maxWalkingDistance": "Maximum walking distance"
+            "maxWalkingDistance": "Maximum walking distance",
+            "unlimitedWalkDistance": "Do not limit maximum walking distance"
         }
     },
     "map" : {

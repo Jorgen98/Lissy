@@ -35,3 +35,9 @@
 .setting-img-mobile {
   width: 11px;
 }
+
+.walk-distance-input-div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}

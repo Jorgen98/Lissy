@@ -188,7 +188,8 @@
         },
         "settings": {
             "walkingPreferences": "Preference chůze",
-            "maxWalkingDistance": "Maximální vzdálenost chůze"
+            "maxWalkingDistance": "Maximální vzdálenost chůze",
+            "unlimitedWalkDistance": "Neomezovat maximální vzdálenost chůze"
         }
     },
     "map" : {

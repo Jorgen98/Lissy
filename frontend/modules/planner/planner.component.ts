@@ -74,18 +74,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     // List of trip options received from the backend
     public tripOptions: TripSectionOption[] | null = null;
 
-    // Options for maximum walking distance for user preferences input
-    public walkDistanceOptions = [
-        { option: "-", meters: null },
-        { option: "1 km", meters: 1000 },
-        { option: "2 km", meters: 2000 },
-        { option: "3 km", meters: 3000 },
-        { option: "5 km", meters: 5000 },
-        { option: "7 km", meters: 7000 },
-        { option: "10 km", meters: 10000 },
-        { option: "20 km", meters: 20000 },
-    ];
-    public selectedWalkDistance = this.walkDistanceOptions[4];  // Default value 5 km
+    // Maximum walking distance from user preferences input
+    public selectedWalkDistanceKm = 5;  // Default value 5 km
+    public walkDistanceUnlimited = false;   // Whether the walking distance should be limited
 
     constructor(
         private mapService: MapService,
@@ -169,7 +160,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             ...tripData,
             preferences: {
                 walk: {
-                    maxDistance: this.selectedWalkDistance.meters,
+                    maxDistance: this.walkDistanceUnlimited ? null : this.selectedWalkDistanceKm * 1000,
                 }
             }
         }

@@ -184,6 +184,10 @@
         "itinerary": {
             "title": "Itinerary",
             "clearItinerary": "Clear itinerary"
+        },
+        "settings": {
+            "walkingPreferences": "Walking preferences",
+            "maxWalkingDistance": "Maximum walking distance"
         }
     },
     "map" : {

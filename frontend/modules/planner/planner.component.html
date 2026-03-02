@@ -13,6 +13,16 @@ Main component HTML template file for the planner module.
       <!-- Span with options from the side menu -->
       <span class="side-control-modules">
 
+        <!-- Walking preferences settings button -->
+        <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button 
+            type="button" 
+            [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchWalkingPreferencesModuleVisibility()"  
+          >
+            <img [src]="'./planner/pedestrian.svg'" class="setting-img">
+          </button>
+        </div>
       </span>
     </div>
 
@@ -26,17 +36,36 @@ Main component HTML template file for the planner module.
           <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
         </button>
       </div>
-    </div>
 
-    <!-- Mobile menu submenu -->
-    @if (moduleFocus === -2) {
-      <div class="mobile-submenu">
-
+      <!-- Walking preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchWalkingPreferencesModuleVisibility()">
+          <img [src]="'./planner/pedestrian.svg'" class="setting-img-mobile">
+          <p class="mobile-btn-text">{{ 'planner.settings.walkingPreferences' | translate }}</p>
+        </button>
       </div>
-    }
+    </div>
 
     <!-- Module content -->
     <div class="content">
+
+      <!-- Walking preferences settings -->
+      @if (moduleFocus === 1) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'planner.settings.walkingPreferences' | translate }}</h4>
+            <button type="button" (click)="switchWalkingPreferencesModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.maxWalkingDistance' | translate }}</h3>
+              <p-select [options]="walkDistanceOptions" optionLabel="option" [(ngModel)]="selectedWalkDistance"/>
+            </div>
+          </div>
+        </div>
+      }
 
       <!-- Trip input form component -->
       <trip-form 

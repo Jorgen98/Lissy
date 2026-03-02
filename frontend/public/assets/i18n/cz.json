@@ -185,6 +185,10 @@
         "itinerary": {
             "title": "Itinerář",
             "clearItinerary": "Smazat itinerář"
+        },
+        "settings": {
+            "walkingPreferences": "Preference chůze",
+            "maxWalkingDistance": "Maximální vzdálenost chůze"
         }
     },
     "map" : {

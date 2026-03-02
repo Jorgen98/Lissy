@@ -11,3 +11,27 @@
   left: 0;
   pointer-events: none;
 }
+
+.side-btn-div {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+
+.side-control-modules {
+  width: 100%;
+}
+
+.btn-side-menu {
+  width: 100%;
+  padding: 0;
+}
+
+.setting-img {
+  width: 22px;
+}
+
+.setting-img-mobile {
+  width: 11px;
+}

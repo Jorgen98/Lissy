@@ -73,6 +73,19 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     // List of trip options received from the backend
     public tripOptions: TripSectionOption[] | null = null;
 
+    // Options for maximum walking distance for user preferences input
+    public walkDistanceOptions = [
+        { option: "-", meters: null },
+        { option: "1 km", meters: 1000 },
+        { option: "2 km", meters: 2000 },
+        { option: "3 km", meters: 3000 },
+        { option: "5 km", meters: 5000 },
+        { option: "7 km", meters: 7000 },
+        { option: "10 km", meters: 10000 },
+        { option: "20 km", meters: 20000 },
+    ];
+    public selectedWalkDistance = this.walkDistanceOptions[4];  // Default value 5 km
+
     constructor(
         private mapService: MapService,
         private apiService: APIService,
@@ -304,6 +317,14 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                 hoover: false,
             });
         });
+    }
+
+    // Function for extra walking preferences module switch
+    public switchWalkingPreferencesModuleVisibility() {
+        if (this.moduleFocus !== 1)
+            this.moduleFocus = 1;
+        else
+            this.moduleFocus = 0;
     }
 
     // Function retrieving the color of the leg based on the mode and availability from GTFS

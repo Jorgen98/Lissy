@@ -34,9 +34,10 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
             $datetime: OffsetDateTime!, 
             $directOnly: Boolean!, 
             $transitOnly: Boolean!,
-            $directModes: [PlanDirectMode!]
-            $transitModes: [PlanTransitModePreferenceInput!]
-            $numOptions: Int!
+            $directModes: [PlanDirectMode!],
+            $transitModes: [PlanTransitModePreferenceInput!],
+            $numOptions: Int!,
+            $walkingSpeed: Speed!
         ) {
             planConnection(
                 origin: { 
@@ -67,6 +68,13 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                     }
                 }
                 first: $numOptions
+                preferences: {
+                    street: {
+                        walk: {
+                            speed: $walkingSpeed
+                        }
+                    }
+                }
             ) {
                 edges {
                     node {

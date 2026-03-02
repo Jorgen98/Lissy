@@ -188,7 +188,8 @@
         "settings": {
             "walkingPreferences": "Walking preferences",
             "maxWalkingDistance": "Maximum walking distance",
-            "unlimitedWalkDistance": "Do not limit maximum walking distance"
+            "unlimitedWalkDistance": "Do not limit maximum walking distance",
+            "walkingSpeed": "Average walking speed"
         }
     },
     "map" : {

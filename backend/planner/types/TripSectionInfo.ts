@@ -15,5 +15,10 @@ export type TripSectionInfo =  {
         date: string,
         time: string,
         option: "departure" | "arrival"
+    },
+    preferences: {                          // Preferences set by the user
+        walk: {
+            speed: number,                  // Average walking speed in m/s
+        }
     }
 }

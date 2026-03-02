@@ -12,6 +12,7 @@ export type TripDataExtended = TripData & {
     preferences: {
         walk: {
             maxDistance: number | null,
+            avgSpeed: number
         }
     }
 };

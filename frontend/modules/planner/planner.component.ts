@@ -78,6 +78,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     public selectedWalkDistanceKm = 5;  // Default value 5 km
     public walkDistanceUnlimited = false;   // Whether the walking distance should be limited
 
+    // Average walking speed from user preferences input
+    public selectedWalkingSpeedKmh = 5.0;
+
     constructor(
         private mapService: MapService,
         private apiService: APIService,
@@ -160,7 +163,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             ...tripData,
             preferences: {
                 walk: {
-                    maxDistance: this.walkDistanceUnlimited ? null : this.selectedWalkDistanceKm * 1000,
+                    maxDistance: this.walkDistanceUnlimited ? null : this.selectedWalkDistanceKm * 1000,    // Convert to meters
+                    avgSpeed: this.selectedWalkingSpeedKmh / 3.6    // Convert to m/s
                 }
             }
         }
@@ -235,6 +239,22 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         const clickedElement = event.target as HTMLElement;
         if (clickedElement.id !== "map")
             this.resetCursor();
+    }
+
+    // Function called when the max walk distance input is blurred
+    public walkDistanceBlur() {
+
+        // Check for empty value and refill with default
+        if (this.selectedWalkDistanceKm === null)
+            this.selectedWalkDistanceKm = 5;
+    }
+
+    // Function called when the average walk speed input is blurred
+    public walkSpeedBlur() {
+
+        // Check for empty value and refill with default
+        if (this.selectedWalkingSpeedKmh === null)
+            this.selectedWalkingSpeedKmh = 5.0;
     }
 
     private resetCursor(): void {

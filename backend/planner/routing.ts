@@ -104,6 +104,11 @@ function createSectionRequest(request: TripRequest, modes: TransportMode[]): Tri
             option: request.datetime.datetimeOption,
             date: request.datetime.tripDate,
             time: request.datetime.tripTime   
+        },
+        preferences: {
+            walk: {
+                speed: request.preferences.walk.avgSpeed,
+            }
         }
     }
 }

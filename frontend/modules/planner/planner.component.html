@@ -59,13 +59,20 @@ Main component HTML template file for the planner module.
             </button>
           </span>
           <div class="side-control-selection-div">
+
+            <!-- Max walking distance -->
             <div class="side-control-selection-inner-div">
               <h3>{{ 'planner.settings.maxWalkingDistance' | translate }}</h3>
               <div class="walk-distance-input-div">
                 <p-inputnumber 
                   [(ngModel)]="selectedWalkDistanceKm" 
                   [inputStyle]="{'width': '70px', 'text-align': 'right'}"
-                  [disabled]="walkDistanceUnlimited"/>Km
+                  [disabled]="walkDistanceUnlimited"
+                  [min]="0"
+                  [max]="1000"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="walkDistanceBlur()"/>Km
               </div>
               <span class="side-control-checkbox-span">
                 <p-checkbox [binary]="true" [(ngModel)]="walkDistanceUnlimited">
@@ -76,6 +83,26 @@ Main component HTML template file for the planner module.
                 <p class="side-control-checkbox-head">{{ 'planner.settings.unlimitedWalkDistance' | translate }}</p>
               </span>
             </div>
+
+            <!-- Walking speed -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.walkingSpeed' | translate }}</h3>
+              <div class="walk-distance-input-div">
+                <p-inputnumber 
+                  [(ngModel)]="selectedWalkingSpeedKmh" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  mode="decimal" 
+                  [minFractionDigits]="1" 
+                  [maxFractionDigits]="1"
+                  [min]="1.0"
+                  [max]="15.0"
+                  [step]="0.1"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="walkSpeedBlur()"/>Km/h
+              </div>
+            </div>
+            
           </div>
         </div>
       }

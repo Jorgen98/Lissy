@@ -81,18 +81,43 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
         // Wait for all created requests running in parallel
         const results = await Promise.all(plannerRequests);
 
-        // Filter out unsuccessful requests
-        const foundOptions = results.filter(result => result !== null);
+        // Filter out unsuccessful requests and flatten the 2D list returned by Promise.all into one 1D list with all options
+        const foundOptions = results.filter(result => result !== null).flat();
+
+        // Filter out unsatisfactory trip options by request parameters
+        const filteredOptions = filterOptions(foundOptions, request);
 
         // TODO Filter, deduplicate, rank, ... all options and find TOP 3
 
         // Flatten the 2D list returned by Promise.all into one 1D list with all trips
-        return foundOptions.flat();
+        return filteredOptions.flat();
     }
 
     // TODO handle trip with midpoints
     return null;
 }
+
+// Function filtering the plain list of found options
+function filterOptions(options: TripSectionOption[], request: TripRequest): TripSectionOption[] {
+
+    // Get maximum walking distance from request object
+    const maxWalkDistance = request.preferences.walk.maxDistance;
+
+    // Run each trip options through filters
+    return options.filter(option => {
+
+        // Filter out options with legs longer then maximum set walking distance
+        if (maxWalkDistance !== null) {
+            for (const leg of option.legs) {
+                if (leg.mode === "WALK" && leg.distance > maxWalkDistance)
+                    return false;
+            }
+        }
+        
+        // Option passed all filters
+        return true;
+    });
+} 
 
 // Function creating the section request object for the planner adapter
 function createSectionRequest(request: TripRequest, modes: TransportMode[]): TripSectionInfo {

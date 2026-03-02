@@ -20,6 +20,7 @@ import { Subscription } from 'rxjs';
 import { MarkerType } from './types/MarkerType';
 import { TripSectionLeg, TripSectionOption } from './types/TripSectionOption';
 import { modeColors } from './utils/modeColors';
+import { TripDataExtended } from './types/TripDataExtended';
 import { 
     Component, 
     AfterViewInit, 
@@ -163,8 +164,18 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Turn on loading screen
         this.msgService.turnOnLoadingScreenWithoutPercentage();
 
+        // Add user preferences to trip data from form
+        const tripDataPreferences: TripDataExtended = {
+            ...tripData,
+            preferences: {
+                walk: {
+                    maxDistance: this.selectedWalkDistance.meters,
+                }
+            }
+        }
+
         // Call backend endpoint for planning trip with emitted trip data from the form
-        const tripOptions = await this.apiService.genericGet(`${config.apiPrefix}/planTrip`, { data: JSON.stringify(tripData) }) as TripSectionOption[] | null;
+        const tripOptions = await this.apiService.genericGet(`${config.apiPrefix}/planTrip`, { data: JSON.stringify(tripDataPreferences) }) as TripSectionOption[] | null;
         if (!tripOptions || tripOptions.length === 0) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.tripsNotFound.head', 'UIMessagesService.toasts.tripsNotFound.body');
             this.msgService.turnOffLoadingScreen();

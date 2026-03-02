@@ -60,7 +60,6 @@ export class OTPAdapter implements RoutePlanner {
     async getTripSection(sectionInfo: TripSectionInfo, numOptions?: number): Promise<TripSectionOption[] | null>  {
 
         // Which of the possible transport modes should be used in this sections planning
-        // TODO decide what to do with OTPs heavy preference for car transport
         const usePublicTransport = sectionInfo.modes.some(mode => mode === "publicTransport"); 
         const useWalk = sectionInfo.modes.some(mode => mode === "walk");
         const useCar = sectionInfo.modes.some(mode => mode === "car");
@@ -77,8 +76,7 @@ export class OTPAdapter implements RoutePlanner {
             { mode: "TROLLEYBUS" },
         ] : null;
 
-        // TODO decide what to do when both car and walk are selected for the section, since OTP does not allow this
-        // For now just use car
+        // Select one direct mode, since OTP only allows one
         const directModes: PlanDirectMode[] | null = transitOnly ? null : (useCar ? ["CAR"] : ["WALK"]);
 
         // Create datetime string in ISO-8601 format, needed by OTP

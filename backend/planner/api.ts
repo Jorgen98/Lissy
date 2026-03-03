@@ -6,6 +6,7 @@
  */
 
 const logService = require('../log.js');
+const dbPostgis = require('../db-postgis.js');
 
 import env from '../../frontend/modules/planner/config.json';
 
@@ -46,7 +47,7 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
 
         // Endpoint to get all stops in the transport system
         case 'allStops': {
-            res.send(await adapter.getAllStops());
+            res.send(await dbPostgis.getActiveStations());
             break;
         }
 

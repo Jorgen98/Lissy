@@ -1,5 +1,8 @@
 /*
  * DB PostGIS function file
+ *
+ * Author: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
 const Pool = require('pg').Pool;
@@ -410,6 +413,34 @@ async function getActiveStops() {
         delete row['st_asgeojson'];
         delete row['latlng'];
         output[row['stop_id']] = row;
+    }
+
+    return output;
+}
+
+// Get a list of active stations names and coordinates (stops with no parent station)
+async function getActiveStations() {
+    let result;
+    try {
+        result = await db_postgis.query(`SELECT id, stop_id, stop_code, stop_name, tts_stop_name, stop_desc,
+            latLng, zone_id, stop_url, location_type, parent_station, parent_station_id, stop_timezone,
+            wheelchair_boarding, level_id, level_id_id, platform_code, ST_AsGeoJSON(latLng) FROM stops WHERE is_active=true 
+            AND parent_station_id IS NULL`);
+    } catch(error) {
+        log('error', error);
+        return null;
+    }
+
+    let output = { stops: [] };
+
+    for (const row of result.rows) {
+        const [lat, lng] = JSON.parse(row['st_asgeojson']).coordinates; 
+
+        output.stops.push({
+            name: row["stop_name"],
+            lat,
+            lng,
+        });
     }
 
     return output;
@@ -1124,4 +1155,4 @@ module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, ad
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
-    getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail }
+    getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations }

@@ -13,7 +13,6 @@ const dbCache = require('../../db-cache.js');
 
 import { OTPService } from "./OTPService";
 import { RoutePlanner } from "../RoutePlanner";
-import { Stop } from "../../../frontend/modules/planner/types/Stop";
 import { TripSectionInfo } from "../types/TripSectionInfo";
 import { PlanConnectionParams } from "./types/PlanConnectionParams";
 import { PlanDirectMode } from "./types/PlanDirectMode";
@@ -36,24 +35,6 @@ export class OTPAdapter implements RoutePlanner {
     constructor(
         private otpService: OTPService
     ) { }
-
-    // Get all stops for autocomplete in the trip form and for latitude and longitude values from OTP instance and translate
-    async getAllStops(): Promise<{ stops: Stop[] } | null> {
-
-        // Call the otp planner service
-        const response = await this.otpService.getAllStations();
-        if (!response)
-            return null;
-
-        // Translate the returned stops to expected form 
-        const stops = response.data.stations.map(station => ({
-            lat: station.lat,
-            lng: station.lon,
-            name: station.name
-        }));
-
-        return { stops: stops };
-    }
 
     // Get a route between two points using OTPs planConnection function
     // Function translating the inputs to the format needed by OTP and the outputs to the format needed by client

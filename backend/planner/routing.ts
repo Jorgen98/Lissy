@@ -10,6 +10,7 @@ import { RoutePlanner } from "./RoutePlanner";
 import { TripRequest } from "./types/TripRequest";
 import { TripSectionInfo } from "./types/TripSectionInfo";
 import { TripSectionOption } from "./types/TripSectionOption";
+import { WALKING_DISTANCE_COEF, DRIVING_DISTANCE_COEF, MIN_DRIVE_DISTANCE } from "./utils/coefficients";
 
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripSectionOption[] | null> {
 
@@ -48,8 +49,8 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
 
             // Get driving distance and walking distance estimates
             // TODO play around with coefficients
-            const driveDistEstimate = distance * 1.4;
-            const walkDistEstimate = distance * 1.2;
+            const driveDistEstimate = distance * DRIVING_DISTANCE_COEF;
+            const walkDistEstimate = distance * WALKING_DISTANCE_COEF;
 
             // If the maximum walking distance is more than the estimate or not limited, create a walk request for the section
             if (request.preferences.walk.maxDistance === null || walkDistEstimate <= request.preferences.walk.maxDistance) {
@@ -62,7 +63,7 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
 
             // If the distance is too short, it might not make sense to get car options
             // TODO decide on correct threshold
-            if (driveDistEstimate > 1500) {
+            if (driveDistEstimate > MIN_DRIVE_DISTANCE) {
                 plannerRequests.push(
                     planner.getTripSection(
                         createSectionRequest(request, ["car"])

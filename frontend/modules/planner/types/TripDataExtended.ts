@@ -13,6 +13,15 @@ export type TripDataExtended = TripData & {
         walk: {
             maxDistance: number | null,
             avgSpeed: number
+        },
+        publicTransport: {
+            allowedModes: {
+                bus: boolean,
+                trolleybus: boolean,
+                tram: boolean,
+                train: boolean,
+                ferry: boolean,
+            }
         }
     }
 };

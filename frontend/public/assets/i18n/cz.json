@@ -188,9 +188,16 @@
         },
         "settings": {
             "walkingPreferences": "Preference chůze",
+            "publicTransportPreferences": "Preference hromadné dopravy",
             "maxWalkingDistance": "Maximální vzdálenost chůze",
             "unlimitedWalkDistance": "Neomezovat maximální vzdálenost chůze",
-            "walkingSpeed": "Průměrná rychlost chůze"
+            "walkingSpeed": "Průměrná rychlost chůze",
+            "selectedModes": "Povolené dopravní prostředky",
+            "bus": "Autobus",  
+            "trolleybus": "Trolejbus",  
+            "tram": "Tramvaj",  
+            "train": "Vlak",  
+            "ferry": "Loď"  
         }
     },
     "map" : {

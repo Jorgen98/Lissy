@@ -19,6 +19,15 @@ export type TripSectionInfo =  {
     preferences: {                          // Preferences set by the user
         walk: {
             speed: number,                  // Average walking speed in m/s
+        },
+        publicTransport: {                  // Preferences for allowed modes in public transport
+            allowedModes: {
+                bus: boolean,
+                trolleybus: boolean,
+                tram: boolean,
+                train: boolean,
+                ferry: boolean,
+            }
         }
     }
 }

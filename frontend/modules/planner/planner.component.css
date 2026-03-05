@@ -25,19 +25,29 @@
 
 .btn-side-menu {
   width: 100%;
-  padding: 0;
 }
 
 .setting-img {
-  width: 22px;
+  width: 25px;
 }
 
 .setting-img-mobile {
-  width: 11px;
+  width: 13px;
 }
 
 .walk-distance-input-div {
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.side-control-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkbox-label-pair {
+  display: flex;
+  gap: 8px;
 }

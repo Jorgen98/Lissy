@@ -49,14 +49,16 @@ export class OTPAdapter implements RoutePlanner {
         const transitOnly = usePublicTransport && !useCar && !useWalk;
         const directOnly = !usePublicTransport;
 
-        // Create list of OTP valid objects for public transport modes
-        const transitModes: PlanTransitModePreferenceInput[] | null = usePublicTransport ? [
-            { mode: "TRAM" }, 
-            { mode: "BUS" },
-            { mode: "RAIL" },
-            { mode: "TROLLEYBUS" },
-            { mode: "FERRY" },
-        ] : null;
+        // Create list of OTP valid objects for public transport modes based on use preferences
+        const allowedModes = sectionInfo.preferences.publicTransport.allowedModes;
+        let transitModes: PlanTransitModePreferenceInput[] = [];
+        if (usePublicTransport) {
+            if (allowedModes.bus) transitModes.push({ mode: "BUS" });
+            if (allowedModes.trolleybus) transitModes.push({ mode: "TROLLEYBUS" });
+            if (allowedModes.tram) transitModes.push({ mode: "TRAM" });
+            if (allowedModes.train) transitModes.push({ mode: "RAIL" });
+            if (allowedModes.ferry) transitModes.push({ mode: "FERRY" });
+        }
 
         // Select one direct mode, since OTP only allows one
         const directModes: PlanDirectMode[] | null = transitOnly ? null : (useCar ? ["CAR"] : ["WALK"]);
@@ -72,7 +74,7 @@ export class OTPAdapter implements RoutePlanner {
             pointBLng: sectionInfo.pointB.lng,
             transitOnly,
             directOnly,
-            transitModes,
+            transitModes: (usePublicTransport && transitModes.length !== 0) ? transitModes : null,
             directModes,
             datetime,
             numOptions: numOptions !== undefined ? numOptions : 0,

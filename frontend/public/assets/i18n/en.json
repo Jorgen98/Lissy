@@ -187,9 +187,16 @@
         },
         "settings": {
             "walkingPreferences": "Walking preferences",
+            "publicTransportPreferences": "Public transport preferences",
             "maxWalkingDistance": "Maximum walking distance",
             "unlimitedWalkDistance": "Do not limit maximum walking distance",
-            "walkingSpeed": "Average walking speed"
+            "walkingSpeed": "Average walking speed",
+            "selectedModes": "Allowed modes of transport",
+            "bus": "Bus",  
+            "trolleybus": "Trolleybus",  
+            "tram": "Tram",  
+            "train": "Train",  
+            "ferry": "Ferry"  
         }
     },
     "map" : {

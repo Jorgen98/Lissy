@@ -23,6 +23,17 @@ Main component HTML template file for the planner module.
             <img [src]="'./planner/pedestrian.svg'" class="setting-img">
           </button>
         </div>
+
+        <!-- Public transport preferences settings button -->
+        <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button 
+            type="button" 
+            [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchPublicTransportPreferencesModuleVisibility()"  
+          >
+            <img [src]="'./planner/pt-white.svg'" class="setting-img">
+          </button>
+        </div>
       </span>
     </div>
 
@@ -42,6 +53,14 @@ Main component HTML template file for the planner module.
         <button type="button" class="mobile-btn-header" (click)="switchWalkingPreferencesModuleVisibility()">
           <img [src]="'./planner/pedestrian.svg'" class="setting-img-mobile">
           <p class="mobile-btn-text">{{ 'planner.settings.walkingPreferences' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Public transport preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchPublicTransportPreferencesModuleVisibility()">
+          <img [src]="'./planner/pt-white.svg'" class="setting-img-mobile">
+          <p class="mobile-btn-text">{{ 'planner.settings.publicTransportPreferences' | translate }}</p>
         </button>
       </div>
     </div>
@@ -103,6 +122,80 @@ Main component HTML template file for the planner module.
               </div>
             </div>
             
+          </div>
+        </div>
+      }
+
+      <!-- Public transport preferences settings -->
+      @else if (moduleFocus === 2) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'planner.settings.publicTransportPreferences' | translate }}</h4>
+            <button type="button" (click)="switchPublicTransportPreferencesModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+
+            <!-- Selected public transport modes -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.selectedModes' | translate }}</h3>
+              <span class="side-control-checkbox-span">
+                <div class="side-control-checkbox-list">
+
+                  <!-- Bus -->
+                  <div class="checkbox-label-pair">
+                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.bus">
+                      <ng-template pTemplate="icon">
+                        <i class="pi pi-check"></i>
+                      </ng-template>
+                    </p-checkbox>
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.bus' | translate }}</p>
+                  </div>
+
+                  <!-- Trolleybus -->
+                  <div class="checkbox-label-pair">
+                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.trolleybus">
+                      <ng-template pTemplate="icon">
+                        <i class="pi pi-check"></i>
+                      </ng-template>
+                    </p-checkbox>
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.trolleybus' | translate }}</p>
+                  </div>
+
+                  <!-- Tram -->
+                  <div class="checkbox-label-pair">
+                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.tram">
+                      <ng-template pTemplate="icon">
+                        <i class="pi pi-check"></i>
+                      </ng-template>
+                    </p-checkbox>
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.tram' | translate }}</p>
+                  </div>
+
+                  <!-- Train -->
+                  <div class="checkbox-label-pair">
+                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.train">
+                      <ng-template pTemplate="icon">
+                        <i class="pi pi-check"></i>
+                      </ng-template>
+                    </p-checkbox>
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.train' | translate }}</p>
+                  </div>
+
+                  <!-- Ferry -->
+                  <div class="checkbox-label-pair">
+                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.ferry">
+                      <ng-template pTemplate="icon">
+                        <i class="pi pi-check"></i>
+                      </ng-template>
+                    </p-checkbox>
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.ferry' | translate }}</p>
+                  </div>
+                </div>
+
+              </span>
+            </div>
           </div>
         </div>
       }

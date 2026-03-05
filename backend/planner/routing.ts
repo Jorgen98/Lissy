@@ -139,6 +139,9 @@ function createSectionRequest(request: TripRequest, modes: TransportMode[]): Tri
         preferences: {
             walk: {
                 speed: request.preferences.walk.avgSpeed,
+            },
+            publicTransport: {
+                allowedModes: request.preferences.publicTransport.allowedModes
             }
         }
     }

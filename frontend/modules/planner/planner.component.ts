@@ -81,6 +81,15 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     // Average walking speed from user preferences input
     public selectedWalkingSpeedKmh = 5.0;
 
+    // Which modes for public transports are allowed by the user for planning in preferences
+    public allowedPublicTransportModes = {
+        bus: true,
+        trolleybus: true,
+        tram: true,
+        train: true,
+        ferry: true,
+    }
+
     constructor(
         private mapService: MapService,
         private apiService: APIService,
@@ -165,6 +174,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                 walk: {
                     maxDistance: this.walkDistanceUnlimited ? null : this.selectedWalkDistanceKm * 1000,    // Convert to meters
                     avgSpeed: this.selectedWalkingSpeedKmh / 3.6    // Convert to m/s
+                },
+                publicTransport: {
+                    allowedModes: this.allowedPublicTransportModes
                 }
             }
         }
@@ -345,6 +357,14 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     public switchWalkingPreferencesModuleVisibility() {
         if (this.moduleFocus !== 1)
             this.moduleFocus = 1;
+        else
+            this.moduleFocus = 0;
+    }
+
+    // Function for extra public transport preferences module switch
+    public switchPublicTransportPreferencesModuleVisibility() {
+        if (this.moduleFocus !== 2)
+            this.moduleFocus = 2;
         else
             this.moduleFocus = 0;
     }

@@ -55,6 +55,7 @@ export class OTPAdapter implements RoutePlanner {
             { mode: "BUS" },
             { mode: "RAIL" },
             { mode: "TROLLEYBUS" },
+            { mode: "FERRY" },
         ] : null;
 
         // Select one direct mode, since OTP only allows one

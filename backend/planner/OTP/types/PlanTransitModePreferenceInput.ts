@@ -9,4 +9,4 @@
 import { Mode } from "./Mode";
 
 // Extract wanted modes from the general Mode union type with all modes
-export type PlanTransitModePreferenceInput = { mode: Extract<Mode, "RAIL" | "TROLLEYBUS" | "BUS" | "TRAM"> };
+export type PlanTransitModePreferenceInput = { mode: Extract<Mode, "RAIL" | "TROLLEYBUS" | "BUS" | "TRAM" | "FERRY"> };

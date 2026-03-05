@@ -4,6 +4,7 @@
 /backend/node_modules
 /backend/backups
 /backend/gtfs.zip
+/backend/planner/data/processed_population_data.geojson
 /frontend/node_modules
 /frontend/.angular
 /env/.env

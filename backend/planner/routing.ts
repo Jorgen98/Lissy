@@ -10,7 +10,11 @@ import { RoutePlanner } from "./RoutePlanner";
 import { TripRequest } from "./types/TripRequest";
 import { TripSectionInfo } from "./types/TripSectionInfo";
 import { TripSectionOption } from "./types/TripSectionOption";
-import { WALKING_DISTANCE_COEF, DRIVING_DISTANCE_COEF, MIN_DRIVE_DISTANCE } from "./utils/coefficients";
+import { WALKING_DISTANCE_COEF, DRIVING_DISTANCE_COEF, MIN_DRIVE_DISTANCE, SPATIAL_INDEX_CELL_WIDTH } from "./utils/coefficients";
+import { createSpatialIndex, calculateDistanceHaversine, EPSG4326toEPSG3035 } from "./geo";
+
+// Create spatial index for getting information about a stops rurality and public transport availability
+const spatialIndex = createSpatialIndex(SPATIAL_INDEX_CELL_WIDTH);
 
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripSectionOption[] | null> {
 
@@ -72,12 +76,13 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
             }
         }
 
-        // TODO If car and public trasnport are both selected, decide if a CAR->transfer->TRANSIT options should be requested
-        /*if (globalModes.publicTransport && globalModes.car) {
-            // TODO calculation to decide if a CAR->transfer->TRANSIT trip makes sense
-            // If pointA is some rural town/stop (can check timetables, or stop density in the near area or something else), it might make sense to make a car trip to a bigger transport hub
-            // If pointB is in the middle of the city, it doesnt really make sense to take a car trip to public transport when public transport can be used from the start anyway
-        }*/
+        // If car and public trasnport are both selected, decide if a CAR->transfer->TRANSIT options should be requested
+        if (globalModes.publicTransport && globalModes.car) {
+            const pointARurality = calculatePointRurality(request.points[0]!);
+            const pointBRurality = calculatePointRurality(request.points[1]!);
+            
+            // TODO decide if the CAR->transfer->TRANSIT trip should be requested based on rurality
+        }
 
         // Wait for all created requests running in parallel
         const results = await Promise.all(plannerRequests);
@@ -139,25 +144,28 @@ function createSectionRequest(request: TripRequest, modes: TransportMode[]): Tri
     }
 }
 
-// Function using the haversine formula to calculate straight line distance between two points in meters
-function calculateDistanceHaversine(pointA: { lat: number, lng: number }, pointB: { lat: number, lng: number }): number {
+function calculatePointRurality(point: { lat: number, lng: number }): number {
+    
+    if (!spatialIndex)
+        return -1;
 
-    // Earth radius (meters)
-    const r = 6_371_000;
+    // Convert lat and lng to EPSG:3035
+    const [easting, northing] = EPSG4326toEPSG3035(point.lat, point.lng);
+    
+    // Create key into spatial index
+    const eastingKey = Math.floor(easting / SPATIAL_INDEX_CELL_WIDTH);
+    const northingKey = Math.floor(northing / SPATIAL_INDEX_CELL_WIDTH);
+    const key = `${eastingKey}_${northingKey}`;
 
-    // Convert lat/lng degrees to radians
-    const pointALat = pointA.lat * Math.PI / 180;
-    const pointBLat = pointB.lat * Math.PI / 180;
-    const latDelta = (pointB.lat - pointA.lat) * Math.PI / 180;
-    const lngDelta = (pointB.lng - pointA.lng) * Math.PI / 180;
-
-    // Calculate haversine of omega (central angle between the two points on a sphere)
-    const cos = Math.cos;
-    const havOmega = (1 - cos(latDelta) + cos(pointALat) * cos(pointBLat) * (1 - cos(lngDelta))) / 2;
-
-    // Calculate central angle between the two points on a sphere
-    const omega = 2 * Math.asin(Math.sqrt(havOmega));
-
-    // Calculate distance between two points in meters
-    return r * omega;
-}
+    // Access spatial index with population and stops information
+    const data = spatialIndex?.index.get(key);
+    if (!data)
+        return -1;
+    
+    // Calculate rurality score from population and stops density in grid cell
+    // TODO play around with this scoring (need high values in the city and low values in villages)
+    const populationScoreNorm = (data.population - spatialIndex.minPopulation) / (spatialIndex.maxPopulation - spatialIndex.minPopulation);
+    const stopsScoreNorm = (data.stops.size - spatialIndex.minStops) / (spatialIndex.maxStops - spatialIndex.minStops);
+    const average = (populationScoreNorm + stopsScoreNorm) / 2;
+    return Math.round(average * 100);
+};

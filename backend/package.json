@@ -22,11 +22,14 @@
     "express": "^4.21.1",
     "node-cron": "^3.0.3",
     "pg": "^8.11.3",
-    "redis": "^4.7.0"
+    "proj4": "^2.20.3",
+    "redis": "^4.7.0",
+    "wellknown": "^0.5.0"
   },
   "devDependencies": {
     "@types/mapbox__polyline": "^1.0.5",
     "@types/node": "^25.3.0",
+    "@types/wellknown": "^0.5.8",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

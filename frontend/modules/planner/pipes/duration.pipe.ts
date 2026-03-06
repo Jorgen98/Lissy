@@ -18,13 +18,16 @@ export class DurationPipe implements PipeTransform {
             return `${seconds} s`;
 
         // Format to minutes if the duration is less than an hour
+        // Also add seconds if its less than three minutes
         const minutes = Math.floor(seconds / 60);
-        if (minutes < 60)
+        if (minutes < 3)
+            return `${minutes} min ${seconds % 60} s`;
+        else if (minutes < 60)
             return `${minutes} min`;
 
         // Otherwise format to hh:mm
         const hours = Math.floor(minutes / 60);
         const modMins = Math.floor((seconds % 3600) / 60);
-        return `${hours}:${modMins.toString().padStart(2, '0')}`;
+        return `${hours} h ${modMins} min`;
     }
 }

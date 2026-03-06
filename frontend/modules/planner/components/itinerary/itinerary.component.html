@@ -11,6 +11,16 @@ Main component HTML template file for the itinerary used in the planner module.
 
     <!-- Itinerary header -->
     <div class="header">
+
+      <!-- Back button to hide option detail -->
+      @if (accordionOptionValue !== -1) {
+        <img 
+          class="back-btn" 
+          src="./planner/chevron.svg" 
+          (click)="this.accordionOptionValue = -1" 
+        />
+      }
+
       <span class="title">{{ "planner.itinerary.title" | translate }}</span>
 
       <!-- Button to clear itinerary -->
@@ -22,41 +32,48 @@ Main component HTML template file for the itinerary used in the planner module.
       />
     </div>
 
-    <!-- List of trip option buttons -->
-    <div class="trip-options form-section">
-
+    <!-- PrimeNG accordion with the found options -->
+    <p-accordion expandIcon="none" collapseIcon="none" [(value)]="accordionOptionValue" class="p-accordion">
       @for (option of tripOptions(); track $index) {
-        <button 
-          class="option-button"
-          [class.option-selected]="selectedOptionIdx === $index"
-          (click)="changeTripOption($index)"  
-        >
 
-          <!-- Information about the option start time, end time, distance and duration -->
-          <div class="option-start-end">
-            {{ (option.startDatetime | date: 'HH:mm') + " - " + (option.endDatetime | date: 'HH:mm') }}
-          </div>
-          <div class="option-distance-duration">
-            <div class="option-distance">
-              {{ option.distance | distance }}
-            </div>
-            <div class="option-duration">
-              {{ option.duration | duration }}
-            </div>
-          </div>
-        </button>
+        <!-- Show the option panel only if a detail of another option is not currently being viewed -->
+        @if ((accordionOptionValue === -1) || (selectedOptionIdx === $index)) {
+
+          <!-- Option panel with header and content -->
+          <p-accordion-panel [value]="$index" class="p-accordion-panel">
+
+            <!-- Option header containing start and end times, distance, duration and a timeline -->
+            <p-accordion-header class="p-accordion-header" [class.option-selected]="selectedOptionIdx === $index" (click)="changeTripOption($index)">
+              
+              <!-- Timeline and start,end times -->
+              <div class="accorion-header-timeline">
+                <span>{{ option.startDatetime | date: "HH:mm" }}</span>
+                <div class="timeline">
+                  @for(leg of option.legs; track leg) {
+                    <div 
+                      [style.background]="getLegColor(leg)" 
+                      [style.flex]="leg.distance" 
+                      [class.dashed]="leg.mode === 'CAR' || leg.mode === 'WALK'">
+                    </div>  
+                  }
+                </div>
+                <span>{{ option.endDatetime | date: "HH:mm" }}</span>
+              </div>
+
+              <!-- Distance and duration of option -->
+              <div class="accorion-header-distance-duration">
+                <span class="accordion-header-info"><i class="pi pi-stopwatch"></i>{{ option.duration | duration }}</span>
+                <span class="accordion-header-info"><i class="pi pi-wave-pulse"></i>{{ option.distance | distance }}</span>
+              </div>
+            </p-accordion-header>
+
+            <!-- Option content with detail -->
+            <p-accordion-content>
+              <!-- TODO -->
+            </p-accordion-content>
+          </p-accordion-panel>
+        }
       }
-
-    </div>
-
-    <!-- Detail about trip option sections and legs -->
-    <div class="sections">
-
-    </div>
-
-    <!-- Buttons to export trip option -->
-    <div class="export">
-
-    </div>
+    </p-accordion>
   </div>
 }

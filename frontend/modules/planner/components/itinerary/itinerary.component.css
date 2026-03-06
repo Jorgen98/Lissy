@@ -8,13 +8,13 @@
 /* Main itinerary div and sections ********************/
 .itinerary {
     position: absolute;
-    width: 405px;
+    width: 370px;
     left: 78px;
     z-index: 500;
     border: 0.15em solid var(--p-gray-800);
     display: flex;
     flex-direction: column;
-    max-height: 90vh; 
+    max-height: 60vh; 
     bottom: 30px;
 }
 
@@ -37,7 +37,14 @@
     display: flex;
     align-items: center;
     flex: 0 0 auto;
-    padding: 5px;
+    padding-bottom: 2px;
+}
+
+.back-btn {
+    height: 45px;
+    transform: rotate(90deg);
+    cursor: pointer;
+    position: absolute;
 }
 
 .title {
@@ -49,7 +56,7 @@
 }
 /**************************************************/
 
-/* List of found trip options *****************************/
+/* List of found trip options in accordion *********/
 .trip-options {
     display: flex;
     padding: 8px;
@@ -84,5 +91,61 @@
     display: flex;
     justify-content: space-between;
     font-size: 13px;
+}
+
+.p-accordion-header {
+    border-radius: 0 !important;
+    background-color: var(--background);
+    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.option-selected {
+    border-left: 7px solid var(--p-gray-50) !important;
+}
+
+.accorion-header-timeline {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+    gap: 10px;
+    align-items: center;
+}
+
+.accorion-header-distance-duration {
+    display: flex;
+    gap: 50px;
+}
+
+.p-accordion {
+    overflow-y: auto;
+}
+
+.p-accordion-panel {
+    border-bottom: 1px solid var(--p-gray-800);
+}
+
+.timeline {
+    width: 100%;
+    display: flex;
+    height: 4px;
+}
+
+.dashed {
+  mask-image: repeating-linear-gradient(
+    to right,
+    black 0px,
+    black 5px,
+    transparent 5px,
+    transparent 10px
+  );
+}
+
+.accordion-header-info {
+    display: flex;
+    gap: 5px;
 }
 /**************************************************/

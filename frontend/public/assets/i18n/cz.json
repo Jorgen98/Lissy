@@ -184,7 +184,14 @@
         },
         "itinerary": {
             "title": "Itinerář",
-            "clearItinerary": "Smazat itinerář"
+            "clearItinerary": "Smazat itinerář",
+            "trolleybus": "Trolejbus",  
+            "tram": "Tramvaj",  
+            "ferry": "Loď",
+            "rail": "Vlak",
+            "bus": "Autobus",
+            "car": "Auto",
+            "walk": "Chůze"
         },
         "settings": {
             "walkingPreferences": "Preference chůze",
@@ -197,7 +204,8 @@
             "trolleybus": "Trolejbus",  
             "tram": "Tramvaj",  
             "train": "Vlak",  
-            "ferry": "Loď"  
+            "ferry": "Loď",
+            "rail": "Vlak"  
         }
     },
     "map" : {

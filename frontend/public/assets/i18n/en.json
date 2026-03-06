@@ -183,7 +183,14 @@
         },
         "itinerary": {
             "title": "Itinerary",
-            "clearItinerary": "Clear itinerary"
+            "clearItinerary": "Clear itinerary",
+            "trolleybus": "Trolleybus",  
+            "tram": "Tram",  
+            "ferry": "Ferry",
+            "rail": "Train",
+            "bus": "Bus",
+            "car": "Car",
+            "walk": "Walk"
         },
         "settings": {
             "walkingPreferences": "Walking preferences",
@@ -196,7 +203,8 @@
             "trolleybus": "Trolleybus",  
             "tram": "Tram",  
             "train": "Train",  
-            "ferry": "Ferry"  
+            "ferry": "Ferry",
+            "rail": "Train"
         }
     },
     "map" : {

@@ -55,7 +55,7 @@ Main component HTML template file for the trip form used in the planner module.
           <img
             [src]="
               tripData.modes.global.publicTransport
-                ? './planner/pt-dark.svg'
+                ? './planner/bus-dark.svg'
                 : './planner/pt-light.svg'
             "
             class="mode-img"
@@ -188,7 +188,7 @@ Main component HTML template file for the trip form used in the planner module.
                 <img
                   [src]="
                     tripData.modes.sections[0].publicTransport
-                      ? './planner/pt-dark.svg'
+                      ? './planner/bus-dark.svg'
                       : './planner/pt-light.svg'
                   "
                   class="midpoint-mode-img"
@@ -338,7 +338,7 @@ Main component HTML template file for the trip form used in the planner module.
                     <img
                       [src]="
                         tripData.modes.sections[$index].publicTransport
-                          ? './planner/pt-dark.svg'
+                          ? './planner/bus-dark.svg'
                           : './planner/pt-light.svg'
                       "
                       class="midpoint-mode-img"

@@ -42,6 +42,9 @@ export class ItineraryComponent implements OnChanges {
     // Value of the currently selected (expanded) panel in the accordion (-1 if none are expanded)
     public accordionOptionValue = -1;
 
+    // Whether a detail view of a trip option is currently visible
+    public optionDetailActive = false;
+
     // Called when the components directives or inputs change 
     ngOnChanges(changes: SimpleChanges): void {
 
@@ -49,23 +52,34 @@ export class ItineraryComponent implements OnChanges {
         if (changes["tripOptions"]) {
             this.accordionOptionValue = -1;
             this.selectedOptionIdx = 0;
+            this.optionDetailActive = false;
         }
     }
 
     // Function called when the user clicks on a trip option
     public changeTripOption(index: number): void {
 
-        // Update option detail view in accordion based on what was clicked and current state
-        if (this.accordionOptionValue === -1)
+        // Change the selected accordion option accordingly
+        if (!this.optionDetailActive) {
+            this.optionDetailActive = true;
             this.accordionOptionValue = index;
-        else if (index === this.selectedOptionIdx)
+        }
+        else if (this.optionDetailActive && index === this.selectedOptionIdx) {
+            this.optionDetailActive = false;
             this.accordionOptionValue = -1;
+        }
 
         // If the clicked trip option is different then the previous, emit to parent to redraw route
         if (this.selectedOptionIdx !== index)
             this.redrawTripOption.emit(index);
 
         this.selectedOptionIdx = index;
+    }
+
+    // Function called when the go back button is clicked in the itinerary, closes detail of option
+    public backButtonClicked() {
+        this.accordionOptionValue = -1;
+        this.optionDetailActive = false;
     }
 
     // Function retrieving the color of the leg based on the mode and availability from GTFS
@@ -77,5 +91,16 @@ export class ItineraryComponent implements OnChanges {
 
         // Otherwise return formatted hex color
         return `#${leg.route.color}`; 
+    }
+
+    // Function retrieving the text color of the leg based on the mode and availability from GTFS
+    public getLegTextColor(leg: TripSectionLeg): string {
+
+        // If the leg doesnt have a transport system route defined, or the text color is not provided, use black text
+        if (leg.route === null || leg.route.textColor === null)
+            return "#000000"; 
+
+        // Otherwise return formatted hex text color
+        return `#${leg.route.textColor}`; 
     }
 }

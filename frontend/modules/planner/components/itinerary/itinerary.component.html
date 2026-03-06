@@ -17,7 +17,7 @@ Main component HTML template file for the itinerary used in the planner module.
         <img 
           class="back-btn" 
           src="./planner/chevron.svg" 
-          (click)="this.accordionOptionValue = -1" 
+          (click)="backButtonClicked()" 
         />
       }
 
@@ -37,7 +37,7 @@ Main component HTML template file for the itinerary used in the planner module.
       @for (option of tripOptions(); track $index) {
 
         <!-- Show the option panel only if a detail of another option is not currently being viewed -->
-        @if ((accordionOptionValue === -1) || (selectedOptionIdx === $index)) {
+        @if (!optionDetailActive || (selectedOptionIdx === $index)) {
 
           <!-- Option panel with header and content -->
           <p-accordion-panel [value]="$index" class="p-accordion-panel">
@@ -51,9 +51,31 @@ Main component HTML template file for the itinerary used in the planner module.
                 <div class="timeline">
                   @for(leg of option.legs; track leg) {
                     <div 
+                      class="timeline-segment"
                       [style.background]="getLegColor(leg)" 
                       [style.flex]="leg.distance" 
-                      [class.dashed]="leg.mode === 'CAR' || leg.mode === 'WALK'">
+                      [class.dashed]="leg.mode === 'CAR' || leg.mode === 'WALK'"
+                    >
+
+                      <!-- Circle with mode image -->
+                      <!-- Dont show for walking legs that are less than 10% of the trip (most likely a tranfer, access, egress) -->
+                      @if (leg.mode !== "WALK" || (leg.distance / option.distance >= 0.1)) {
+                        <div class="mode-circle" [title]="`planner.itinerary.${leg.mode.toLowerCase()}` | translate">
+                          <img 
+                            class="mode-img"
+                            [src]="`./planner/${leg.mode.toLowerCase()}-dark.svg`" 
+                          />
+                        </div>
+                        <div 
+                          class="line-label"
+                          [style.background]="getLegColor(leg)"
+                          [style.color]="getLegTextColor(leg)"
+                        >
+                          @if (leg.route?.lineId) {
+                            <span>{{ leg.route?.lineId }}</span>
+                          } 
+                        </div>
+                      }
                     </div>  
                   }
                 </div>

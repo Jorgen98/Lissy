@@ -1,3 +1,10 @@
+/*
+ * File: geo.ts
+ * Author: Adam Vcelar (xvcelaa00)
+ *
+ * Geographic functions such as projection calculations, distance calculations or spatial index building.
+ */
+
 const logService = require('../log.js');
 
 import proj4 from "proj4";

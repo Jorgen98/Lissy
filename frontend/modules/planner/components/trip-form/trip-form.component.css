@@ -257,6 +257,17 @@ mat-option {
 .point-input-clear:hover {
     opacity: 0.9;
 }
+
+.location-img {
+    width: 19px;
+}
+
+.location-input-option {
+    display: flex;
+    gap: 10px;
+    margin-left: 8px;
+    align-items: center;
+}
 /********************************************/
 
 /* Datetime select **************************/

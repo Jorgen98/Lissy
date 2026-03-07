@@ -76,17 +76,6 @@
     gap: 3px;
 }
 
-.option-selected {
-    background-color: var(--p-gray-50);
-    color: var(--background);
-    opacity: 1;
-    border-color: var(--p-gray-50);    
-}
-
-.option-selected:hover {
-    opacity: 0.6;
-}
-
 .option-distance-duration {
     display: flex;
     justify-content: space-between;
@@ -100,10 +89,18 @@
     display: flex;
     flex-direction: column;
     padding: 10px;
+    --p-accordion-header-active-background: var(--background);
+    --p-accordion-header-active-color: var(--p-gray-80);
+}
+
+.p-accordion-content {
+    --p-accordion-content-background: var(--background);
+    border-top: 2px solid var(--p-gray-800);
 }
 
 .option-selected {
-    border-left: 7px solid var(--p-gray-50) !important;
+    border-left: 7px solid var(--p-gray-600) !important;
+    color: var(--p-gray-50);
 }
 
 .accorion-header-timeline {

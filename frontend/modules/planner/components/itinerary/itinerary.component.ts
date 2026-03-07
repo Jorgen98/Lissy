@@ -17,7 +17,13 @@ import { modeColors } from '../../utils/modeColors';
 
 @Component({
     selector: 'itinerary',
-    imports: [TranslatePipe, DatePipe, DistancePipe, DurationPipe, AccordionModule],
+    imports: [
+        TranslatePipe, 
+        DatePipe, 
+        DistancePipe, 
+        DurationPipe, 
+        AccordionModule
+    ],
     templateUrl: './itinerary.component.html',
     styleUrl: './itinerary.component.css',
 })

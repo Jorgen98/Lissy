@@ -9,12 +9,16 @@
 import { TripData } from "./TripData";
 
 export type TripDataExtended = TripData & {
+
+    // Append information about user preferences to TripData type
     preferences: {
         walk: {
-            maxDistance: number | null,
-            avgSpeed: number
+            maxDistance: number | null, // Maximum allowed walking distance
+            avgSpeed: number            // Average walking speed
         },
         publicTransport: {
+
+            // Modes allowed for planning transit legs
             allowedModes: {
                 bus: boolean,
                 trolleybus: boolean,

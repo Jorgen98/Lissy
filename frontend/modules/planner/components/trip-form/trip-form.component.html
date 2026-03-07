@@ -237,7 +237,7 @@ Main component HTML template file for the trip form used in the planner module.
 
       <!-- Rendering added midpoints -->
       @for (control of pointControls.controls; track $index) {
-        @if ($index !== 0 && $index !== tripData.points.length - 1) {
+        @if (!$first && !$last) {
           @let outerIdx = $index;
 
           <!-- Midpoint -->

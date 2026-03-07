@@ -13,7 +13,7 @@ Main component HTML template file for the itinerary used in the planner module.
     <div class="header">
 
       <!-- Back button to hide option detail -->
-      @if (accordionOptionValue !== -1) {
+      @if (optionDetailActive) {
         <img 
           class="back-btn" 
           src="./planner/chevron.svg" 
@@ -49,7 +49,7 @@ Main component HTML template file for the itinerary used in the planner module.
               <div class="accorion-header-timeline">
                 <span>{{ option.startDatetime | date: "HH:mm" }}</span>
                 <div class="timeline">
-                  @for(leg of option.legs; track leg) {
+                  @for(leg of option.legs; track $index) {
                     <div 
                       class="timeline-segment"
                       [style.background]="getLegColor(leg)" 

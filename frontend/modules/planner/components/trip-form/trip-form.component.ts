@@ -446,66 +446,74 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
 
         // Begin watching for current position updates (15 sec timeout)
         this.locationWatchId = navigator.geolocation.watchPosition(
-
-            // Clear possible previous current positions and display new one on the map
             position => {
-                this.locationStatus = "enabled";
-                this.mapService.clearLayer("currentLocation");
-                this.mapService.addToLayer({
-                    layerName: "currentLocation",
-                    type: "location",
-                    focus: false,
-                    latLng: [{ lat: position.coords.latitude, lng: position.coords.longitude }],
-                    color: "base",
-                    interactive: false,
-                    hoover: false,
-                    metadata: {},
-                });
-
-                // Store acquired location coordinates
-                this.currentLocation.lat = position.coords.latitude;
-                this.currentLocation.lng = position.coords.longitude;
-                
-                // Update coordinates of any trip points that are currently tracking the location
-                this.tripPointsWithLocationTracking.forEach(pointIdx => {
-                    this.tripData.points[pointIdx] = { ...this.currentLocation };
-                })
-
-                // Redraw markers of trip points currently tracking the location if there are any
-                if (this.tripPointsWithLocationTracking.size > 0)
-                    this.redrawTripMarkers();
+                this.currentLocationUpdate(position);
             }, 
-
-            // Show info toast in case of error and disable current position
             error => {
-                if (error.code === error.PERMISSION_DENIED)
-                    this.msgService.showMessage("info", "UIMessagesService.toasts.locationDenied.head", "UIMessagesService.toasts.locationDenied.body");
-                else if (error.code === error.POSITION_UNAVAILABLE)
-                    this.msgService.showMessage("info", "UIMessagesService.toasts.locationUnavailable.head", "UIMessagesService.toasts.locationUnavailable.body");
-                else
-                    this.msgService.showMessage("info", "UIMessagesService.toasts.locationTimeout.head", "UIMessagesService.toasts.locationTimeout.body");
-                
-                this.locationStatus = "disabled";
-                this.currentLocation = {};
-
-                // Clear trip points which have current location selected
-                this.pointControls.controls.forEach((control, index) => {
-                    if (control.value === "Moje poloha" || control.value === "My location") {
-                        control.setValue("");
-                        this.tripData.points[index] = {};
-
-                        // Remove points from location tracking
-                        this.tripPointsWithLocationTracking.delete(index);
-                    }
-                });
-                
-                // Some trip points might have been cleared, redraw markers
-                this.redrawTripMarkers();
+                this.handleLocationError(error);
             },
             {
                 timeout: 15000
             }
         );
+    }
+
+    // Function updating state due to success in fetching the current device location
+    private currentLocationUpdate(position: GeolocationPosition) {
+        this.locationStatus = "enabled";
+        this.mapService.clearLayer("currentLocation");
+        this.mapService.addToLayer({
+            layerName: "currentLocation",
+            type: "location",
+            focus: false,
+            latLng: [{ lat: position.coords.latitude, lng: position.coords.longitude }],
+            color: "base",
+            interactive: false,
+            hoover: false,
+            metadata: {},
+        });
+
+        // Store acquired location coordinates
+        this.currentLocation.lat = position.coords.latitude;
+        this.currentLocation.lng = position.coords.longitude;
+        
+        // Update coordinates of any trip points that are currently tracking the location
+        this.tripPointsWithLocationTracking.forEach(pointIdx => {
+            this.tripData.points[pointIdx] = { ...this.currentLocation };
+        })
+
+        // Redraw markers of trip points currently tracking the location if there are any
+        if (this.tripPointsWithLocationTracking.size > 0)
+            this.redrawTripMarkers();
+    }
+
+    // Function updating state due to error in fetching current location
+    private handleLocationError(error: GeolocationPositionError) {
+
+        // Display toast with message based on error type
+        if (error.code === error.PERMISSION_DENIED)
+            this.msgService.showMessage("info", "UIMessagesService.toasts.locationDenied.head", "UIMessagesService.toasts.locationDenied.body");
+        else if (error.code === error.POSITION_UNAVAILABLE)
+            this.msgService.showMessage("info", "UIMessagesService.toasts.locationUnavailable.head", "UIMessagesService.toasts.locationUnavailable.body");
+        else
+            this.msgService.showMessage("info", "UIMessagesService.toasts.locationTimeout.head", "UIMessagesService.toasts.locationTimeout.body");
+        
+        this.locationStatus = "disabled";
+        this.currentLocation = {};
+
+        // Clear trip points which have current location selected
+        this.pointControls.controls.forEach((control, index) => {
+            if (control.value === "Moje poloha" || control.value === "My location") {
+                control.setValue("");
+                this.tripData.points[index] = {};
+
+                // Remove points from location tracking
+                this.tripPointsWithLocationTracking.delete(index);
+            }
+        });
+        
+        // Some trip points might have been cleared, redraw markers
+        this.redrawTripMarkers();
     }
 
     // Create observable for filtered stops for specific input given by 'position'

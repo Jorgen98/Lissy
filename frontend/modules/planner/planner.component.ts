@@ -162,7 +162,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     }
 
     // Function called when a trip is submitted from the form
-    async tripSubmit(tripData: TripData): Promise<void> {
+    public async tripSubmit(tripData: TripData): Promise<void> {
 
         // Turn on loading screen
         this.msgService.turnOnLoadingScreenWithoutPercentage();
@@ -254,7 +254,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     }
 
     // Function called when the max walk distance input is blurred
-    public walkDistanceBlur() {
+    public walkDistanceBlur(): void {
 
         // Check for empty value and refill with default
         if (this.selectedWalkDistanceKm === null)
@@ -262,62 +262,14 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     }
 
     // Function called when the average walk speed input is blurred
-    public walkSpeedBlur() {
+    public walkSpeedBlur(): void {
 
         // Check for empty value and refill with default
         if (this.selectedWalkingSpeedKmh === null)
             this.selectedWalkingSpeedKmh = 5.0;
     }
 
-    private resetCursor(): void {
-
-        // Reset the original cursor values given by .css files
-        this.setCursor('');
-
-        // Select svg cursor element based on the previously selected marker
-        const cursor = this.getCursorImageElement();
-
-        // Clear the cursor state
-        cursor.style.display = 'none';
-        this.markerType = null;
-        this.markerPosition = null;
-    }
-
-    private setCursor(value: string) {
-        const map = document.querySelector('#map') as HTMLElement;
-        const form = document.querySelector('.form') as HTMLElement;
-        const sidebar = document.querySelector('.side-control') as HTMLElement;
-        map.style.cursor = value;
-        form.style.cursor = value;
-        sidebar.style.cursor = value;
-        form.querySelectorAll('*').forEach(el => {
-            (el as HTMLElement).style.cursor = value;
-        });
-    }
-
-    // Function returning a SVG element that should be used as the new cursor for trip point selection
-    private getCursorImageElement(): SVGElement {
-        if (this.markerType === "start")
-            return this.startCursorRef.nativeElement;
-        else if (this.markerType === "end")
-            return this.endCursorRef.nativeElement;
-        return this.midpointCursorRef.nativeElement;
-    }
-
-    // Function called when a mouse click happens on the leaflet map
-    private mapClicked(coords: L.LatLng): void {
-
-        // If the marker position is currently set, set the clickedCoordsWithMarker to the click coordinates and current marker position
-        // This will be emitted to the trip form component
-        if (this.markerPosition !== null){
-            this.clickedCoordsWithMarker = { coords, position: this.markerPosition };
-
-            // Clear the marker cursor
-            this.resetCursor();
-        }
-    }
-
-    public clearItinerary() {
+    public clearItinerary(): void {
         this.tripOptions = null;
         this.mapService.clearLayer('routes');
     }
@@ -367,6 +319,54 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             this.moduleFocus = 2;
         else
             this.moduleFocus = 0;
+    }
+
+    private resetCursor(): void {
+
+        // Reset the original cursor values given by .css files
+        this.setCursor('');
+
+        // Select svg cursor element based on the previously selected marker
+        const cursor = this.getCursorImageElement();
+
+        // Clear the cursor state
+        cursor.style.display = 'none';
+        this.markerType = null;
+        this.markerPosition = null;
+    }
+
+    private setCursor(value: string): void {
+        const map = document.querySelector('#map') as HTMLElement;
+        const form = document.querySelector('.form') as HTMLElement;
+        const sidebar = document.querySelector('.side-control') as HTMLElement;
+        map.style.cursor = value;
+        form.style.cursor = value;
+        sidebar.style.cursor = value;
+        form.querySelectorAll('*').forEach(el => {
+            (el as HTMLElement).style.cursor = value;
+        });
+    }
+
+    // Function returning a SVG element that should be used as the new cursor for trip point selection
+    private getCursorImageElement(): SVGElement {
+        if (this.markerType === "start")
+            return this.startCursorRef.nativeElement;
+        else if (this.markerType === "end")
+            return this.endCursorRef.nativeElement;
+        return this.midpointCursorRef.nativeElement;
+    }
+
+    // Function called when a mouse click happens on the leaflet map
+    private mapClicked(coords: L.LatLng): void {
+
+        // If the marker position is currently set, set the clickedCoordsWithMarker to the click coordinates and current marker position
+        // This will be emitted to the trip form component
+        if (this.markerPosition !== null){
+            this.clickedCoordsWithMarker = { coords, position: this.markerPosition };
+
+            // Clear the marker cursor
+            this.resetCursor();
+        }
     }
 
     // Function retrieving the color of the leg based on the mode and availability from GTFS

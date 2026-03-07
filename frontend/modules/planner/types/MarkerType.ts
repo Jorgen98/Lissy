@@ -5,5 +5,4 @@
  * Custom type for type of marker/trip point.
  */
 
-
 export type MarkerType = "start" | "end" | "midpoint";

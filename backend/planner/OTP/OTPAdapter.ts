@@ -21,6 +21,7 @@ import { TripSectionOption, TripSectionLeg } from "../types/TripSectionOption";
 import { Edges, Leg } from "./types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
 import { RouteWithShapes } from "../types/RouteWithShapes";
+import { Mode } from "../types/Mode";
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -38,7 +39,8 @@ export class OTPAdapter implements RoutePlanner {
 
     // Get a route between two points using OTPs planConnection function
     // Function translating the inputs to the format needed by OTP and the outputs to the format needed by client
-    async getTripSection(sectionInfo: TripSectionInfo, numOptions?: number): Promise<TripSectionOption[] | null>  {
+    // Returns a list of found trip options from the OTP request
+    public async getTripSection(sectionInfo: TripSectionInfo, numOptions?: number): Promise<TripSectionOption[] | null>  {
 
         // Which of the possible transport modes should be used in this sections planning
         const usePublicTransport = sectionInfo.modes.some(mode => mode === "publicTransport"); 
@@ -49,18 +51,11 @@ export class OTPAdapter implements RoutePlanner {
         const transitOnly = usePublicTransport && !useCar && !useWalk;
         const directOnly = !usePublicTransport;
 
-        // Create list of OTP valid objects for public transport modes based on use preferences
-        const allowedModes = sectionInfo.preferences.publicTransport.allowedModes;
-        let transitModes: PlanTransitModePreferenceInput[] = [];
-        if (usePublicTransport) {
-            if (allowedModes.bus) transitModes.push({ mode: "BUS" });
-            if (allowedModes.trolleybus) transitModes.push({ mode: "TROLLEYBUS" });
-            if (allowedModes.tram) transitModes.push({ mode: "TRAM" });
-            if (allowedModes.train) transitModes.push({ mode: "RAIL" });
-            if (allowedModes.ferry) transitModes.push({ mode: "FERRY" });
-        }
+        // Create list of OTP valid objects for public transport modes based on user preferences
+        const transitModes = usePublicTransport ? this.getAllowedTransitModes(sectionInfo.preferences.publicTransport.allowedModes) : null;
 
         // Select one direct mode, since OTP only allows one
+        // NOTE: Right now this doesnt matter, since requests from routing.ts are made with exactly one mode anyway
         const directModes: PlanDirectMode[] | null = transitOnly ? null : (useCar ? ["CAR"] : ["WALK"]);
 
         // Create datetime string in ISO-8601 format, needed by OTP
@@ -74,10 +69,10 @@ export class OTPAdapter implements RoutePlanner {
             pointBLng: sectionInfo.pointB.lng,
             transitOnly,
             directOnly,
-            transitModes: (usePublicTransport && transitModes.length !== 0) ? transitModes : null,
+            transitModes,
             directModes,
             datetime,
-            numOptions: numOptions !== undefined ? numOptions : 0,
+            numOptions: numOptions !== undefined ? numOptions : 0,  // If the number of options isnt set, 0 is interpreted as unlimited by OTP
             walkingSpeed: sectionInfo.preferences.walk.speed,
         }
         
@@ -95,25 +90,43 @@ export class OTPAdapter implements RoutePlanner {
             return null;
         }
 
+        // Translate the fetched result from OTP to format expected by caller
         return await this.translateTripOptions(response.data.planConnection.edges);
+    }
+
+    // Function building a list of object expected by OTP as a paremter from the transit modes allowed in user preferences
+    private getAllowedTransitModes(allowedModes: { bus: boolean, trolleybus: boolean, tram: boolean, train: boolean, ferry: boolean }): PlanTransitModePreferenceInput[] | null {
+        let transitModes: PlanTransitModePreferenceInput[] = [];
+
+        // Append allowed modes to list
+        if (allowedModes.bus) transitModes.push({ mode: "BUS" });
+        if (allowedModes.trolleybus) transitModes.push({ mode: "TROLLEYBUS" });
+        if (allowedModes.tram) transitModes.push({ mode: "TRAM" });
+        if (allowedModes.train) transitModes.push({ mode: "RAIL" });
+        if (allowedModes.ferry) transitModes.push({ mode: "FERRY" });
+
+        // No modes allowed by user
+        if (transitModes.length === 0)
+            return null;
+
+        return transitModes;
     }
 
     // Function translating the plain OTP response into format expected by the client calling the adapter
     private async translateTripOptions(edges: Edges): Promise<TripSectionOption[]> {
 
-        // Get dates where data is available in the DB for leg shaping
+        // Get dates where data is available in the DB for leg shaping, returns false on errors
         const availableDates: { start: string, disabled: string[], end: string } | false = await dbStats.getAvailableDates(true);
-        if (!availableDates) {
+        if (!availableDates)
             log('warning', 'Failed to get available dates for leg shaping.');
-        }
 
-        // Get all routes of the transport system that have shapes available in the DB for the selected latest date
+        // Get all routes of the transport system that have shapes available in the DB for the latest date
         const routesWithShapes = availableDates ? await this.getRoutesWithShapes(availableDates.end) : null;
 
         // Accumulator for translated trip options
         let tripOptions: TripSectionOption[] = [];
 
-        // Iterate over all options returned from OTP
+        // Iterate over all options returned from OTP (the edges object)
         for (const edge of edges) {
 
             // Accumulator for total distance (sum of leg distances)
@@ -128,12 +141,12 @@ export class OTPAdapter implements RoutePlanner {
                 // Accumulate distance of this leg in the total distance of the trip section
                 totalDistance += leg.distance;
 
-                // Accumulate legs for this trip section
+                // Translate and accumulate legs for this trip section in the list
                 legs.push({
                     distance: leg.distance,
                     duration: leg.duration,
                     points: await this.getLegShape(leg, routesWithShapes),   // Get leg shape from DB or translate google polyline if the shape isnt in the DB
-                    mode: leg.mode,
+                    mode: leg.mode as Mode,
                     from: {
                         arrivalTime: new Date(leg.from.arrival.scheduledTime),      // Convert dates as strings into actual UTC JS date objects
                         departureTime: new Date(leg.from.departure.scheduledTime),
@@ -174,7 +187,7 @@ export class OTPAdapter implements RoutePlanner {
     // Function decoding google polyline to array of lat/lng coordinate object with mapbox package
     private translateGooglePolyline(encoded: string, precision?: number): { lat: number, lng: number }[] {
 
-        // Use mapbox package to get a list of number pairs
+        // Use mapbox package to get a list of number tuples
         const decoded = polyline.decode(encoded, precision);
 
         // Convert into list of lat/lng objects
@@ -184,6 +197,7 @@ export class OTPAdapter implements RoutePlanner {
         }));
     }
 
+    // Function getting the shapeId from the passed in trip and the list of routes with available shapes
     private getShapeId(trip: { stops: { name: string }[] }, routesWithShapes: RouteWithShapes[]): number {
 
         // Get names of first and last stop of the trip
@@ -202,6 +216,7 @@ export class OTPAdapter implements RoutePlanner {
         return -1;
     }
 
+    // Function getting the exact shape of a leg in the trip option from the postgis database as a list of lat/lng coordinate points
     private async getLegShape(leg: Leg, routesWithShapes: RouteWithShapes[] | null): Promise<{ lat: number, lng: number }[]> {
 
         // Check needed conditions to get the trip shape from DB
@@ -218,6 +233,13 @@ export class OTPAdapter implements RoutePlanner {
         const shape = await dbPostgis.getFullShape(shapeId);
         if (shape.stops === undefined || shape.coords === undefined)
             return this.translateGooglePolyline(leg.legGeometry.points);
+
+        // The found shape has coordinates for the whole trip used for the leg, need only a subsection of the shape for the actual leg
+        return this.getSubShape(leg, shape);
+    }
+
+    // Get a subsection of 'shape', which is the shape of 'leg'
+    private getSubShape(leg: Leg, shape: any): { lat: number, lng: number }[] {
 
         // Get names of stops where the leg starts and ends
         const legFrom = leg.from.stop!.name;
@@ -244,6 +266,7 @@ export class OTPAdapter implements RoutePlanner {
         return coords;
     }
 
+    // Function querying the database for routes that have shapes available for a given date
     private async getRoutesWithShapes(latestDate: string): Promise<RouteWithShapes[] | null> {
         
         // Check if the request is for todays shapes, which are likely to already be cached

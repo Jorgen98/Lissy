@@ -1,5 +1,5 @@
 /*
- * File: IRoutePlanner.ts
+ * File: RoutePlanner.ts
  * Author: Adam Vcelar (xvcelaa00)
  *
  * Interface for external route planners to implement.

@@ -2,7 +2,7 @@
  * File: Mode.ts
  * Author: Adam Vcelar (xvcelaa00)
  *
- * Union type for transport modes in the planner (inspired by currently available OTP transport modes).
+ * Union type for transport modes currently in use in the planner.
  */
 
-export type Mode = "WALK" | "CAR" | "BUS" | "AIRPLANE" | "CABLE_CAR" | "CARPOOL" | "COACH" | "FERRY" | "FUNICULAR" | "GONDOLA" | "MONORAIL" | "RAIL" | "SUBWAY" | "TAXI" | "TRAM" | "TROLLEYBUS";
+export type Mode = "WALK" | "CAR" | "BUS" | "FERRY" | "RAIL" | "TRAM" | "TROLLEYBUS";

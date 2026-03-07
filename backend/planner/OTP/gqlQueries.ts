@@ -5,19 +5,6 @@
  * File with graphQL queries for OpenTripPlanner.
  */
 
-// Query to get all stations from OTP, their coordinates and names
-export function getAllStationsQuery() {
-    return `
-        query StationsQuery {
-            stations {
-                lat
-                lon
-                name
-            }
-        }
-    `
-};
-
 // Parametrized query for planning a trip between two points with OTP
 export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"): string { 
 

@@ -71,6 +71,7 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
     }
 }
 
+// Function creating an instance of adapter implementing the RoutePlanner interface based on the selected service
 function getPlannerAdapter(selected: string): RoutePlanner | null {
 
     // Create new instance of selected service and create adapter for it

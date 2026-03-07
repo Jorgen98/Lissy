@@ -5,7 +5,7 @@
  * Expected response type for the planConnection query from OTP build from a few seperate custom types.
  */
 
-import { Mode } from "./Mode";
+import { OTPMode } from "./OTPMode";
 
 // One leg of the found connection
 export type Leg = {
@@ -32,7 +32,7 @@ export type Leg = {
         length: number,
         points: string,
     },
-    mode: Mode,     // Transport mode used for the leg
+    mode: OTPMode,     // Transport mode used for the leg
 
     // Information about the route the leg uses, may be null for non-transit legs
     route: {

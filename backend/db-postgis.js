@@ -379,6 +379,17 @@ async function getActiveAgencies() {
     return output;
 }
 
+// Function adding the calculated transit accessibility score to stop by the given id
+async function updateStopTransitAccessibilityScore(stopId, transitScore) {
+    try {
+        await db_postgis.query('UPDATE stops SET transit_score = $1 WHERE stop_id = $2', [transitScore, stopId]);
+        return true;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
 // Add new stop to DB, returns new id
 async function addStop(stop) {
     try {
@@ -1155,4 +1166,4 @@ module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, ad
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
-    getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations }
+    getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore }

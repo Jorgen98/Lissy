@@ -128,7 +128,7 @@ async function getStopTransitAccessibilityScores(stopsFile, stopTimesFile, trips
     for (const [_, data] of Object.entries(stopScoresAggregated)) {
         const stopId = `0:${data.name}:${data.lat}:${data.lng}`;
         const score = data.normalizedScore;
-        await dbPostGIS.updateStopTransitScore(stopId, score);
+        await dbPostGIS.updateStopTransitAccessibilityScore(stopId, score);
     }
 
     return true;

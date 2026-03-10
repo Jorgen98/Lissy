@@ -67,7 +67,7 @@ export type Leg = {
 }
 
 // One trip Node (one option for the connection)
-type Node = {  
+export type Node = {  
     duration: number,   // Duration in seconds
     start: string,      // Start time of connection
     end: string,        // End time of connection

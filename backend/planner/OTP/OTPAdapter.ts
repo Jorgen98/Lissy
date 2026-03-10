@@ -22,6 +22,7 @@ import { Edges, Leg } from "./types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
 import { RouteWithShapes } from "../types/RouteWithShapes";
 import { Mode } from "../types/Mode";
+import { Node } from "./types/PlanConnectionResponse";
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -123,66 +124,72 @@ export class OTPAdapter implements RoutePlanner {
         // Get all routes of the transport system that have shapes available in the DB for the latest date
         const routesWithShapes = availableDates ? await this.getRoutesWithShapes(availableDates.end) : null;
 
-        // Accumulator for translated trip options
-        let tripOptions: TripSectionOption[] = [];
+        // Accumulator for request of trip option translations (will be executed in 'parallel')
+        let tripOptionRequests: Promise<TripSectionOption>[] = [];
 
-        // Iterate over all options returned from OTP (the edges object)
-        for (const edge of edges) {
+        // Iterate over all options returned from OTP and create the translate request
+        for (const edge of edges)
+            tripOptionRequests.push(this.translateTripOption(edge, routesWithShapes));
 
-            // Accumulator for total distance (sum of leg distances)
-            let totalDistance = 0;
+        // Wait for all request to finish and return the translated trip options
+        return await Promise.all(tripOptionRequests);
+    };
 
-            // Accumulator for translated legs of the trip
-            let legs: TripSectionLeg[] = [];
+    // Function translating a single trip option returned from OTP to client format
+    private async translateTripOption(edge: { node: Node }, routesWithShapes: RouteWithShapes[] | null): Promise<TripSectionOption> {
 
-            // Iterate over all legs returned from OTP
-            for (const leg of edge.node.legs) {
+        // Accumulator for total distance (sum of leg distances)
+        let totalDistance = 0;
 
-                // Accumulate distance of this leg in the total distance of the trip section
-                totalDistance += leg.distance;
+        // Accumulator for leg translations request of the trip (will be executed in 'parallel')
+        let legRequests: Promise<TripSectionLeg>[] = [];
 
-                // Translate and accumulate legs for this trip section in the list
-                legs.push({
-                    distance: leg.distance,
-                    duration: leg.duration,
-                    points: await this.getLegShape(leg, routesWithShapes),   // Get leg shape from DB or translate google polyline if the shape isnt in the DB
-                    mode: leg.mode as Mode,
-                    from: {
-                        arrivalTime: new Date(leg.from.arrival.scheduledTime),      // Convert dates as strings into actual UTC JS date objects
-                        departureTime: new Date(leg.from.departure.scheduledTime),
-                        placeName: leg.from.stop?.name ?? null,
-                        isTransportStop: leg.from.stop !== null, 
-                    },
-                    to: {
-                        arrivalTime: new Date(leg.to.arrival.scheduledTime),
-                        departureTime: new Date(leg.to.departure.scheduledTime),
-                        placeName: leg.to.stop?.name ?? null,
-                        isTransportStop: leg.to.stop !== null,  
-                    },
-                    route: leg.route ? {
-                        lineId: leg.route.shortName,
-                        color: leg.route.color,
-                        textColor: leg.route.textColor,
-                    } : null
-                });
-            }
+        // Iterate over all legs returned from OTP
+        for (const leg of edge.node.legs) {
 
-            // Once all legs are translated, create the final trip option object
-            tripOptions.push({
-                duration: edge.node.duration,
-                distance: totalDistance,
-                startDatetime: new Date(edge.node.start),
-                endDatetime: new Date(edge.node.end),
-                legs,
-            });
+            // Accumulate distance of this leg in the total distance of the trip section
+            totalDistance += leg.distance;
 
-            // Clear accumulators
-            legs = [];
-            totalDistance = 0;
+            // Register request to translate trip leg
+            legRequests.push(this.translateTripLeg(leg, routesWithShapes));
         }
 
-        return tripOptions;
-    };
+        // Once all legs are translated, create the final trip option object
+        return {
+            duration: edge.node.duration,
+            distance: totalDistance,
+            startDatetime: new Date(edge.node.start),
+            endDatetime: new Date(edge.node.end),
+            legs: await Promise.all(legRequests),       // Wait for all leg translations to finish
+        };
+    }
+
+    // Function translating a single leg of a trip option returned from OTP to client format
+    private async translateTripLeg(leg: Leg, routesWithShapes: RouteWithShapes[] | null): Promise<TripSectionLeg> {
+        return {
+            distance: leg.distance,
+            duration: leg.duration,
+            points: await this.getLegShape(leg, routesWithShapes),   // Get leg shape from DB or translate google polyline if the shape isnt in the DB
+            mode: leg.mode as Mode,
+            from: {
+                arrivalTime: new Date(leg.from.arrival.scheduledTime),      // Convert dates as strings into actual UTC JS date objects
+                departureTime: new Date(leg.from.departure.scheduledTime),
+                placeName: leg.from.stop?.name ?? null,
+                isTransportStop: leg.from.stop !== null, 
+            },
+            to: {
+                arrivalTime: new Date(leg.to.arrival.scheduledTime),
+                departureTime: new Date(leg.to.departure.scheduledTime),
+                placeName: leg.to.stop?.name ?? null,
+                isTransportStop: leg.to.stop !== null,  
+            },
+            route: leg.route ? {
+                lineId: leg.route.shortName,
+                color: leg.route.color,
+                textColor: leg.route.textColor,
+            } : null
+        }
+    }
 
     // Function decoding google polyline to array of lat/lng coordinate object with mapbox package
     private translateGooglePolyline(encoded: string, precision?: number): { lat: number, lng: number }[] {

@@ -125,16 +125,11 @@ async function getStopTransitAccessibilityScores(stopsFile, stopTimesFile, trips
         return false;
 
     // Update the database with calculated scores
-    console.log("Start");
-    let count = 0;
     for (const [_, data] of Object.entries(stopScoresAggregated)) {
         const stopId = `0:${data.name}:${data.lat}:${data.lng}`;
         const score = data.normalizedScore;
         await dbPostGIS.updateStopTransitScore(stopId, score);
-        console.log("Count: " + count);
-        count++;
     }
-    console.log("End");
 
     return true;
 }

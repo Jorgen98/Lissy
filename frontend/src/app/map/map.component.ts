@@ -11,6 +11,7 @@ import * as L from 'leaflet';
 import { environment } from '../../environments/environment';
 import { mapLayer, mapObject, MapService } from './map.service';
 import { TranslateService } from '@ngx-translate/core';
+import * as turf from "@turf/turf";
 
 import { DomSanitizer } from '@angular/platform-browser';
 import { delayCategoriesService, delayCategory } from '../services/delayCategories';
@@ -355,6 +356,39 @@ export class MapComponent implements AfterViewInit {
 
                             L.DomEvent.stopPropagation(event);
                         })
+                    }
+
+                    // Put a circle in the middle of the polyline with an image highligting the mode used on that route
+                    if (object.metadata.modeImg !== undefined) {
+
+                        // Build a GeoJSON linestring from the latlng list
+                        const line = turf.lineString(object.latLng.map(ll => [ll.lng, ll.lat]));
+
+                        // Get the true length of the polyline in meters and get center point
+                        const length = turf.length(line, { units: "meters" });
+                        const center = turf.along(line, length / 2, { units: "meters" }); 
+                        const centerCoords = center.geometry.coordinates;
+
+                        // Create circle icon with background color given by the mode and image of the used mode
+                        const size = 21;
+                        const circle = L.divIcon({
+                            html: `
+                                <svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="50" cy="50" r="50" fill="${object.metadata.color}" opacity="1"/>
+                                    <image href="./planner/${object.metadata.modeImg}" x="15" y="15" width="70" height="70"/>
+                                </svg>
+                            `,
+                            iconSize: [size, size],
+                            iconAnchor: [size / 2, size / 2],
+                        });
+
+                        // Place marker with custom circle icon to the center of the route
+                        L.marker(
+                            [centerCoords[1], centerCoords[0]], 
+                            { 
+                                icon: circle 
+                            }
+                        ).addTo(this.layers[object.layerName].layer!);
                     }
 
                     bounds = lineOnMap.getBounds();

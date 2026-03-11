@@ -296,6 +296,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     
         // Iterate through each leg and add it to the map layer with color given by GTFS or hardcoded for specific modes
         trip.legs.forEach(leg => {
+            const bgColor = this.getLegColor(leg);
             this.mapService.addToLayer({
                 layerName: "routes",
                 type: "route",
@@ -303,8 +304,11 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                 latLng: leg.points,
                 color: "provided",
                 metadata: {
-                    color: this.getLegColor(leg),
+                    color: bgColor,
                     dashed: leg.mode === "CAR" || leg.mode === "WALK",
+
+                    // For good contrast the color of the mode image is either dark or white based on the background color
+                    modeImg: `${leg.mode.toLowerCase()}-${this.isColorLight(bgColor) ? 'dark' : 'white'}.svg`,
                 },
                 interactive: true,
                 hoover: false,
@@ -326,6 +330,19 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             this.moduleFocus = 2;
         else
             this.moduleFocus = 0;
+    }
+
+    // Function determining if the passed in hex color is light or dark
+    private isColorLight(hex: string): boolean {
+
+        // Get individual RGB components
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+
+        // Decide according to equivalent grayscale color
+        const luminance = r * 0.299 + g * 0.587 + b * 0.114;
+        return luminance > 128;
     }
 
     private resetCursor(): void {

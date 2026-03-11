@@ -315,6 +315,7 @@ export class MapComponent implements AfterViewInit {
         }
 
         let bounds: L.LatLngBoundsExpression = this.map.getBounds();
+        let boundsPadding: L.PointTuple | undefined = undefined;
 
         switch (object.type) {
             // Polyline
@@ -392,7 +393,13 @@ export class MapComponent implements AfterViewInit {
                         ).addTo(this.layers[object.layerName].layer!);
                     }
 
-                    bounds = lineOnMap.getBounds();
+                    // If drawing the last leg of a planner trip, getBounds of all contents of the 'routes' layer (all legs)
+                    if (object.metadata.isLastLeg === true){
+                        bounds = this.layers[object.layerName].layer!.getBounds();
+                        boundsPadding = [370, 50] as L.PointTuple;
+                    }
+                    else
+                        bounds = lineOnMap.getBounds();
                 }
                 break;
             }
@@ -517,7 +524,9 @@ export class MapComponent implements AfterViewInit {
         }
 
         if (object.focus) {
-            this.map.fitBounds(bounds);
+            this.map.fitBounds(bounds, {
+                padding: boundsPadding,
+            });
         }
     }
 

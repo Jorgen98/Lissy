@@ -380,6 +380,7 @@ export class MapComponent implements AfterViewInit {
                             `,
                             iconSize: [size, size],
                             iconAnchor: [size / 2, size / 2],
+                            className: 'leaflet-div-icon-clean',
                         });
 
                         // Place marker with custom circle icon to the center of the route

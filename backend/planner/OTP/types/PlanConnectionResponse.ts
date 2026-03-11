@@ -40,7 +40,8 @@ export type Leg = {
 
         // Colors preferred for use by the agency sharing the GTFS dataset for this route 
         color: string | null,
-        textColor: string | null
+        textColor: string | null,
+        gtfsId: string // GTFS internal trip id
     } | null,
 
     // Information about point where the leg ends
@@ -62,7 +63,8 @@ export type Leg = {
         // List of stops on the trip with thier names
         stops: { 
             name: string 
-        }[]
+        }[],
+        gtfsId: string // GTFS internal trip id
     } | null
 }
 

@@ -73,6 +73,7 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                                 stops {
                                     name
                                 }
+                                gtfsId
                             }
                             distance
                             duration
@@ -96,6 +97,7 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                                 color
                                 shortName
                                 textColor
+                                gtfsId
                             }
                             to {
                                 arrival {

@@ -1027,13 +1027,15 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             shape_id: null,
             stops_info: actualStopTimes[decRecord[tripIdIdxTrips]].stops_info,
             stops: actualStopTimes[decRecord[tripIdIdxTrips]].stops,
-            api: ''
+            api: '',
+            gtfs_trip_id: null
         }
 
         let actualTrip = actualTrips[internTripId];
         newTrip.route_id_id = actualTrip?.route_id_id ? actualTrip.route_id_id : null;
         newTrip.shape_id = actualTrip?.shape_id ? actualTrip.shape_id : null;
         newTrip.api = actualApiEndpoints[newTrip.trip_id] ? actualApiEndpoints[newTrip.trip_id] : null;
+        newTrip.gtfs_trip_id = JSON.parse(JSON.stringify(newTrip.trip_id));
         newTrip.trip_id = internTripId;
 
         let actualTripToCmp = actualTrip ? JSON.parse(JSON.stringify(actualTrip)) : undefined;
@@ -1326,4 +1328,21 @@ function stopsSort(data) {
     return data;
 }
 
-module.exports = { reloadActualSystemState }
+// Function, which returns shape based on lineId and tripId
+async function getShapeFromOTP(routeId, tripId) {
+    if (routeId === undefined || tripId === undefined) {
+        return [];
+    }
+
+    const route = (await dbPostGIS.getActiveRoutes())[routeId.split(':')[1]];
+    if (route) {
+        const trips = await dbPostGIS.getActiveTrips([route]);
+        for (const trip of Object.keys(trips)) {
+            if (trips[trip].gtfs_trip_id === parseInt(tripId.split(':')[1])) {
+                return await dbPostGIS.getFullShape(trips[trip].shape_id);
+            }
+        }
+    }
+}
+
+module.exports = { reloadActualSystemState, getShapeFromOTP }

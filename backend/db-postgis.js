@@ -542,10 +542,10 @@ async function getActiveRoutesToProcess() {
 async function addTrip(trip) {
     try {
         let id = await db_postgis.query(`INSERT INTO trips (route_id, route_id_id, trip_id, trip_headsign,
-            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id, stops_info, stops, api,
+            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id, stops_info, stops, api, gtfs_trip_id,
             is_active, is_today) VALUES ('${trip.route_id}',  ${trip.route_id_id}, '${trip.trip_id}', '${trip.trip_headsign}',
             '${trip.trip_short_name}', ${trip.direction_id}, '${trip.block_id}', ${trip.wheelchair_accessible},
-            ${trip.bikes_allowed}, ${trip.shape_id}, array[${trip.stops_info}]::json[], '{${trip.stops}}', '${trip.api}', true, false) RETURNING id`);
+            ${trip.bikes_allowed}, ${trip.shape_id}, array[${trip.stops_info}]::json[], '{${trip.stops}}', '${trip.api}', '${trip.gtfs_trip_id}', true, false) RETURNING id`);
         return id.rows[0].id;
     } catch(error) {
         log('error', error);
@@ -565,7 +565,7 @@ async function getActiveTrips(routeIds) {
     try {
         result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
             trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
-            stops_info, stops, api FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
+            stops_info, stops, api, gtfs_trip_id FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
     } catch(error) {
         log('error', error);
         return [];

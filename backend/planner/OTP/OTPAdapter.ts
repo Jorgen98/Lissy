@@ -5,11 +5,12 @@
  * Translating adapter class for OpenTripPlanner.
  */
 
-const timestamp = require('../../timestamp.js');
+const timestamp = require('../../timeStamp.js');
 const logService = require('../../log.js');
 const dbStats = require('../../db-stats.js');
 const dbPostgis = require('../../db-postgis.js');
 const dbCache = require('../../db-cache.js');
+const gtfsService = require('../../gtfs.js');
 
 import { OTPService } from "./OTPService";
 import { RoutePlanner } from "../RoutePlanner";
@@ -166,6 +167,8 @@ export class OTPAdapter implements RoutePlanner {
 
     // Function translating a single leg of a trip option returned from OTP to client format
     private async translateTripLeg(leg: Leg, routesWithShapes: RouteWithShapes[] | null): Promise<TripSectionLeg> {
+        await gtfsService.getShapeFromOTP(leg.route?.gtfsId, leg.trip?.gtfsId);
+
         return {
             distance: leg.distance,
             duration: leg.duration,

@@ -382,6 +382,10 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     // Function determining if the passed in hex color is light or dark
     private isColorLight(hex: string): boolean {
 
+        // Adjust to route color switching from black to white in map.component
+        if (hex === "#000000")
+            return true;
+
         // Get individual RGB components
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);

@@ -135,15 +135,14 @@ export class OTPAdapter implements RoutePlanner {
     // Function translating the plain OTP response into format expected by the client calling the adapter
     private async translateTripOptions(edges: Edges): Promise<TripSectionOption[]> {
 
-        // Accumulator for request of trip option translations (will be executed in 'parallel')
-        let tripOptionRequests: Promise<TripSectionOption>[] = [];
+        // Accumulator for translated trip options
+        let tripOptionRequests: TripSectionOption[] = [];
 
-        // Iterate over all options returned from OTP and create the translate request
+        // Iterate over all options returned from OTP and wait for the translation
         for (const edge of edges)
-            tripOptionRequests.push(this.translateTripOption(edge));
+            tripOptionRequests.push(await this.translateTripOption(edge));
 
-        // Wait for all request to finish and return the translated trip options
-        return await Promise.all(tripOptionRequests);
+        return tripOptionRequests;
     };
 
     // Function translating a single trip option returned from OTP to client format

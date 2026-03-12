@@ -143,28 +143,6 @@ Main component HTML template file for the trip form used in the planner module.
         </div>
       </div>
 
-      <!-- Origin point Drag and Drop preview -->
-      <div class="trip-point" *cdkDragPreview>
-        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
-        <div class="point-input-wrapper">
-          <input
-            type="text"
-            [placeholder]="'planner.form.startPoint' | translate"
-          />
-          <div class="point-input-extra">
-            <img
-              [src]="'./planner/current-location.svg'"
-              class="point-input-pointer"
-            />
-            <img
-              [src]="'./planner/start-marker.svg'"
-              class="point-input-pointer"
-              [title]="'planner.form.markerTooltip' | translate"
-            />
-          </div>
-        </div>
-      </div>
-
       <!-- Button to add midpoint -->
       <div class="midpoint-options-wrapper">
         <button
@@ -281,31 +259,6 @@ Main component HTML template file for the trip form used in the planner module.
                     (click)="clearTripPoint(outerIdx)"
                   />
                 </div>
-            </div>
-
-            <!-- Remove midpoint button -->
-            <img
-              [src]="'./planner/trash-bin-dark.svg'"
-              class="point-input-pointer remove-midpoint"
-              (click)="removeMidpoint($index)"
-              [title]="'planner.form.removeMidpointTooltip' | translate"
-            />
-          </div>
-
-          <!-- Midpoint Drag and Drop preview -->
-          <div class="trip-point" *cdkDragPreview>
-            <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
-            <div class="point-input-wrapper">
-              <input
-                type="text"
-                [placeholder]="'planner.form.midpoint' | translate"
-                [value]="tripData.points[$index]"
-              />
-              <img
-                [src]="'./planner/midpoint-marker.svg'"
-                class="point-input-pointer point-input-extra"
-                [title]="'planner.form.markerTooltip' | translate"
-              />
             </div>
 
             <!-- Remove midpoint button -->
@@ -436,21 +389,6 @@ Main component HTML template file for the trip form used in the planner module.
           </div>
       </div>
 
-      <!-- Destination point drag and drop preview -->
-      <div class="trip-point" *cdkDragPreview>
-        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
-        <div class="point-input-wrapper">
-          <input
-            type="text"
-            [placeholder]="'planner.form.endPoint' | translate"
-          />
-          <img
-            [src]="'./planner/end-marker.svg'"
-            class="point-input-pointer point-input-extra"
-            [title]="'planner.form.markerTooltip' | translate"
-          />
-          </div>
-      </div>
       <div class="last-point-btn">
 
         <!-- Add midpoint button -->

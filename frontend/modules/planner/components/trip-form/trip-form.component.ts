@@ -45,7 +45,6 @@ import {
         CdkDrag, 
         CdkDropList, 
         CdkDragHandle, 
-        CdkDragPreview, 
         FormsModule, 
         MatAutocompleteModule, 
         ReactiveFormsModule, 

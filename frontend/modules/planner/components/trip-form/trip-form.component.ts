@@ -188,10 +188,12 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
 
         // Check if the parent component emitted map coordinates of a click with a trip point position
         if (changes["mapClickWithMarkerCursor"] && this.mapClickWithMarkerCursor()) {
+            const position = this.mapClickWithMarkerCursor()!.position;
 
             // Store the received coordinates into trip data and set value of the form control
-            this.tripData.points[this.mapClickWithMarkerCursor()!.position] = this.mapClickWithMarkerCursor()!.coords; 
-            this.pointControls.controls.at(this.mapClickWithMarkerCursor()!.position)?.setValue(this.translate.instant("planner.form.pointFromMap"));
+            this.tripData.points[position] = this.mapClickWithMarkerCursor()!.coords; 
+            this.pointControls.controls.at(position)?.setValue(this.translate.instant("planner.form.pointFromMap"));
+            this.tripPointsWithLocationTracking.delete(position);
 
             // Redraw markers with new trip point
             this.redrawTripMarkers();

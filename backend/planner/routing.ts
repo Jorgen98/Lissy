@@ -15,6 +15,8 @@ import { calculateDistanceHaversine } from "./geo";
 
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripSectionOption[] | null> {
 
+    await planner.initialize();
+
     // Specific case where there are only two trip points in the plan
     if (request.points.length === 2) {
 

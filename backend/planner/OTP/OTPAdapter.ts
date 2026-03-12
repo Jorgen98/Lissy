@@ -10,7 +10,6 @@ const logService = require('../../log.js');
 const dbStats = require('../../db-stats.js');
 const dbPostgis = require('../../db-postgis.js');
 const dbCache = require('../../db-cache.js');
-const gtfsService = require('../../gtfs.js');
 
 import { OTPService } from "./OTPService";
 import { RoutePlanner } from "../RoutePlanner";
@@ -19,11 +18,10 @@ import { PlanConnectionParams } from "./types/PlanConnectionParams";
 import { PlanDirectMode } from "./types/PlanDirectMode";
 import { PlanTransitModePreferenceInput } from "./types/PlanTransitModePreferenceInput";
 import { TripSectionOption, TripSectionLeg } from "../types/TripSectionOption";
-import { Edges, Leg } from "./types/PlanConnectionResponse";
+import { Edges, Leg, Node } from "./types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
 import { RouteWithShapes } from "../types/RouteWithShapes";
 import { Mode } from "../types/Mode";
-import { Node } from "./types/PlanConnectionResponse";
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -34,6 +32,12 @@ function log(type: string, msg: string): void {
 Adapter for OpenTripPlanner2 instance
 */
 export class OTPAdapter implements RoutePlanner {
+
+    // Dates where data is available in the DB for leg shaping
+    private availableDates: { start: string, disabled: string[], end: string } | false = false;
+
+    // Routes of the transport system that have shapes available in the DB for the requested date
+    private routesWithShapes: RouteWithShapes[] | null = null;
 
     constructor(
         private otpService: OTPService
@@ -96,6 +100,20 @@ export class OTPAdapter implements RoutePlanner {
         return await this.translateTripOptions(response.data.planConnection.edges);
     }
 
+    // Function performing any initializations for the OTPAdapter, loads available dates and routes with shapes in the DB
+    public async initialize(): Promise<boolean> {
+
+        // Get dates where data is available in the DB for leg shaping, returns false on errors
+        this.availableDates = await dbStats.getAvailableDates(true);
+        if (!this.availableDates)
+            log('warning', 'Failed to get available dates for leg shaping.');
+
+        // Get all routes of the transport system that have shapes available in the DB for the latest date
+        this.routesWithShapes = this.availableDates ? await this.getRoutesWithShapes(this.availableDates.end) : null;
+
+        return true;
+    }
+
     // Function building a list of object expected by OTP as a paremter from the transit modes allowed in user preferences
     private getAllowedTransitModes(allowedModes: { bus: boolean, trolleybus: boolean, tram: boolean, train: boolean, ferry: boolean }): PlanTransitModePreferenceInput[] | null {
         let transitModes: PlanTransitModePreferenceInput[] = [];
@@ -117,27 +135,19 @@ export class OTPAdapter implements RoutePlanner {
     // Function translating the plain OTP response into format expected by the client calling the adapter
     private async translateTripOptions(edges: Edges): Promise<TripSectionOption[]> {
 
-        // Get dates where data is available in the DB for leg shaping, returns false on errors
-        const availableDates: { start: string, disabled: string[], end: string } | false = await dbStats.getAvailableDates(true);
-        if (!availableDates)
-            log('warning', 'Failed to get available dates for leg shaping.');
-
-        // Get all routes of the transport system that have shapes available in the DB for the latest date
-        const routesWithShapes = availableDates ? await this.getRoutesWithShapes(availableDates.end) : null;
-
         // Accumulator for request of trip option translations (will be executed in 'parallel')
         let tripOptionRequests: Promise<TripSectionOption>[] = [];
 
         // Iterate over all options returned from OTP and create the translate request
         for (const edge of edges)
-            tripOptionRequests.push(this.translateTripOption(edge, routesWithShapes));
+            tripOptionRequests.push(this.translateTripOption(edge));
 
         // Wait for all request to finish and return the translated trip options
         return await Promise.all(tripOptionRequests);
     };
 
     // Function translating a single trip option returned from OTP to client format
-    private async translateTripOption(edge: { node: Node }, routesWithShapes: RouteWithShapes[] | null): Promise<TripSectionOption> {
+    private async translateTripOption(edge: { node: Node }): Promise<TripSectionOption> {
 
         // Accumulator for total distance (sum of leg distances)
         let totalDistance = 0;
@@ -152,7 +162,7 @@ export class OTPAdapter implements RoutePlanner {
             totalDistance += leg.distance;
 
             // Register request to translate trip leg
-            legRequests.push(this.translateTripLeg(leg, routesWithShapes));
+            legRequests.push(this.translateTripLeg(leg));
         }
 
         // Once all legs are translated, create the final trip option object
@@ -166,13 +176,11 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Function translating a single leg of a trip option returned from OTP to client format
-    private async translateTripLeg(leg: Leg, routesWithShapes: RouteWithShapes[] | null): Promise<TripSectionLeg> {
-        await gtfsService.getShapeFromOTP(leg.route?.gtfsId, leg.trip?.gtfsId);
-
+    private async translateTripLeg(leg: Leg): Promise<TripSectionLeg> {
         return {
             distance: leg.distance,
             duration: leg.duration,
-            points: await this.getLegShape(leg, routesWithShapes),   // Get leg shape from DB or translate google polyline if the shape isnt in the DB
+            points: await this.getLegShape(leg),   // Get leg shape from DB or translate google polyline if the shape isnt in the DB
             mode: leg.mode as Mode,
             from: {
                 arrivalTime: new Date(leg.from.arrival.scheduledTime),      // Convert dates as strings into actual UTC JS date objects
@@ -208,14 +216,14 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Function getting the shapeId from the passed in trip and the list of routes with available shapes
-    private getShapeId(trip: { stops: { name: string }[] }, routesWithShapes: RouteWithShapes[]): number {
+    private getShapeId(trip: { stops: { name: string }[] }): number {
 
         // Get names of first and last stop of the trip
         const firstTripStop = trip.stops[0]!.name;
         const lastTripStop = trip.stops[trip.stops.length - 1]!.name;
 
         // Find shapeId for given trip
-        for (const route of routesWithShapes) {
+        for (const route of this.routesWithShapes!) {
             for (const trip of route.trips) {
                 if (trip.stops === `${firstTripStop} -> ${lastTripStop}`)
                     return trip.shape_id;
@@ -227,15 +235,15 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Function getting the exact shape of a leg in the trip option from the postgis database as a list of lat/lng coordinate points
-    private async getLegShape(leg: Leg, routesWithShapes: RouteWithShapes[] | null): Promise<{ lat: number, lng: number }[]> {
+    private async getLegShape(leg: Leg): Promise<{ lat: number, lng: number }[]> {
 
         // Check needed conditions to get the trip shape from DB
         // Direct modes dont have shape data in DB and the leg needs to have a defined trip with at least two stops
-        if (leg.mode === "WALK" || leg.mode === "CAR" || routesWithShapes === null || leg.trip === null || leg.trip.stops.length < 2)
+        if (leg.mode === "WALK" || leg.mode === "CAR" || this.routesWithShapes === null || leg.trip === null || leg.trip.stops.length < 2)
             return this.translateGooglePolyline(leg.legGeometry.points);
 
         // Get shapeId of trip used for given leg
-        const shapeId = this.getShapeId(leg.trip, routesWithShapes);
+        const shapeId = this.getShapeId(leg.trip);
         if (shapeId === -1)
             return this.translateGooglePolyline(leg.legGeometry.points);
 

@@ -51,6 +51,15 @@ export class ItineraryComponent implements OnChanges {
     // Whether a detail view of a trip option is currently visible
     public optionDetailActive = false;
 
+    // Whether the itinerary is currently in compact view, only showing the header of the selected option
+    public showCompactView: boolean = false;
+
+    // Input from the parent telling to itinerary to close itself (compact mode) or open (all options shown)
+    public forceAction = input<"close" | "open" | null>(null);
+
+    // Output emitting when the compact view is being exited by clicking on the one shown option (opens detail of that option)
+    public forceDetail = output();
+
     // Called when the components directives or inputs change 
     ngOnChanges(changes: SimpleChanges): void {
 
@@ -60,17 +69,37 @@ export class ItineraryComponent implements OnChanges {
             this.selectedOptionIdx = 0;
             this.optionDetailActive = false;
         }
+
+        // React to a force close or force open from the parent component 
+        if (changes["forceAction"]) {
+            if (this.forceAction() === "open")
+                this.showCompactView = false;
+            else if (this.forceAction() === "close") {
+                this.showCompactView = true;
+                this.accordionOptionValue = -1;
+                this.optionDetailActive = false;
+            }
+        }
     }
 
     // Function called when the user clicks on a trip option
     public changeTripOption(index: number): void {
+
+        // If the itinerary is currently in compact view, emit to parent that the detail will be opened
+        if (this.showCompactView) {
+            this.forceDetail.emit();
+            this.optionDetailActive = true;
+            this.accordionOptionValue = this.selectedOptionIdx;
+            this.showCompactView = false;
+            return;
+        }
 
         // Change the selected accordion option accordingly
         if (!this.optionDetailActive) {
             this.optionDetailActive = true;
             this.accordionOptionValue = index;
         }
-        else if (this.optionDetailActive && index === this.selectedOptionIdx) {
+        else if (this.optionDetailActive) {
             this.optionDetailActive = false;
             this.accordionOptionValue = -1;
         }

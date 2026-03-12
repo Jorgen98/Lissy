@@ -200,15 +200,30 @@ Main component HTML template file for the planner module.
         </div>
       }
 
-      <!-- Trip input form component -->
-      <trip-form 
-        (markerClick)="markerClick($event)" 
-        (tripSubmit)="tripSubmit($event)" 
-        [stops]="allStops" 
-        [mapClickWithMarkerCursor]="clickedCoordsWithMarker" 
-      />
+      <!-- The two components are located in the same column under each other -->
+      <!-- Components notify each other about space requirements for rendering/updating their contents through inputs and outputs -->
+      <!-- Or get notified by this component when new trip options are found -->
+      <div class="main-components-wrapper">
 
-      <itinerary [tripOptions]="tripOptions" (redrawTripOption)="renderTrip($event)" (clearItinerary)="clearItinerary()"/>
+        <!-- Trip input form component -->
+        <trip-form 
+          (markerClick)="markerClick($event)" 
+          (tripSubmit)="tripSubmit($event)" 
+          [stops]="allStops" 
+          [mapClickWithMarkerCursor]="clickedCoordsWithMarker" 
+          [forceAction]="formForceAction"
+          (collapseAction)="formCollapseAction($event)"
+        />
+
+        <!-- Itinerary component with trip options -->
+        <itinerary 
+          [tripOptions]="tripOptions" 
+          (redrawTripOption)="renderTrip($event)" 
+          (clearItinerary)="clearItinerary()"
+          [forceAction]="itineraryForceAction"
+          (forceDetail)="itineraryForceOpenDetail()"
+        />
+      </div>
 
       <!-- Map -->
       <map></map>

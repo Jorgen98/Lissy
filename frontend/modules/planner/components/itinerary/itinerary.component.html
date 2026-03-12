@@ -36,8 +36,8 @@ Main component HTML template file for the itinerary used in the planner module.
     <p-accordion expandIcon="none" collapseIcon="none" [(value)]="accordionOptionValue" class="p-accordion">
       @for (option of tripOptions(); track $index) {
 
-        <!-- Show the option panel only if a detail of another option is not currently being viewed -->
-        @if (!optionDetailActive || (selectedOptionIdx === $index)) {
+        <!-- If the detail of an option is being shown or the itinerary is in compact view mode, show only the currently selected option -->
+        @if ((optionDetailActive || showCompactView) ? (selectedOptionIdx === $index) : true) {
 
           <!-- Option panel with header and content -->
           <p-accordion-panel [value]="$index" class="p-accordion-panel">

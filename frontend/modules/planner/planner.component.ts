@@ -90,6 +90,11 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         ferry: true,
     }
 
+    // Changes to these variables notify child components if they should give up space by going into a more compact mode
+    // Or they can take up more space
+    public formForceAction: "open" | "close" | null = null;
+    public itineraryForceAction: "open" | "close" | null = null;
+
     constructor(
         private mapService: MapService,
         private apiService: APIService,
@@ -164,6 +169,10 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     // Function called when a trip is submitted from the form
     public async tripSubmit(tripData: TripData): Promise<void> {
 
+        // Clear trip options when a new trip is being requested
+        this.tripOptions = null;
+        this.mapService.clearLayer('routes');
+
         // Turn on loading screen
         this.msgService.turnOnLoadingScreenWithoutPercentage();
 
@@ -199,11 +208,36 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Turn off loading screen after routes are retrieved
         this.msgService.turnOffLoadingScreen();
 
+        // Force collapse the form and expand the itinerary with all options
+        this.formForceAction = "close";
+        this.itineraryForceAction = "open";
+        this.resetComponentNotifs();
+
         // Store the backend call result in the frontend planner for displaying
         this.tripOptions = tripOptions;
 
         // Render the first trip option
         this.renderTrip(0);
+    }
+
+    // Notification from the itinerary that the detail of on option is getting opened
+    public itineraryForceOpenDetail() {
+
+        // Force collapse the form, make space for itinerary
+        this.formForceAction = "close";
+        this.resetComponentNotifs();
+    }
+
+    // Notification from the form that its either collapsing or uncollapsing
+    public formCollapseAction(action: "collapse" | "uncollapse") {
+
+        // Notify itinerary to compact/expand based on action from form
+        if (action === "uncollapse")
+            this.itineraryForceAction = "close";
+        else
+            this.itineraryForceAction = "open";
+
+        this.resetComponentNotifs();
     }
 
     // Function called when the mouse is moved (mousemove event happens)
@@ -333,6 +367,16 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             this.moduleFocus = 2;
         else
             this.moduleFocus = 0;
+    }
+
+    private resetComponentNotifs() {
+
+        // setTimout forces the change to run in the next change detection cycle
+        // This allows for the changes to these variables that happened right before this to actually get detected
+        setTimeout(() => {
+            this.formForceAction = null;
+            this.itineraryForceAction = null;
+        });
     }
 
     // Function determining if the passed in hex color is light or dark

@@ -121,6 +121,12 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     // Set of trip point indicies for point which are currently tracking the live location
     private tripPointsWithLocationTracking = new Set<number>();
 
+    // Input from the parent telling the form to collapse itself or uncollapse
+    public forceAction = input<"close" | "open" | null>(null);
+
+    // Output emitting when the form is collapsed or uncollapsed
+    public collapseAction = output<"collapse" | "uncollapse">();
+
     // Getter for number of globally selected transport modes
     get selectedModesCount(): number {
         const global = this.tripData.modes.global;
@@ -197,6 +203,14 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
             // Redraw markers with new trip point
             this.redrawTripMarkers();
         }
+
+        // React to notification from the parent by collapsing or uncollapsing the form
+        if (changes["forceAction"]) {
+            if (this.forceAction() === "open") 
+                this.formCollapsed = false;
+            else if (this.forceAction() === "close")
+                this.formCollapsed = true;
+        }
     }
 
     // Function called when a transport mode is toggled as on/off
@@ -210,6 +224,14 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
             // Adjust section modes if the global modes were edited
             this.updateSectionModes(mode);
         }
+    }
+
+    // Function called when the collapse button in the header is clicked
+    public collapseBtnClicked() {
+        this.formCollapsed = !this.formCollapsed;
+
+        // Notify parent with space requirement or surplus
+        this.collapseAction.emit(this.formCollapsed ? "collapse" : "uncollapse");
     }
 
     // Function called when a point is dropped after dragged

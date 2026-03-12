@@ -14,7 +14,7 @@ Main component HTML template file for the trip form used in the planner module.
     <img
       class="collapse-btn"
       src="./planner/chevron.svg"
-      (click)="this.formCollapsed = !this.formCollapsed"
+      (click)="collapseBtnClicked()"
       [style.transform]="formCollapsed ? 'rotate(180deg)' : 'rotate(0deg)'"
     />
     <span class="title">{{ "planner.form.title" | translate }}</span>

@@ -129,8 +129,11 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
     // Filter out unsuccessful requests and flatten the 2D list returned by Promise.all into one 1D list with all options
     const foundOptions = results.filter(result => result !== null).flat();
 
+    // Deduplicate public transport options that have the same legs as another option, which departs earlier/later (depending on departure or arrival time)
+    const deduplicatedOptions = deduplicateOptions(foundOptions, request.datetime.datetimeOption === "arrival");
+
     // Flatten the filtered 2D list into one 1D list of TripOptions
-    const tripOptions = foundOptions.map(option => ({
+    const tripOptions = deduplicatedOptions.map(option => ({
         distance: option.distance,
         duration: option.duration,
         endDatetime: option.endDatetime,
@@ -141,9 +144,43 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
     // Filter out unsatisfactory trip options by request parameters
     const filteredOptions = filterOptions(tripOptions, request);
 
-    // TODO Filter, deduplicate, rank options
+    // TODO Rank options
 
     return filteredOptions;
+}
+
+// Function filtering public transport section options that are the same as another option but departure is later/earlier (depending on departure or arrival time selection)
+function deduplicateOptions(options: TripSectionOption[], reverseOrder: boolean): TripSectionOption[] {
+
+    // Sort the options by departure time ascending if using departure time or by arrival time descending if using arrival time
+    const optionsSorted = !reverseOrder ? 
+        options.sort((a, b) => a.startDatetime.getTime() - b.startDatetime.getTime()) :
+        options.sort((a, b) => b.endDatetime.getTime() - a.endDatetime.getTime());
+
+    // Accumulator for section identifiers that have already been seen
+    let seen = new Set<string>();
+
+    // Accumulate and check seen ids for every option
+    return optionsSorted.filter(option => {
+        const id = buildSectionOptionId(option);
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+    });
+}
+
+// Function creating an id that is unique to sections that have the same legs
+function buildSectionOptionId(option: TripSectionOption): string {
+
+    // Start with distance and duration of the option
+    let id = `${String(Math.round(option.distance))}_${String(Math.round(option.duration))}`;
+
+    // Append information about each leg to the string
+    option.legs.forEach(leg => {
+        id += `_${leg.mode}_${Math.round(leg.distance)}_${Math.round(leg.duration)}_${leg.from.placeName}_${leg.to.placeName}`;
+    });
+
+    return id;
 }
 
 function carWalkCombination(request: TripRequest, plannerRequests: Promise<TripSectionOption[] | null>[], planner: RoutePlanner) {

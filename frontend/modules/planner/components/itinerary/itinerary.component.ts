@@ -71,8 +71,16 @@ export class ItineraryComponent implements OnChanges {
 
         // React to a force close or force open from the parent component 
         if (changes["forceAction"]) {
-            if (this.forceAction() === "open")
+            if (this.forceAction() === "open"){
                 this.showCompactView = false;
+
+                // If theres only one trip option available open the detail automatically
+                if (this.tripOptions()?.length === 1) {
+                    this.accordionOptionValue = 0;
+                    this.selectedOptionIdx = 0;
+                    this.optionDetailActive = true;
+                }
+            }
             else if (this.forceAction() === "close") {
                 this.showCompactView = true;
                 this.accordionOptionValue = -1;

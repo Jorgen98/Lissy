@@ -336,13 +336,14 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
     
         // Iterate through each leg and add it to the map layer with color given by GTFS or hardcoded for specific modes
-        trip.sections.forEach(section => {
-            section.legs.forEach((leg, index) => {
+        trip.sections.forEach((section, sectionIdx) => {
+            section.legs.forEach((leg, legIdx) => {
+                const shouldFocus = sectionIdx === trip.sections.length - 1 && legIdx === section.legs.length - 1;
                 const bgColor = this.getLegColor(leg);
                 this.mapService.addToLayer({
                     layerName: "routes",
                     type: "route",
-                    focus: index === section.legs.length - 1,
+                    focus: shouldFocus,
                     latLng: leg.points,
                     color: "provided",
                     metadata: {
@@ -353,7 +354,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                         modeImg: `${leg.mode.toLowerCase()}-${this.isColorLight(bgColor) ? 'dark' : 'white'}.svg`,
 
                         // Flag if this leg is the last leg, used so the full route can be focused onto in the map
-                        isLastLeg: index === section.legs.length - 1,
+                        isLastLeg: shouldFocus,
                     },
                     interactive: true,
                     hoover: false,

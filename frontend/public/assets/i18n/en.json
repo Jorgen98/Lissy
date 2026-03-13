@@ -190,7 +190,12 @@
             "rail": "Train",
             "bus": "Bus",
             "car": "Car",
-            "walk": "Walk"
+            "walk": "Walk",
+            "arrival": "Arrive",
+            "departure": "Depart",
+            "midpoint": "Midpoint",
+            "origin": "Origin",
+            "destination": "Destination"
         },
         "settings": {
             "walkingPreferences": "Walking preferences",

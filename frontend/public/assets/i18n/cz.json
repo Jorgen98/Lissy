@@ -191,7 +191,12 @@
             "rail": "Vlak",
             "bus": "Autobus",
             "car": "Auto",
-            "walk": "Chůze"
+            "walk": "Chůze",
+            "arrival": "Příjezd",
+            "departure": "Odjezd",
+            "midpoint": "Mezibod",
+            "origin": "Počátek",
+            "destination": "Cíl"
         },
         "settings": {
             "walkingPreferences": "Preference chůze",

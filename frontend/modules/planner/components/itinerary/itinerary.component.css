@@ -91,6 +91,7 @@
 
 .p-accordion-content {
     --p-accordion-content-background: var(--background);
+    --p-accordion-content-padding: 0;
     border-top: 2px solid var(--p-gray-800);
 }
 
@@ -207,5 +208,53 @@
 
 .line-label span {
     padding: 1px;
+}
+
+.trip-detail-main {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    padding: 5px 15px;
+}
+
+.box {
+    background-color: var(--p-gray-800);
+    border-radius: 6px;
+    color: var(--p-gray-50);
+    padding: 0 7px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 45px;
+}
+
+.point-box-start {
+    border-left: 6px solid green;
+}
+
+.point-box-mid {
+    border-left: 6px solid yellow;
+}
+
+.point-box-end {
+    border-left: 6px solid red;
+}
+
+.point-title {
+    font-weight: 600;
+    font-size: 17px;
+}
+
+.midpoint-times {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: right;
+}
+
+.base-text {
+    font-size: 15px;
 }
 /**************************************************/

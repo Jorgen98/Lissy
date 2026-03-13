@@ -97,7 +97,39 @@ Main component HTML template file for the itinerary used in the planner module.
 
             <!-- Option content with detail -->
             <p-accordion-content class="p-accordion-content">
-              <!-- TODO -->
+              <div class="trip-detail-main">
+              @for (section of option.sections; track $index; let firstSection = $first; let lastSection = $last; let sectionCount = $count; let sectionIdx = $index) {
+                @for (leg of section.legs; track $index; let firstLeg = $first; let lastLeg = $last) {
+
+                  <!-- Origin point with departure time -->
+                  @if (firstSection && firstLeg) {
+                    <div class="box point-box-start">
+                      <span class="point-title">{{ "planner.itinerary.origin" | translate }}</span>
+                      <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${section.startDatetime | date: " HH:mm"}` }}</span>
+                    </div>
+                  }
+
+                  <!-- Midpoint with departure and arrival time -->
+                  @if (!lastSection && lastLeg && sectionCount > 1) {
+                    <div class="box point-box-mid">
+                      <span class="point-title">{{ `${"planner.itinerary.midpoint" | translate} ${sectionIdx + 1}` }}</span>
+                      <div class="midpoint-times">
+                        <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${section.endDatetime | date: " HH:mm"}` }}</span>
+                        <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${option.sections[sectionIdx+1].startDatetime | date: " HH:mm"}` }}</span>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Destination point with arrival time -->
+                  @if (lastSection && lastLeg) {
+                    <div class="box point-box-end">
+                      <span class="point-title">{{ "planner.itinerary.destination" | translate }}</span>
+                      <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${section.endDatetime | date: " HH:mm"}` }}</span>
+                    </div>
+                  }
+                }
+              }
+              </div>
             </p-accordion-content>
           </p-accordion-panel>
         }

@@ -396,7 +396,7 @@ export class MapComponent implements AfterViewInit {
                     // If drawing the last leg of a planner trip, getBounds of all contents of the 'routes' layer (all legs)
                     if (object.metadata.isLastLeg === true){
                         bounds = this.layers[object.layerName].layer!.getBounds();
-                        boundsPadding = [370, 50] as L.PointTuple;
+                        boundsPadding = [400, 0] as L.PointTuple;
                     }
                     else
                         bounds = lineOnMap.getBounds();
@@ -525,7 +525,7 @@ export class MapComponent implements AfterViewInit {
 
         if (object.focus) {
             this.map.fitBounds(bounds, {
-                padding: boundsPadding,
+                paddingBottomRight: boundsPadding
             });
         }
     }

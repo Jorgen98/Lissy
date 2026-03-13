@@ -105,23 +105,29 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
     }
     else {
 
+        // The sections need to be built in reverse if arrival time is selected
+        const reverseOrder = request.datetime.datetimeOption === "arrival";
+
         // Datetime that should be used as departure/arrival time for the next section
-        let nextSectionDatetime = request.datetime.tripDatetime;
+        let followingDatetime = request.datetime.tripDatetime;
 
         // Accumulators for total distance, duration and sections of the trip
         let totalDistance = 0;
         let totalDuration = 0;
         let tripSections: TripSectionOption[] = []; 
 
-        // Iterate over the length of the points minus the last one (number of sections is numPoints - 1)
-        for (let i = 0; i < request.points.length - 1; i++) {
+        for (
+            let i = reverseOrder ? request.points.length - 1 : 0; 
+            reverseOrder ? i > 0 : i < request.points.length - 1;
+            reverseOrder ? i-- : i++
+        ) {
 
             // Get modes selected to be used for this section 
-            const sectionModes = request.modes.sections[i]!;
+            const sectionModes = request.modes.sections[reverseOrder ? i - 1 : i]!;
 
             // Get coordinates of the start and end points of the section
-            const pointA = request.points[i]!;
-            const pointB = request.points[i + 1]!;
+            const pointA = request.points[reverseOrder ? i - 1 : i]!;
+            const pointB = request.points[reverseOrder ? i : i + 1]!;
 
             // Get one mode selected for this section
             // NOTE: Always just one for now
@@ -130,20 +136,20 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
             // Call OTP service to get one option with given parameters 
             // NOTE: Always just one for now
             const foundSections = await planner.getTripSection(
-                createSectionRequest(request, pointA, pointB, [selectedMode], nextSectionDatetime), 1
+                createSectionRequest(request, pointA, pointB, [selectedMode], followingDatetime), 1
             );    
             if (!foundSections || foundSections[0] === undefined)
                 return null;
             const section = foundSections[0];
 
-            // Datetime of the next section will be the ending dateTime of the previous
-            nextSectionDatetime = section.endDatetime.toISOString();
+            // Datetime of the next/previous section will be the ending/starting dateTime of the previous/next
+            followingDatetime = (reverseOrder ? section.startDatetime : section.endDatetime).toISOString();
 
-            // Accumulate distance, duration and section
-            tripSections.push(section);
+            // Accumulate distance, duration and sections in the right order
+            reverseOrder ? tripSections.unshift(section) : tripSections.push(section);
             totalDistance += section.distance;
             totalDuration += section.duration;
-        }
+        } 
 
         // Return final trip option object with accumulated distance, duration, sections and get start and end datetimes
         return [{

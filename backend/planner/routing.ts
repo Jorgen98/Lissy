@@ -9,11 +9,11 @@ import { TransportMode } from "../../frontend/modules/planner/types/TransportMod
 import { RoutePlanner } from "./RoutePlanner";
 import { TripRequest } from "./types/TripRequest";
 import { TripSectionInfo } from "./types/TripSectionInfo";
-import { TripSectionOption } from "./types/TripSectionOption";
 import { WALKING_DISTANCE_COEF, DRIVING_DISTANCE_COEF, MIN_DRIVE_DISTANCE } from "./utils/coefficients";
 import { calculateDistanceHaversine } from "./geo";
+import { TripOption } from "./types/TripOption";
 
-export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripSectionOption[] | null> {
+export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
 
     await planner.initialize();
 
@@ -86,13 +86,21 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
         // Filter out unsuccessful requests and flatten the 2D list returned by Promise.all into one 1D list with all options
         const foundOptions = results.filter(result => result !== null).flat();
 
+        // Flatten the filtered 2D list into one 1D list of TripOptions
+        const tripOptions = foundOptions.map(option => ({
+            distance: option.distance,
+            duration: option.duration,
+            endDatetime: option.endDatetime,
+            sections: [option], // Simply a trip option with one section
+            startDatetime: option.startDatetime
+        }));
+
         // Filter out unsatisfactory trip options by request parameters
-        const filteredOptions = filterOptions(foundOptions, request);
+        const filteredOptions = filterOptions(tripOptions, request);
 
-        // TODO Filter, deduplicate, rank, ... all options and find TOP 3
+        // TODO Filter, deduplicate, rank options
 
-        // Flatten the 2D list returned by Promise.all into one 1D list with all trips
-        return filteredOptions.flat();
+        return filteredOptions;
     }
 
     // TODO handle trip with midpoints
@@ -100,7 +108,7 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
 }
 
 // Function filtering the plain list of found options
-function filterOptions(options: TripSectionOption[], request: TripRequest): TripSectionOption[] {
+function filterOptions(options: TripOption[], request: TripRequest): TripOption[] {
 
     // Get maximum walking distance from request object
     const maxWalkDistance = request.preferences.walk.maxDistance;
@@ -110,9 +118,11 @@ function filterOptions(options: TripSectionOption[], request: TripRequest): Trip
 
         // Filter out options with legs longer then maximum set walking distance
         if (maxWalkDistance !== null) {
-            for (const leg of option.legs) {
-                if (leg.mode === "WALK" && leg.distance > maxWalkDistance)
-                    return false;
+            for (const section of option.sections) {
+                for (const leg of section.legs) {
+                    if (leg.mode === "WALK" && leg.distance > maxWalkDistance)
+                        return false;
+                }
             }
         }
         

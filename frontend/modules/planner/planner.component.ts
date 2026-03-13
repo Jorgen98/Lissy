@@ -18,7 +18,7 @@ import { Stop } from './types/Stop';
 import { TripData } from './types/TripData';
 import { Subscription } from 'rxjs';
 import { MarkerType } from './types/MarkerType';
-import { TripSectionLeg, TripSectionOption } from './types/TripSectionOption';
+import { TripOption, TripSectionLeg } from './types/TripOption';
 import { modeColors } from './utils/modeColors';
 import { TripDataExtended } from './types/TripDataExtended';
 import { 
@@ -72,7 +72,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     public clickedCoordsWithMarker: { coords: L.LatLng, position: number } | null = null;
 
     // List of trip options received from the backend
-    public tripOptions: TripSectionOption[] | null = null;
+    public tripOptions: TripOption[] | null = null;
 
     // Maximum walking distance from user preferences input
     public selectedWalkDistanceKm = 5;  // Default value 5 km
@@ -198,7 +198,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         }
 
         // Call backend endpoint for planning trip with emitted trip data from the form
-        const tripOptions = await this.apiService.genericGet(`${config.apiPrefix}/planTrip`, { data: JSON.stringify(tripDataPreferences) }) as TripSectionOption[] | null;
+        const tripOptions = await this.apiService.genericGet(`${config.apiPrefix}/planTrip`, { data: JSON.stringify(tripDataPreferences) }) as TripOption[] | null;
         if (!tripOptions || tripOptions.length === 0) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.tripsNotFound.head', 'UIMessagesService.toasts.tripsNotFound.body');
             this.msgService.turnOffLoadingScreen();
@@ -329,26 +329,28 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
     
         // Iterate through each leg and add it to the map layer with color given by GTFS or hardcoded for specific modes
-        trip.legs.forEach((leg, index) => {
-            const bgColor = this.getLegColor(leg);
-            this.mapService.addToLayer({
-                layerName: "routes",
-                type: "route",
-                focus: index === trip.legs.length - 1,
-                latLng: leg.points,
-                color: "provided",
-                metadata: {
-                    color: bgColor,
-                    dashed: leg.mode === "CAR" || leg.mode === "WALK",
+        trip.sections.forEach(section => {
+            section.legs.forEach((leg, index) => {
+                const bgColor = this.getLegColor(leg);
+                this.mapService.addToLayer({
+                    layerName: "routes",
+                    type: "route",
+                    focus: index === section.legs.length - 1,
+                    latLng: leg.points,
+                    color: "provided",
+                    metadata: {
+                        color: bgColor,
+                        dashed: leg.mode === "CAR" || leg.mode === "WALK",
 
-                    // For good contrast the color of the mode image is either dark or white based on the background color
-                    modeImg: `${leg.mode.toLowerCase()}-${this.isColorLight(bgColor) ? 'dark' : 'white'}.svg`,
+                        // For good contrast the color of the mode image is either dark or white based on the background color
+                        modeImg: `${leg.mode.toLowerCase()}-${this.isColorLight(bgColor) ? 'dark' : 'white'}.svg`,
 
-                    // Flag if this leg is the last leg, used so the full route can be focused onto in the map
-                    isLastLeg: index === trip.legs.length - 1,
-                },
-                interactive: true,
-                hoover: false,
+                        // Flag if this leg is the last leg, used so the full route can be focused onto in the map
+                        isLastLeg: index === section.legs.length - 1,
+                    },
+                    interactive: true,
+                    hoover: false,
+                });
             });
         });
     }

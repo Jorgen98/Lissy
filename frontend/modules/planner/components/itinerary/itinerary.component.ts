@@ -7,12 +7,11 @@
 
 import { Component, input, output, OnChanges, SimpleChanges } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TripSectionOption } from '../../types/TripSectionOption';
+import { TripSectionLeg, TripOption } from '../../types/TripOption';
 import { DatePipe } from '@angular/common';
 import { DistancePipe } from '../../pipes/distance.pipe';
 import { DurationPipe } from '../../pipes/duration.pipe';
 import { AccordionModule } from 'primeng/accordion';
-import { TripSectionLeg } from '../../types/TripSectionOption';
 import { modeColors } from '../../utils/modeColors';
 
 @Component({
@@ -34,7 +33,7 @@ export class ItineraryComponent implements OnChanges {
     ) { }
 
     // List of trip options, input from the root planner component
-    public tripOptions = input<TripSectionOption[] | null>(null);
+    public tripOptions = input<TripOption[] | null>(null);
 
     // Output emitting when the selected trip option has change, notifies the parent to redraw route
     public redrawTripOption = output<number>(); 

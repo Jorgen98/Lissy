@@ -17,7 +17,7 @@ import { TripSectionInfo } from "../types/TripSectionInfo";
 import { PlanConnectionParams } from "./types/PlanConnectionParams";
 import { PlanDirectMode } from "./types/PlanDirectMode";
 import { PlanTransitModePreferenceInput } from "./types/PlanTransitModePreferenceInput";
-import { TripSectionOption, TripSectionLeg } from "../types/TripSectionOption";
+import { TripSectionOption, TripSectionLeg } from "../types/TripOption";
 import { Edges, Leg, Node } from "./types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
 import { RouteWithShapes } from "../types/RouteWithShapes";

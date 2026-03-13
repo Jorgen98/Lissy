@@ -6,7 +6,7 @@
  */
 
 import { TripSectionInfo } from "./types/TripSectionInfo";
-import { TripSectionOption } from "./types/TripSectionOption";
+import { TripSectionOption } from "./types/TripOption";
 
 /*
 Interface implemented by individual planner adapters

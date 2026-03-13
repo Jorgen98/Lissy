@@ -49,8 +49,8 @@ Main component HTML template file for the itinerary used in the planner module.
               <div class="accorion-header-timeline">
                 <span>{{ option.startDatetime | date: "HH:mm" }}</span>
                 <div class="timeline">
-                  @for(section of option.sections; track $index) {
-                    @for(leg of section.legs; track $index) {
+                  @for(section of option.sections; track $index; let lastSection = $last) {
+                    @for(leg of section.legs; track $index; let lastLeg = $last) {
                       <div 
                         class="timeline-segment"
                         [style.background]="getLegColor(leg)" 
@@ -76,6 +76,10 @@ Main component HTML template file for the itinerary used in the planner module.
                               <span>{{ leg.route?.lineId }}</span>
                             } 
                           </div>
+                        }
+
+                        @if (lastLeg && !lastSection) {
+                          <div class="midpoint-circle" [title]="`planner.itinerary.${leg.mode.toLowerCase()}` | translate"></div>
                         }
                       </div>  
                     }

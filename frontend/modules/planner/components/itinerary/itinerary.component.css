@@ -165,6 +165,7 @@
     justify-content: center;
     align-items: center;
     min-width: 10px;
+    position: relative;
 }
 
 .mode-circle {
@@ -178,6 +179,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.midpoint-circle {
+    width: 10px;
+    height: 13px;
+    background-color: yellow;
+    border-radius: 50% 50% 0 0;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 50%, 50% 100%, 0% 50%);
+    position: absolute;
+    right: -4px;
+    z-index: 10;
 }
 
 .mode-img {

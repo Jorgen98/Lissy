@@ -3,12 +3,18 @@
  * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  *
  * Custom type containing information about the trip in the trip form.
- * Extension from the TripData type with set user preferences
+ * Extension from the TripData type with set user preferences and different date format.
  */
 
 import { TripData } from "./TripData";
 
-export type TripDataExtended = TripData & {
+export type TripDataExtended = Omit<TripData, 'datetime'> & {
+
+    // Date and time information about the trip
+    datetime: {
+        tripDatetime: string, // ISO UTC
+        datetimeOption: "departure" | "arrival"         // If the trip datetime represents departure or arrival time  
+    }
 
     // Append information about user preferences to TripData type
     preferences: {

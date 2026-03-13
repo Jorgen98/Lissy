@@ -64,9 +64,6 @@ export class OTPAdapter implements RoutePlanner {
         // NOTE: Right now this doesnt matter, since requests from routing.ts are made with exactly one mode anyway
         const directModes: PlanDirectMode[] | null = transitOnly ? null : (useCar ? ["CAR"] : ["WALK"]);
 
-        // Create datetime string in ISO-8601 format, needed by OTP
-        const datetime = `${sectionInfo.datetime.date}T${sectionInfo.datetime.time}:00${timestamp.getLocalTimezone()}`;
-
         // Object with parameters for the planConnection query
         const queryParams: PlanConnectionParams = {
             pointALat: sectionInfo.pointA.lat,
@@ -77,7 +74,7 @@ export class OTPAdapter implements RoutePlanner {
             directOnly,
             transitModes,
             directModes,
-            datetime,
+            datetime: sectionInfo.datetime.datetime,
             numOptions: numOptions !== undefined ? numOptions : 0,  // If the number of options isnt set, 0 is interpreted as unlimited by OTP
             walkingSpeed: sectionInfo.preferences.walk.speed,
         }

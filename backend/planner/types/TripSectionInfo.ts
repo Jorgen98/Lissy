@@ -12,8 +12,7 @@ export type TripSectionInfo =  {
     pointB: { lat: number, lng: number },   // Coordinates of the second point
     modes: TransportMode[],                 // Requested transport modes between the two points
     datetime: {                             // Earliest departure/latest arrival date and time
-        date: string,
-        time: string,
+        datetime: string,                   // ISO UTC string
         option: "departure" | "arrival"
     },
     preferences: {                          // Preferences set by the user

@@ -183,9 +183,16 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             return;
         }
 
+        // Convert time from form format to ISO string in UTC
+        const isoDatetime = new Date(`${tripData.datetime.tripDate}T${tripData.datetime.tripTime}`).toISOString();
+
         // Add user preferences to trip data from form
         const tripDataPreferences: TripDataExtended = {
             ...tripData,
+            datetime: {
+                tripDatetime: isoDatetime,
+                datetimeOption: tripData.datetime.datetimeOption,
+            },
             preferences: {
                 walk: {
                     maxDistance: this.walkDistanceUnlimited ? null : this.selectedWalkDistanceKm * 1000,    // Convert to meters

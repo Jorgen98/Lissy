@@ -11,10 +11,11 @@ import { TripRequest } from "./types/TripRequest";
 import { TripSectionInfo } from "./types/TripSectionInfo";
 import { WALKING_DISTANCE_COEF, DRIVING_DISTANCE_COEF, MIN_DRIVE_DISTANCE } from "./utils/coefficients";
 import { calculateDistanceHaversine } from "./geo";
-import { TripOption } from "./types/TripOption";
+import { TripOption, TripSectionOption } from "./types/TripOption";
 
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
 
+    // Perform possible initialization steps
     await planner.initialize();
 
     // Specific case where there are only two trip points in the plan
@@ -30,7 +31,7 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
         if (globalModes.publicTransport) {
             plannerRequests.push(
                 planner.getTripSection(
-                    createSectionRequest(request, ["publicTransport"])
+                    createSectionRequest(request, request.points[0]!, request.points[1]!, ["publicTransport"], request.datetime.tripDatetime)
                 )
             );
         }
@@ -39,7 +40,7 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
         if ((globalModes.car && !globalModes.walk) || (!globalModes.car && globalModes.walk)) {
             plannerRequests.push(
                 planner.getTripSection(
-                    createSectionRequest(request, [globalModes.car ? "car" : "walk"])
+                    createSectionRequest(request, request.points[0]!, request.points[1]!, [globalModes.car ? "car" : "walk"], request.datetime.tripDatetime)
                 )
             );
         }
@@ -59,7 +60,7 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
             if (request.preferences.walk.maxDistance === null || walkDistEstimate <= request.preferences.walk.maxDistance) {
                 plannerRequests.push(
                     planner.getTripSection(
-                        createSectionRequest(request, ["walk"])
+                        createSectionRequest(request, request.points[0]!, request.points[1]!, ["walk"], request.datetime.tripDatetime)
                     )
                 );
             }
@@ -69,7 +70,7 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
             if (driveDistEstimate > MIN_DRIVE_DISTANCE) {
                 plannerRequests.push(
                     planner.getTripSection(
-                        createSectionRequest(request, ["car"])
+                        createSectionRequest(request, request.points[0]!, request.points[1]!, ["car"], request.datetime.tripDatetime)
                     )
                 );
             }
@@ -102,9 +103,57 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
 
         return filteredOptions;
     }
+    else {
 
-    // TODO handle trip with midpoints
-    return null;
+        // Datetime that should be used as departure/arrival time for the next section
+        let nextSectionDatetime = request.datetime.tripDatetime;
+
+        // Accumulators for total distance, duration and sections of the trip
+        let totalDistance = 0;
+        let totalDuration = 0;
+        let tripSections: TripSectionOption[] = []; 
+
+        // Iterate over the length of the points minus the last one (number of sections is numPoints - 1)
+        for (let i = 0; i < request.points.length - 1; i++) {
+
+            // Get modes selected to be used for this section 
+            const sectionModes = request.modes.sections[i]!;
+
+            // Get coordinates of the start and end points of the section
+            const pointA = request.points[i]!;
+            const pointB = request.points[i + 1]!;
+
+            // Get one mode selected for this section
+            // NOTE: Always just one for now
+            const selectedMode = Object.keys(sectionModes).find(mode => sectionModes[mode as TransportMode]) as TransportMode;
+
+            // Call OTP service to get one option with given parameters 
+            // NOTE: Always just one for now
+            const foundSections = await planner.getTripSection(
+                createSectionRequest(request, pointA, pointB, [selectedMode], nextSectionDatetime), 1
+            );    
+            if (!foundSections || foundSections[0] === undefined)
+                return null;
+            const section = foundSections[0];
+
+            // Datetime of the next section will be the ending dateTime of the previous
+            nextSectionDatetime = section.endDatetime.toISOString();
+
+            // Accumulate distance, duration and section
+            tripSections.push(section);
+            totalDistance += section.distance;
+            totalDuration += section.duration;
+        }
+
+        // Return final trip option object with accumulated distance, duration, sections and get start and end datetimes
+        return [{
+            distance: totalDistance,
+            duration: totalDuration,
+            sections: tripSections,
+            startDatetime: tripSections[0]!.startDatetime,
+            endDatetime: tripSections[tripSections.length - 1]!.endDatetime,
+        }]
+    }
 }
 
 // Function filtering the plain list of found options
@@ -132,15 +181,20 @@ function filterOptions(options: TripOption[], request: TripRequest): TripOption[
 } 
 
 // Function creating the section request object for the planner adapter
-function createSectionRequest(request: TripRequest, modes: TransportMode[]): TripSectionInfo {
+function createSectionRequest(
+    request: TripRequest,
+    pointA: { lat: number, lng: number }, 
+    pointB: { lat: number, lng: number }, 
+    modes: TransportMode[], 
+    datetime: string 
+): TripSectionInfo {
     return {
-        pointA: request.points[0]!,
-        pointB: request.points[1]!,
+        pointA,
+        pointB,
         modes: modes,
         datetime: {
             option: request.datetime.datetimeOption,
-            date: request.datetime.tripDate,
-            time: request.datetime.tripTime   
+            datetime
         },
         preferences: {
             walk: {

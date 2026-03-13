@@ -213,7 +213,7 @@
 .trip-detail-main {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
     height: 100%;
     padding: 5px 15px;
@@ -227,7 +227,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 45px;
+    height: 44px;
 }
 
 .point-box-start {
@@ -247,14 +247,68 @@
     font-size: 17px;
 }
 
-.midpoint-times {
+.two-column-text {
     display: flex;
     flex-direction: column;
     gap: 3px;
     text-align: right;
 }
 
+.two-column-text-left {
+    text-align: left;
+}
+
 .base-text {
+    font-size: 13px;
+}
+
+.leg-box {
+    margin: 0 10px;
+}
+
+.detail-mode-img {
+    height: 23px;
+}
+
+.leg-mode-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.line-label-detail {
+    margin: 0;
+    position: relative;
+    font-weight: 600;
+}
+
+.transfer-walk-img {
+    height: 14px;
+}
+
+.transfer-walk-div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
     font-size: 15px;
+    width: 100%;
+    justify-content: center;
+}
+
+.leg-box-left {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.leg-text {
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 233px;
 }
 /**************************************************/

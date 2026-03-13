@@ -99,7 +99,7 @@ Main component HTML template file for the itinerary used in the planner module.
             <p-accordion-content class="p-accordion-content">
               <div class="trip-detail-main">
               @for (section of option.sections; track $index; let firstSection = $first; let lastSection = $last; let sectionCount = $count; let sectionIdx = $index) {
-                @for (leg of section.legs; track $index; let firstLeg = $first; let lastLeg = $last) {
+                @for (leg of section.legs; track $index; let firstLeg = $first; let lastLeg = $last; let legCount = $count) {
 
                   <!-- Origin point with departure time -->
                   @if (firstSection && firstLeg) {
@@ -109,11 +109,54 @@ Main component HTML template file for the itinerary used in the planner module.
                     </div>
                   }
 
+                  <!-- Legs between two points -->
+                  <!-- Do not show boxes for walking lex that are access/egress/transfers walks -->
+                  @if (leg.mode !== "WALK" || legCount === 1) {
+                    <div class="box leg-box" [style.borderLeft]="`4px ${leg.mode === 'WALK' || leg.mode === 'CAR' ? 'dashed' : 'solid'} ${getLegColor(leg)}`">
+                      <div class="leg-box-left">
+
+                        <!-- Mode used for the leg and possibly the route identifier if its defined -->
+                        <div class="leg-mode-box">
+                          <img class="detail-mode-img" [src]="`./planner/${leg.mode.toLowerCase()}-white.svg`" >
+                          <div 
+                            class="line-label line-label-detail"
+                            [style.background]="getLegColor(leg)"
+                            [style.color]="getLegTextColor(leg)"
+                          >
+                            @if (leg.route?.lineId) {
+                              <span>{{ leg.route?.lineId }}</span>
+                            } 
+                          </div>
+                        </div>
+
+                        <!-- Origin and destination of leg names -->
+                        <div class="two-column-text two-column-text-left">
+                          <span class="leg-text">{{ leg.from.placeName ?? "planner.itinerary.origin" | translate }}</span>
+                          <span class="leg-text">{{ leg.to.placeName ?? "planner.itinerary.destination" | translate }}</span>
+                        </div>
+                      </div>
+
+                      <!-- For transit - departure time and arrival time of leg, for direct (walk | car) - distance and duration of leg -->
+                      <div class="two-column-text">
+                        <span class="base-text">{{ leg.mode === "CAR" || leg.mode === "WALK" ? (leg.distance | distance) : leg.from.departureTime | date: "HH:mm" }}</span>
+                        <span class="base-text">{{ leg.mode === "CAR" || leg.mode === "WALK" ? (leg.duration | duration) : leg.to.arrivalTime | date: "HH:mm" }}</span>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Access/egress/transfer walking leg with duration -->
+                  @else {
+                    <div class="transfer-walk-div">
+                      <img class="transfer-walk-img" [src]="'./planner/walk-light.svg'" alt="">
+                      <span>{{ leg.duration | duration }}</span>
+                    </div>
+                  }
+
                   <!-- Midpoint with departure and arrival time -->
                   @if (!lastSection && lastLeg && sectionCount > 1) {
                     <div class="box point-box-mid">
                       <span class="point-title">{{ `${"planner.itinerary.midpoint" | translate} ${sectionIdx + 1}` }}</span>
-                      <div class="midpoint-times">
+                      <div class="two-column-text">
                         <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${section.endDatetime | date: " HH:mm"}` }}</span>
                         <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${option.sections[sectionIdx+1].startDatetime | date: " HH:mm"}` }}</span>
                       </div>

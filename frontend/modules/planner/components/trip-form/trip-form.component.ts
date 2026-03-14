@@ -111,6 +111,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     // Observable so the autocomplete can be updated while typing
     public filteredStopsArray: Observable<Stop[]>[] = []
 
+    // Output for notifying the parent planner component to reverse geocode the coordinates
+    public reverseGeocode = output<{ lat: number, lng: number }>();
+
     // Dynamic array of controls for individual trip point inputs
     public pointControls = new FormArray<FormControl<string>>([
         new FormControl('', { nonNullable: true }),
@@ -198,6 +201,11 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
             this.tripData.points[position] = this.mapClickWithMarkerCursor()!.coords; 
             this.pointControls.controls.at(position)?.setValue(this.translate.instant("planner.form.pointFromMap"));
             this.tripPointsWithLocationTracking.delete(position);
+
+            // Request reverse geocoding of coordinates
+            const lat = this.mapClickWithMarkerCursor()!.coords.lat;
+            const lng = this.mapClickWithMarkerCursor()!.coords.lng;
+            this.reverseGeocode.emit({ lat, lng });
 
             // Redraw markers with new trip point
             this.redrawTripMarkers();

@@ -267,6 +267,7 @@ Main component HTML template file for the planner module.
           [mapClickWithMarkerCursor]="clickedCoordsWithMarker" 
           [forceAction]="formForceAction"
           (collapseAction)="formCollapseAction($event)"
+          (reverseGeocode)="reverseGeocodeRequest($event)"
         />
 
         <!-- Itinerary component with trip options -->

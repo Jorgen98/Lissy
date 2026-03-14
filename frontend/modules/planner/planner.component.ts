@@ -430,6 +430,12 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         }
     }
 
+    // Function reacting to an emit form the trip form, notifying that the given coordinates should be reverse geocoded
+    public async reverseGeocodeRequest(coords: { lat: number, lng: number }): Promise<void> {
+        const placeName = await this.apiService.genericGet(`${config.apiPrefix}/reverseGeocode`, { data: JSON.stringify(coords) });
+        console.log(placeName);
+    }
+
     // Function validating the schema and semantics of 'object' as a TripOption with created zod schema
     private validateTripObject(object: unknown): TripOption | null {
 

@@ -13,6 +13,7 @@ import env from '../../frontend/modules/planner/config.json';
 import { TripRequest } from './types/TripRequest';
 import { planTrip } from './routing';
 import { RoutePlanner } from './RoutePlanner';
+import { reverseGeocodeNominatim } from './geo';
 
 // Implemented adapters and services in TypeScript
 import { OTPAdapter } from './OTP/OTPAdapter';
@@ -59,6 +60,13 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
 
             // Call root function for planning entire trip with the received data and adapter
             res.send(await planTrip(tripData, adapter));
+            break;
+        }
+
+        // Endpoint for reverse geocoding coordinates into some place name
+        case 'reverseGeocode': {
+            const coords = JSON.parse(req.query.data) as { lat: number, lng: number };
+            res.send(await reverseGeocodeNominatim(coords));
             break;
         }
 

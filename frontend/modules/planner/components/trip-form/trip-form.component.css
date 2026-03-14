@@ -303,6 +303,7 @@ input[type="time"] {
     display: flex;
     gap: 5px;
     align-items: center;
+    font-size: 13px;
 }
 
 input[type="radio"],

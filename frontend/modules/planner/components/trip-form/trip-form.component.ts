@@ -36,7 +36,6 @@ import {
     SimpleChanges 
 } from '@angular/core';
 
-
 @Component({
     selector: 'trip-form',
     imports: [
@@ -112,7 +111,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     public filteredStopsArray: Observable<Stop[]>[] = []
 
     // Output for notifying the parent planner component to reverse geocode the coordinates
-    public reverseGeocode = output<{ lat: number, lng: number }>();
+    public reverseGeocode = output<{ lat: number, lng: number, position: number }>();
+
+    // Input which receives the reverse geocoded place name and which position in the form it should be written to
+    public geocodedPlaceName = input<{ name: string, position: number } | null>();
 
     // Dynamic array of controls for individual trip point inputs
     public pointControls = new FormArray<FormControl<string>>([
@@ -205,7 +207,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
             // Request reverse geocoding of coordinates
             const lat = this.mapClickWithMarkerCursor()!.coords.lat;
             const lng = this.mapClickWithMarkerCursor()!.coords.lng;
-            this.reverseGeocode.emit({ lat, lng });
+            this.reverseGeocode.emit({ lat, lng, position });
 
             // Redraw markers with new trip point
             this.redrawTripMarkers();
@@ -217,6 +219,16 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
                 this.formCollapsed = false;
             else if (this.forceAction() === "close")
                 this.formCollapsed = true;
+        }
+
+        // Geocoded place name was received in the parent planner
+        if (changes["geocodedPlaceName"] && this.geocodedPlaceName() !== null) {
+            const position = this.geocodedPlaceName()?.position;
+            const name = this.geocodedPlaceName()?.name;
+
+            // If both the values are valid, set value of the corresponding input in the form
+            if (position !== undefined && name !== undefined)
+                this.pointControls.controls.at(position)!.setValue(name);
         }
     }
 

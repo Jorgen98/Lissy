@@ -80,6 +80,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     // Coordinates of a map click and the selected marker position, used as an output variable to the trip form component
     public clickedCoordsWithMarker: { coords: L.LatLng, position: number } | null = null;
 
+    // Reverse geocoded place name and position in the trip form where it should go, used as an output variable to the trip form component
+    public geocodedPlaceName: { name: string, position: number } | null = null;
+
     // List of trip options received from the backend
     public tripOptions: TripOption[] | null = null;
 
@@ -431,9 +434,19 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     }
 
     // Function reacting to an emit form the trip form, notifying that the given coordinates should be reverse geocoded
-    public async reverseGeocodeRequest(coords: { lat: number, lng: number }): Promise<void> {
-        const placeName = await this.apiService.genericGet(`${config.apiPrefix}/reverseGeocode`, { data: JSON.stringify(coords) });
-        console.log(placeName);
+    public async reverseGeocodeRequest(coords: { lat: number, lng: number, position: number }): Promise<void> {
+        const placeName = await this.apiService.genericGet(`${config.apiPrefix}/reverseGeocode`, { data: JSON.stringify(coords) }) as { placeName: string | null };
+        
+        // Set the variable which the trip form will react to changing
+        this.geocodedPlaceName = placeName.placeName ? {
+            name: placeName.placeName,
+            position: coords.position,
+        } : null;
+
+        // Set back to null in next change detection cycle
+        setTimeout(() => {
+            this.geocodedPlaceName = null;
+        })
     }
 
     // Function validating the schema and semantics of 'object' as a TripOption with created zod schema

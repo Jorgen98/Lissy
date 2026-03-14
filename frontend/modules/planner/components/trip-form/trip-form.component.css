@@ -159,8 +159,9 @@ button {
 }
 
 input[type="text"] {
-    height: 45px;
+    height: 40px;
     width: 100%;
+    font-size: 14px;
 }
 
 .point-input-extra {

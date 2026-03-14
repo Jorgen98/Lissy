@@ -268,6 +268,7 @@ Main component HTML template file for the planner module.
           [forceAction]="formForceAction"
           (collapseAction)="formCollapseAction($event)"
           (reverseGeocode)="reverseGeocodeRequest($event)"
+          [geocodedPlaceName]="geocodedPlaceName"
         />
 
         <!-- Itinerary component with trip options -->

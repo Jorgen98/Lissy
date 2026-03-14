@@ -58,3 +58,10 @@
   z-index: 499;
   width: 370px;
 }
+
+.upload-btn {
+  --p-button-primary-background: var(--p-gray-800);
+  --p-button-primary-hover-background: var(--p-gray-800);
+  --p-button-primary-border-color: var(--background);
+  --p-button-primary-hover-border-color: var(--background);
+}

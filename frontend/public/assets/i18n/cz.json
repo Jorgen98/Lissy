@@ -211,7 +211,14 @@
             "tram": "Tramvaj",  
             "train": "Vlak",  
             "ferry": "Loď",
-            "rail": "Vlak"  
+            "rail": "Vlak",
+            "tripImport": "Import trasy",
+            "fileImport": "Import souboru JSON",
+            "browse": "Procházet",
+            "invalidFileSizeMessageSummary": "Soubor {0} je příliš velký, ",
+            "invalidFileSizeMessageDetail": "maximální velikost je {0}.",
+            "invalidFileTypeMessageSummary": "Formát souboru {0} není podporován, ",
+            "invalidFileTypeMessageDetail": "povolený formát: {0}."
         }
     },
     "map" : {
@@ -285,6 +292,14 @@
             "tripsNotFound": {
                 "head": "Trasa nenalezena",
                 "body": "Trasa vyhovující parametrům zadaným ve formuláři nebyla nalezena."
+            },
+            "invalidJson": {
+                "head": "Nevalidní JSON",
+                "body": "Struktura nahraného JSON souboru není správná."
+            },
+            "invalidTripObject": {
+                "head": "Nevalidní obsahu souboru",
+                "body": "Obsah nahraného JSON souboru nepopisuje validní trasu."
             }
         }   
     }

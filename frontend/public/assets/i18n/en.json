@@ -210,7 +210,14 @@
             "tram": "Tram",  
             "train": "Train",  
             "ferry": "Ferry",
-            "rail": "Train"
+            "rail": "Train",
+            "tripImport": "Trip import",
+            "fileImport": "JSON file import",
+            "browse": "Browse",
+            "invalidFileSizeMessageSummary": "File {0} is too large, ",
+            "invalidFileSizeMessageDetail": "the limit is {0}.",
+            "invalidFileTypeMessageSummary": "Format of file {0} is not supported, ",
+            "invalidFileTypeMessageDetail": "allowed format: {0}."
         }
     },
     "map" : {
@@ -284,6 +291,14 @@
             "tripsNotFound": {
                 "head": "Trip not found",
                 "body": "A trip which satisfies parameters entered into the form was not found."
+            },
+            "invalidJson": {
+                "head": "Invalid JSON",
+                "body": "The structure of the uploaded JSON file is not valid."
+            },
+            "invalidTripObject": {
+                "head": "Invalid content",
+                "body": "The contents of the uploaded JSON file do not describe a valid trip."
             }
         }
     }

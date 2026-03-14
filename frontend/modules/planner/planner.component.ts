@@ -21,6 +21,9 @@ import { MarkerType } from './types/MarkerType';
 import { TripOption, TripSectionLeg } from './types/TripOption';
 import { modeColors } from './utils/modeColors';
 import { TripDataExtended } from './types/TripDataExtended';
+import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
+import { TripSchema } from './schemas/TripSchema';
+import { TranslateService } from '@ngx-translate/core';
 import { 
     Component, 
     AfterViewInit, 
@@ -33,7 +36,13 @@ import {
 
 @Component({
     selector: 'app-planner',
-    imports: [ImportsModule, MapComponent, TripFormComponent, ItineraryComponent],
+    imports: [
+        ImportsModule, 
+        MapComponent, 
+        TripFormComponent, 
+        ItineraryComponent, 
+        FileUploadModule
+    ],
     templateUrl: './planner.component.html',
     styleUrl: './planner.component.css',
 })
@@ -98,7 +107,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     constructor(
         private mapService: MapService,
         private apiService: APIService,
-        private msgService: UIMessagesService
+        private msgService: UIMessagesService,
+        private translate: TranslateService
     ) {
 
         // Subscribe to map mouse clicks
@@ -363,20 +373,81 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         });
     }
 
-    // Function for extra walking preferences module switch
-    public switchWalkingPreferencesModuleVisibility() {
-        if (this.moduleFocus !== 1)
-            this.moduleFocus = 1;
+    // Function for settings module switch
+    public switchModuleVisibility(value: number): void {
+        if (this.moduleFocus !== value)
+            this.moduleFocus = value;
         else
             this.moduleFocus = 0;
     }
 
-    // Function for extra public transport preferences module switch
-    public switchPublicTransportPreferencesModuleVisibility() {
-        if (this.moduleFocus !== 2)
-            this.moduleFocus = 2;
-        else
-            this.moduleFocus = 0;
+    // Custom upload handler for file importing
+    public async onImportFile(event: FileUploadHandlerEvent): Promise<void> {
+        
+        // Get plain text inside the uploaded file
+        const plainText = await event.files[0].text();
+
+        try {
+
+            // Try to deserialize (may throw exception)
+            const object = JSON.parse(plainText);
+
+            // Deserialization successful, validate the structure and semantics
+            const tripObject = this.validateTripObject(object);
+            if (!tripObject)
+                return;
+
+            // Remove existing trip options and clear existing routes
+            this.tripOptions = null;
+            this.mapService.clearLayer('routes');
+
+            // Wait for next change detection cycle so changes to tripOptions are propagated to itinerary
+            setTimeout(() => {
+
+                // Force collapse the form and expand the itinerary with the trip
+                this.formForceAction = "close";
+                this.itineraryForceAction = "open";
+                this.resetComponentNotifs();
+
+                // Store the trip option
+                this.tripOptions = [tripObject];
+
+                // Collapse import side panel
+                this.switchModuleVisibility(3);
+
+                // Render the trip option on the map
+                this.renderTrip(0);
+            });
+        }
+
+        // Invalid JSON syntax
+        catch (e) {
+            this.msgService.showMessage(
+                "error", 
+                this.translate.instant('UIMessagesService.toasts.invalidJson.head'), 
+                this.translate.instant('UIMessagesService.toasts.invalidJson.body')
+            );
+        }
+    }
+
+    // Function validating the schema and semantics of 'object' as a TripOption with created zod schema
+    private validateTripObject(object: unknown): TripOption | null {
+
+        // Parse with created zod schema
+        const parseResult = TripSchema.safeParse(object);
+
+        // Display toast with error when schema doesnt match
+        if (!parseResult.success) {
+            this.msgService.showMessage(
+                "error", 
+                this.translate.instant('UIMessagesService.toasts.invalidTripObject.head'), 
+                this.translate.instant('UIMessagesService.toasts.invalidTripObject.body')
+            );
+            return null;
+        }
+
+        // Valid TripOption object
+        return parseResult.data;
     }
 
     private resetComponentNotifs() {

@@ -18,7 +18,7 @@ Main component HTML template file for the planner module.
           <button 
             type="button" 
             [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-            (click)="switchWalkingPreferencesModuleVisibility()"  
+            (click)="switchModuleVisibility(1)"  
           >
             <img [src]="'./planner/pedestrian.svg'" class="setting-img">
           </button>
@@ -29,9 +29,20 @@ Main component HTML template file for the planner module.
           <button 
             type="button" 
             [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
-            (click)="switchPublicTransportPreferencesModuleVisibility()"  
+            (click)="switchModuleVisibility(2)"  
           >
             <img [src]="'./planner/pt-white.svg'" class="setting-img">
+          </button>
+        </div>
+
+        <!-- Import button -->
+        <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button 
+            type="button" 
+            [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchModuleVisibility(3)"  
+          >
+            <img [src]="'./planner/import.svg'" class="setting-img">
           </button>
         </div>
       </span>
@@ -50,7 +61,7 @@ Main component HTML template file for the planner module.
 
       <!-- Walking preferences settings button -->
       <div class="mobile-header-item">
-        <button type="button" class="mobile-btn-header" (click)="switchWalkingPreferencesModuleVisibility()">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(1)">
           <img [src]="'./planner/pedestrian.svg'" class="setting-img-mobile">
           <p class="mobile-btn-text">{{ 'planner.settings.walkingPreferences' | translate }}</p>
         </button>
@@ -58,9 +69,17 @@ Main component HTML template file for the planner module.
 
       <!-- Public transport preferences settings button -->
       <div class="mobile-header-item">
-        <button type="button" class="mobile-btn-header" (click)="switchPublicTransportPreferencesModuleVisibility()">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(2)">
           <img [src]="'./planner/pt-white.svg'" class="setting-img-mobile">
           <p class="mobile-btn-text">{{ 'planner.settings.publicTransportPreferences' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Public transport preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(3)">
+          <img [src]="'./planner/import.svg'" class="setting-img-mobile">
+          <p class="mobile-btn-text">{{ 'planner.settings.tripImport' | translate }}</p>
         </button>
       </div>
     </div>
@@ -73,7 +92,7 @@ Main component HTML template file for the planner module.
         <div class="side-control-content">
           <span class="side-control-head">
             <h4>{{ 'planner.settings.walkingPreferences' | translate }}</h4>
-            <button type="button" (click)="switchWalkingPreferencesModuleVisibility()">
+            <button type="button" (click)="switchModuleVisibility(1)">
               <i class="pi pi-times"></i>
             </button>
           </span>
@@ -131,7 +150,7 @@ Main component HTML template file for the planner module.
         <div class="side-control-content">
           <span class="side-control-head">
             <h4>{{ 'planner.settings.publicTransportPreferences' | translate }}</h4>
-            <button type="button" (click)="switchPublicTransportPreferencesModuleVisibility()">
+            <button type="button" (click)="switchModuleVisibility(2)">
               <i class="pi pi-times"></i>
             </button>
           </span>
@@ -195,6 +214,41 @@ Main component HTML template file for the planner module.
                 </div>
 
               </span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Trip import -->
+      @else if (moduleFocus === 3) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ "planner.settings.tripImport" | translate }}</h4>
+            <button type="button" (click)="switchModuleVisibility(3)">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+
+          <div class="side-control-selection-div">
+
+            <!-- Import file uploader -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ "planner.settings.fileImport" | translate }}</h3>
+              <p-fileupload 
+                mode="basic" 
+                chooseIcon="pi pi-upload" 
+                [chooseLabel]="'planner.settings.browse' | translate" 
+                accept="application/json" 
+                [auto]="true" 
+                [maxFileSize]="1048576"   
+                [customUpload]="true"
+                (uploadHandler)="onImportFile($event)"
+                class="upload-btn"
+                [invalidFileSizeMessageSummary]="'planner.settings.invalidFileSizeMessageSummary' | translate"
+                [invalidFileSizeMessageDetail]="'planner.settings.invalidFileSizeMessageDetail' | translate"
+                [invalidFileTypeMessageSummary]="'planner.settings.invalidFileTypeMessageSummary' | translate"
+                [invalidFileTypeMessageDetail]="'planner.settings.invalidFileTypeMessageDetail' | translate"
+              />
             </div>
           </div>
         </div>

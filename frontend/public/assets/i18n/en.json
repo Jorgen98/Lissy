@@ -195,7 +195,8 @@
             "departure": "Depart",
             "midpoint": "Midpoint",
             "origin": "Origin",
-            "destination": "Destination"
+            "destination": "Destination",
+            "export": "Export"
         },
         "settings": {
             "walkingPreferences": "Walking preferences",

@@ -196,7 +196,8 @@
             "departure": "Odjezd",
             "midpoint": "Mezibod",
             "origin": "Počátek",
-            "destination": "Cíl"
+            "destination": "Cíl",
+            "export": "Exportovat"
         },
         "settings": {
             "walkingPreferences": "Preference chůze",

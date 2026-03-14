@@ -145,4 +145,25 @@ export class ItineraryComponent implements OnChanges {
         // Otherwise return formatted hex text color
         return `#${leg.route.textColor}`; 
     }
+
+    // Function called when the export button is clicked, exports the given trip option
+    public exportTrip(trip: TripOption): void {
+        // https://www.30secondsofcode.org/js/s/json-to-file/
+
+        // Serialize TS object into a string
+        const serialized = JSON.stringify(trip);
+
+        // Create blob object and URL for it
+        const blob = new Blob([serialized], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        // Create anchor element, change attributes to the created URL and set filename and click it, invoking the download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `trip_${Date.now()}.json`;
+        a.click();
+
+        // Release the created URL
+        URL.revokeObjectURL(url);
+    }
 }

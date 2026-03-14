@@ -173,6 +173,14 @@ Main component HTML template file for the itinerary used in the planner module.
                 }
               }
               </div>
+
+              <!-- Export button -->
+              <div class="export-div">
+                <button class="export-btn" (click)="exportTrip(option)">
+                  <img class="export-img" [src]="'./planner/export.svg'">
+                  {{ "planner.itinerary.export" | translate }}
+                </button>
+              </div>
             </p-accordion-content>
           </p-accordion-panel>
         }

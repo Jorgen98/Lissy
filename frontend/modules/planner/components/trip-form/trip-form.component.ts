@@ -590,6 +590,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     // Create observable for filtered stops for specific input given by 'position'
     private createFilteredStops(position: number): Observable<Stop[]> {
 
+        // The maximum number of autocomplete suggestions to return
+        const MAX_SUGGEST = 20;
+
         // Subscribe to the valueChanges event of that point control
         return this.pointControls.at(position).valueChanges.pipe(
 
@@ -602,18 +605,48 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
             // value is the current value in the user input
             map(value => {
 
-                // Get the value in lowercase
-                const search = (value ?? '').toLowerCase();
+                const search = 
+                    (value ?? '')
+                    .toLowerCase()                      // Put value into lowercase
+                    .normalize("NFD")                   // Split letters and softeners (ř, č, š, ...)
+                    .replace(/[\u0300-\u036f]/g, "")    // Remove softeners with empty string
+                    .trim()                             // Trim leading and trailing whitespace
+                    .replace(/[.,]/g, "");              // Remove commas and periods
 
                 // Only autocomplete with at least two characters 
                 if (search.length < 2) 
                     return [];
-                
-                // Return stops whose names (lowercase) contain the substring geiven by user input
-                // Only get first 30 for performance
-                return this.stops()
-                    .filter(stop => stop.name.toLowerCase().includes(search))
-                    .slice(0, 30);
+
+                // Prepare two seperate array for stops that match with prefix and stops that match with non-prefix substrings
+                let prefixMatches: Stop[] = [];
+                let substringMatches: Stop[] = [];
+
+                for (const stop of this.stops()) {
+
+                    // Adjust the stop name string in same way as input search
+                    const lowercase = 
+                        stop.name
+                        .toLowerCase()
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .trim()
+                        .replace(/[.,]/g, "");
+
+                    // Add to array based on match
+                    if (lowercase.startsWith(search))
+                        prefixMatches.push(stop);
+                    else if (lowercase.includes(search))
+                        substringMatches.push(stop);
+
+                    // If theres 20 prefix matches already, iterating can stop
+                    if (prefixMatches.length >= MAX_SUGGEST)
+                        break;
+                }
+
+                // Combine the two arrays together, prefix matches will be first in order, return only first 20
+                return prefixMatches
+                    .concat(substringMatches)
+                    .slice(0, MAX_SUGGEST);
             })
         );
     }

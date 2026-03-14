@@ -350,3 +350,7 @@ app-page-not-found {
         display: flex;
     }
 }
+
+.mat-mdc-autocomplete-panel {
+    box-shadow: none !important;
+}

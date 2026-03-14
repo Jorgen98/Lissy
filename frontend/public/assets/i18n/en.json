@@ -195,6 +195,8 @@
             "departure": "Depart",
             "midpoint": "Midpoint",
             "origin": "Origin",
+            "legOrigin": "Leg origin",
+            "legDestination": "Leg destination",
             "destination": "Destination",
             "export": "Export"
         },

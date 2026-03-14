@@ -226,9 +226,11 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
             const position = this.geocodedPlaceName()?.position;
             const name = this.geocodedPlaceName()?.name;
 
-            // If both the values are valid, set value of the corresponding input in the form
-            if (position !== undefined && name !== undefined)
+            // If both the values are valid, set value of the corresponding input in the form and name of trip point
+            if (position !== undefined && name !== undefined) {
                 this.pointControls.controls.at(position)!.setValue(name);
+                this.tripData.points[position].placeName = name;
+            }
         }
     }
 
@@ -399,9 +401,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     // 'stop' is the selected stop and 'position' holds which trip point the stop was selected for
     public stopSelected(stop: Stop, position: number): void {
 
-        // Store coordinates of selected stop in the main trip data 
+        // Store coordinates of selected stop in the main trip data and name of stop
         this.tripData.points[position].lat = stop.lat;
         this.tripData.points[position].lng = stop.lng;
+        this.tripData.points[position].placeName = stop.name;
 
         // Trip point at given position might have been tracking the current location
         this.tripPointsWithLocationTracking.delete(position);

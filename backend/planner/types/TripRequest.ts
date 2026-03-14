@@ -10,5 +10,5 @@ import { TripDataExtended } from "../../../frontend/modules/planner/types/TripDa
 
 // The points field in TripData has possibly undefined values, that wont be the case in the backend
 export type TripRequest = Omit<TripDataExtended, 'points'> & {
-    points: Required<{ lat: number, lng: number }>[];
+    points: Required<{ lat: number, lng: number, placeName?: string }>[];
 };

@@ -196,6 +196,8 @@
             "departure": "Odjezd",
             "midpoint": "Mezibod",
             "origin": "Počátek",
+            "legOrigin": "Počátek úseku",
+            "legDestination": "Konec úseku",
             "destination": "Cíl",
             "export": "Exportovat"
         },

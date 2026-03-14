@@ -48,11 +48,13 @@ export type TripSectionLeg = {
 
 // One option for a requested trip section between two points
 export type TripSectionOption = {
-    duration: number,       // Duration in seconds
-    distance: number,       // Distance in meters    
-    startDatetime: Date,    // Datetime of beginning of the option (UTC)
-    endDatetime: Date,      // Datetime of ending of the option (UTC)
-    legs: TripSectionLeg[], // List of legs
+    duration: number,               // Duration in seconds
+    distance: number,               // Distance in meters    
+    startDatetime: Date,            // Datetime of beginning of the option (UTC)
+    endDatetime: Date,              // Datetime of ending of the option (UTC)
+    originName: string | null,      // Name of origin point of section
+    destinationName: string | null, // Name of destination point of section
+    legs: TripSectionLeg[],         // List of legs
 };
 
 // One trip option built out of sections

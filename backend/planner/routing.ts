@@ -18,13 +18,22 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
     // Perform possible initialization steps
     await planner.initialize();
 
+    // Call planning function based on number of trip points
+    let tripOptions: TripOption[] | null = [];
     if (request.points.length === 2)
-        return planTripWithoutMidpoints(request, planner);
+        tripOptions = await planTripWithoutMidpoints(request, planner);
     else 
-        return planTripWithMidpoints(request, planner);
+        tripOptions = await planTripWithMidpoints(request, planner);
+    if (tripOptions === null)
+        return null;
+
+    // Add place names to sections origins and destinations based on the data from trip request
+    addPlaceNames(tripOptions, request);
+
+    return tripOptions;
 }
 
-async function planTripWithMidpoints(request: TripRequest, planner: RoutePlanner) {
+async function planTripWithMidpoints(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
 
     // The sections need to be built in reverse if arrival time is selected
     const reverseOrder = request.datetime.datetimeOption === "arrival";
@@ -88,7 +97,7 @@ async function planTripWithMidpoints(request: TripRequest, planner: RoutePlanner
     return filteredOptions;
 } 
 
-async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlanner) {
+async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlanner): Promise<TripOption[]> {
 
     // Get modes used in request for less object access
     const globalModes = request.modes.global;
@@ -236,6 +245,28 @@ function filterOptions(options: TripOption[], request: TripRequest): TripOption[
         return true;
     });
 } 
+
+// Function adding place names to section origin points and destination points where they arent yet set
+function addPlaceNames(options: TripOption[], request: TripRequest): void {
+
+    // Go through each section
+    options.forEach(option => {
+        option.sections.forEach((section, index) => {
+            
+            // Get the possible new names for section origin and destination from the request
+            const originPointName = request.points[index]!.placeName;
+            const destPointName = request.points[index + 1]!.placeName;
+
+            // Update the section origin name if its available and not set yet
+            if (originPointName !== undefined && section.originName === null) 
+                section.originName = originPointName;
+
+            // Same with destination
+            if (destPointName !== undefined && section.destinationName === null) 
+                section.destinationName = destPointName;
+        });
+    });
+}
 
 // Function creating the section request object for the planner adapter
 function createSectionRequest(

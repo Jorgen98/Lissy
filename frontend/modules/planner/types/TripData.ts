@@ -12,6 +12,7 @@ export type TripData = {
     points: { 
         lat?: number, 
         lng?: number,
+        placeName?: string,
     }[],
     
     // Transport modes used for the trip and its sections

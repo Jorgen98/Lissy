@@ -48,6 +48,8 @@ const SectionSchema = z.object({
     distance: z.number().positive(),
     startDatetime: datePreprocess("startDatetime"),
     endDatetime: datePreprocess("endDatetime"),
+    originName: z.string().nullable(),
+    destinationName: z.string().nullable(),
     legs: z.array(LegSchema).min(1),
 });
 

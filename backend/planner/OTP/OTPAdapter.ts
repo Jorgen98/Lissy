@@ -168,6 +168,10 @@ export class OTPAdapter implements RoutePlanner {
             startDatetime: new Date(edge.node.start),
             endDatetime: new Date(edge.node.end),
             legs: await Promise.all(legRequests),       // Wait for all leg translations to finish
+
+            // Initialize empty names for section origin and destination points
+            originName: null,
+            destinationName: null,
         };
     }
 

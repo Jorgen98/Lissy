@@ -105,7 +105,7 @@ Main component HTML template file for the itinerary used in the planner module.
                     <!-- Origin point with departure time -->
                     @if (firstSection && firstLeg) {
                       <div class="box point-box-start">
-                        <span class="point-title">{{ "planner.itinerary.origin" | translate }}</span>
+                        <span class="point-title">{{ section.originName ?? "planner.itinerary.origin" | translate }}</span>
                         <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${section.startDatetime | date: " HH:mm"}` }}</span>
                       </div>
                     }
@@ -132,8 +132,8 @@ Main component HTML template file for the itinerary used in the planner module.
 
                           <!-- Origin and destination of leg names -->
                           <div class="two-column-text two-column-text-left">
-                            <span class="leg-text">{{ leg.from.placeName ?? "planner.itinerary.origin" | translate }}</span>
-                            <span class="leg-text">{{ leg.to.placeName ?? "planner.itinerary.destination" | translate }}</span>
+                            <span class="leg-text">{{ leg.from.placeName ?? "planner.itinerary.legOrigin" | translate }}</span>
+                            <span class="leg-text">{{ leg.to.placeName ?? "planner.itinerary.legDestination" | translate }}</span>
                           </div>
                         </div>
 
@@ -156,7 +156,7 @@ Main component HTML template file for the itinerary used in the planner module.
                     <!-- Midpoint with departure and arrival time -->
                     @if (!lastSection && lastLeg && sectionCount > 1) {
                       <div class="box point-box-mid">
-                        <span class="point-title">{{ `${"planner.itinerary.midpoint" | translate} ${sectionIdx + 1}` }}</span>
+                        <span class="point-title">{{ section.destinationName ?? `${"planner.itinerary.midpoint" | translate} ${sectionIdx + 1}` }}</span>
                         <div class="two-column-text">
                           <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${section.endDatetime | date: " HH:mm"}` }}</span>
                           <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${option.sections[sectionIdx+1].startDatetime | date: " HH:mm"}` }}</span>
@@ -167,7 +167,7 @@ Main component HTML template file for the itinerary used in the planner module.
                     <!-- Destination point with arrival time -->
                     @if (lastSection && lastLeg) {
                       <div class="box point-box-end">
-                        <span class="point-title">{{ "planner.itinerary.destination" | translate }}</span>
+                        <span class="point-title">{{ section.destinationName ?? "planner.itinerary.destination" | translate }}</span>
                         <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${section.endDatetime | date: " HH:mm"}` }}</span>
                       </div>
                     }

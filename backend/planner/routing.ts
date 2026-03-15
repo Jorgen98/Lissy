@@ -264,6 +264,14 @@ function addPlaceNames(options: TripOption[], request: TripRequest): void {
             // Same with destination
             if (destPointName !== undefined && section.destinationName === null) 
                 section.destinationName = destPointName;
+
+            // If the origin of the first leg doesnt have a name, can fill with the origin name of the section
+            if (originPointName !== undefined && section.legs[0]!.from.placeName === null)
+                section.legs[0]!.from.placeName = originPointName;
+
+            // Same with destination of the last legs and section destination name
+            if (destPointName !== undefined && section.legs[section.legs.length - 1]!.to.placeName === null)
+                section.legs[section.legs.length - 1]!.to.placeName = destPointName;
         });
     });
 }

@@ -244,7 +244,7 @@
 
 .point-title {
     font-weight: 600;
-    font-size: 15px;
+    font-size: 14px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -308,12 +308,12 @@
 }
 
 .leg-text {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 233px;
+    max-width: 200px;
 }
 
 button {

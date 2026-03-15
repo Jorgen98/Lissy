@@ -465,6 +465,23 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         this.redrawTripMarkers();
     }
 
+    // Function called when the submit button is clicked in the trip form
+    public tripRequestSubmitted(): void {
+
+        // Turn on overlay loading screen
+        this.msgService.turnOnLoadingScreenWithoutPercentage();
+
+        // If theres some points that have an undefined place name, add a small delay, there might be an ongoing request for the name
+        if (this.tripData.points.some(point => point.placeName === undefined)) {
+            setTimeout(() => {
+                this.tripSubmit.emit(this.tripData);
+            }, 400);
+        }
+        else
+            this.tripSubmit.emit(this.tripData);
+
+    }
+
     private updateSectionModes(mode: TransportMode): void {
 
         // If only one global mode is now selected, select it for all sections also

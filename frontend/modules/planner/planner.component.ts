@@ -186,9 +186,6 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.tripOptions = null;
         this.mapService.clearLayer('routes');
 
-        // Turn on loading screen
-        this.msgService.turnOnLoadingScreenWithoutPercentage();
-
         // Check if API is running and connected
         if(!await this.apiService.isConnected()) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.dbConnectError.head', 'UIMessagesService.toasts.dbConnectError.body');

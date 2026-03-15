@@ -499,7 +499,7 @@ Main component HTML template file for the trip form used in the planner module.
     <div class="submit form-section">
       <button 
         [disabled]="!isFormValid()"
-        (click)="this.tripSubmit.emit(tripData)"
+        (click)="tripRequestSubmitted()"
       >
         {{ "planner.form.submit" | translate }}
       </button>

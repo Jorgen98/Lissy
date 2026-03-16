@@ -108,143 +108,210 @@ async function getStopTransitAccessibilityScores(stopsFile, stopTimesFile, trips
     const calendarHeader = calendarData[0].slice(1, calendarData[0].length - 1).split(','); calendarData.shift();
 
     // Create lookup tables with Map for fast lookup
-    const serviceDaysCnt = createServiceDaysCntMap(calendarHeader, calendarData);
+    const mondayActive = createMondayActiveMap(calendarHeader, calendarData);
     const tripInfo = createTripInfoMap(tripsHeader, tripsData);
-    const modeWeights = createModeWeightsMap(routesHeader, routesData);
+    const routeModes = createRouteModesMap(routesHeader, routesData);
     const stopTrips = createStopTripsMap(stopTimesHeader, stopTimesData);
 
-    // Calculate transit accessibility for each stop
-    const stopScores = calculateScores(stopsHeader, stopsData, stopTrips, tripInfo, serviceDaysCnt, modeWeights);
+    // Get list of tripids for trips passing through every parent station
+    const stopsToTrips = aggregateTripIds(stopsHeader, stopsData, stopTrips);
 
-    // Aggregate the only to stops that have parentId set to null (group together stops from the same hub)
-    const stopScoresAggregated = aggregateScoresToParents(stopScores);
+    // Calculate daily service frequency for all routes passing through each stop
+    const stopRoutesDailyFreq = calculateRouteDailyFrequency(stopsToTrips, mondayActive, tripInfo);
 
-    // Normalize scores to 0-100 range
-    const result = normalizeScores(stopScoresAggregated);
-    if (result === null)
-        return false;
+    // Calculate stop scores from route frequencies
+    const stopScores = calculateStopScores(stopRoutesDailyFreq, routeModes);
+
+    // Normalize the scores into a 0-100 range using a logarithmic range in-place
+    normalizeStopScores(stopScores);
 
     // Update the database with calculated scores
-    for (const [_, data] of Object.entries(stopScoresAggregated)) {
-        const stopId = `0:${data.name}:${data.lat}:${data.lng}`;
-        const score = data.normalizedScore;
-        await dbPostGIS.updateStopTransitAccessibilityScore(stopId, score);
+    for (const data of Object.values(stopScores)) {
+        const stopId = `0:${data.stopName}:${data.lat}:${data.lng}`;
+        await dbPostGIS.updateStopTransitAccessibilityScore(stopId, data.score);
     }
 
     return true;
 }
 
-// Function normalizing the calculated scores to a logarithmic 0-100 range
-function normalizeScores(stopScoresAggregated) {
+// Function normalizing the calculated stop scores into 0-100 values using a logarithmic range
+function normalizeStopScores(initialScores) {
 
-    // Get maximum score to normalize against
-    const maxScore = Math.max(...Object.values(stopScoresAggregated).map(stop => stop.score));
-    if (maxScore === 0)
-        return null;
+    // Get maximum and minumum calculated initial values
+    let max = 0;
+    for (const data of Object.values(initialScores)) {
+        if (data.score > max)
+            max = data.score;
+    }
 
-    // Add normalized score property to each stop object
-    for (const [_, data] of Object.entries(stopScoresAggregated)) {
+    const logMax = max < 1 ? 1 : Math.log10(max);
 
+    // Go through every score and log-normalize against maximum value
+    for (const data of Object.values(initialScores)) {
+
+        // log(0) undefined, hardcoded 0 value 
         if (data.score === 0)
-            data["normalizedScore"] = 0;
-        else {
+            data.score = 0;
 
-            // Normalize score against the maximum value with a logarithmic range
-            const normScore = (Math.log10(data.score) / Math.log10(maxScore)) * 100;
-            data["normalizedScore"] = Math.round(normScore);
+        // Get normalized logarithmic score and clamp to 0 from bottom
+        else {
+            const normedScore = Math.log10(data.score) / logMax;
+            data.score = Math.max(0, Math.round(normedScore * 100));
         }
     }
 }
 
-// Function aggregating the calculated scores of stops from the same hub to only one parent stop
-function aggregateScoresToParents(stopScores) {
+// Function calculating the initial score for every station 
+function calculateStopScores(stopRoutesDailyFreq, routeModes) {
 
-    const stopEntries = Object.entries(stopScores);
+    const stopScores = {};
 
-    // Find stops which are the parent stops in the hierarchy and set up object with their ids (these dont have calculated scores)
-    let stopScoresAggregated = {};
-    for (const [stopId, stopInfo] of stopEntries) {
-        if (stopInfo.parentId === null)
-            stopScoresAggregated[stopId] = { name: stopInfo.name, score: 0, lat: stopInfo.lat, lng: stopInfo.lng };
+    // Go through all entries in the previously created map with route frequencies per stop
+    for (const [stopId, data] of Object.entries(stopRoutesDailyFreq)) {
+
+        const modeRouteFrequenices = {};
+
+        // Iterate through all routes that pass through the current stop
+        for (const [routeId, frequency] of Object.entries(data.routes)) {
+
+            // Get mode used on the route from the created map
+            const mode = routeModes.get(routeId);
+            if (mode === undefined)
+                continue;
+
+            // Group the routes by mode they use and keep the frequencies of the routes in a list keyed by the mode
+            if (modeRouteFrequenices[mode] === undefined)
+                modeRouteFrequenices[mode] = [frequency];
+            else 
+                modeRouteFrequenices[mode].push(frequency);
+        }
+
+        const modeScores = [];
+        for (const frequencies of Object.values(modeRouteFrequenices)) {
+
+            // Get index of the maximum frequency for the current mode
+            const maxFreq = Math.max(...frequencies);
+            const maxIdx = frequencies.indexOf(maxFreq);
+
+            // Accumulate score for this mode, the most frequent route is weighted with 1, others with 0.7
+            let modeScore = 0;
+            for (let i = 0; i < frequencies.length; i++) {
+                if (i === maxIdx)
+                    modeScore += frequencies[i];
+                else
+                    modeScore += frequencies[i] * 0.7;
+            }
+
+            // Final score for the current mode on the current stop
+            modeScores.push(modeScore);
+        }
+
+        // Sum scores from all modes
+        stopScores[stopId] = {};
+        stopScores[stopId]["score"] = 0;
+        stopScores[stopId]["stopName"] = data["stopName"];
+        stopScores[stopId]["lat"] = data["lat"];
+        stopScores[stopId]["lng"] = data["lng"];
+        for (const modeAI of modeScores)
+            stopScores[stopId]["score"] += modeAI;
     }
 
-    // Aggregate the calculated scores to the previously created object from the parent stop by parentId
-    for (const [_, stopInfo] of stopEntries) {
-        if (stopInfo.parentId !== null)
-            stopScoresAggregated[stopInfo.parentId]["score"] += stopInfo.score;
-    }
-
-    return stopScoresAggregated;
+    return stopScores;
 }
 
-// Function calculating the transit accessibility score of stops from stops.txt 
-function calculateScores(stopsHeader, stopsData, stopTrips, tripInfo, serviceDaysCnt, modeWeights) {
+// Function calculating daily service frequency (monday) of routes passing through each station
+function calculateRouteDailyFrequency(stopsToTrips, mondayActive, tripInfo) {
 
-    // Get all necessary indicies from the order of the stops.txt header
+    const routesFrequency = {};
+
+    // Go through all entries in the previously created aggregated map with stations
+    for (const [stopId, data] of Object.entries(stopsToTrips)) {
+
+        // Create empty object with the stop name, coordinates and an empty dictionary of routes
+        routesFrequency[stopId] = {};
+        routesFrequency[stopId]["stopName"] = data.stopName;
+        routesFrequency[stopId]["lat"] = data.lat;
+        routesFrequency[stopId]["lng"] = data.lng;
+        routesFrequency[stopId]["routes"] = {};
+
+        // Go through all tripIds of trips passing through this stop
+        for (const tripId of data.trips) {
+
+            // Get the info with service_id and route_id from prepared map
+            const trip = tripInfo.get(tripId);
+            if (!trip)
+                continue;
+
+            const routeId = trip.routeId;
+            const serviceId = trip.serviceId;
+
+            // Continue only if the service is active on monday (the selected day for scoring)
+            const isOnMonday = mondayActive.get(serviceId);
+            if (!isOnMonday)
+                continue;
+
+            // If an entry with this routeId doesnt exist yet, count first entry, otherwise add another daily trip
+            if (routesFrequency[stopId]["routes"][routeId] === undefined)
+                routesFrequency[stopId]["routes"][routeId] = 1;
+            else 
+                routesFrequency[stopId]["routes"][routeId] += 1;
+        }
+    }
+
+    return routesFrequency;
+}
+
+// Function aggregating trip ids of trips passing through a station/hub from its child stops
+function aggregateTripIds(stopsHeader, stopsData, stopTrips) {
+
+    // Get needed fields from the order of the stops.txt header
     const stopIdIdx = stopsHeader.findIndex(item => item === 'stop_id');
     const stopNameIdx = stopsHeader.findIndex(item => item === 'stop_name');
     const parentIdIdx = stopsHeader.findIndex(item => item === 'parent_station');
     const latIdx = stopsHeader.findIndex(item => item === 'stop_lat');
     const lngIdx = stopsHeader.findIndex(item => item === 'stop_lon');
 
-    let stopScores = {};
-    let stopCount = 0;
-    const stopsLen = stopsData.length;
+    // Set up dictionary for aggregating parent and child stops
+    const stopTripsAggregated = {};
 
-    // Iterate through all stops.txt records and calculate the score
     for (const stopRecord of stopsData) { 
         const stop = parseOneLineFromInputFile(stopRecord);
         if (!stop) continue;
 
         const stopId = stop[stopIdIdx];
-        const stopName = stop[stopNameIdx];
         const parentId = stop[parentIdIdx] !== '' ? stop[parentIdIdx] : null; 
-        
-        // Get ids of trips passing through this stop from the map
-        const tripIds = stopTrips.get(stopId) || [];
-        
-        // Iterate through the tripIds, group them by routeId and accumulate total weekly trips for each route
-        const routeWeeklyTrips = new Map();        
-        for (const tripId of tripIds) {
-            const info = tripInfo.get(tripId); 
-            if (!info) continue;
-            
-            const routeId = info.routeId;
-            const days = serviceDaysCnt.get(info.serviceId) || 0;  
-            
-            // Add the number of days in service in a week to map keyed by route id
-            routeWeeklyTrips.set(
-                routeId, 
-                (routeWeeklyTrips.get(routeId) || 0) + days // Add to current total
-            );
-        }
-        
-        // Calculate the stop score by multiplying each routes weekly trip number by the mode weight
-        let totalScore = 0;
-        for (const [routeId, tripsCnt] of routeWeeklyTrips) {
-            const modeWeight = modeWeights.get(routeId) || 1.5;
-            totalScore += tripsCnt * modeWeight;
-        }
-        
-        // Add the score for this stop to the final object 
-        stopScores[stopId] = {
-            name: stopName,
-            score: totalScore,
-            lat: parseFloat(stop[latIdx]),
-            lng: parseFloat(stop[lngIdx]),
-            parentId: parentId,     // Parent stop id for later aggregation
-        };
+        const stopName = stop[stopNameIdx];
+        const lat = stop[latIdx];
+        const lng = stop[lngIdx];
 
-        // Progress indicator
-        stopCount++;
-        if (stopCount % 3000 === 0)
-            log('info', `Transit Score calculated for ${stopCount}/${stopsLen} stops...`);
+        // If the parent Id is defined, use it as the key, otherwise the normal stop id
+        const stationId = parentId ?? stopId;
+
+        // Get list of ids of trips that pass through the stop from previously built map
+        const tripIds = stopTrips.get(stopId);
+
+        // If the key doesnt exist yet, create it with an empty set of tripIds and the stop name
+        if (stopTripsAggregated[stationId] === undefined)
+            stopTripsAggregated[stationId] = { trips: new Set(), stopName: stopName };
+
+        // Add coordinates of parent station
+        if (parentId === null) {
+            stopTripsAggregated[stationId]["lat"] = lat;
+            stopTripsAggregated[stationId]["lng"] = lng;
+        }
+
+        // Add all the found trip ids to the set
+        const tripSet = stopTripsAggregated[stationId].trips;
+        if (tripIds !== undefined) {
+            for (const tripId of tripIds)
+                tripSet.add(tripId);
+        }
     }
 
-    return stopScores;
+    return stopTripsAggregated;
 }
 
-// Function creating a lookup table which maps trip_id's from stop_times.txt to the stop_id stop_times.txt
+// Function creating a lookup table which maps stop_ids from stop_times.txt to a list of trip_ids from stop_times.txt
 function createStopTripsMap(stopTimesHeader, stopTimesData) {
 
     // Get all necessary indicies from the order of the stop_times.txt header
@@ -269,15 +336,15 @@ function createStopTripsMap(stopTimesHeader, stopTimesData) {
     return stopTrips;
 }
 
-// Function creating a lookup table which maps route_id from routes.txt to the transit accessibility score weight of the mode it uses
-function createModeWeightsMap(routesHeader, routesData) {
+// Function creating a lookup table which maps route_id from routes.txt to the mode the route uses
+function createRouteModesMap(routesHeader, routesData) {
 
     // Get all necessary indicies from the order of the routes.txt header
     const routeTypeIdx = routesHeader.findIndex(item => item === 'route_type');
     const routeIdIdx = routesHeader.findIndex(item => item === 'route_id');
 
     // Iterate through all routes.txt records to build the map
-    const modeWeights = new Map();
+    const routeModes = new Map();
     for (const routeRecord of routesData) {
         const route = parseOneLineFromInputFile(routeRecord);
         if (!route) continue;
@@ -285,16 +352,11 @@ function createModeWeightsMap(routesHeader, routesData) {
         const routeId = route[routeIdIdx];
         const mode = Number(route[routeTypeIdx]);
         
-        // Default weight is 1.5, only changes for light/heavy rail (0, 1, 2) and buses (3)
-        let modeWeight = 1.5;
-        if (mode === 3) modeWeight = 1;       
-        else if (mode === 0 || mode === 1 || mode === 2) modeWeight = 2;
-        
         // Store the weight in the map keyed by route_id
-        modeWeights.set(routeId, modeWeight);
+        routeModes.set(routeId, mode);
     }
 
-    return modeWeights;
+    return routeModes;
 }
 
 // Function creating a lookup table which maps trip_id from trips.txt to its route_id and service_id
@@ -321,23 +383,17 @@ function createTripInfoMap(tripsHeader, tripsData) {
     return tripInfo;
 }
 
-// Function creating a lookup table which maps service_id from calendar.txt to the number of days in a week that service is active
-function createServiceDaysCntMap(calendarHeader, calendarData) {
+// Function creating a lookup table which maps service_id from calendar.txt to a boolean, which indicates whether that service is active on monday
+function createMondayActiveMap(calendarHeader, calendarData) {
 
     // Get all necessary indicies from the order of the calendar.txt header
     const serviceIdIdx = calendarHeader.findIndex(item => item === 'service_id');
     const mondayIdx = calendarHeader.findIndex(item => item === 'monday');
-    const tuesdayIdx = calendarHeader.findIndex(item => item === 'tuesday');
-    const wednesdayIdx = calendarHeader.findIndex(item => item === 'wednesday');
-    const thursdayIdx = calendarHeader.findIndex(item => item === 'thursday');
-    const fridayIdx = calendarHeader.findIndex(item => item === 'friday');
-    const saturdayIdx = calendarHeader.findIndex(item => item === 'saturday');
-    const sundayIdx = calendarHeader.findIndex(item => item === 'sunday');
     const startIdx = calendarHeader.findIndex(item => item === 'start_date');
     const endIdx = calendarHeader.findIndex(item => item === 'end_date');
 
     // Iterate through all calendar.txt records to build the map
-    const serviceDaysCnt = new Map();
+    const mondayActiveMap = new Map();
     for (const calendarRecord of calendarData) {
         const calendar = parseOneLineFromInputFile(calendarRecord);
         if (!calendar) continue;
@@ -353,22 +409,15 @@ function createServiceDaysCntMap(calendarHeader, calendarData) {
         if (today < startDate || today > endDate)
             continue;
 
-        // Get number of days in week the service is active for
-        const numDays = 
-            Number(calendar[mondayIdx]) +
-            Number(calendar[tuesdayIdx]) +
-            Number(calendar[wednesdayIdx]) +
-            Number(calendar[thursdayIdx]) +
-            Number(calendar[fridayIdx]) +
-            Number(calendar[saturdayIdx]) +
-            Number(calendar[sundayIdx]);
+        // Get value of monday column
+        const mondayActive = calendar[mondayIdx] === "1"; 
         
         // Store in map keyed by the service_id
         const serviceId = calendar[serviceIdIdx];
-        serviceDaysCnt.set(serviceId, numDays);
+        mondayActiveMap.set(serviceId, mondayActive);
     }
 
-    return serviceDaysCnt;
+    return mondayActiveMap;
 }
 
 // Function for downloaded data unzip and parse

@@ -2,5 +2,5 @@
     "enabled": true,
     "apiPrefix": "planner",
     "name": "planner.name",
-    "icon": "fa-question"
+    "icon": "fa-map-location"
 }

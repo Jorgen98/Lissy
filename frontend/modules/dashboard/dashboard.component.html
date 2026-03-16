@@ -17,7 +17,7 @@ Main component HTML template file for the dashboard module.
             <div class="main-btn-content" [ngSwitch]="module.icon">
                 <fa-icon *ngSwitchCase="'fa-route'" [icon]="faIconRoute"></fa-icon>
                 <fa-icon *ngSwitchCase="'fa-clock'" [icon]="faIconHourglassHalf"></fa-icon>
-                <fa-icon *ngSwitchCase="'fa-question'" [icon]="faIconQuestionMark"></fa-icon>
+                <fa-icon *ngSwitchCase="'fa-map-location'" [icon]="faIconMapLocation"></fa-icon>
                 <i *ngSwitchDefault class="main-icon pi {{ module.icon }}"></i>
                 <span class="main-btn-content-text">{{ module.name | translate }}</span>
             </div>

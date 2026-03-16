@@ -14,7 +14,7 @@ import { ImportsModule } from '../../src/app/imports';
 import { TranslateService } from '@ngx-translate/core';
 import { faRoute } from '@fortawesome/free-solid-svg-icons';
 import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons';
-import { faQuestion } from '@fortawesome/free-solid-svg-icons';
+import { faMapLocationDot } from '@fortawesome/free-solid-svg-icons';
 
 // Module configs
 import * as configAboutModule from '../about/config.json';
@@ -40,7 +40,7 @@ export class DashboardModule implements OnInit {
 
     public faIconRoute = faRoute;
     public faIconHourglassHalf = faHourglassHalf;
-    public faIconQuestionMark = faQuestion;
+    public faIconMapLocation = faMapLocationDot;
 
     public moduleFocus: Number = 0;
 

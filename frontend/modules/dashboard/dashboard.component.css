@@ -71,3 +71,10 @@
         padding-bottom: 3em;
     }
 }
+
+fa-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10.5px 0;
+}

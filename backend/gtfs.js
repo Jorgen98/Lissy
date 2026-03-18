@@ -507,6 +507,7 @@ async function unzipAndParseData(response, startTime) {
                     const trips = inputFiles.find(file => file.path === 'trips.txt');
                     const calendar = inputFiles.find(file => file.path === 'calendar.txt');
                     const routes = inputFiles.find(file => file.path === 'routes.txt');
+                    log('info', 'Calculating transit score for transport system stops');
                     if (!await getStopTransitAccessibilityScores(stops, stopTimes, trips, calendar, routes)) {
                         log('error', 'Failed to calculate stop transit scores from GTFS due to corrupted files');
                         fs.rmSync(tmpFolderName, { recursive: true });

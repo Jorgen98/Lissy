@@ -16,7 +16,8 @@ import { TripOption, TripSectionOption } from "./types/TripOption";
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
 
     // Perform possible initialization steps
-    await planner.initialize();
+    if (!await planner.initialize())
+        return null;
 
     // Call planning function based on number of trip points
     let tripOptions: TripOption[] | null = [];

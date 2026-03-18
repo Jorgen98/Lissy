@@ -1381,7 +1381,7 @@ function stopsSort(data) {
 // Function, which returns shape based on lineId and tripId
 async function getShapeFromOTP(routeId, tripId) {
     if (routeId === undefined || tripId === undefined) {
-        return [];
+        return undefined;
     }
 
     const route = (await dbPostGIS.getActiveRoutes())[routeId.split(':')[1]];

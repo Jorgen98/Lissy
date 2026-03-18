@@ -5,11 +5,8 @@
  * Translating adapter class for OpenTripPlanner.
  */
 
-const timestamp = require('../../timeStamp.js');
 const logService = require('../../log.js');
-const dbStats = require('../../db-stats.js');
-const dbPostgis = require('../../db-postgis.js');
-const dbCache = require('../../db-cache.js');
+const gtfsService = require('../../gtfs.js');
 
 import { OTPService } from "./OTPService";
 import { RoutePlanner } from "../RoutePlanner";
@@ -20,7 +17,6 @@ import { PlanTransitModePreferenceInput } from "./types/PlanTransitModePreferenc
 import { TripSectionOption, TripSectionLeg } from "../types/TripOption";
 import { Edges, Leg, Node } from "./types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
-import { RouteWithShapes } from "../types/RouteWithShapes";
 import { Mode } from "../types/Mode";
 
 // Function for logging 
@@ -32,12 +28,6 @@ function log(type: string, msg: string): void {
 Adapter for OpenTripPlanner2 instance
 */
 export class OTPAdapter implements RoutePlanner {
-
-    // Dates where data is available in the DB for leg shaping
-    private availableDates: { start: string, disabled: string[], end: string } | false = false;
-
-    // Routes of the transport system that have shapes available in the DB for the requested date
-    private routesWithShapes: RouteWithShapes[] | null = null;
 
     constructor(
         private otpService: OTPService
@@ -97,17 +87,8 @@ export class OTPAdapter implements RoutePlanner {
         return await this.translateTripOptions(response.data.planConnection.edges);
     }
 
-    // Function performing any initializations for the OTPAdapter, loads available dates and routes with shapes in the DB
+    // Function performing any initializations for the OTPAdapter, empty implementation
     public async initialize(): Promise<boolean> {
-
-        // Get dates where data is available in the DB for leg shaping, returns false on errors
-        this.availableDates = await dbStats.getAvailableDates(true);
-        if (!this.availableDates)
-            log('warning', 'Failed to get available dates for leg shaping.');
-
-        // Get all routes of the transport system that have shapes available in the DB for the latest date
-        this.routesWithShapes = this.availableDates ? await this.getRoutesWithShapes(this.availableDates.end) : null;
-
         return true;
     }
 
@@ -215,41 +196,16 @@ export class OTPAdapter implements RoutePlanner {
         }));
     }
 
-    // Function getting the shapeId from the passed in trip and the list of routes with available shapes
-    private getShapeId(trip: { stops: { name: string }[] }): number {
-
-        // Get names of first and last stop of the trip
-        const firstTripStop = trip.stops[0]!.name;
-        const lastTripStop = trip.stops[trip.stops.length - 1]!.name;
-
-        // Find shapeId for given trip
-        for (const route of this.routesWithShapes!) {
-            for (const trip of route.trips) {
-                if (trip.stops === `${firstTripStop} -> ${lastTripStop}`)
-                    return trip.shape_id;
-            }
-        }
-
-        // The needed trip wasnt found
-        return -1;
-    }
-
     // Function getting the exact shape of a leg in the trip option from the postgis database as a list of lat/lng coordinate points
     private async getLegShape(leg: Leg): Promise<{ lat: number, lng: number }[]> {
 
         // Check needed conditions to get the trip shape from DB
         // Direct modes dont have shape data in DB and the leg needs to have a defined trip with at least two stops
-        if (leg.mode === "WALK" || leg.mode === "CAR" || this.routesWithShapes === null || leg.trip === null || leg.trip.stops.length < 2)
+        if (leg.route === null || leg.trip === null)
             return this.translateGooglePolyline(leg.legGeometry.points);
 
-        // Get shapeId of trip used for given leg
-        const shapeId = this.getShapeId(leg.trip);
-        if (shapeId === -1)
-            return this.translateGooglePolyline(leg.legGeometry.points);
-
-        // Get actual shape from DB by the found shape
-        const shape = await dbPostgis.getFullShape(shapeId);
-        if (shape.stops === undefined || shape.coords === undefined)
+        const shape = await gtfsService.getShapeFromOTP(leg.route.gtfsId, leg.trip.gtfsId);
+        if (shape === undefined || shape.stops === undefined || shape.coords === undefined)
             return this.translateGooglePolyline(leg.legGeometry.points);
 
         // The found shape has coordinates for the whole trip used for the leg, need only a subsection of the shape for the actual leg
@@ -282,52 +238,5 @@ export class OTPAdapter implements RoutePlanner {
         }
 
         return coords;
-    }
-
-    // Function querying the database for routes that have shapes available for a given date
-    private async getRoutesWithShapes(latestDate: string): Promise<RouteWithShapes[] | null> {
-        
-        // Check if the request is for todays shapes, which are likely to already be cached
-        if (latestDate === timestamp.getTimeStamp(timestamp.getTodayUTC())) {
-            const cache = await dbCache.getTodayShapes();
-            return cache.data ?? await dbCache.setUpTodayShapes();  // Store in cache if not cached yet
-        }
-        else {
-
-            // Attempt to get data from cache for day that isnt today
-            const cache = await dbCache.setUpValue(`shapes_${latestDate}`, null, null);
-            if (cache.data !== null)
-                return cache.data;
-            
-            // Get available routes for the given date
-            const routes = await dbStats.getRoutesIdsInInterval(latestDate, latestDate);
-            if (routes.length === 0){
-                log('warning', 'No routes found in given interval.');
-                return null;
-            }
-
-            // Get available tripIds for the available routes for the given date
-            let tripIds: number[] = [];
-            for (const route of routes) {
-                const newTripsIds = await dbStats.getTripIdsInInterval(route, latestDate, latestDate);
-                tripIds = tripIds.concat(newTripsIds);
-            }
-            if (tripIds.length === 0) {
-                log('warning', 'No trip ids found in routes for given interval.');
-                return null;
-            }
-
-            // Get trips from the found Ids and their shapes from the DB
-            const tripsWithShape = await dbPostgis.getTripsWithUniqueShape(tripIds);
-            if (tripsWithShape.length === 0) {
-                log('warning', 'No trips found from given tripIds.');
-                return null;
-            }
-
-            // Store retrieved data in cache
-            dbCache.setUpValue(`shapes_${latestDate}`, tripsWithShape, 100);
-
-            return tripsWithShape;
-        }
     }
 };

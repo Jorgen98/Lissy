@@ -1162,23 +1162,25 @@ function combineGTFSTimes(timeA, timeB) {
     return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
 }
 
-// Fetch stations that are withing the given radius of the given point
-async function getNearbyStations(lat, lng, radius) {
+// Fetch stations that are withing the given radius of the given point, can also set a minumum for transit score
+async function getNearbyStations(lat, lng, radius, transitScoreMin = 0) {
     let result;
     try {
         result = await db_postgis.query(`
-            SELECT *, ST_AsGeoJSON(latLng) FROM stops 
+            SELECT *, ST_AsGeoJSON(latLng)
+            FROM stops 
             WHERE is_active=true
             AND parent_station_id IS NULL
             AND ST_DWithin(
-                latlng::geography,
+                ST_SetSRID(ST_MakePoint(ST_Y(latlng), ST_X(latlng)), 4326)::geography,
                 ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
                 $3
-            );
-        `, [lat, lng, radius]);
+            )
+            AND transit_score >= $4;
+        `, [lng, lat, radius, transitScoreMin]);
     } catch(error) {
         log('error', error);
-        return [];
+        return {};
     }
 
     let output = {};

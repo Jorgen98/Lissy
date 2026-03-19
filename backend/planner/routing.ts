@@ -11,9 +11,18 @@ import { TransportMode } from "../../frontend/modules/planner/types/TransportMod
 import { RoutePlanner } from "./RoutePlanner";
 import { TripRequest } from "./types/TripRequest";
 import { TripSectionInfo } from "./types/TripSectionInfo";
-import { WALKING_DISTANCE_COEF, DRIVING_DISTANCE_COEF, MIN_DRIVE_DISTANCE, SCORE_STOP_RADIUS, PARK_AND_RIDE_DECISION_SCORE, PARK_AND_RIDE_DECISION_DISTANCE } from "./utils/coefficients";
-import { calculateDistanceHaversine } from "./geo";
+import { calculateDistanceHaversine, getIntermediatePoint } from "./geo";
 import { TripOption, TripSectionOption } from "./types/TripOption";
+import { 
+    WALKING_DISTANCE_COEF, 
+    DRIVING_DISTANCE_COEF, 
+    MIN_DRIVE_DISTANCE, 
+    SCORE_STOP_RADIUS, 
+    PARK_AND_RIDE_DECISION_SCORE, 
+    PARK_AND_RIDE_DECISION_DISTANCE, 
+    TRANSFER_HUB_SCORE, 
+    TRANSFER_HUB_RADIUS_SHIFT,
+} from "./utils/coefficients";
 
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
 
@@ -134,27 +143,8 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
         carWalkCombination(request, plannerRequests, planner);
 
     // If car and public trasnport are both selected, decide if a CAR->transfer->TRANSIT options should be requested
-    if (globalModes.publicTransport && globalModes.car) {
-
-        // Get scores of the origin and destination points, and straight line distance between them
-        const originScore = await getPointTransitAccessScore(origin.lat, origin.lng);
-        const destinationScore = await getPointTransitAccessScore(destination.lat, destination.lng);
-        const distance = calculateDistanceHaversine(origin, destination);
-
-        if (distance >= PARK_AND_RIDE_DECISION_DISTANCE) {
-            if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore >= PARK_AND_RIDE_DECISION_SCORE) {
-                // Make car->transit request
-            }
-            else if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
-                // If theres a good transit hub between the two points
-                    // Make car->transit request
-            }
-            else if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
-                // If theres a good transit hub between the two points that is closer to the destination than the origin
-                    // Make car->transit request
-            }
-        }
-    }
+    if (globalModes.publicTransport && globalModes.car) 
+        carTransitCombination(origin, destination);
 
     // Wait for all created requests running in parallel
     const results = await Promise.all(plannerRequests);
@@ -182,8 +172,25 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
     return filteredOptions;
 }
 
+// Function finding all candidate transfer hubs between pointA and pointB for a car->transit section
+async function getTransferHubs(pointA: { lat: number, lng: number }, pointB: { lat: number, lng: number }, distance: number) {
+
+    // Find point along the line between A and B at (TRANSFER_HUB_RADIUS_SHIFT * distance) distance from point A
+    const intermediatePoint = getIntermediatePoint(pointA, pointB, TRANSFER_HUB_RADIUS_SHIFT, distance);
+
+    // Get stations that are nearby this intermediate point and have a good enough score 
+    const candidateHubs = await dbPostgis.getNearbyStations(intermediatePoint.lat, intermediatePoint.lng, distance / 2, TRANSFER_HUB_SCORE);
+
+    // Convert response into list of candidate stations with their coordinates and scores
+    return (Object.values(candidateHubs) as { latLng: [number, number], transit_score: number }[]).map(hub => ({
+        lat: hub.latLng[0],
+        lng: hub.latLng[1],
+        score: hub.transit_score,
+    }));
+}
+
 // Function getting the transit score of an arbitrary point 
-async function getPointTransitAccessScore(lat: number, lng: number) {
+async function getPointTransitAccessScore(lat: number, lng: number): Promise<number> {
 
     // Find stations that are in a given radius from the point
     const nearbyStations = await dbPostgis.getNearbyStations(lat, lng, SCORE_STOP_RADIUS);
@@ -231,6 +238,35 @@ function buildSectionOptionId(option: TripSectionOption): string {
     });
 
     return id;
+}
+
+async function carTransitCombination(origin: { lat: number, lng: number }, destination: { lat: number, lng: number }) {
+
+    // Get scores of the origin and destination points, and straight line distance between them
+    const originScore = await getPointTransitAccessScore(origin.lat, origin.lng);
+    const destinationScore = await getPointTransitAccessScore(destination.lat, destination.lng);
+    const distance = calculateDistanceHaversine(origin, destination);
+
+    // First, check if the distance between the two points is big enough that it makes sense to consider car->transit
+    if (distance >= PARK_AND_RIDE_DECISION_DISTANCE) {
+
+        // Find candidate transit hubs for the two points, dont make request if none are found
+        const candidateHubs = await getTransferHubs(origin, destination, distance);
+        if (candidateHubs.length === 0)
+            return;
+
+        if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore >= PARK_AND_RIDE_DECISION_SCORE) {
+            // Make car->transit request
+        }
+        else if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+            // If theres a good transit hub between the two points
+                // Make car->transit request
+        }
+        else if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+            // If theres a good transit hub between the two points that is closer to the destination than the origin
+                // Make car->transit request
+        }
+    }
 }
 
 function carWalkCombination(request: TripRequest, plannerRequests: Promise<TripSectionOption[] | null>[], planner: RoutePlanner) {

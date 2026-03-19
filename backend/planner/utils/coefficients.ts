@@ -21,3 +21,9 @@ export const PARK_AND_RIDE_DECISION_SCORE = 75;
 
 // If the distance between two points is more than this constant, park and ride is always considered
 export const PARK_AND_RIDE_DECISION_DISTANCE = 5000;
+
+// Score of a station needed for it to be considered a transfer hub for car->transit trip section
+export const TRANSFER_HUB_SCORE = 59;
+
+// The fraction used in getTransferHubs function which shifts the center of the radius along a line between two points 
+export const TRANSFER_HUB_RADIUS_SHIFT = 0.4;

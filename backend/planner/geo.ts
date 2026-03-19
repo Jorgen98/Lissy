@@ -10,6 +10,9 @@ import { NominatimAddressDetails } from "./types/AddressDetails";
 
 const logService = require('../log.js');
 
+// Earth radius in meters
+const EARTH_RADIUS = 6_371_000;
+
 // Function for logging 
 function log(type: string, msg: string): void {
     logService.write(process.env.BE_PLANNER_MODULE_NAME, type, msg);
@@ -179,9 +182,6 @@ function createPlaceName(details: NominatimAddressDetails): string | null {
 // Function using the haversine formula to calculate straight line distance between two points in meters
 export function calculateDistanceHaversine(pointA: { lat: number, lng: number }, pointB: { lat: number, lng: number }): number {
 
-    // Earth radius (meters)
-    const r = 6_371_000;
-
     // Convert lat/lng degrees to radians
     const pointALat = pointA.lat * Math.PI / 180;
     const pointBLat = pointB.lat * Math.PI / 180;
@@ -196,5 +196,39 @@ export function calculateDistanceHaversine(pointA: { lat: number, lng: number },
     const omega = 2 * Math.asin(Math.sqrt(havOmega));
 
     // Calculate distance between two points in meters
-    return r * omega;
+    return EARTH_RADIUS * omega;
+}
+
+// Function getting coordinates of a point along the straight line between pointA and pointB, 'f' is the fraction of distance from pointA where the point shall be found
+// https://www.movable-type.co.uk/scripts/latlong.html
+export function getIntermediatePoint(pointA: { lat: number, lng: number }, pointB: { lat: number, lng: number }, f: number, d: number): { lat: number, lng: number } {
+
+    // Convert lat/lng degrees to radians
+    const pointALat = pointA.lat * Math.PI / 180;
+    const pointALng = pointA.lng * Math.PI / 180;
+    const pointBLat = pointB.lat * Math.PI / 180;
+    const pointBLng = pointB.lng * Math.PI / 180;
+
+    const sin = Math.sin;
+    const cos = Math.cos;
+    const atan2 = Math.atan2;
+
+    // Get angular distance between the two points and its sin
+    const delta = d / EARTH_RADIUS;
+    const sinDelta = sin(delta);
+    if (sinDelta === 0)
+        return pointA;
+
+    const a = sin((1 - f) * delta) / sinDelta;
+    const b = sin(f * delta) / sinDelta;
+    const x = a * cos(pointALat) * cos(pointALng) + b * cos(pointBLat) * cos(pointBLng);
+    const y = a * cos(pointALat) * sin(pointALng) + b * cos(pointBLat) * sin(pointBLng);
+    const z = a * sin(pointALat) + b * sin(pointBLat);
+
+    const latRadians = atan2(z, Math.sqrt(x*x + y*y));
+    const lngRadians = atan2(y, x);
+    return { 
+        lat: latRadians * 180 / Math.PI, 
+        lng: lngRadians * 180 / Math.PI
+    };
 }

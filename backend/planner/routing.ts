@@ -5,11 +5,13 @@
  * Function for routing and building a response to a trip request using the planner adapter.
  */
 
+const dbPostgis = require('../db-postgis.js');
+
 import { TransportMode } from "../../frontend/modules/planner/types/TransportMode";
 import { RoutePlanner } from "./RoutePlanner";
 import { TripRequest } from "./types/TripRequest";
 import { TripSectionInfo } from "./types/TripSectionInfo";
-import { WALKING_DISTANCE_COEF, DRIVING_DISTANCE_COEF, MIN_DRIVE_DISTANCE } from "./utils/coefficients";
+import { WALKING_DISTANCE_COEF, DRIVING_DISTANCE_COEF, MIN_DRIVE_DISTANCE, SCORE_STOP_RADIUS, PARK_AND_RIDE_DECISION_SCORE, PARK_AND_RIDE_DECISION_DISTANCE } from "./utils/coefficients";
 import { calculateDistanceHaversine } from "./geo";
 import { TripOption, TripSectionOption } from "./types/TripOption";
 
@@ -106,11 +108,14 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
     // List of promises from requests to the planner so Promise.all can be used
     let plannerRequests = []; 
 
+    const origin = request.points[0]!;
+    const destination = request.points[1]!;
+
     // Always get trip options with public transport section if selected
     if (globalModes.publicTransport) {
         plannerRequests.push(
             planner.getTripSection(
-                createSectionRequest(request, request.points[0]!, request.points[1]!, ["publicTransport"], request.datetime.tripDatetime)
+                createSectionRequest(request, origin, destination, ["publicTransport"], request.datetime.tripDatetime)
             )
         );
     }
@@ -119,7 +124,7 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
     if ((globalModes.car && !globalModes.walk) || (!globalModes.car && globalModes.walk)) {
         plannerRequests.push(
             planner.getTripSection(
-                createSectionRequest(request, request.points[0]!, request.points[1]!, [globalModes.car ? "car" : "walk"], request.datetime.tripDatetime)
+                createSectionRequest(request, origin, destination, [globalModes.car ? "car" : "walk"], request.datetime.tripDatetime)
             )
         );
     }
@@ -130,7 +135,25 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
 
     // If car and public trasnport are both selected, decide if a CAR->transfer->TRANSIT options should be requested
     if (globalModes.publicTransport && globalModes.car) {
-        // TODO decide if the CAR->transfer->TRANSIT trip should be requested based on rurality
+
+        // Get scores of the origin and destination points, and straight line distance between them
+        const originScore = await getPointTransitAccessScore(origin.lat, origin.lng);
+        const destinationScore = await getPointTransitAccessScore(destination.lat, destination.lng);
+        const distance = calculateDistanceHaversine(origin, destination);
+
+        if (distance >= PARK_AND_RIDE_DECISION_DISTANCE) {
+            if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore >= PARK_AND_RIDE_DECISION_SCORE) {
+                // Make car->transit request
+            }
+            else if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+                // If theres a good transit hub between the two points
+                    // Make car->transit request
+            }
+            else if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+                // If theres a good transit hub between the two points that is closer to the destination than the origin
+                    // Make car->transit request
+            }
+        }
     }
 
     // Wait for all created requests running in parallel
@@ -157,6 +180,23 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
     // TODO Rank options
 
     return filteredOptions;
+}
+
+// Function getting the transit score of an arbitrary point 
+async function getPointTransitAccessScore(lat: number, lng: number) {
+
+    // Find stations that are in a given radius from the point
+    const nearbyStations = await dbPostgis.getNearbyStations(lat, lng, SCORE_STOP_RADIUS);
+
+    // Find the maximum score from the nearby stops
+    let maxScore = 0;
+    for (const data of Object.values(nearbyStations) as any) {
+        const stationScore = data.transit_score as number;
+        if (stationScore > maxScore)
+            maxScore = stationScore;
+    }
+
+    return maxScore;
 }
 
 // Function filtering public transport section options that are the same as another option but departure is later/earlier (depending on departure or arrival time selection)

@@ -1162,8 +1162,40 @@ function combineGTFSTimes(timeA, timeB) {
     return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
 }
 
+// Fetch stations that are withing the given radius of the given point
+async function getNearbyStations(lat, lng, radius) {
+    let result;
+    try {
+        result = await db_postgis.query(`
+            SELECT *, ST_AsGeoJSON(latLng) FROM stops 
+            WHERE is_active=true
+            AND parent_station_id IS NULL
+            AND ST_DWithin(
+                latlng::geography,
+                ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+                $3
+            );
+        `, [lat, lng, radius]);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+
+    let output = {};
+
+    for (const row of result.rows) {
+        row['latLng'] = JSON.parse(row['st_asgeojson']).coordinates;
+        delete row['st_asgeojson'];
+        delete row['latlng'];
+        output[row['stop_id']] = row;
+    }
+
+    return output;
+}
+
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
-    getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore }
+    getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
+    getNearbyStations }

@@ -9,7 +9,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { CheckboxModule } from 'primeng/checkbox';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ColorPickerModule } from 'primeng/colorpicker';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TabsModule } from 'primeng/tabs';
@@ -31,7 +30,6 @@ import { ImageModule } from 'primeng/image';
         ToastModule,
         SelectButtonModule,
         CheckboxModule,
-        FontAwesomeModule,
         ColorPickerModule,
         InputNumberModule,
         TabsModule,
@@ -52,7 +50,6 @@ import { ImageModule } from 'primeng/image';
         ToastModule,
         SelectButtonModule,
         CheckboxModule,
-        FontAwesomeModule,
         ColorPickerModule,
         InputNumberModule,
         TabsModule,

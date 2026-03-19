@@ -2,5 +2,5 @@
     "enabled": true,
     "apiPrefix": "delayTrips",
     "name": "delay.trips",
-    "icon": "fa-clock"
+    "icon": "fa fa-hourglass-half"
 }

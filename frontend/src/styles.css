@@ -94,6 +94,7 @@ button:disabled, button:disabled:hover {
     padding: 0.5em 0;
     outline: none;
     box-shadow: none;
+    width: 100%;
 }
 
 .btn-side-menu:hover {
@@ -114,6 +115,12 @@ button:disabled, button:disabled:hover {
 
 .main-icon {
     margin: 0.25em 0;
+}
+
+.fa {
+    width: 100% !important;
+    max-width: 1.25em;
+    margin: 0.25em auto;
 }
 
 .content {
@@ -348,5 +355,9 @@ app-page-not-found {
 
     .mobile-header-item {
         display: flex;
+    }
+
+    .fa {
+        margin: auto;
     }
 }

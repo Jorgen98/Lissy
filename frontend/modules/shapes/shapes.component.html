@@ -12,7 +12,7 @@
         <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
           <button type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
             (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-            <fa-icon [icon]="faIconRoute"></fa-icon>
+            <i class="fa fa-route"></i>
           </button>
         </div>
       </span>
@@ -59,7 +59,7 @@
             <p class="mobile-menu-text">{{ 'common.calendar' | translate }}</p>
           </button>
           <button type="button" class="mobile-menu-btn" (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
-            <fa-icon [icon]="faIconRoute"></fa-icon>
+            <i class="fa fa-route mobile-icon"></i>
             <p class="mobile-menu-text">{{ 'common.route' | translate }}</p>
           </button>
         </div>

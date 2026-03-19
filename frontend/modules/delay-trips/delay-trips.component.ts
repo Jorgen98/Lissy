@@ -9,7 +9,6 @@ import { mapObject, MapService } from '../../src/app/map/map.service';
 import { UIMessagesService } from '../../src/app/services/messages';
 import * as timeStamp from "../../src/app/services/timeStamps";
 import { delayCategoriesService, delayCategory } from '../../src/app/services/delayCategories';
-import { faRoute } from '@fortawesome/free-solid-svg-icons';
 
 interface route {
     route_short_name: string,
@@ -97,8 +96,6 @@ export class DelayTripsModule implements OnInit, OnDestroy {
     public showSimplifiedDelays: boolean = true;
 
     public delayCategories: delayCategory[] = [];
-
-    public faIconRoute = faRoute;
 
     public tripsGraphData: graphData = {labels: [], datasets: []};
     public tripsGraphAggFns: {label: string, operation: 'trip' | 'date'}[] = [];

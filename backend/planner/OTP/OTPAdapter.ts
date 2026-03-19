@@ -18,6 +18,7 @@ import { TripSectionOption, TripSectionLeg } from "../types/TripOption";
 import { Edges, Leg, Node } from "./types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
 import { Mode } from "../types/Mode";
+import { calculateDistanceHaversine } from "../geo";
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -158,10 +159,19 @@ export class OTPAdapter implements RoutePlanner {
 
     // Function translating a single leg of a trip option returned from OTP to client format
     private async translateTripLeg(leg: Leg): Promise<TripSectionLeg> {
+
+        // Get leg shape from DB or translate google polyline if the shape isnt in the DB
+        const points = await this.getLegShape(leg);
+
+        // Calculate leg distance from the points (OTP distance may be wrong, since it may not have the true leg shape)
+        let distance = 0;
+        for (let i = 0; i < points.length - 1; i++)
+            distance += calculateDistanceHaversine(points[i]!, points[i+1]!);
+
         return {
-            distance: leg.distance,
+            distance,
             duration: leg.duration,
-            points: await this.getLegShape(leg),   // Get leg shape from DB or translate google polyline if the shape isnt in the DB
+            points,   
             mode: leg.mode as Mode,
             from: {
                 arrivalTime: new Date(leg.from.arrival.scheduledTime),      // Convert dates as strings into actual UTC JS date objects

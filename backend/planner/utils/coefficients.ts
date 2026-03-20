@@ -27,3 +27,6 @@ export const TRANSFER_HUB_SCORE = 59;
 
 // The fraction used in getTransferHubs function which shifts the center of the radius along a line between two points 
 export const TRANSFER_HUB_RADIUS_SHIFT = 0.4;
+
+// Number of transfer hubs clustering wont be performed for
+export const CANDIDATES_NO_CLUSTER_LIMIT = 10;

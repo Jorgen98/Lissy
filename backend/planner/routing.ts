@@ -22,6 +22,7 @@ import {
     PARK_AND_RIDE_DECISION_DISTANCE, 
     TRANSFER_HUB_SCORE, 
     TRANSFER_HUB_RADIUS_SHIFT,
+    CANDIDATES_NO_CLUSTER_LIMIT,
 } from "./utils/coefficients";
 
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
@@ -115,7 +116,7 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
     const globalModes = request.modes.global;
 
     // List of promises from requests to the planner so Promise.all can be used
-    let plannerRequests = []; 
+    const plannerRequests: Promise<TripSectionOption[] | null>[] = []; 
 
     const origin = request.points[0]!;
     const destination = request.points[1]!;
@@ -143,8 +144,10 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
         carWalkCombination(request, plannerRequests, planner);
 
     // If car and public trasnport are both selected, decide if a CAR->transfer->TRANSIT options should be requested
-    if (globalModes.publicTransport && globalModes.car) 
-        carTransitCombination(origin, destination);
+    if (globalModes.publicTransport && globalModes.car) {
+        const carTransitRequests = await carTransitCombination(request, planner);
+        plannerRequests.push(...carTransitRequests);
+    };
 
     // Wait for all created requests running in parallel
     const results = await Promise.all(plannerRequests);
@@ -240,33 +243,86 @@ function buildSectionOptionId(option: TripSectionOption): string {
     return id;
 }
 
-async function carTransitCombination(origin: { lat: number, lng: number }, destination: { lat: number, lng: number }) {
+// Function handling the combination of car and public transport in one request
+async function carTransitCombination(request: TripRequest, planner: RoutePlanner): Promise<Promise<TripSectionOption[] | null>[]> {
 
-    // Get scores of the origin and destination points, and straight line distance between them
+    // Get origin and destination points from the original request
+    const origin = request.points[0]!;
+    const destination = request.points[1]!;
+
+    // Get straight line distance between the two points, check if its not too short for car->transit
+    const distance = calculateDistanceHaversine(origin, destination);
+    if (distance < PARK_AND_RIDE_DECISION_DISTANCE)
+        return [];
+
+    // Find candidate transit hubs for the two points, dont make request if none are found
+    const candidateHubs = await getTransferHubs(origin, destination, distance);
+    if (candidateHubs.length === 0)
+        return [];
+
     const originScore = await getPointTransitAccessScore(origin.lat, origin.lng);
     const destinationScore = await getPointTransitAccessScore(destination.lat, destination.lng);
-    const distance = calculateDistanceHaversine(origin, destination);
 
-    // First, check if the distance between the two points is big enough that it makes sense to consider car->transit
-    if (distance >= PARK_AND_RIDE_DECISION_DISTANCE) {
-
-        // Find candidate transit hubs for the two points, dont make request if none are found
-        const candidateHubs = await getTransferHubs(origin, destination, distance);
-        if (candidateHubs.length === 0)
-            return;
-
-        if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore >= PARK_AND_RIDE_DECISION_SCORE) {
-            // Make car->transit request
-        }
-        else if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
-            // If theres a good transit hub between the two points
-                // Make car->transit request
-        }
-        else if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
-            // If theres a good transit hub between the two points that is closer to the destination than the origin
-                // Make car->transit request
-        }
+    // TODO adjust the list of candidate transfer points based on scores
+    /*if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore >= PARK_AND_RIDE_DECISION_SCORE) {
     }
+    else if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+        // If theres a good transit hub between the two points
+    }
+    else if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+        // If theres a good transit hub between the two points that is closer to the destination than the origin
+    }*/
+
+    // TODO Clustering, constant + some slow growing factor of clusters based on the number of candidates or fixed number of clusters
+    if (candidateHubs.length > CANDIDATES_NO_CLUSTER_LIMIT) {
+        // Cluster (probably KMeans, gives control on amount of clusters)
+        // Clustering should return a different list of hubs that can be used in the same way as the original one
+        console.log(`Clustering... (${candidateHubs.length})`);
+        return [];  // TODO
+    }
+
+    // Create list of Promise objects and return it so it can be processed concurrently
+    return candidateHubs.map(hub => buildCarTransitTrip(request, planner, origin, hub, destination));
+}
+
+// Function building a trip section option/options that transfers from car to transit at 'transfer'
+async function buildCarTransitTrip(
+    request: TripRequest,
+    planner: RoutePlanner,
+    origin: { lat: number, lng: number }, 
+    transfer: { lat: number, lng: number }, 
+    destination: { lat: number, lng: number }
+): Promise<TripSectionOption[] | null> {
+
+    // Get list of car legs (most likely always one)
+    const carLegs = await planner.getTripSection(createSectionRequest(request, origin, transfer, ["car"], request.datetime.tripDatetime));
+    if (carLegs === null || carLegs.length === 0)
+        return null;
+
+    // Get first car leg, most likely there will only be one anyway
+    const firstCarLeg = carLegs[0]!;
+
+    // Get arrival time of the car leg
+    const carLegArrival = firstCarLeg.endDatetime.toISOString();  
+
+    // Get list of transit options from the transfer point
+    const transitOptions = await planner.getTripSection(createSectionRequest(request, transfer, destination, ["publicTransport"], carLegArrival));
+    if (transitOptions === null || transitOptions.length === 0)
+        return null;
+
+    // Get first transit option
+    // TODO use a few of them (ranking)
+    const firstTransitOption = transitOptions[0]!;
+
+    // Update the transit section object with data from the car leg object
+    firstTransitOption.distance += firstCarLeg.distance;
+    firstTransitOption.duration += firstCarLeg.duration;
+    firstTransitOption.originName = firstCarLeg.originName;
+    firstTransitOption.startDatetime = firstCarLeg.startDatetime;
+    firstTransitOption.legs.unshift(firstCarLeg.legs[0]!);
+
+    // Return one option for now
+    return [firstTransitOption];
 }
 
 function carWalkCombination(request: TripRequest, plannerRequests: Promise<TripSectionOption[] | null>[], planner: RoutePlanner) {

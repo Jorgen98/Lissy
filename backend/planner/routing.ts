@@ -23,6 +23,7 @@ import {
     TRANSFER_HUB_SCORE, 
     TRANSFER_HUB_RADIUS_SHIFT,
     CANDIDATES_NO_CLUSTER_LIMIT,
+    TRANSFER_HUB_MIN_IMPROVEMENT,
 } from "./utils/coefficients";
 
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
@@ -184,11 +185,19 @@ async function getTransferHubs(pointA: { lat: number, lng: number }, pointB: { l
     // Get stations that are nearby this intermediate point, have a good enough score and parking nearby
     const candidateHubs = await dbPostgis.getNearbyStations(intermediatePoint.lat, intermediatePoint.lng, distance / 2, TRANSFER_HUB_SCORE, true);
 
-    // Convert response into list of candidate stations with their coordinates and scores
-    return (Object.values(candidateHubs) as { latLng: [number, number], transit_score: number }[]).map(hub => ({
+    // Convert response into list of candidate stations with their coordinates, nearest parking coordinates, scores and name
+    return (Object.values(candidateHubs) as { 
+        latLng: [number, number], 
+        parkingLatLng: [number, number], 
+        transit_score: number, 
+        stop_name: string
+    }[]).map(hub => ({
         lat: hub.latLng[0],
         lng: hub.latLng[1],
+        parkingLat: hub.parkingLatLng[0],
+        parkingLng: hub.parkingLatLng[1],
         score: hub.transit_score,
+        name: hub.stop_name,
     }));
 }
 
@@ -257,32 +266,54 @@ async function carTransitCombination(request: TripRequest, planner: RoutePlanner
 
     // Find candidate transit hubs for the two points, dont make request if none are found
     const candidateHubs = await getTransferHubs(origin, destination, distance);
-    if (candidateHubs.length === 0)
-        return [];
 
-    const originScore = await getPointTransitAccessScore(origin.lat, origin.lng);
-    const destinationScore = await getPointTransitAccessScore(destination.lat, destination.lng);
-
-    // TODO adjust the list of candidate transfer points based on scores
-    /*if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore >= PARK_AND_RIDE_DECISION_SCORE) {
-    }
-    else if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
-        // If theres a good transit hub between the two points
-    }
-    else if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
-        // If theres a good transit hub between the two points that is closer to the destination than the origin
-    }*/
+    // Filter the transfer hubs based on scores of origin and destination
+    const filteredHubs = await filterTransferHubs(candidateHubs, origin, destination);
 
     // TODO Clustering, constant + some slow growing factor of clusters based on the number of candidates or fixed number of clusters
-    if (candidateHubs.length > CANDIDATES_NO_CLUSTER_LIMIT) {
+    if (filteredHubs.length > CANDIDATES_NO_CLUSTER_LIMIT) {
         // Cluster (probably KMeans, gives control on amount of clusters)
         // Clustering should return a different list of hubs that can be used in the same way as the original one
-        console.log(`Clustering... (${candidateHubs.length})`);
+        console.log(`Clustering... (${filteredHubs.length})`);
         return [];  // TODO
     }
 
     // Create list of Promise objects and return it so it can be processed concurrently
-    return candidateHubs.map(hub => buildCarTransitTrip(request, planner, origin, hub, destination));
+    return filteredHubs.map(hub => buildCarTransitTrip(request, planner, origin, hub, destination));
+}
+
+// Function filtering the candidate transfer hubs based on origin and destination scores and distance
+async function filterTransferHubs(
+    candidates: { lat: number, lng: number, score: number, name: string, parkingLat: number, parkingLng: number }[], 
+    origin: { lat: number, lng: number }, 
+    destination: { lat: number, lng: number }
+): Promise<{ lat: number, lng: number, score: number, name: string, parkingLat: number, parkingLng: number }[]> {
+
+    // Get transit access scores of both the destination and origin points
+    const originScore = await getPointTransitAccessScore(origin.lat, origin.lng);
+    const destinationScore = await getPointTransitAccessScore(destination.lat, destination.lng);
+
+    // If they both have good access to public transport, dont request the combined leg
+    if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore >= PARK_AND_RIDE_DECISION_SCORE)
+        return [];
+
+    // If they both have not great access to public transport, use only hubs that actually improve on both of them
+    if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+        const worseScore = Math.min(originScore, destinationScore);
+        return candidates.filter(candidate => candidate.score >= worseScore + TRANSFER_HUB_MIN_IMPROVEMENT);
+    }
+
+    // If origin has good transit access and destionation does not, find hubs that improve on destinationScore and are closer to destination than origin
+    else if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+        return candidates.filter(candidate => {
+            const distToOrigin = calculateDistanceHaversine(origin, candidate);
+            const distToDestination = calculateDistanceHaversine(candidate, destination);
+
+            return distToDestination < distToOrigin && candidate.score > destinationScore;
+        });
+    }
+
+    return candidates;
 }
 
 // Function building a trip section option/options that transfers from car to transit at 'transfer'
@@ -290,12 +321,14 @@ async function buildCarTransitTrip(
     request: TripRequest,
     planner: RoutePlanner,
     origin: { lat: number, lng: number }, 
-    transfer: { lat: number, lng: number }, 
+    transfer: { lat: number, lng: number, name: string, parkingLat: number, parkingLng: number }, 
     destination: { lat: number, lng: number }
 ): Promise<TripSectionOption[] | null> {
 
-    // Get list of car legs (most likely always one)
-    const carLegs = await planner.getTripSection(createSectionRequest(request, origin, transfer, ["car"], request.datetime.tripDatetime));
+    // Get list of car legs that terminate at the nearest parking spot (most likely always one)
+    const carLegs = await planner.getTripSection(
+        createSectionRequest(request, origin, { lat: transfer.parkingLat, lng: transfer.parkingLng }, ["car"], request.datetime.tripDatetime)
+    );
     if (carLegs === null || carLegs.length === 0)
         return null;
 
@@ -305,14 +338,30 @@ async function buildCarTransitTrip(
     // Get arrival time of the car leg
     const carLegArrival = firstCarLeg.endDatetime.toISOString();  
 
-    // Get list of transit options from the transfer point
-    const transitOptions = await planner.getTripSection(createSectionRequest(request, transfer, destination, ["publicTransport"], carLegArrival));
+    // Get list of transit options from the transfer point parking lot
+    const transitOptions = await planner.getTripSection(
+        createSectionRequest(request, { lat: transfer.parkingLat, lng: transfer.parkingLng }, destination, ["publicTransport"], carLegArrival)
+    );
     if (transitOptions === null || transitOptions.length === 0)
         return null;
 
+    // Use only options that actually do start at the wanted hub, since the planner service could return options that access to some other station
+    const validTransitOptions = transitOptions.filter(option => {
+
+        // Get first transit leg in the section option
+        const firstTransitLeg = option.legs.find(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
+        if (firstTransitLeg === undefined)
+            return false;
+
+        // Check if the name of the origion of the first transit leg matches the transfer hub name
+        return firstTransitLeg.from.placeName === transfer.name;
+    });
+    if (validTransitOptions.length === 0)
+        return [];
+
     // Get first transit option
     // TODO use a few of them (ranking)
-    const firstTransitOption = transitOptions[0]!;
+    const firstTransitOption = validTransitOptions[0]!;
 
     // Update the transit section object with data from the car leg object
     firstTransitOption.distance += firstCarLeg.distance;

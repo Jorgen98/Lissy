@@ -176,7 +176,7 @@ async function findParkingNearStations() {
 
             // Update the DB with coordinates of nearest stop or null based on the straight line distance from station to parking
             const stopId = `0:${stop.name}:${stopLat}:${stopLng}`;
-            await dbPostGIS.updateStopNearbyParkingCoords(stopId, nearestParkingDistance <= 200 ? nearestParkingCoords : null);
+            await dbPostGIS.updateStopNearbyParkingCoords(stopId, nearestParkingDistance <= 300 ? nearestParkingCoords : null);
 
             // Progress reporting
             if ((idx+1) % 500 === 0)

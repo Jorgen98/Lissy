@@ -8,7 +8,11 @@
 /* General ****************************************/
 input {
     font-weight: bold;
-    font-size: 17px;
+    font-size: 13px;
+    background-color: var(--p-gray-800);
+    color: var(--p-gray-300);
+    border-radius: 3px;
+    border: 1px solid var(--p-gray-700);
 }
 
 button {
@@ -39,7 +43,7 @@ button {
 /* Form header *****************************/
 .header {
     background-color: var(--p-gray-800);
-    height: 50px;
+    height: 40px;
     display: flex;
     align-items: center;
     flex: 0 0 auto;
@@ -51,17 +55,17 @@ button {
     margin-left: auto;
     margin-right: auto;
     font-weight: 550;
-    font-size: large;
+    font-size: medium;
 }
 
 .collapse-btn {
-    height: 45px;
+    height: 40px;
     cursor: pointer;
     transition: transform 0.15s ease;
 }
 
 .location-btn {
-    height: 35px;
+    height: 30px;
     cursor: pointer;
 }
 
@@ -94,8 +98,11 @@ button {
 
 /* Mode select *****************************/
 .mode-select {
-    height: 75px;
-    padding: 5px 10px;
+    height: 40px;
+    padding: 6px 20px;
+    display: flex;
+    gap: 15px;
+    background: linear-gradient(var(--p-gray-800), var(--p-gray-800)) top center / 0% 0.15em no-repeat, var(--background);
 }
 
 .mode-select-window {
@@ -114,16 +121,16 @@ button {
 
 .mode-button {
     width: 100%;
-    font-size: 17px;
+    font-size: 16px;
 }
 
 .mode-img {
-    height: 20px;
+    height: 17px;
 }
 
 .mode-selected {
-    background-color: var(--p-gray-50);
-    color: var(--background);
+    background-color: var(--p-gray-800);
+    color: var(--p-gray-400);
     opacity: 1;    
 }
 
@@ -134,7 +141,7 @@ button {
 
 /* Trip points *****************************/
 .trip-points {
-    padding: 10px 15px;
+    padding: 8px 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -143,8 +150,13 @@ button {
     flex: 1 1 auto;
 }
 
+.scrollbox {
+    overflow-y: auto;
+}
+
 .trip-point {
     display: flex;
+    align-items: center;
     gap: 10px;
     width: 100%;
 }
@@ -159,9 +171,9 @@ button {
 }
 
 input[type="text"] {
-    height: 40px;
+    height: 37px;
     width: 100%;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .point-input-extra {
@@ -176,6 +188,7 @@ input[type="text"] {
 
 .point-input-pointer {
     cursor: pointer;
+    height: 25px;
 }
 
 .last-point-btn {
@@ -192,12 +205,16 @@ input[type="text"] {
 }
 
 .circle-button {
-    height: 40px;
-    width: 40px;
+    height: 27px;
+    width: 27px;
     background-color: var(--background);
     border-radius: 20px;
-    border: 3px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
-    font-size: 25px;
+    border: 2px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    font-size: 20px;
+}
+
+.reverse-img {
+    height: 13px;
 }
 
 .cdk-drag-placeholder {
@@ -214,9 +231,9 @@ input[type="text"] {
     display: flex;
     flex-direction: row;
     gap: 5px;
-    border: 2px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    border: 1px solid var(--p-gray-800);
     color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
-    padding: 5px;
+    padding: 3px;
 }
 
 .midpoint-mode-select-legend {
@@ -238,11 +255,13 @@ input[type="text"] {
 }
 
 mat-option {
-    background-color: var(--p-gray-50) !important;
+    background-color: var(--p-gray-800) !important;
+    color: var(--p-gray-300) !important;
     min-height: 0;
-    padding: 10px 5px;
-    border: 1px solid #DDDDDD;
+    padding: 7px 5px;
+    border: 1px solid var(--p-gray-700);
     font-weight: 600;
+    font-size: 13px;
 }
 
 .point-input-clear {
@@ -271,7 +290,7 @@ mat-option {
 
 /* Datetime select **************************/
 .trip-timing {
-    padding: 10px 10px;
+    padding: 7px 10px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -283,21 +302,24 @@ mat-option {
     display: flex;
     width: 100%;
     justify-content: space-between;
-    height: 40px;
+    height: 30px;
 }
 
 .radio-pair {
-    gap: 5px;
     display: flex;
     flex-direction: column;
 }
 
 input[type="date"] {
-    width: 130px;
+    font-weight: 500;
+    width: 120px;
+    color: var(--p-gray-400);
 }
 
 input[type="time"] {
-    width: 85px;
+    font-weight: 500;
+    width: 75px;
+    color: var(--p-gray-400);
 }
 
 .control-pair {
@@ -310,14 +332,16 @@ input[type="time"] {
 input[type="radio"],
 input[type="checkbox"]
 {
-    accent-color: var(--background);
+    accent-color: var(--p-gray-800);
     transform: scale(1.5);
+    height: 10px;
 }
 /********************************************/
 
 /* Submit button **************************/
 .submit {
-    height: 45px;
+    height: 40px;
+    font-size: 15px;
     display: flex;
     justify-content: center;
     align-items: center;

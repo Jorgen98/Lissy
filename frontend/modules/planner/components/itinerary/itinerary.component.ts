@@ -5,7 +5,6 @@
  * Class for the itinerary component used in the planner module.
  */
 
-import { Component, input, output, OnChanges, SimpleChanges } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TripSectionLeg, TripOption } from '../../types/TripOption';
 import { DatePipe } from '@angular/common';
@@ -13,6 +12,14 @@ import { DistancePipe } from '../../pipes/distance.pipe';
 import { DurationPipe } from '../../pipes/duration.pipe';
 import { AccordionModule } from 'primeng/accordion';
 import { modeColors } from '../../utils/modeColors';
+import { 
+    Component, 
+    input, 
+    output, 
+    OnChanges, 
+    SimpleChanges, 
+    OnInit 
+} from '@angular/core';
 
 @Component({
     selector: 'itinerary',
@@ -26,7 +33,7 @@ import { modeColors } from '../../utils/modeColors';
     templateUrl: './itinerary.component.html',
     styleUrl: './itinerary.component.css',
 })
-export class ItineraryComponent implements OnChanges {
+export class ItineraryComponent implements OnChanges, OnInit {
 
     constructor(
         public translate: TranslateService,
@@ -87,6 +94,33 @@ export class ItineraryComponent implements OnChanges {
                 this.optionDetailActive = false;
             }
         }
+    }
+
+    ngOnInit(): void {
+
+        // Subscribe to language changes
+        this.translate.onLangChange.subscribe(() => {
+
+            // Check if some of the sections or legs have current location as the place name
+            this.tripOptions()?.forEach(option => {
+                option.sections.forEach(section => {
+                    if (section.originName === "Moje poloha" || section.originName === "My location")
+                        section.originName = this.translate.instant("planner.form.myLocation");
+
+                    if (section.destinationName === "Moje poloha" || section.destinationName === "My location")
+                        section.destinationName = this.translate.instant("planner.form.myLocation");
+
+                    section.legs.forEach(leg => {
+                        if (leg.from.placeName === "Moje poloha" || leg.from.placeName === "My location")
+                            leg.from.placeName = this.translate.instant("planner.form.myLocation");
+
+                        if (leg.to.placeName === "Moje poloha" || leg.to.placeName === "My location")
+                            leg.to.placeName = this.translate.instant("planner.form.myLocation");
+                    });
+                });
+            });
+
+        });
     }
 
     // Function called when the user clicks on a trip option

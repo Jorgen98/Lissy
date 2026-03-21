@@ -163,6 +163,12 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
                 else if (control.value === "Moje poloha" || control.value === "My location")
                     control.setValue(this.translate.instant("planner.form.myLocation"));
             });
+
+            // Check if some of the trip points have my location
+            this.tripData.points.forEach(point => {
+                if (point.placeName === "Moje poloha" || point.placeName === "My location")
+                    point.placeName = this.translate.instant("planner.form.myLocation");
+            });
         });
     }
 
@@ -307,6 +313,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         // If the location is currently shown and the current location was chosen as a trip point, store it in trip data
         else if (this.locationStatus === "enabled" && tripPointPosition !== undefined) {
             this.tripData.points[tripPointPosition] = this.currentLocation;
+            this.tripData.points[tripPointPosition].placeName = this.translate.instant("planner.form.myLocation");
 
             // This trip point is currently tracking the location
             this.tripPointsWithLocationTracking.add(tripPointPosition);
@@ -568,6 +575,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         // Update coordinates of any trip points that are currently tracking the location
         this.tripPointsWithLocationTracking.forEach(pointIdx => {
             this.tripData.points[pointIdx] = { ...this.currentLocation };
+            this.tripData.points[pointIdx].placeName = this.translate.instant("planner.form.myLocation");
         })
 
         // Redraw markers of trip points currently tracking the location if there are any

@@ -52,7 +52,7 @@ export async function reverseGeocodeNominatim(coords: { lat: number, lng: number
 
     // Get and check environment variables
     const envUrl = process.env.BE_PLANNER_NOMINATIM_URL;
-    const envEmail = process.env.BE_PLANNER_NOMINATIM_EMAIL;
+    const envEmail = process.env.BE_PLANNER_USER_AGENT_EMAIL;
     if (!envUrl || !envEmail) {
         log("warning", "Environment variables are invalid for nominatim reverse geocoding requests.");
         return { placeName: null };

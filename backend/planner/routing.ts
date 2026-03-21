@@ -181,8 +181,8 @@ async function getTransferHubs(pointA: { lat: number, lng: number }, pointB: { l
     // Find point along the line between A and B at (TRANSFER_HUB_RADIUS_SHIFT * distance) distance from point A
     const intermediatePoint = getIntermediatePoint(pointA, pointB, TRANSFER_HUB_RADIUS_SHIFT, distance);
 
-    // Get stations that are nearby this intermediate point and have a good enough score 
-    const candidateHubs = await dbPostgis.getNearbyStations(intermediatePoint.lat, intermediatePoint.lng, distance / 2, TRANSFER_HUB_SCORE);
+    // Get stations that are nearby this intermediate point, have a good enough score and parking nearby
+    const candidateHubs = await dbPostgis.getNearbyStations(intermediatePoint.lat, intermediatePoint.lng, distance / 2, TRANSFER_HUB_SCORE, true);
 
     // Convert response into list of candidate stations with their coordinates and scores
     return (Object.values(candidateHubs) as { latLng: [number, number], transit_score: number }[]).map(hub => ({

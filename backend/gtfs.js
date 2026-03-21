@@ -86,6 +86,111 @@ async function reloadActualSystemState() {
     });
 }
 
+// Function for finding nearby parking near active transport systems stations with Overpass API
+async function findParkingNearStations() {
+
+    const envEmail = process.env.BE_PLANNER_USER_AGENT_EMAIL;
+    if (!envEmail)
+        return false;
+
+    // Get URL for overpass API
+    const overpassUrl = process.env.BE_PLANNER_OVERPASS_URL;
+    if (!overpassUrl)
+        return false;
+
+    // Get bounds of region set in .env
+    const boundsLatMin = process.env.BE_PLANNER_REGION_BOUNDS_LAT_MIN;
+    const boundsLatMax = process.env.BE_PLANNER_REGION_BOUNDS_LAT_MAX;
+    const boundsLngMin = process.env.BE_PLANNER_REGION_BOUNDS_LNG_MIN;
+    const boundsLngMax = process.env.BE_PLANNER_REGION_BOUNDS_LNG_MAX;
+    if (boundsLatMin === undefined || boundsLatMax === undefined || boundsLngMax === undefined || boundsLngMin === undefined)
+        return false;
+    const boundsString = `${boundsLatMin},${boundsLngMin},${boundsLatMax},${boundsLngMax}`;
+
+    // Create query to get all transit stops within bounding box (3 minute timeout)
+    const query = `
+        [out:json][timeout:180];
+        (
+            node["amenity"="parking"]["access"="yes"](${boundsString});
+            way["amenity"="parking"]["access"="yes"](${boundsString});
+            relation["amenity"="parking"]["access"="yes"](${boundsString});
+        );
+        out center;
+    `;
+
+    try {
+
+        // Call overpass at URL in .env with user agent
+        const response = await fetch(overpassUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": `Lissy (${envEmail})`,
+            },
+            body: new URLSearchParams({
+                data: query
+            })
+        });
+
+        // Check status code
+        if (!response.ok) {
+            log("warning", "Failed to fetch region parking lots with Overpass API.");
+            return false;
+        }
+
+        const data = await response.json();
+
+        // Parse and filter the received parking options
+        const parkings = data.elements.map(element => {
+            if (element.type === "node") 
+                return { lat: element.lat, lng: element.lon };
+            if (element.center)
+                return { lat: element.center.lat, lng: element.center.lon };
+            return null;            
+        }).filter(Boolean); // filter(Boolean) to remove falsy values
+
+        // Get all active stations in the system from DB
+        const stations = await dbPostGIS.getActiveStations();
+        if (!stations)
+            return false;
+
+        const totalStations = stations.stops.length;
+
+        // Look for closest parking spot for all stations
+        for (let idx = 0; idx < totalStations; idx++) {
+
+            const stop = stations.stops[idx];
+            const stopLat = stop.lat;
+            const stopLng = stop.lng;
+            let nearestParkingDistance = Infinity;
+            let nearestParkingCoords = { lat: 0, lng: 0 };
+
+            // Look through the fetched parking options and find nearest to the stop
+            for (const parking of parkings) {
+                const distance = routingService.countDistance([stopLat, stopLng], [parking.lat, parking.lng]);
+                if (distance < nearestParkingDistance) {
+                    nearestParkingDistance = distance;
+                    nearestParkingCoords = { lat: parking.lat, lng: parking.lng };
+                }
+            }
+
+            // Update the DB with coordinates of nearest stop or null based on the straight line distance from station to parking
+            const stopId = `0:${stop.name}:${stopLat}:${stopLng}`;
+            await dbPostGIS.updateStopNearbyParkingCoords(stopId, nearestParkingDistance <= 200 ? nearestParkingCoords : null);
+
+            // Progress reporting
+            if ((idx+1) % 500 === 0)
+                log("info", `Looking for nearby parking for stations. Progress: ${idx+1}/${totalStations}`);
+        };
+
+        return true;
+    }
+    catch (error) {
+        log("warning", "Failed to fetch region parking lots with Overpass API. Error: " + error);
+        return false;
+    }
+}
+
 // Function calculating a transit accessibility score for each stop loaded from GTFS
 async function getStopTransitAccessibilityScores(stopsFile, stopTimesFile, tripsFile, calendarFile, routesFile) {
 
@@ -510,6 +615,14 @@ async function unzipAndParseData(response, startTime) {
                     log('info', 'Calculating transit score for transport system stops');
                     if (!await getStopTransitAccessibilityScores(stops, stopTimes, trips, calendar, routes)) {
                         log('error', 'Failed to calculate stop transit scores from GTFS due to corrupted files');
+                        fs.rmSync(tmpFolderName, { recursive: true });
+                        resolve(false);
+                        return;
+                    }
+
+                    log('info', 'Finding parking near transport system stations');
+                    if (!await findParkingNearStations()) {
+                        log('error', 'Failed to find nearby parking near system stations');
                         fs.rmSync(tmpFolderName, { recursive: true });
                         resolve(false);
                         return;

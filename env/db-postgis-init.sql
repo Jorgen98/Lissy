@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS stops (id SERIAL PRIMARY KEY, stop_id TEXT, stop_code
     latLng GEOMETRY, zone_id TEXT, stop_url TEXT, location_type INT, parent_station TEXT,
     parent_station_id INT, CONSTRAINT parent_station_id FOREIGN KEY(parent_station_id) REFERENCES stops(id), stop_timezone TEXT,
     wheelchair_boarding INT, level_id TEXT, level_id_id INT, CONSTRAINT level_id_id FOREIGN KEY(level_id_id) REFERENCES levels(id),
-    platform_code TEXT, is_active BOOLEAN, transit_score INT);
+    platform_code TEXT, is_active BOOLEAN, transit_score INT, parking_latlng GEOMETRY);
 CREATE TABLE IF NOT EXISTS routes (id SERIAL PRIMARY KEY, route_id TEXT, agency_id TEXT, agency_id_id INT,
     CONSTRAINT agency_id_id FOREIGN KEY(agency_id_id) REFERENCES agency(id), route_short_name TEXT, route_long_name TEXT, route_desc TEXT, route_type INT,
     route_url TEXT, route_color TEXT, route_text_color TEXT, route_sort_order INT, continuous_pickup INT, continuous_drop_off INT, network_id TEXT, is_active BOOLEAN);

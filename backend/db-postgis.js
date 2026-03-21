@@ -390,6 +390,23 @@ async function updateStopTransitAccessibilityScore(stopId, transitScore) {
     }
 }
 
+// Function adding coordinates of closest nearby parking (or setting them to null if there is no nearby parking)
+async function updateStopNearbyParkingCoords(stopId, parkingCoords) {
+    try {
+        const lat = parkingCoords !== null ? parkingCoords.lat : null;
+        const lng = parkingCoords !== null ? parkingCoords.lng : null;
+
+        await db_postgis.query(
+            'UPDATE stops SET parking_latlng = ST_MakePoint($1, $2) WHERE stop_id = $3', 
+            [lat, lng, stopId]
+        );
+        return true;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
 // Add new stop to DB, returns new id
 async function addStop(stop) {
     try {
@@ -1162,12 +1179,12 @@ function combineGTFSTimes(timeA, timeB) {
     return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
 }
 
-// Fetch stations that are withing the given radius of the given point, can also set a minumum for transit score
-async function getNearbyStations(lat, lng, radius, transitScoreMin = 0) {
+// Fetch stations that are withing the given radius of the given point, can also set a minumum for transit score and nearby parking requirement
+async function getNearbyStations(lat, lng, radius, transitScoreMin = 0, requireParking = false) {
     let result;
     try {
         result = await db_postgis.query(`
-            SELECT *, ST_AsGeoJSON(latLng)
+            SELECT *, ST_AsGeoJSON(latLng) as st_latlng, ST_AsGeoJSON(parking_latlng) as st_parking_latlng 
             FROM stops 
             WHERE is_active=true
             AND parent_station_id IS NULL
@@ -1176,8 +1193,9 @@ async function getNearbyStations(lat, lng, radius, transitScoreMin = 0) {
                 ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
                 $3
             )
-            AND transit_score >= $4;
-        `, [lng, lat, radius, transitScoreMin]);
+            AND transit_score >= $4
+            AND ($5 = FALSE OR parking_latlng IS NOT NULL);
+        `, [lng, lat, radius, transitScoreMin, requireParking]);
     } catch(error) {
         log('error', error);
         return {};
@@ -1186,9 +1204,15 @@ async function getNearbyStations(lat, lng, radius, transitScoreMin = 0) {
     let output = {};
 
     for (const row of result.rows) {
-        row['latLng'] = JSON.parse(row['st_asgeojson']).coordinates;
-        delete row['st_asgeojson'];
+        row['latLng'] = JSON.parse(row['st_latlng']).coordinates;
+        delete row['st_latlng'];
         delete row['latlng'];
+
+        if (requireParking){
+            row['parkingLatLng'] = JSON.parse(row['st_parking_latlng']).coordinates;
+            delete row['st_parking_latlng'];
+            delete row['parking_latlng'];
+        }
         output[row['stop_id']] = row;
     }
 
@@ -1200,4 +1224,4 @@ module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, ad
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
     getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
-    getNearbyStations }
+    getNearbyStations, updateStopNearbyParkingCoords }

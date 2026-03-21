@@ -81,10 +81,13 @@ export type Edges = { node: Node }[];
 
 // Actual format of the response to the planConnection query
 export type PlanConnectionResponse = {
-    data: {
+    data?: {
         planConnection: {
             edges: Edges,
             routingErrors: { description: string }[],   // List of routing errors and their description
         }
-    }
+    },
+    errors?: {
+        message: string,
+    }[]
 };

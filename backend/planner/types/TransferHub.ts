@@ -5,9 +5,11 @@
  * Custom type containing information about a transfer hub form car->transit trip sections.
  */
 
+import { LatLng } from "./LatLng";
+
 export type TransferHub = {
-    coords: { lat: number, lng: number },
-    parkingCoords: { lat: number, lng: number },
+    coords: LatLng,
+    parkingCoords: LatLng,
     score: number,
     name: string,
 };

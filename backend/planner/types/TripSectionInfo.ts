@@ -6,10 +6,11 @@
  */
 
 import { TransportMode } from "../../../frontend/modules/planner/types/TransportMode"
+import { LatLng } from "./LatLng"
 
 export type TripSectionInfo =  {
-    pointA: { lat: number, lng: number },   // Coordinates of the first point
-    pointB: { lat: number, lng: number },   // Coordinates of the second point
+    pointA: LatLng,   // Coordinates of the first point
+    pointB: LatLng,   // Coordinates of the second point
     modes: TransportMode[],                 // Requested transport modes between the two points
     datetime: {                             // Earliest departure/latest arrival date and time
         datetime: string,                   // ISO UTC string

@@ -7,6 +7,7 @@
 
 import { EventEmitter } from "node:stream";
 import { NominatimAddressDetails } from "./types/AddressDetails";
+import { LatLng } from "./types/LatLng";
 
 const logService = require('../log.js');
 
@@ -48,7 +49,7 @@ function releaseCooldown(ms: number = 1100): void {
 /*************************************** */
 
 // Function calling the public Nominatim API to reverse geocode coordinates into a descriptive name
-export async function reverseGeocodeNominatim(coords: { lat: number, lng: number }): Promise<{ placeName: string | null }> {
+export async function reverseGeocodeNominatim(coords: LatLng): Promise<{ placeName: string | null }> {
 
     // Get and check environment variables
     const envUrl = process.env.BE_PLANNER_NOMINATIM_URL;
@@ -180,7 +181,7 @@ function createPlaceName(details: NominatimAddressDetails): string | null {
 }
 
 // Function using the haversine formula to calculate straight line distance between two points in meters
-export function calculateDistanceHaversine(pointA: { lat: number, lng: number }, pointB: { lat: number, lng: number }): number {
+export function calculateDistanceHaversine(pointA: LatLng, pointB: LatLng): number {
 
     // Convert lat/lng degrees to radians
     const pointALat = pointA.lat * Math.PI / 180;
@@ -201,7 +202,7 @@ export function calculateDistanceHaversine(pointA: { lat: number, lng: number },
 
 // Function getting coordinates of a point along the straight line between pointA and pointB, 'f' is the fraction of distance from pointA where the point shall be found
 // https://www.movable-type.co.uk/scripts/latlong.html
-export function getIntermediatePoint(pointA: { lat: number, lng: number }, pointB: { lat: number, lng: number }, f: number, d: number): { lat: number, lng: number } {
+export function getIntermediatePoint(pointA: LatLng, pointB: LatLng, f: number, d: number): LatLng {
 
     // Convert lat/lng degrees to radians
     const pointALat = pointA.lat * Math.PI / 180;

@@ -14,6 +14,7 @@ import { TripRequest } from './types/TripRequest';
 import { planTrip } from './routing';
 import { RoutePlanner } from './RoutePlanner';
 import { reverseGeocodeNominatim } from './geo';
+import { LatLng } from './types/LatLng';
 
 // Implemented adapters and services in TypeScript
 import { OTPAdapter } from './OTP/OTPAdapter';
@@ -65,7 +66,7 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
 
         // Endpoint for reverse geocoding coordinates into some place name
         case 'reverseGeocode': {
-            const coords = JSON.parse(req.query.data) as { lat: number, lng: number };
+            const coords = JSON.parse(req.query.data) as LatLng;
             res.send(await reverseGeocodeNominatim(coords));
             break;
         }

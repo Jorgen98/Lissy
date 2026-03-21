@@ -19,6 +19,7 @@ import { Edges, Leg, Node } from "./types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
 import { Mode } from "../types/Mode";
 import { calculateDistanceHaversine } from "../geo";
+import { LatLng } from "../types/LatLng";
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -207,7 +208,7 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Function decoding google polyline to array of lat/lng coordinate object with mapbox package
-    private translateGooglePolyline(encoded: string, precision?: number): { lat: number, lng: number }[] {
+    private translateGooglePolyline(encoded: string, precision?: number): LatLng[] {
 
         // Use mapbox package to get a list of number tuples
         const decoded = polyline.decode(encoded, precision);
@@ -220,7 +221,7 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Function getting the exact shape of a leg in the trip option from the postgis database as a list of lat/lng coordinate points
-    private async getLegShape(leg: Leg): Promise<{ lat: number, lng: number }[]> {
+    private async getLegShape(leg: Leg): Promise<LatLng[]> {
 
         // Check needed conditions to get the trip shape from DB
         // Direct modes dont have shape data in DB and the leg needs to have a defined trip with at least two stops
@@ -236,7 +237,7 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Get a subsection of 'shape', which is the shape of 'leg'
-    private getSubShape(leg: Leg, shape: any): { lat: number, lng: number }[] {
+    private getSubShape(leg: Leg, shape: any): LatLng[] {
 
         // Get names of stops where the leg starts and ends
         const legFrom = leg.from.stop!.name;
@@ -249,7 +250,7 @@ export class OTPAdapter implements RoutePlanner {
             return this.translateGooglePolyline(leg.legGeometry.points);
 
         // Flatten the shape structure into a 1D list of lat, lng objects 
-        let coords: { lat: number, lng: number }[] = [];
+        let coords: LatLng[] = [];
         for (let idx = legStartIdx; idx < legEndIdx; idx++) {
             const interStopCoords = shape.coords[idx];
             for (const coord of interStopCoords) {

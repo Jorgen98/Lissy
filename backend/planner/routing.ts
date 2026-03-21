@@ -14,6 +14,7 @@ import { TripSectionInfo } from "./types/TripSectionInfo";
 import { calculateDistanceHaversine, getIntermediatePoint } from "./geo";
 import { TripOption, TripSectionOption } from "./types/TripOption";
 import { TransferHub } from "./types/TransferHub";
+import { LatLng } from "./types/LatLng";
 import { 
     WALKING_DISTANCE_COEF, 
     DRIVING_DISTANCE_COEF, 
@@ -191,11 +192,7 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
 }
 
 // Function finding all candidate transfer hubs between pointA and pointB for a car->transit section
-async function getTransferHubs(
-    pointA: { lat: number, lng: number }, 
-    pointB: { lat: number, lng: number }, 
-    distance: number
-): Promise<TransferHub[]> {
+async function getTransferHubs(pointA: LatLng, pointB: LatLng, distance: number): Promise<TransferHub[]> {
 
     // Find point along the line between A and B at (TRANSFER_HUB_RADIUS_SHIFT * distance) distance from point A
     const intermediatePoint = getIntermediatePoint(pointA, pointB, TRANSFER_HUB_RADIUS_SHIFT, distance);
@@ -219,10 +216,10 @@ async function getTransferHubs(
 }
 
 // Function getting the transit score of an arbitrary point 
-async function getPointTransitAccessScore(lat: number, lng: number): Promise<number> {
+async function getPointTransitAccessScore(coords: LatLng): Promise<number> {
 
     // Find stations that are in a given radius from the point
-    const nearbyStations = await dbPostgis.getNearbyStations(lat, lng, SCORE_STOP_RADIUS);
+    const nearbyStations = await dbPostgis.getNearbyStations(coords.lat, coords.lng, SCORE_STOP_RADIUS);
 
     // Find the maximum score from the nearby stops
     let maxScore = 0;
@@ -300,14 +297,11 @@ async function carTransitCombination(request: TripRequest, planner: RoutePlanner
 }
 
 // Function filtering the candidate transfer hubs based on origin and destination scores and distance
-async function filterTransferHubs(candidates: TransferHub[], 
-    origin: { lat: number, lng: number }, 
-    destination: { lat: number, lng: number }
-): Promise<TransferHub[]> {
+async function filterTransferHubs(candidates: TransferHub[], origin: LatLng, destination: LatLng): Promise<TransferHub[]> {
 
     // Get transit access scores of both the destination and origin points
-    const originScore = await getPointTransitAccessScore(origin.lat, origin.lng);
-    const destinationScore = await getPointTransitAccessScore(destination.lat, destination.lng);
+    const originScore = await getPointTransitAccessScore(origin);
+    const destinationScore = await getPointTransitAccessScore(destination);
 
     // If they both have good access to public transport, dont request the combined leg
     if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore >= PARK_AND_RIDE_DECISION_SCORE)
@@ -336,9 +330,9 @@ async function filterTransferHubs(candidates: TransferHub[],
 async function buildCarTransitTrip(
     request: TripRequest,
     planner: RoutePlanner,
-    origin: { lat: number, lng: number }, 
+    origin: LatLng, 
     transfer: TransferHub, 
-    destination: { lat: number, lng: number }
+    destination: LatLng
 ): Promise<TripSectionOption[] | null> {
 
     // Get list of car legs that terminate at the nearest parking spot (most likely always one)
@@ -477,8 +471,8 @@ function addPlaceNames(options: TripOption[], request: TripRequest): void {
 // Function creating the section request object for the planner adapter
 function createSectionRequest(
     request: TripRequest,
-    pointA: { lat: number, lng: number }, 
-    pointB: { lat: number, lng: number }, 
+    pointA: LatLng, 
+    pointB: LatLng, 
     modes: TransportMode[], 
     datetime: string 
 ): TripSectionInfo {

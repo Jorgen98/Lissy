@@ -15,11 +15,12 @@ import { PlanConnectionParams } from "./types/PlanConnectionParams";
 import { PlanDirectMode } from "./types/PlanDirectMode";
 import { PlanTransitModePreferenceInput } from "./types/PlanTransitModePreferenceInput";
 import { TripSectionOption, TripSectionLeg } from "../types/TripOption";
-import { Edges, Leg, Node } from "./types/PlanConnectionResponse";
+import { Edges, Leg, Node, RoutingErrorCode } from "./types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
 import { Mode } from "../types/Mode";
 import { calculateDistanceHaversine } from "../geo";
 import { LatLng } from "../types/LatLng";
+import { OTP_MAX_WINDOW_PAGING_ATTEMPTS } from "../utils/coefficients";
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -69,37 +70,68 @@ export class OTPAdapter implements RoutePlanner {
             datetime: sectionInfo.datetime.datetime,
             numOptions: numOptions !== undefined ? numOptions : 0,  // If the number of options isnt set, 0 is interpreted as unlimited by OTP
             walkingSpeed: sectionInfo.preferences.walk.speed,
+            cursor: null,
         }
         
-        // Call OTP service with prepared parameters
-        const response = await this.otpService.planConnection(queryParams, sectionInfo.datetime.option);
-        if (!response)
+        // Query OTP and use the built-in paging mechanism when necessary
+        const edges = await this.planConnectionWithPaging(queryParams, sectionInfo);
+        if (!edges)
             return null;
-
-        // Check OTP specific errors
-        if (!response.data) {
-            if (response.errors) {
-                response.errors.forEach(error => {
-                    log('error', `Error while planing connection with OTP. Error: ${error.message}`);
-                });
-            }
-            else
-                log('error', `Error while planing connection with OTP. Unknown error`);
-            
-            return null;
-        }
-
-        // Check OTP routing errors
-        const errors = response.data.planConnection.routingErrors;
-        if (errors.length !== 0) {
-            errors.forEach(error => {
-                log('error', `Routing error while planing connection with OTP. Error: ${error.description}`);
-            });
-            return null;
-        }
 
         // Translate the fetched result from OTP to format expected by caller
-        return await this.translateTripOptions(response.data.planConnection.edges);
+        return await this.translateTripOptions(edges);
+    }
+
+    // Function querying OTP (possibly multiple times with paging) to find trip section options
+    private async planConnectionWithPaging(params: PlanConnectionParams, sectionInfo: TripSectionInfo): Promise<Edges | null> {
+
+        let nextPageAttempts = 0;
+        let shouldAttemptPaging = true;
+        while (shouldAttemptPaging) {
+
+            // Call OTP service with prepared parameters
+            const response = await this.otpService.planConnection(params, sectionInfo.datetime.option);
+            if (!response)
+                return null;
+
+            // Check OTP specific errors
+            if (!response.data) {
+                if (response.errors) {
+                    response.errors.forEach(error => {
+                        log('error', `Error while planing connection with OTP. Error: ${error.message}`);
+                    });
+                }
+                else
+                    log('error', `Error while planing connection with OTP. Unknown error`);
+                
+                return null;
+            }
+
+            // Check OTP routing errors and store the code of the first one
+            const errors = response.data.planConnection.routingErrors;
+            let routingErrorCode: RoutingErrorCode | null = null;
+            if (errors.length !== 0) {
+                const error = errors[0]!;
+                routingErrorCode = error.code;
+                log('info', `Routing error while planing connection with OTP. Error: ${error.description}`);
+            }
+
+            // If at least one option is found in the search window, return the options
+            const edges = response.data.planConnection.edges;
+            if (edges.length !== 0)
+                return edges;
+
+            // Decide if next page should be fetched with following search window, based on attempt, page availiability and routing error
+            shouldAttemptPaging = 
+                response.data.planConnection.pageInfo.hasNextPage 
+                && nextPageAttempts++ < OTP_MAX_WINDOW_PAGING_ATTEMPTS 
+                && routingErrorCode === "NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW";
+            params.cursor = response.data.planConnection.pageInfo.endCursor;
+
+            if (shouldAttemptPaging) log('info', `Attempting routing with OTP in next search window...`);
+        }
+
+        return null;    // Paging no longer possible and no trip options found
     }
 
     // Function performing any initializations for the OTPAdapter, empty implementation

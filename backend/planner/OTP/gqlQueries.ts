@@ -25,6 +25,7 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
             $transitModes: [PlanTransitModePreferenceInput!],
             $numOptions: Int!,
             $walkingSpeed: Speed!
+            $cursor: String
         ) {
             planConnection(
                 origin: { 
@@ -62,7 +63,12 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                         }
                     }
                 }
+                after: $cursor
             ) {
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
                 edges {
                     node {
                         duration
@@ -115,6 +121,7 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                 }
                 routingErrors {
                     description
+                    code
                 }
 	        }
         }

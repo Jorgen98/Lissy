@@ -19,5 +19,6 @@ export type PlanConnectionParams = {
     directModes: PlanDirectMode[] | null,
     transitModes: PlanTransitModePreferenceInput[] | null,
     numOptions: number | null,
-    walkingSpeed: number,   
+    walkingSpeed: number,
+    cursor: string | null,   
 };

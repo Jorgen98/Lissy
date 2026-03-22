@@ -33,3 +33,6 @@ export const CANDIDATES_NO_CLUSTER_LIMIT = 10;
 
 // Minimum score improvement a transfer hub needs to have to be used for car->transit trip in one specific case
 export const TRANSFER_HUB_MIN_IMPROVEMENT = 10;
+
+// Maximum attempts to query OTP with when a transit trip isnt found due to there not being an option in the generated search window
+export const OTP_MAX_WINDOW_PAGING_ATTEMPTS = 10

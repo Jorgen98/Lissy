@@ -79,12 +79,22 @@ export type Node = {
 // List of edges (list of options for the connection)
 export type Edges = { node: Node }[];
 
+// Possible codes of routing errors
+export type RoutingErrorCode = "LOCATION_NOT_FOUND" | "NO_STOPS_IN_RANGE" | "NO_TRANSIT_CONNECTION" | "NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW" | "OUTSIDE_BOUNDS" | "OUTSIDE_SERVICE_PERIOD" | "WALKING_BETTER_THAN_TRANSIT";
+
 // Actual format of the response to the planConnection query
 export type PlanConnectionResponse = {
     data?: {
         planConnection: {
             edges: Edges,
-            routingErrors: { description: string }[],   // List of routing errors and their description
+            pageInfo: {
+                hasNextPage: boolean,
+                endCursor: string | null,
+            }
+            routingErrors: {
+                description: string 
+                code: RoutingErrorCode,
+            }[],   // List of routing errors and their description
         }
     },
     errors?: {

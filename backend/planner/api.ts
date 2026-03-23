@@ -59,7 +59,7 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
         case 'planTrip': {
 
             // Get the user request as TripRequest object
-            const tripData = JSON.parse(req.query.data) as TripRequest; 
+            const tripData = req.body as TripRequest; 
 
             // Call root function for planning entire trip with the received data and adapter
             res.send(await planTrip(tripData, adapter));

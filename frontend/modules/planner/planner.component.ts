@@ -215,7 +215,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         }
 
         // Call backend endpoint for planning trip with emitted trip data from the form
-        const tripOptions = await this.apiService.genericGet(`${config.apiPrefix}/planTrip`, { data: JSON.stringify(tripDataPreferences) }) as TripOption[] | null;
+        const tripOptions = await this.apiService.genericPost(`${config.apiPrefix}/planTrip`, tripDataPreferences) as TripOption[] | null;
         if (!tripOptions || tripOptions.length === 0) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.tripsNotFound.head', 'UIMessagesService.toasts.tripsNotFound.body');
             this.msgService.turnOffLoadingScreen();

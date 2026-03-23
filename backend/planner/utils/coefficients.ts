@@ -36,3 +36,6 @@ export const TRANSFER_HUB_MIN_IMPROVEMENT = 10;
 
 // Maximum attempts to query OTP with when a transit trip isnt found due to there not being an option in the generated search window
 export const OTP_MAX_WINDOW_PAGING_ATTEMPTS = 10
+
+// Factor for the number of clusters function
+export const CLUSTER_NUMBER_FACTOR = 0.43;

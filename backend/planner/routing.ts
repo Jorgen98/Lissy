@@ -15,6 +15,7 @@ import { calculateDistanceHaversine, getIntermediatePoint } from "./geo";
 import { TripOption, TripSectionOption } from "./types/TripOption";
 import { TransferHub } from "./types/TransferHub";
 import { LatLng } from "./types/LatLng";
+import { kmeans } from "ml-kmeans";
 import { 
     WALKING_DISTANCE_COEF, 
     DRIVING_DISTANCE_COEF, 
@@ -26,6 +27,7 @@ import {
     TRANSFER_HUB_RADIUS_SHIFT,
     CANDIDATES_NO_CLUSTER_LIMIT,
     TRANSFER_HUB_MIN_IMPROVEMENT,
+    CLUSTER_NUMBER_FACTOR,
 } from "./utils/coefficients";
 
 // Trip routing entry point function
@@ -284,16 +286,60 @@ async function carTransitCombination(request: TripRequest, planner: RoutePlanner
     // Filter the transfer hubs based on scores of origin and destination
     const filteredHubs = await filterTransferHubs(candidateHubs, origin, destination);
 
-    // TODO Clustering, constant + some slow growing factor of clusters based on the number of candidates or fixed number of clusters
-    if (filteredHubs.length > CANDIDATES_NO_CLUSTER_LIMIT) {
-        // Cluster (probably KMeans, gives control on amount of clusters)
-        // Clustering should return a different list of hubs that can be used in the same way as the original one
-        console.log(`Clustering... (${filteredHubs.length})`);
-        return [];  // TODO
-    }
+    // Cluster hubs if theres more of them than the threshold using KMeans
+    const clusteredHubs = clusterHubs(filteredHubs);
 
     // Create list of Promise objects and return it so it can be processed concurrently
-    return filteredHubs.map(hub => buildCarTransitTrip(request, planner, origin, hub, destination));
+    return clusteredHubs.map(hub => buildCarTransitTrip(request, planner, origin, hub, destination));
+}
+
+// Function clustering the candidate transfer hubs when there are more of them than the threshold using Kmeans 
+// Returns the best scored representative from each cluster
+function clusterHubs(hubs: TransferHub[]): TransferHub[] {
+
+    // If the number of hubs is less than the threshold, dont cluster
+    if (hubs.length <= CANDIDATES_NO_CLUSTER_LIMIT)
+        return hubs;
+
+    // Create valid array of lat lng tuples, needed for kmeans
+    const coords = hubs.map(hub => [hub.coords.lat, hub.coords.lng]);
+    
+    // Calculate number of cluster with a base and a slow growing factor
+    const numClusters = CANDIDATES_NO_CLUSTER_LIMIT + Math.floor(Math.pow(hubs.length, CLUSTER_NUMBER_FACTOR));
+
+    // Run KMeans for the array of coordinates with custom distance function (straight line distance between points on globe)
+    const kmeansResult = kmeans(coords, numClusters, {
+        distanceFunction: (a, b) => calculateDistanceHaversine(
+            { lat: a[0]!, lng: a[1]! }, 
+            { lat: b[0]!, lng: b[1]! }
+        )
+    });
+
+    // Map the result of kmeans cluster back to the hubs
+    const hubsWithClusters = hubs.map((hub, idx) => ({
+        ...hub,
+        cluster: kmeansResult.clusters[idx]!
+    }));
+
+    // Create dictionary mapping cluster number to clustered hubs
+    const clusterToHubs: Record<number, TransferHub[]> = {};
+    hubsWithClusters.forEach(hub => {
+        if (clusterToHubs[hub.cluster] === undefined)
+            clusterToHubs[hub.cluster] = [hub]
+        else
+            clusterToHubs[hub.cluster]!.push(hub);
+    });
+
+    // Select the best scored representative from each cluster
+    return Object.values(clusterToHubs).map(hubCluster => {
+        let bestHub: TransferHub = hubCluster[0]!;
+        hubCluster.forEach(hub => {
+            if (hub.score > bestHub.score)
+                bestHub = hub;
+        });
+
+        return bestHub;
+    });
 }
 
 // Function filtering the candidate transfer hubs based on origin and destination scores and distance

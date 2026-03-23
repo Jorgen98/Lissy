@@ -67,6 +67,8 @@ export class MapComponent implements AfterViewInit {
                                 if (icon.options.className === 'trip-point') {
                                     icon.options.iconSize = [zoom * 2.2, zoom * 2.2];
                                     icon.options.iconAnchor = [zoom * 2.2 / 2, zoom * 2.2];
+                                } else if (icon.options.className === 'parking-icon') {
+                                    icon.options.iconSize = [zoom * 2.2, zoom * 2.2]
                                 } else if (icon.options.className !== 'color-base-shadow') {
                                     icon.options.iconSize = [zoom * 1.35, zoom * 1.35];
                                 } else {
@@ -519,6 +521,20 @@ export class MapComponent implements AfterViewInit {
                     }
                 )
                 .addTo(this.layers[object.layerName].layer!);
+                break;
+            }
+            case "parking": {
+
+                L.marker(
+                    L.latLng(object.latLng[0]),
+                    {
+                        icon: L.icon({ 
+                            iconUrl: `planner/parking.svg`,
+                            iconSize: [this.map.getZoom() * 2.2, this.map.getZoom() * 2.2],
+                            className: "parking-icon",
+                        }),
+                    }
+                ).addTo(this.layers[object.layerName].layer!);
                 break;
             }
         }

@@ -369,6 +369,20 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                     interactive: true,
                     hoover: false,
                 });
+
+                // Add parking icon to the map if applicable
+                if (leg.from.isParking || leg.to.isParking) {
+                    this.mapService.addToLayer({
+                        layerName: "routes",
+                        type: "parking",
+                        focus: false,
+                        latLng: [leg.from.isParking ? leg.points[0] : leg.points[leg.points.length - 1]],
+                        color: "provided",
+                        metadata: {},
+                        interactive: false,
+                        hoover: false,
+                    });                  
+                }
             });
         });
     }

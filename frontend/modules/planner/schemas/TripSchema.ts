@@ -39,7 +39,11 @@ const LegSchema = z.object({
         lineId: z.string().nullable(),
         color: z.string().regex(/^[0-9A-Fa-f]{6}$/).nullable(),
         textColor: z.string().regex(/^[0-9A-Fa-f]{6}$/).nullable(),
+        gtfsId: z.string().nullable(),
     }).nullable(),
+    trip: z.object({
+        gtfsId: z.string().nullable(),
+    }).nullable()
 });
 
 // Schema for one section of a trip 
@@ -60,4 +64,5 @@ export const TripSchema = z.object({
     startDatetime: datePreprocess("startDatetime"),
     endDatetime: datePreprocess("endDatetime"),
     sections: z.array(SectionSchema).min(1),
+    hasFullShape: z.boolean(),
 });

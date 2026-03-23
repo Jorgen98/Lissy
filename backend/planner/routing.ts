@@ -2,7 +2,7 @@
  * File: routing.ts
  * Author: Adam Vcelar (xvcelaa00)
  *
- * Function for routing and building a response to a trip request using the planner adapter.
+ * Functions for routing and building a response to a trip request using the planner adapter.
  */
 
 const dbPostgis = require('../db-postgis.js');
@@ -110,6 +110,7 @@ async function planTripWithMidpoints(request: TripRequest, planner: RoutePlanner
         sections: tripSections,
         startDatetime: tripSections[0]!.startDatetime,
         endDatetime: tripSections[tripSections.length - 1]!.endDatetime,
+        hasFullShape: false,
     }];
 
     // Filter out unsatisfactory trip options by request parameters
@@ -182,7 +183,8 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
         duration: option.duration,
         endDatetime: option.endDatetime,
         sections: [option], // Simply a trip option with one section
-        startDatetime: option.startDatetime
+        startDatetime: option.startDatetime,
+        hasFullShape: false,
     }));
 
     // Filter out unsatisfactory trip options by request parameters

@@ -6,7 +6,6 @@
  */
 
 const logService = require('../../log.js');
-const gtfsService = require('../../gtfs.js');
 
 import { OTPService } from "./OTPService";
 import { RoutePlanner } from "../RoutePlanner";
@@ -18,7 +17,6 @@ import { TripSectionOption, TripSectionLeg } from "../types/TripOption";
 import { Edges, Leg, Node, RoutingErrorCode } from "./types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
 import { Mode } from "../types/Mode";
-import { calculateDistanceHaversine } from "../geo";
 import { LatLng } from "../types/LatLng";
 import { OTP_MAX_WINDOW_PAGING_ATTEMPTS } from "../utils/coefficients";
 
@@ -205,19 +203,10 @@ export class OTPAdapter implements RoutePlanner {
 
     // Function translating a single leg of a trip option returned from OTP to client format
     private async translateTripLeg(leg: Leg): Promise<TripSectionLeg> {
-
-        // Get leg shape from DB or translate google polyline if the shape isnt in the DB
-        const points = await this.getLegShape(leg);
-
-        // Calculate leg distance from the points (OTP distance may be wrong, since it may not have the true leg shape)
-        let distance = 0;
-        for (let i = 0; i < points.length - 1; i++)
-            distance += calculateDistanceHaversine(points[i]!, points[i+1]!);
-
         return {
-            distance,
+            distance: leg.distance,
             duration: leg.duration,
-            points,   
+            points: this.translateGooglePolyline(leg.legGeometry.points),   
             mode: leg.mode as Mode,
             from: {
                 arrivalTime: new Date(leg.from.arrival.scheduledTime),      // Convert dates as strings into actual UTC JS date objects
@@ -235,7 +224,11 @@ export class OTPAdapter implements RoutePlanner {
                 lineId: leg.route.shortName,
                 color: leg.route.color,
                 textColor: leg.route.textColor,
-            } : null
+                gtfsId: leg.route.gtfsId,
+            } : null,
+            trip: leg.trip ? {
+                gtfsId: leg.trip.gtfsId,
+            } : null,
         }
     }
 
@@ -250,49 +243,5 @@ export class OTPAdapter implements RoutePlanner {
             lat: tuple[0],
             lng: tuple[1],
         }));
-    }
-
-    // Function getting the exact shape of a leg in the trip option from the postgis database as a list of lat/lng coordinate points
-    private async getLegShape(leg: Leg): Promise<LatLng[]> {
-
-        // Check needed conditions to get the trip shape from DB
-        // Direct modes dont have shape data in DB and the leg needs to have a defined trip with at least two stops
-        if (leg.route === null || leg.trip === null)
-            return this.translateGooglePolyline(leg.legGeometry.points);
-
-        const shape = await gtfsService.getShapeFromOTP(leg.route.gtfsId, leg.trip.gtfsId);
-        if (shape === undefined || shape.stops === undefined || shape.coords === undefined)
-            return this.translateGooglePolyline(leg.legGeometry.points);
-
-        // The found shape has coordinates for the whole trip used for the leg, need only a subsection of the shape for the actual leg
-        return this.getSubShape(leg, shape);
-    }
-
-    // Get a subsection of 'shape', which is the shape of 'leg'
-    private getSubShape(leg: Leg, shape: any): LatLng[] {
-
-        // Get names of stops where the leg starts and ends
-        const legFrom = leg.from.stop!.name;
-        const legTo = leg.to.stop!.name;
-
-        // Find start and end indicies of subshape of the trip shape corresponding to the leg
-        const legStartIdx = (shape.stops as { stop_name: string }[]).findIndex(stop => stop.stop_name === legFrom);
-        const legEndIdx = (shape.stops as { stop_name: string }[]).findIndex(stop => stop.stop_name === legTo);
-        if (legStartIdx === -1 || legEndIdx === -1)
-            return this.translateGooglePolyline(leg.legGeometry.points);
-
-        // Flatten the shape structure into a 1D list of lat, lng objects 
-        let coords: LatLng[] = [];
-        for (let idx = legStartIdx; idx < legEndIdx; idx++) {
-            const interStopCoords = shape.coords[idx];
-            for (const coord of interStopCoords) {
-                coords.push({
-                    lat: coord[0],
-                    lng: coord[1]
-                });
-            }
-        }
-
-        return coords;
     }
 };

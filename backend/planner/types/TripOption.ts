@@ -43,6 +43,16 @@ export type TripSectionLeg = {
         // Must be given as a six-digit hexadecimal string without the leading #
         color: string | null,
         textColor: string | null
+
+        // Internal gtfsId of the route, can be null if GTFS isnt used for example
+        gtfsId: string | null,
+    } | null
+
+    // Information about the trip the leg uses, may be null for non-transit legs
+    trip: {
+
+        // Internal gtfsId of the trip, can be null if GTFS isnt used for example
+        gtfsId: string | null
     } | null
 };
 
@@ -64,4 +74,5 @@ export type TripOption = {
     distance: number,               // Distance in meters    
     startDatetime: Date,            // Datetime of beginning of the trip option (UTC)
     endDatetime: Date,              // Datetime of ending of the trip option (UTC)
+    hasFullShape: boolean,
 };

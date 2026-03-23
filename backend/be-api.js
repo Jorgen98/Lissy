@@ -36,6 +36,9 @@ function log(type, msg) {
 // CORS setup
 app.use(cors());
 
+// Parsing request body middleware for POST requests
+app.use(express.json());
+
 // Function for API Token verification
 async function verifyToken(req, res, next) {
     const token = process.env.BE_API_MODULE_TOKEN;

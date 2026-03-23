@@ -83,348 +83,303 @@ Main component HTML template file for the trip form used in the planner module.
     </div>
 
     <!-- Route points -->
-    <div class="scrollbox">
-    <div class="trip-points form-section" (cdkDropListDropped)="pointDropped($event)" cdkDropListLockAxis="y" cdkDropList>
+    <ng-scrollbar class="scrollbox" [visibility]="'hover'" [appearance]="'compact'" [orientation]="'vertical'">
+      <div class="trip-points form-section" (cdkDropListDropped)="pointDropped($event)" cdkDropListLockAxis="y" cdkDropList>
 
-      <!-- Origin point -->
-      <div class="trip-point" cdkDrag>
-        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
-        <div class="point-input-wrapper">
-          <input
-            type="text"
-            id="start-point"
-            [placeholder]="'planner.form.startPoint' | translate"
-            [formControl]="pointControls.controls[0]"
-            [matAutocomplete]="autoOrigin"
-          />
-          <mat-autocomplete #autoOrigin="matAutocomplete" (opened)="pointInputFocused(0)">
-            @if (locationStatus !== "disabled") {
-              <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(0)">
-                <div class="location-input-option">
-                  <img [src]="'./planner/location-blue.svg'" class="location-img">
-                  {{ 'planner.form.myLocation' | translate }}
-                </div>
-              </mat-option>
-            }
-            @for (stop of filteredStopsArray[0] | async; track $index) {
-              <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, 0)">{{ stop.name }}</mat-option>
-            }
-          </mat-autocomplete>
-          <div class="point-input-extra">
-            <img
-              [src]="'./planner/start-marker.svg'"
-              class="point-input-pointer"
-              [title]="'planner.form.markerTooltip' | translate"
-              (click)="markerClick.emit({ type: 'start', position: 0 })"
+        <!-- Origin point -->
+        <div class="trip-point" cdkDrag>
+          <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
+          <div class="point-input-wrapper">
+            <input
+              type="text"
+              id="start-point"
+              [placeholder]="'planner.form.startPoint' | translate"
+              [formControl]="pointControls.controls[0]"
+              [matAutocomplete]="autoOrigin"
             />
-            <img
-              [src]="'./planner/cross.svg'"
-              class="point-input-clear"
-              [title]="'planner.form.pointClearTooltip' | translate"
-              (click)="clearTripPoint(0)"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Button to add midpoint -->
-      <div class="midpoint-options-wrapper">
-        <button
-          class="circle-button"
-          (click)="addMidpoint(1)"
-          [title]="'planner.form.addMidpointTooltip' | translate"
-        >
-          +
-        </button>
-
-        <!-- Mode select under origin point if theres at least one midpoint -->
-        @if(tripData.points.length > 2 && selectedModesCount > 1) {
-          <fieldset class="midpoint-mode-select-window">
-
-            <!-- Public transport mode select -->
-            @if(tripData.modes.global.publicTransport) {
-              <button
-                class="midpoint-mode-button"
-                [class.mode-selected]="tripData.modes.sections[0].publicTransport"
-                (click)="modeToggled('publicTransport', 0)"
-              >
-                <img
-                  [src]="'./planner/pt-light.svg'"
-                  class="midpoint-mode-img"
-                />
-              </button>
-            }
-
-            <!-- Car mode select -->
-            @if(tripData.modes.global.car) {
-              <button
-                class="midpoint-mode-button"
-                [class.mode-selected]="tripData.modes.sections[0].car"
-                (click)="modeToggled('car', 0)"
-              >
-                <img
-                  [src]="'./planner/car-light.svg'"
-                  class="midpoint-mode-img"
-                />
-              </button>
-            }
-
-            <!-- Walk mode select -->
-            @if(tripData.modes.global.walk) {
-              <button
-                class="midpoint-mode-button"
-                [class.mode-selected]="tripData.modes.sections[0].walk"
-                (click)="modeToggled('walk', 0)"
-              >
-                <img
-                  [src]="'./planner/walk-light.svg'"
-                  class="midpoint-mode-img"
-                />
-              </button>
-            }
-          </fieldset>
-        }
-      </div>
-
-      <!-- Rendering added midpoints -->
-      @for (control of pointControls.controls; track $index) {
-        @if (!$first && !$last) {
-          @let outerIdx = $index;
-
-          <!-- Midpoint -->
-          <div class="trip-point" cdkDrag>
-            <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
-            <div class="point-input-wrapper">
-              <input
-                type="text"
-                [placeholder]="'planner.form.midpoint' | translate"
-                [formControl]="control"
-                [matAutocomplete]="autoMid"
-              />
-              <mat-autocomplete #autoMid="matAutocomplete" (opened)="pointInputFocused(outerIdx)">
-                @if (locationStatus !== "disabled") {
-                  <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked($index)">
-                    <div class="location-input-option">
-                      <img [src]="'./planner/location-blue.svg'" class="location-img">
-                      {{ 'planner.form.myLocation' | translate }}
-                    </div>
-                  </mat-option>
-                }
-                @for (stop of filteredStopsArray[$index] | async; track $index) {
-                  <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, outerIdx)">{{ stop.name }}</mat-option>
-                }
-              </mat-autocomplete>
-                <div class="point-input-extra">
-                  <img
-                    [src]="'./planner/midpoint-marker.svg'"
-                    class="point-input-pointer"
-                    [title]="'planner.form.markerTooltip' | translate"
-                    (click)="markerClick.emit({ type: 'midpoint', position: outerIdx })"
-                  />
-                  <img
-                    [src]="'./planner/cross.svg'"
-                    class="point-input-clear"
-                    [title]="'planner.form.pointClearTooltip' | translate"
-                    (click)="clearTripPoint(outerIdx)"
-                  />
-                </div>
-            </div>
-
-            <!-- Remove midpoint button -->
-            <img
-              [src]="'./planner/trash-bin-dark.svg'"
-              class="point-input-pointer remove-midpoint"
-              (click)="removeMidpoint($index)"
-              [title]="'planner.form.removeMidpointTooltip' | translate"
-            />
-          </div>
-
-          <!-- Add midpoint button and mode select between two points-->
-          <div class="midpoint-options-wrapper">
-
-            <!-- Add midpoint button -->
-            <button
-              class="circle-button"
-              (click)="addMidpoint($index + 1)"
-              [title]="'planner.form.addMidpointTooltip' | translate"
-            >
-              +
-            </button>
-
-            <!-- Mode select between adjacent points -->
-            @if(selectedModesCount > 1) {
-              <fieldset class="midpoint-mode-select-window">
-
-                <!-- Public transport mode select -->
-                @if(tripData.modes.global.publicTransport) {
-                  <button
-                    class="midpoint-mode-button"
-                    [class.mode-selected]="tripData.modes.sections[$index].publicTransport"
-                    (click)="modeToggled('publicTransport', $index)"
-                  >
-                    <img
-                      [src]="'./planner/pt-light.svg'"
-                      class="midpoint-mode-img"
-                    />
-                  </button>
-                }
-
-                <!-- Car mode select -->
-                @if(tripData.modes.global.car) {
-                  <button
-                    class="midpoint-mode-button"
-                    [class.mode-selected]="tripData.modes.sections[$index].car"
-                    (click)="modeToggled('car', $index)"
-                  >
-                    <img
-                      [src]="'./planner/car-light.svg'"
-                      class="midpoint-mode-img"
-                    />
-                  </button>
-                }
-
-                <!-- Walk mode select -->
-                @if(tripData.modes.global.walk) {
-                  <button
-                    class="midpoint-mode-button"
-                    [class.mode-selected]="tripData.modes.sections[$index].walk"
-                    (click)="modeToggled('walk', $index)"
-                  >
-                    <img
-                      [src]="'./planner/walk-light.svg'"
-                      class="midpoint-mode-img"
-                    />
-                  </button>
-                }
-              </fieldset>
-            }
-          </div>
-        }
-      }
-
-      <!-- Destination point -->
-      <div class="trip-point" cdkDrag>
-        <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
-        <div class="point-input-wrapper">
-          <input
-            type="text"
-            id="end-point"
-            [placeholder]="'planner.form.endPoint' | translate"
-            [formControl]="pointControls.controls[this.tripData.points.length - 1]"
-            [matAutocomplete]="autoDest"
-          />
-          <mat-autocomplete #autoDest="matAutocomplete" (opened)="pointInputFocused(this.tripData.points.length - 1)">
-            @if (locationStatus !== "disabled") {
-              <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(this.tripData.points.length - 1)">
-                <div class="location-input-option">
-                  <img [src]="'./planner/location-blue.svg'" class="location-img">
-                  {{ 'planner.form.myLocation' | translate }}
-                </div>
-              </mat-option>
-            }
-            @for (stop of filteredStopsArray[this.tripData.points.length - 1] | async; track $index) {
-              <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, this.tripData.points.length - 1)">{{ stop.name }}</mat-option>
-            }
-          </mat-autocomplete>
+            <mat-autocomplete #autoOrigin="matAutocomplete" (opened)="pointInputFocused(0)">
+              @if (locationStatus !== "disabled") {
+                <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(0)">
+                  <div class="location-input-option">
+                    <img [src]="'./planner/location-blue.svg'" class="location-img">
+                    {{ 'planner.form.myLocation' | translate }}
+                  </div>
+                </mat-option>
+              }
+              @for (stop of filteredStopsArray[0] | async; track $index) {
+                <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, 0)">{{ stop.name }}</mat-option>
+              }
+            </mat-autocomplete>
             <div class="point-input-extra">
               <img
-                [src]="'./planner/end-marker.svg'"
+                [src]="'./planner/start-marker.svg'"
                 class="point-input-pointer"
                 [title]="'planner.form.markerTooltip' | translate"
-                (click)="markerClick.emit({ type: 'end', position: this.tripData.points.length - 1 })"
+                (click)="markerClick.emit({ type: 'start', position: 0 })"
               />
               <img
                 [src]="'./planner/cross.svg'"
                 class="point-input-clear"
                 [title]="'planner.form.pointClearTooltip' | translate"
-                (click)="clearTripPoint(tripData.points.length - 1)"
+                (click)="clearTripPoint(0)"
               />
             </div>
           </div>
-      </div>
+        </div>
 
-      <div class="last-point-btn">
+        <!-- Button to add midpoint -->
+        <div class="midpoint-options-wrapper">
+          <button
+            class="circle-button"
+            (click)="addMidpoint(1)"
+            [title]="'planner.form.addMidpointTooltip' | translate"
+          >
+            +
+          </button>
 
-        <!-- Add midpoint button -->
-        <button
-          class="circle-button"
-          (click)="addMidpoint(tripData.points.length)"
-          [title]="'planner.form.addMidpointTooltip' | translate"
-        >
-          +
-        </button>
+          <!-- Mode select under origin point if theres at least one midpoint -->
+          @if(tripData.points.length > 2 && selectedModesCount > 1) {
+            <fieldset class="midpoint-mode-select-window">
 
-        <!-- Switch midpoint button -->
-        <button
-          class="circle-button"
-          (click)="reverseTripPoints()"
-          [title]="'planner.form.switchDirectionTooltip' | translate"
-        >
-          <img [src]="'./planner/double-arrow.svg'" class="reverse-img" />
-        </button>
-      </div>
-    </div>
+              <!-- Public transport mode select -->
+              @if(tripData.modes.global.publicTransport) {
+                <button
+                  class="midpoint-mode-button"
+                  [class.mode-selected]="tripData.modes.sections[0].publicTransport"
+                  (click)="modeToggled('publicTransport', 0)"
+                >
+                  <img
+                    [src]="'./planner/pt-light.svg'"
+                    class="midpoint-mode-img"
+                  />
+                </button>
+              }
 
-    <!-- Date and time picker + return trip -->
-    <div class="trip-timing form-section">
+              <!-- Car mode select -->
+              @if(tripData.modes.global.car) {
+                <button
+                  class="midpoint-mode-button"
+                  [class.mode-selected]="tripData.modes.sections[0].car"
+                  (click)="modeToggled('car', 0)"
+                >
+                  <img
+                    [src]="'./planner/car-light.svg'"
+                    class="midpoint-mode-img"
+                  />
+                </button>
+              }
 
-      <!-- Date and time picker -->
-      <div class="datetime">
-        <input type="date" id="dateInput" [(ngModel)]="tripData.datetime.tripDate"/>
-        <input type="time" id="timeInput" [(ngModel)]="tripData.datetime.tripTime"/>
-        <div class="radio-pair">
-          <div class="control-pair departure-radio">
+              <!-- Walk mode select -->
+              @if(tripData.modes.global.walk) {
+                <button
+                  class="midpoint-mode-button"
+                  [class.mode-selected]="tripData.modes.sections[0].walk"
+                  (click)="modeToggled('walk', 0)"
+                >
+                  <img
+                    [src]="'./planner/walk-light.svg'"
+                    class="midpoint-mode-img"
+                  />
+                </button>
+              }
+            </fieldset>
+          }
+        </div>
+
+        <!-- Rendering added midpoints -->
+        @for (control of pointControls.controls; track $index) {
+          @if (!$first && !$last) {
+            @let outerIdx = $index;
+
+            <!-- Midpoint -->
+            <div class="trip-point" cdkDrag>
+              <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
+              <div class="point-input-wrapper">
+                <input
+                  type="text"
+                  [placeholder]="'planner.form.midpoint' | translate"
+                  [formControl]="control"
+                  [matAutocomplete]="autoMid"
+                />
+                <mat-autocomplete #autoMid="matAutocomplete" (opened)="pointInputFocused(outerIdx)">
+                  @if (locationStatus !== "disabled") {
+                    <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked($index)">
+                      <div class="location-input-option">
+                        <img [src]="'./planner/location-blue.svg'" class="location-img">
+                        {{ 'planner.form.myLocation' | translate }}
+                      </div>
+                    </mat-option>
+                  }
+                  @for (stop of filteredStopsArray[$index] | async; track $index) {
+                    <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, outerIdx)">{{ stop.name }}</mat-option>
+                  }
+                </mat-autocomplete>
+                  <div class="point-input-extra">
+                    <img
+                      [src]="'./planner/midpoint-marker.svg'"
+                      class="point-input-pointer"
+                      [title]="'planner.form.markerTooltip' | translate"
+                      (click)="markerClick.emit({ type: 'midpoint', position: outerIdx })"
+                    />
+                    <img
+                      [src]="'./planner/cross.svg'"
+                      class="point-input-clear"
+                      [title]="'planner.form.pointClearTooltip' | translate"
+                      (click)="clearTripPoint(outerIdx)"
+                    />
+                  </div>
+              </div>
+
+              <!-- Remove midpoint button -->
+              <img
+                [src]="'./planner/trash-bin-dark.svg'"
+                class="point-input-pointer remove-midpoint"
+                (click)="removeMidpoint($index)"
+                [title]="'planner.form.removeMidpointTooltip' | translate"
+              />
+            </div>
+
+            <!-- Add midpoint button and mode select between two points-->
+            <div class="midpoint-options-wrapper">
+
+              <!-- Add midpoint button -->
+              <button
+                class="circle-button"
+                (click)="addMidpoint($index + 1)"
+                [title]="'planner.form.addMidpointTooltip' | translate"
+              >
+                +
+              </button>
+
+              <!-- Mode select between adjacent points -->
+              @if(selectedModesCount > 1) {
+                <fieldset class="midpoint-mode-select-window">
+
+                  <!-- Public transport mode select -->
+                  @if(tripData.modes.global.publicTransport) {
+                    <button
+                      class="midpoint-mode-button"
+                      [class.mode-selected]="tripData.modes.sections[$index].publicTransport"
+                      (click)="modeToggled('publicTransport', $index)"
+                    >
+                      <img
+                        [src]="'./planner/pt-light.svg'"
+                        class="midpoint-mode-img"
+                      />
+                    </button>
+                  }
+
+                  <!-- Car mode select -->
+                  @if(tripData.modes.global.car) {
+                    <button
+                      class="midpoint-mode-button"
+                      [class.mode-selected]="tripData.modes.sections[$index].car"
+                      (click)="modeToggled('car', $index)"
+                    >
+                      <img
+                        [src]="'./planner/car-light.svg'"
+                        class="midpoint-mode-img"
+                      />
+                    </button>
+                  }
+
+                  <!-- Walk mode select -->
+                  @if(tripData.modes.global.walk) {
+                    <button
+                      class="midpoint-mode-button"
+                      [class.mode-selected]="tripData.modes.sections[$index].walk"
+                      (click)="modeToggled('walk', $index)"
+                    >
+                      <img
+                        [src]="'./planner/walk-light.svg'"
+                        class="midpoint-mode-img"
+                      />
+                    </button>
+                  }
+                </fieldset>
+              }
+            </div>
+          }
+        }
+
+        <!-- Destination point -->
+        <div class="trip-point" cdkDrag>
+          <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
+          <div class="point-input-wrapper">
             <input
-              type="radio"
-              id="departure"
-              name="time-select"
-              value="departure"
-              [(ngModel)]="tripData.datetime.datetimeOption"
+              type="text"
+              id="end-point"
+              [placeholder]="'planner.form.endPoint' | translate"
+              [formControl]="pointControls.controls[this.tripData.points.length - 1]"
+              [matAutocomplete]="autoDest"
             />
-            <label for="departure">{{
-              "planner.form.departureTime" | translate
-            }}</label
-            ><br />
-          </div>
-          <div class="control-pair">
-            <input
-              type="radio"
-              id="arrival"
-              name="time-select"
-              value="arrival"
-              [(ngModel)]="tripData.datetime.datetimeOption"
-            />
-            <label for="arrival">{{
-              "planner.form.arrivalTime" | translate
-            }}</label
-            ><br />
-          </div>
+            <mat-autocomplete #autoDest="matAutocomplete" (opened)="pointInputFocused(this.tripData.points.length - 1)">
+              @if (locationStatus !== "disabled") {
+                <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(this.tripData.points.length - 1)">
+                  <div class="location-input-option">
+                    <img [src]="'./planner/location-blue.svg'" class="location-img">
+                    {{ 'planner.form.myLocation' | translate }}
+                  </div>
+                </mat-option>
+              }
+              @for (stop of filteredStopsArray[this.tripData.points.length - 1] | async; track $index) {
+                <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, this.tripData.points.length - 1)">{{ stop.name }}</mat-option>
+              }
+            </mat-autocomplete>
+              <div class="point-input-extra">
+                <img
+                  [src]="'./planner/end-marker.svg'"
+                  class="point-input-pointer"
+                  [title]="'planner.form.markerTooltip' | translate"
+                  (click)="markerClick.emit({ type: 'end', position: this.tripData.points.length - 1 })"
+                />
+                <img
+                  [src]="'./planner/cross.svg'"
+                  class="point-input-clear"
+                  [title]="'planner.form.pointClearTooltip' | translate"
+                  (click)="clearTripPoint(tripData.points.length - 1)"
+                />
+              </div>
+            </div>
+        </div>
+
+        <div class="last-point-btn">
+
+          <!-- Add midpoint button -->
+          <button
+            class="circle-button"
+            (click)="addMidpoint(tripData.points.length)"
+            [title]="'planner.form.addMidpointTooltip' | translate"
+          >
+            +
+          </button>
+
+          <!-- Switch midpoint button -->
+          <button
+            class="circle-button"
+            (click)="reverseTripPoints()"
+            [title]="'planner.form.switchDirectionTooltip' | translate"
+          >
+            <img [src]="'./planner/double-arrow.svg'" class="reverse-img" />
+          </button>
         </div>
       </div>
 
-      <!-- Return trip checkbox-->
-      <div class="control-pair">
-        <input
-          type="checkbox"
-          id="return"
-          [(ngModel)]="tripData.return.active"
-        />
-        <label for="return">{{ "planner.form.return" | translate }}</label>
-      </div>
+      <!-- Date and time picker + return trip -->
+      <div class="trip-timing form-section">
 
-      <!-- Date and time picker for return trip time -->
-      @if (tripData.return.active) {
+        <!-- Date and time picker -->
         <div class="datetime">
-          <input type="date" [(ngModel)]="tripData.return.tripDate" />
-          <input type="time" [(ngModel)]="tripData.return.tripTime" />
+          <input type="date" id="dateInput" [(ngModel)]="tripData.datetime.tripDate"/>
+          <input type="time" id="timeInput" [(ngModel)]="tripData.datetime.tripTime"/>
           <div class="radio-pair">
             <div class="control-pair departure-radio">
               <input
                 type="radio"
-                id="departureReturn"
-                name="time-select-return"
+                id="departure"
+                name="time-select"
                 value="departure"
-                [(ngModel)]="tripData.return.datetimeOption"
+                [(ngModel)]="tripData.datetime.datetimeOption"
               />
               <label for="departure">{{
                 "planner.form.departureTime" | translate
@@ -434,10 +389,10 @@ Main component HTML template file for the trip form used in the planner module.
             <div class="control-pair">
               <input
                 type="radio"
-                id="arrivalReturn"
-                name="time-select-return"
+                id="arrival"
+                name="time-select"
                 value="arrival"
-                [(ngModel)]="tripData.return.datetimeOption"
+                [(ngModel)]="tripData.datetime.datetimeOption"
               />
               <label for="arrival">{{
                 "planner.form.arrivalTime" | translate
@@ -446,9 +401,54 @@ Main component HTML template file for the trip form used in the planner module.
             </div>
           </div>
         </div>
-      }
-    </div>
-    </div>
+
+        <!-- Return trip checkbox-->
+        <div class="control-pair">
+          <input
+            type="checkbox"
+            id="return"
+            [(ngModel)]="tripData.return.active"
+          />
+          <label for="return">{{ "planner.form.return" | translate }}</label>
+        </div>
+
+        <!-- Date and time picker for return trip time -->
+        @if (tripData.return.active) {
+          <div class="datetime">
+            <input type="date" [(ngModel)]="tripData.return.tripDate" />
+            <input type="time" [(ngModel)]="tripData.return.tripTime" />
+            <div class="radio-pair">
+              <div class="control-pair departure-radio">
+                <input
+                  type="radio"
+                  id="departureReturn"
+                  name="time-select-return"
+                  value="departure"
+                  [(ngModel)]="tripData.return.datetimeOption"
+                />
+                <label for="departure">{{
+                  "planner.form.departureTime" | translate
+                }}</label
+                ><br />
+              </div>
+              <div class="control-pair">
+                <input
+                  type="radio"
+                  id="arrivalReturn"
+                  name="time-select-return"
+                  value="arrival"
+                  [(ngModel)]="tripData.return.datetimeOption"
+                />
+                <label for="arrival">{{
+                  "planner.form.arrivalTime" | translate
+                }}</label
+                ><br />
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </ng-scrollbar>
 
     <!-- Form submit button -->
     <div class="submit form-section">

@@ -18,6 +18,7 @@ import { FormControl, FormsModule, ReactiveFormsModule, FormArray } from '@angul
 import { AsyncPipe } from '@angular/common';
 import { Stop } from '../../types/Stop';
 import { debounceTime, map, startWith, Observable } from 'rxjs';
+import { NgScrollbarModule } from 'ngx-scrollbar';
 import { 
     CdkDrag, 
     CdkDropList, 
@@ -46,7 +47,8 @@ import {
         FormsModule, 
         MatAutocompleteModule, 
         ReactiveFormsModule, 
-        AsyncPipe
+        AsyncPipe,
+        NgScrollbarModule
     ],
     templateUrl: './trip-form.component.html',
     styleUrl: './trip-form.component.css',

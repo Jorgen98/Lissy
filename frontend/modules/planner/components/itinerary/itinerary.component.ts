@@ -12,6 +12,7 @@ import { DistancePipe } from '../../pipes/distance.pipe';
 import { DurationPipe } from '../../pipes/duration.pipe';
 import { AccordionModule } from 'primeng/accordion';
 import { modeColors } from '../../utils/modeColors';
+import { NgScrollbarModule } from 'ngx-scrollbar';
 import { 
     Component, 
     input, 
@@ -28,7 +29,8 @@ import {
         DatePipe, 
         DistancePipe, 
         DurationPipe, 
-        AccordionModule
+        AccordionModule,
+        NgScrollbarModule
     ],
     templateUrl: './itinerary.component.html',
     styleUrl: './itinerary.component.css',

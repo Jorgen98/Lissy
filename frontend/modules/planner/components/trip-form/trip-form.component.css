@@ -152,6 +152,14 @@ button {
 
 .scrollbox {
     overflow-y: auto;
+    --scrollbar-track-color: var(--background);
+    --scrollbar-thumb-color: var(--p-gray-600);
+    --scrollbar-thumb-size: 80;
+    --scrollbar-track-shape: 10px;
+    --scrollbar-track-thickness: 8px;
+    --scrollbar-container-offset: 4px;
+    --scrollbar-thumb-hover-color: var(--p-gray-500);
+    --scrollbar-hover-opacity-transition-leave-delay: 0s;
 }
 
 .trip-point {

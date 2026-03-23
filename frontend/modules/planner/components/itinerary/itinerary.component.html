@@ -91,7 +91,10 @@ Main component HTML template file for the itinerary used in the planner module.
               <!-- Distance and duration of option -->
               <div class="accorion-header-distance-duration">
                 <span class="accordion-header-info"><i class="pi pi-stopwatch"></i>{{ option.duration | duration }}</span>
-                <span class="accordion-header-info"><i class="pi pi-wave-pulse"></i>{{ option.distance | distance }}</span>
+
+                @if(option.hasFullShape) {
+                  <span class="accordion-header-info"><i class="pi pi-wave-pulse"></i>{{ option.distance | distance }}</span>
+                }
               </div>
             </p-accordion-header>
 

@@ -384,17 +384,17 @@ async function buildCarTransitTrip(
 ): Promise<TripSectionOption[] | null> {
 
     // Get list of car legs that terminate at the nearest parking spot (most likely always one)
-    const carLegs = await planner.getTripSection(
+    const carOptions = await planner.getTripSection(
         createSectionRequest(request, origin, transfer.parkingCoords, ["car"], request.datetime.tripDatetime)
     );
-    if (carLegs === null || carLegs.length === 0)
+    if (carOptions === null || carOptions.length === 0)
         return null;
 
     // Get first car leg, most likely there will only be one anyway
-    const firstCarLeg = carLegs[0]!;
+    const carSection = carOptions[0]!;
 
     // Get arrival time of the car leg
-    const carLegArrival = firstCarLeg.endDatetime.toISOString();  
+    const carLegArrival = carSection.endDatetime.toISOString();  
 
     // Get list of transit options from the transfer point parking lot
     const transitOptions = await planner.getTripSection(
@@ -421,12 +421,19 @@ async function buildCarTransitTrip(
     // TODO use a few of them (ranking)
     const firstTransitOption = validTransitOptions[0]!;
 
+    // Destination of the car leg is a parking spot
+    carSection.legs[0]!.to.isParking = true;
+
+    // Set the destination name of the car leg to the name of the transfer point (if it hasnt already been set earlier)
+    if (carSection.legs[0]!.to.placeName === null)
+        carSection.legs[0]!.to.placeName = transfer.name;
+
     // Update the transit section object with data from the car leg object
-    firstTransitOption.distance += firstCarLeg.distance;
-    firstTransitOption.duration += firstCarLeg.duration;
-    firstTransitOption.originName = firstCarLeg.originName;
-    firstTransitOption.startDatetime = firstCarLeg.startDatetime;
-    firstTransitOption.legs.unshift(firstCarLeg.legs[0]!);
+    firstTransitOption.distance += carSection.distance;
+    firstTransitOption.duration += carSection.duration;
+    firstTransitOption.originName = carSection.originName;
+    firstTransitOption.startDatetime = carSection.startDatetime;
+    firstTransitOption.legs.unshift(carSection.legs[0]!);
 
     // Return one option for now
     return [firstTransitOption];

@@ -213,12 +213,14 @@ export class OTPAdapter implements RoutePlanner {
                 departureTime: new Date(leg.from.departure.scheduledTime),
                 placeName: leg.from.stop?.name ?? null,
                 isTransportStop: leg.from.stop !== null, 
+                isParking: false,
             },
             to: {
                 arrivalTime: new Date(leg.to.arrival.scheduledTime),
                 departureTime: new Date(leg.to.departure.scheduledTime),
                 placeName: leg.to.stop?.name ?? null,
                 isTransportStop: leg.to.stop !== null,  
+                isParking: false,
             },
             route: leg.route ? {
                 lineId: leg.route.shortName,

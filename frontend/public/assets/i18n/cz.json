@@ -199,7 +199,8 @@
             "legOrigin": "Počátek úseku",
             "legDestination": "Konec úseku",
             "destination": "Cíl",
-            "export": "Exportovat"
+            "export": "Exportovat",
+            "parkingSpot": "Parkování"
         },
         "settings": {
             "walkingPreferences": "Preference chůze",

@@ -198,7 +198,8 @@
             "legOrigin": "Leg origin",
             "legDestination": "Leg destination",
             "destination": "Destination",
-            "export": "Export"
+            "export": "Export",
+            "parkingSpot": "Parking spot"
         },
         "settings": {
             "walkingPreferences": "Walking preferences",

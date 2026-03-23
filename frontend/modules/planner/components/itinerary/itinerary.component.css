@@ -318,6 +318,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
 }
 
 button {
@@ -341,5 +344,9 @@ button {
 
 .export-img {
     height: 20px;
+}
+
+.parking-icon {
+    width: 11px;
 }
 /**************************************************/

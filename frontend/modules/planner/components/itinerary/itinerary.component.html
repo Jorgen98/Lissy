@@ -135,8 +135,18 @@ Main component HTML template file for the itinerary used in the planner module.
 
                           <!-- Origin and destination of leg names -->
                           <div class="two-column-text two-column-text-left">
-                            <span class="leg-text">{{ leg.from.placeName ?? "planner.itinerary.legOrigin" | translate }}</span>
-                            <span class="leg-text">{{ leg.to.placeName ?? "planner.itinerary.legDestination" | translate }}</span>
+                            <span class="leg-text">
+                              {{ leg.from.placeName ?? "planner.itinerary.legOrigin" | translate }}
+                              @if (leg.from.isParking) {
+                                <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
+                              }
+                            </span>
+                            <span class="leg-text">
+                              {{ leg.to.placeName ?? "planner.itinerary.legDestination" | translate }}
+                              @if (leg.to.isParking) {
+                                <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
+                              }
+                            </span>
                           </div>
                         </div>
 

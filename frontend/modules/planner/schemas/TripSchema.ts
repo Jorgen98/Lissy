@@ -23,6 +23,7 @@ const LegSchema = z.object({
         departureTime: datePreprocess("departureTime"),
         placeName: z.string().nullable(),
         isTransportStop: z.boolean(),
+        isParking: z.boolean(),
     }),
     points: z.array(z.object({
         lat: z.number(),
@@ -33,6 +34,7 @@ const LegSchema = z.object({
         departureTime: datePreprocess("departureTime").nullable(),
         placeName: z.string().nullable(),
         isTransportStop: z.boolean(),
+        isParking: z.boolean(),
     }),
     mode: z.enum(modes),
     route: z.object({

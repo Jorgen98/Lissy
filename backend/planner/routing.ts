@@ -46,10 +46,18 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
     if (tripOptions === null)
         return null;
 
-    // Add place names to sections origins and destinations based on the data from trip request
-    addPlaceNames(tripOptions, request);
+    // Apply postprocessing operations to all trip options
+    postprocessTripOptions(tripOptions, request);
 
     return tripOptions;
+}
+
+function postprocessTripOptions(options: TripOption[], request: TripRequest) {
+    options.forEach(option => {
+
+        // Add place names to sections origins and destinations based on the data from trip request
+        addPlaceNames(option, request);        
+    });
 }
 
 async function planTripWithMidpoints(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
@@ -494,32 +502,28 @@ function filterOptions(options: TripOption[], request: TripRequest): TripOption[
 } 
 
 // Function adding place names to section origin points and destination points where they arent yet set
-function addPlaceNames(options: TripOption[], request: TripRequest): void {
+function addPlaceNames(trip: TripOption, request: TripRequest): void {
+    trip.sections.forEach((section, index) => {
 
-    // Go through each section
-    options.forEach(option => {
-        option.sections.forEach((section, index) => {
-            
-            // Get the possible new names for section origin and destination from the request
-            const originPointName = request.points[index]!.placeName;
-            const destPointName = request.points[index + 1]!.placeName;
+        // Get the possible new names for section origin and destination from the request
+        const originPointName = request.points[index]!.placeName;
+        const destPointName = request.points[index + 1]!.placeName;
 
-            // Update the section origin name if its available and not set yet
-            if (originPointName !== undefined && section.originName === null) 
-                section.originName = originPointName;
+        // Update the section origin name if its available and not set yet
+        if (originPointName !== undefined && section.originName === null) 
+            section.originName = originPointName;
 
-            // Same with destination
-            if (destPointName !== undefined && section.destinationName === null) 
-                section.destinationName = destPointName;
+        // Same with destination
+        if (destPointName !== undefined && section.destinationName === null) 
+            section.destinationName = destPointName;
 
-            // If the origin of the first leg doesnt have a name, can fill with the origin name of the section
-            if (originPointName !== undefined && section.legs[0]!.from.placeName === null)
-                section.legs[0]!.from.placeName = originPointName;
+        // If the origin of the first leg doesnt have a name, can fill with the origin name of the section
+        if (originPointName !== undefined && section.legs[0]!.from.placeName === null)
+            section.legs[0]!.from.placeName = originPointName;
 
-            // Same with destination of the last legs and section destination name
-            if (destPointName !== undefined && section.legs[section.legs.length - 1]!.to.placeName === null)
-                section.legs[section.legs.length - 1]!.to.placeName = destPointName;
-        });
+        // Same with destination of the last legs and section destination name
+        if (destPointName !== undefined && section.legs[section.legs.length - 1]!.to.placeName === null)
+            section.legs[section.legs.length - 1]!.to.placeName = destPointName;
     });
 }
 

@@ -245,19 +245,8 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     // Function called when a transport mode is toggled as on/off
     // If index is set, the transport mode was set/unset between adjacent points in a trip section, otherwise globally
     public modeToggled(mode: TransportMode, index?: number): void {
-        if (index !== undefined) {
-
-            // Check if the clicked mode is already active in the section
-            const clickedModeActive = this.tripData.modes.sections[index][mode];
-            if (!clickedModeActive) {
-
-                // Get the mode that is currently active, turn it off and turn on the clicked one
-                const activeMode = (Object.keys(this.tripData.modes.sections[index]) as TransportMode[]).find(mode => this.tripData.modes.sections[index][mode]) as TransportMode;
-                this.tripData.modes.sections[index][activeMode] = false;
-                this.tripData.modes.sections[index][mode] = true;
-
-            }
-        }
+        if (index !== undefined)
+            this.tripData.modes.sections[index][mode] = !this.tripData.modes.sections[index][mode];
         else {
             this.tripData.modes.global[mode] = !this.tripData.modes.global[mode];
 
@@ -359,31 +348,15 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         this.pointControls.insert(position, new FormControl('', { nonNullable: true }));
         this.filteredStopsArray.splice(position, 0, this.createFilteredStops(position));
 
-        // If the number of points reaches 3, turn on one of the modes for both the new sections
+        // If the number of points reaches 3, create two copies of the global selected modes and add that as modes in the two sections
         if (this.tripData.points.length === 3) {
-            if (this.tripData.modes.global.publicTransport) {
-                this.tripData.modes.sections[0] = { publicTransport: true, car: false, walk: false };
-                this.tripData.modes.sections[1] = { publicTransport: true, car: false, walk: false };
-            }
-            else if (this.tripData.modes.global.car) {
-                this.tripData.modes.sections[0] = { publicTransport: false, car: true, walk: false };
-                this.tripData.modes.sections[1] = { publicTransport: false, car: true, walk: false };
-            }
-            else {
-                this.tripData.modes.sections[0] = { publicTransport: false, car: false, walk: true };
-                this.tripData.modes.sections[1] = { publicTransport: false, car: false, walk: true };
-            }
+            this.tripData.modes.sections[0] = { ...this.tripData.modes.global };
+            this.tripData.modes.sections[1] = { ...this.tripData.modes.global };
         }
 
-        // Turn on one mode for the newly created section
-        else {
-            if (this.tripData.modes.global.publicTransport)
-                this.tripData.modes.sections.splice(position - 1, 0, { publicTransport: true, car: false, walk: false });
-            else if (this.tripData.modes.global.car)
-                this.tripData.modes.sections.splice(position - 1, 0, { publicTransport: false, car: true, walk: false });
-            else
-                this.tripData.modes.sections.splice(position - 1, 0, { publicTransport: false, car: false, walk: true });
-        }
+        // Copy global selected modes to the new created section
+        else
+            this.tripData.modes.sections.splice(position - 1, 0, { ...this.tripData.modes.global });
     }
 
     // Function deleting trip midpoint from the form
@@ -505,30 +478,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
             return;
         }
 
-        // Iterate through the modes in the individual sections between points
-        for (let i = 0; i < this.tripData.modes.sections.length; i++) {
-
-            // Update value of the mode in the section based on the global mode toggle
-            this.tripData.modes.sections[i][mode] = this.tripData.modes.global[mode];
-
-            // Get number of currently active modes for the section after the toggle
-            const section = this.tripData.modes.sections[i];
-            const activeModeCount = Number(section.car) + Number(section.walk) + Number(section.publicTransport);
-
-            // If the section has no modes selected anymore, select one from the active ones in global modes
-            if (activeModeCount === 0) {
-                if (this.tripData.modes.global.publicTransport)
-                    this.tripData.modes.sections[i] = { publicTransport: true, car: false, walk: false };
-                else if (this.tripData.modes.global.car)
-                    this.tripData.modes.sections[i] = { publicTransport: false, car: true, walk: false };
-                else
-                    this.tripData.modes.sections[i] = { publicTransport: false, car: false, walk: true };
-            }
-
-            // If the sections has more than one mode active now, disable the new one, only keep the one activated before already
-            else if (activeModeCount > 1)
-                this.tripData.modes.sections[i][mode] = false;
-        }
+        const global = this.tripData.modes.global[mode]; // Store new value of toggled mode (less member access in loop)
+        for (let i = 0; i < this.tripData.modes.sections.length; i++) 
+            this.tripData.modes.sections[i][mode] = global;
     }
 
     // Function for fetching the current users device location

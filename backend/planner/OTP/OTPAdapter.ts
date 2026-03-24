@@ -40,9 +40,9 @@ export class OTPAdapter implements RoutePlanner {
     public async getTripSection(sectionInfo: TripSectionInfo, numOptions?: number): Promise<TripSectionOption[] | null>  {
 
         // Which of the possible transport modes should be used in this sections planning
-        const usePublicTransport = sectionInfo.modes.some(mode => mode === "publicTransport"); 
-        const useWalk = sectionInfo.modes.some(mode => mode === "walk");
-        const useCar = sectionInfo.modes.some(mode => mode === "car");
+        const usePublicTransport = sectionInfo.modes.publicTransport;
+        const useWalk = sectionInfo.modes.walk;
+        const useCar = sectionInfo.modes.car;
 
         // Limit to only transit or direct planning based on selected modes
         const transitOnly = usePublicTransport && !useCar && !useWalk;
@@ -67,7 +67,7 @@ export class OTPAdapter implements RoutePlanner {
             directModes,
             datetime: sectionInfo.datetime.datetime,
             numOptions: numOptions !== undefined ? numOptions : 0,  // If the number of options isnt set, 0 is interpreted as unlimited by OTP
-            walkingSpeed: sectionInfo.preferences.walk.speed,
+            walkingSpeed: sectionInfo.preferences.walk.avgSpeed,
             cursor: null,
         }
         

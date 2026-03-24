@@ -8,6 +8,24 @@
 
 import { TripData } from "./TripData";
 
+export type UserPreferences = {
+    walk: {
+        maxDistance: number | null, // Maximum allowed walking distance
+        avgSpeed: number            // Average walking speed
+    },
+    publicTransport: {
+
+        // Modes allowed for planning transit legs
+        allowedModes: {
+            bus: boolean,
+            trolleybus: boolean,
+            tram: boolean,
+            train: boolean,
+            ferry: boolean,
+        }
+    }
+}
+
 export type TripDataExtended = Omit<TripData, 'datetime'> & {
 
     // Date and time information about the trip
@@ -17,21 +35,5 @@ export type TripDataExtended = Omit<TripData, 'datetime'> & {
     }
 
     // Append information about user preferences to TripData type
-    preferences: {
-        walk: {
-            maxDistance: number | null, // Maximum allowed walking distance
-            avgSpeed: number            // Average walking speed
-        },
-        publicTransport: {
-
-            // Modes allowed for planning transit legs
-            allowedModes: {
-                bus: boolean,
-                trolleybus: boolean,
-                tram: boolean,
-                train: boolean,
-                ferry: boolean,
-            }
-        }
-    }
+    preferences: UserPreferences,
 };

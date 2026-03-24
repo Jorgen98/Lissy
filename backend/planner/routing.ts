@@ -7,7 +7,6 @@
 
 const dbPostgis = require('../db-postgis.js');
 
-import { TransportMode } from "../../frontend/modules/planner/types/TransportMode";
 import { RoutePlanner } from "./RoutePlanner";
 import { TripRequest } from "./types/TripRequest";
 import { TripSectionInfo } from "./types/TripSectionInfo";
@@ -16,6 +15,7 @@ import { TripOption, TripSectionOption } from "./types/TripOption";
 import { TransferHub } from "./types/TransferHub";
 import { LatLng } from "./types/LatLng";
 import { kmeans } from "ml-kmeans";
+import { UserPreferences } from "../../frontend/modules/planner/types/TripDataExtended";
 import { 
     WALKING_DISTANCE_COEF, 
     DRIVING_DISTANCE_COEF, 
@@ -37,21 +37,19 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
     if (!await planner.initialize())
         return null;
 
-    // Call planning function based on number of trip points
-    let tripOptions: TripOption[] | null = [];
-    if (request.points.length === 2)
-        tripOptions = await planTripWithoutMidpoints(request, planner);
-    else 
-        tripOptions = await planTripWithMidpoints(request, planner);
+    // Get list of trip options 
+    const tripOptions = await getTripOptions(request, planner);
     if (tripOptions === null)
         return null;
 
     // Apply postprocessing operations to all trip options
     postprocessTripOptions(tripOptions, request);
 
-    return tripOptions;
+    // Filter out unsatisfactory trip options by given user preferences
+    return filterOptions(tripOptions, request.preferences);
 }
 
+// Function performing postprocessing operations on all of the found trip options
 function postprocessTripOptions(options: TripOption[], request: TripRequest) {
     options.forEach(option => {
 
@@ -60,46 +58,68 @@ function postprocessTripOptions(options: TripOption[], request: TripRequest) {
     });
 }
 
-async function planTripWithMidpoints(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
+// Function returning a list of TripOption objects
+async function getTripOptions(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
+
+    // Get information from the trip request, for less access to the request object
+    const { datetime, preferences, points, modes } = request;
 
     // The sections need to be built in reverse if arrival time is selected
-    const reverseOrder = request.datetime.datetimeOption === "arrival";
+    const reverseOrder = datetime.datetimeOption === "arrival";
+
+    // Use the globally set modes for a trip that has no midpoints
+    const useGlobalModes = points.length === 2;
 
     // Datetime that should be used as departure/arrival time for the next section
-    let followingDatetime = request.datetime.tripDatetime;
+    let followingDatetime = datetime.tripDatetime;
 
     // Accumulators for total distance, duration and sections of the trip
     let totalDistance = 0;
     let totalDuration = 0;
-    let tripSections: TripSectionOption[] = []; 
+    const tripSections: TripSectionOption[] = []; 
 
+    // Change the order of iteration based on the reverseOrder variable set earlier
+    // Iterates the trip points from behind for trips that have latest arrival time selected
     for (
-        let i = reverseOrder ? request.points.length - 1 : 0; 
-        reverseOrder ? i > 0 : i < request.points.length - 1;
+        let i = reverseOrder ? points.length - 1 : 0; 
+        reverseOrder ? i > 0 : i < points.length - 1;
         reverseOrder ? i-- : i++
     ) {
-
-        // Get modes selected to be used for this section 
-        const sectionModes = request.modes.sections[reverseOrder ? i - 1 : i]!;
+        // Get modes to be used for this section 
+        const sectionModes = useGlobalModes ? modes.global : modes.sections[reverseOrder ? i - 1 : i]!;
 
         // Get coordinates of the start and end points of the section
-        const pointA = request.points[reverseOrder ? i - 1 : i]!;
-        const pointB = request.points[reverseOrder ? i : i + 1]!;
+        const pointA = points[reverseOrder ? i - 1 : i]!;
+        const pointB = points[reverseOrder ? i : i + 1]!;
 
-        // Get one mode selected for this section
-        // NOTE: Always just one for now
-        const selectedMode = Object.keys(sectionModes)
-            .find(mode => sectionModes[mode as TransportMode]) as TransportMode;
-
-        // Call OTP service to get one option with given parameters 
-        // NOTE: Always just one for now
-        const foundSections = await planner
-            .getTripSection(
-                createSectionRequest(request, pointA, pointB, [selectedMode], followingDatetime), 1
-            );    
-        if (!foundSections || foundSections[0] === undefined)
+        // Create request object for the section
+        const sectionRequest: TripSectionInfo = {
+            pointA,
+            pointB,
+            preferences,
+            modes: sectionModes,
+            datetime: {
+                datetime: followingDatetime,
+                option: datetime.datetimeOption,
+            }
+        }
+        
+        // Request options for this section with created request object
+        const foundSections = await getSectionOptions(planner, sectionRequest);
+        if (foundSections.length === 0)
             return null;
-        const section = foundSections[0];
+
+        // If its a trip request without midpoints, return all found section options wrapped in a TripOption object
+        // Otherwise get only the first found section option 
+        // TODO will be changed when ranking is introduced
+        if (points.length === 2) {
+            return foundSections.map(section => ({
+                ...section,
+                hasFullShape: false,
+                sections: [section],
+            }));
+        }
+        const section = foundSections[0]!;
 
         // Datetime of the next/previous section will be the ending/starting dateTime of the previous/next
         followingDatetime = (reverseOrder ? section.startDatetime : section.endDatetime).toISOString();
@@ -111,7 +131,7 @@ async function planTripWithMidpoints(request: TripRequest, planner: RoutePlanner
     } 
 
     // Build final array of options
-    // NOTE: Always one for now
+    // NOTE: Always one for now, will be changed when ranking is introduced
     const options = [{
         distance: totalDistance,
         duration: totalDuration,
@@ -121,58 +141,35 @@ async function planTripWithMidpoints(request: TripRequest, planner: RoutePlanner
         hasFullShape: false,
     }];
 
-    // Filter out unsatisfactory trip options by request parameters
-    return filterOptions(options, request);
+    // TODO rate full options and rank them in order of rating
+
+    return options;
 } 
 
-async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlanner): Promise<TripOption[]> {
-
-    // Get modes used in request for less object access
-    const globalModes = request.modes.global;
+// Function returning a list of TripSectionOption objects, which is a part of the trip, always between two points in the trip request
+async function getSectionOptions(planner: RoutePlanner, request: TripSectionInfo): Promise<TripSectionOption[]> {
 
     // List of promises from requests to the planner so Promise.all can be used
     const plannerRequests: Promise<TripSectionOption[] | null>[] = []; 
 
-    const origin = request.points[0]!;
-    const destination = request.points[1]!;
+    // Modes to be used for this section
+    const modes = request.modes;
 
     // Always get trip options with public transport section if selected
-    if (globalModes.publicTransport) {
-        plannerRequests.push(
-            planner.getTripSection(
-                createSectionRequest(
-                    request, 
-                    origin, 
-                    destination, 
-                    ["publicTransport"], 
-                    request.datetime.tripDatetime
-                )
-            )
-        );
-    }
+    if (modes.publicTransport)
+        plannerRequests.push(planner.getTripSection({ ...request, modes: { publicTransport: true, car: false, walk: false }}));
 
     // If only one direct mode (car or walk) is selected, get trip sections for that mode
-    if ((globalModes.car && !globalModes.walk) || (!globalModes.car && globalModes.walk)) {
-        plannerRequests.push(
-            planner.getTripSection(
-                createSectionRequest(
-                    request, 
-                    origin, 
-                    destination, 
-                    [globalModes.car ? "car" : "walk"], 
-                    request.datetime.tripDatetime
-                )
-            )
-        );
-    }
+    if ((modes.car && !modes.walk) || (!modes.car && modes.walk))
+        plannerRequests.push(planner.getTripSection({ ...request, modes: { ...modes, publicTransport: false }}));
 
-    // If both direct modes (car and walk) are selected, decide on point distance (straight line) if they both make sense
-    if (globalModes.car && globalModes.walk)
-        carWalkCombination(request, plannerRequests, planner);
+    // If both direct modes (car and walk) are selected, call function that handles this combination and creates requests
+    if (modes.car && modes.walk)
+        carWalkCombination(planner, request, plannerRequests);
 
-    // If car and public trasnport are both selected, decide if a CAR->transfer->TRANSIT options should be requested
-    if (globalModes.publicTransport && globalModes.car) {
-        const carTransitRequests = await carTransitCombination(request, planner);
+    // If car and public transport are both selected, decide if CAR->transfer_hub->TRANSIT options should be requested
+    if (modes.publicTransport && modes.car) {
+        const carTransitRequests = await carTransitCombination(planner, request);
         plannerRequests.push(...carTransitRequests);
     };
 
@@ -180,27 +177,13 @@ async function planTripWithoutMidpoints(request: TripRequest, planner: RoutePlan
     const results = await Promise.all(plannerRequests);
 
     // Filter out unsuccessful requests and flatten the 2D list returned by Promise.all into one 1D list with all options
-    const foundOptions = results.filter(result => result !== null).flat();
+    const foundSections = results.filter(result => result !== null).flat();
+
+    // TODO rate the section options and return them in order by rating
+    // NOTE first deduplicate, then rate
 
     // Deduplicate public transport options that have the same legs as another option, which departs earlier/later (depending on departure or arrival time)
-    const deduplicatedOptions = deduplicateOptions(foundOptions, request.datetime.datetimeOption === "arrival");
-
-    // Flatten the filtered 2D list into one 1D list of TripOptions
-    const tripOptions = deduplicatedOptions.map(option => ({
-        distance: option.distance,
-        duration: option.duration,
-        endDatetime: option.endDatetime,
-        sections: [option], // Simply a trip option with one section
-        startDatetime: option.startDatetime,
-        hasFullShape: false,
-    }));
-
-    // Filter out unsatisfactory trip options by request parameters
-    const filteredOptions = filterOptions(tripOptions, request);
-
-    // TODO Rank options
-
-    return filteredOptions;
+    return deduplicateSections(foundSections, request.datetime.option === "arrival");
 }
 
 // Function finding all candidate transfer hubs between pointA and pointB for a car->transit section
@@ -245,7 +228,7 @@ async function getPointTransitAccessScore(coords: LatLng): Promise<number> {
 }
 
 // Function filtering public transport section options that are the same as another option but departure is later/earlier (depending on departure or arrival time selection)
-function deduplicateOptions(options: TripSectionOption[], reverseOrder: boolean): TripSectionOption[] {
+function deduplicateSections(options: TripSectionOption[], reverseOrder: boolean): TripSectionOption[] {
 
     // Sort the options by departure time ascending if using departure time or by arrival time descending if using arrival time
     const optionsSorted = !reverseOrder ? 
@@ -279,18 +262,18 @@ function buildSectionOptionId(option: TripSectionOption): string {
 }
 
 // Function handling the combination of car and public transport in one request
-async function carTransitCombination(request: TripRequest, planner: RoutePlanner): Promise<Promise<TripSectionOption[] | null>[]> {
+async function carTransitCombination(planner: RoutePlanner, request: TripSectionInfo): Promise<Promise<TripSectionOption[] | null>[]> {
 
-    // Get origin and destination points from the original request
-    const origin = request.points[0]!;
-    const destination = request.points[1]!;
+    // Get origin and destination point of the section
+    const origin = request.pointA;
+    const destination = request.pointB;
 
     // Get straight line distance between the two points, check if its not too short for car->transit
     const distance = calculateDistanceHaversine(origin, destination);
     if (distance < PARK_AND_RIDE_DECISION_DISTANCE)
         return [];
 
-    // Find candidate transit hubs for the two points, dont make request if none are found
+    // Find candidate transit hubs for the two points
     const candidateHubs = await getTransferHubs(origin, destination, distance);
 
     // Filter the transfer hubs based on scores of origin and destination
@@ -300,21 +283,21 @@ async function carTransitCombination(request: TripRequest, planner: RoutePlanner
     const clusteredHubs = clusterHubs(filteredHubs);
 
     // Create list of Promise objects and return it so it can be processed concurrently
-    return clusteredHubs.map(hub => buildCarTransitTrip(request, planner, origin, hub, destination));
+    return clusteredHubs.map(hub => buildCarTransitTrip(planner, request, hub));
 }
 
 // Function clustering the candidate transfer hubs when there are more of them than the threshold using Kmeans 
-// Returns the best scored representative from each cluster
+// Returns the best scored representative from each cluster, if clustering is actually necessary
 function clusterHubs(hubs: TransferHub[]): TransferHub[] {
 
     // If the number of hubs is less than the threshold, dont cluster
     if (hubs.length <= CANDIDATES_NO_CLUSTER_LIMIT)
         return hubs;
 
-    // Create valid array of lat lng tuples, needed for kmeans
+    // Create valid array of lat/lng tuples, needed for kmeans
     const coords = hubs.map(hub => [hub.coords.lat, hub.coords.lng]);
     
-    // Calculate number of cluster with a base and a slow growing factor
+    // Calculate number of clusters with a base constant and a slow growing factor (numHubs^factor)
     const numClusters = CANDIDATES_NO_CLUSTER_LIMIT + Math.floor(Math.pow(hubs.length, CLUSTER_NUMBER_FACTOR));
 
     // Run KMeans for the array of coordinates with custom distance function (straight line distance between points on globe)
@@ -331,7 +314,7 @@ function clusterHubs(hubs: TransferHub[]): TransferHub[] {
         cluster: kmeansResult.clusters[idx]!
     }));
 
-    // Create dictionary mapping cluster number to clustered hubs
+    // Create dictionary mapping cluster number to hubs in the cluster with that number
     const clusterToHubs: Record<number, TransferHub[]> = {};
     hubsWithClusters.forEach(hub => {
         if (clusterToHubs[hub.cluster] === undefined)
@@ -340,7 +323,7 @@ function clusterHubs(hubs: TransferHub[]): TransferHub[] {
             clusterToHubs[hub.cluster]!.push(hub);
     });
 
-    // Select the best scored representative from each cluster
+    // Select the best scored representative from each cluster and return them in a list
     return Object.values(clusterToHubs).map(hubCluster => {
         let bestHub: TransferHub = hubCluster[0]!;
         hubCluster.forEach(hub => {
@@ -383,18 +366,14 @@ async function filterTransferHubs(candidates: TransferHub[], origin: LatLng, des
 }
 
 // Function building a trip section option/options that transfers from car to transit at 'transfer'
-async function buildCarTransitTrip(
-    request: TripRequest,
-    planner: RoutePlanner,
-    origin: LatLng, 
-    transfer: TransferHub, 
-    destination: LatLng
-): Promise<TripSectionOption[] | null> {
+async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionInfo, transfer: TransferHub): Promise<TripSectionOption[] | null> {
 
     // Get list of car legs that terminate at the nearest parking spot (most likely always one)
-    const carOptions = await planner.getTripSection(
-        createSectionRequest(request, origin, transfer.parkingCoords, ["car"], request.datetime.tripDatetime)
-    );
+    const carOptions = await planner.getTripSection({ 
+        ...request, 
+        pointB: transfer.parkingCoords, 
+        modes: { car: true, publicTransport: false, walk: false } 
+    });
     if (carOptions === null || carOptions.length === 0)
         return null;
 
@@ -405,9 +384,12 @@ async function buildCarTransitTrip(
     const carLegArrival = carSection.endDatetime.toISOString();  
 
     // Get list of transit options from the transfer point parking lot
-    const transitOptions = await planner.getTripSection(
-        createSectionRequest(request, transfer.parkingCoords, destination, ["publicTransport"], carLegArrival)
-    );
+    const transitOptions = await planner.getTripSection({ 
+        ...request, 
+        pointA: transfer.parkingCoords, 
+        modes: { car: false, publicTransport: true, walk: false },
+        datetime: { datetime: carLegArrival, option: request.datetime.option }
+    });
     if (transitOptions === null || transitOptions.length === 0)
         return null;
 
@@ -419,7 +401,7 @@ async function buildCarTransitTrip(
         if (firstTransitLeg === undefined)
             return false;
 
-        // Check if the name of the origion of the first transit leg matches the transfer hub name
+        // Check if the name of the origin of the first transit leg matches the transfer hub name
         return firstTransitLeg.from.placeName === transfer.name;
     });
     if (validTransitOptions.length === 0)
@@ -447,41 +429,34 @@ async function buildCarTransitTrip(
     return [firstTransitOption];
 }
 
-function carWalkCombination(request: TripRequest, plannerRequests: Promise<TripSectionOption[] | null>[], planner: RoutePlanner): void {
+// Function handling the combination of car and walking in one trip section
+function carWalkCombination(planner: RoutePlanner, request: TripSectionInfo, plannerRequests: Promise<TripSectionOption[] | null>[]): void {
+
+    const origin = request.pointA;
+    const destination = request.pointB;
+    const walkPreferences = request.preferences.walk;
 
     // Get straight line distance between the two points using haversine function
-    const distance = calculateDistanceHaversine(request.points[0]!, request.points[1]!);
+    const distance = calculateDistanceHaversine(origin, destination);
 
     // Get driving distance and walking distance estimates
-    // TODO play around with coefficients
     const driveDistEstimate = distance * DRIVING_DISTANCE_COEF;
     const walkDistEstimate = distance * WALKING_DISTANCE_COEF;
 
     // If the maximum walking distance is more than the estimate or not limited, create a walk request for the section
-    if (request.preferences.walk.maxDistance === null || walkDistEstimate <= request.preferences.walk.maxDistance) {
-        plannerRequests.push(
-            planner.getTripSection(
-                createSectionRequest(request, request.points[0]!, request.points[1]!, ["walk"], request.datetime.tripDatetime)
-            )
-        );
-    }
+    if (walkPreferences.maxDistance === null || walkDistEstimate <= walkPreferences.maxDistance)
+        plannerRequests.push(planner.getTripSection({ ...request, modes: { publicTransport: false, car: false, walk: true }}));
 
     // If the distance is too short, it might not make sense to get car options
-    // TODO decide on correct threshold
-    if (driveDistEstimate > MIN_DRIVE_DISTANCE) {
-        plannerRequests.push(
-            planner.getTripSection(
-                createSectionRequest(request, request.points[0]!, request.points[1]!, ["car"], request.datetime.tripDatetime)
-            )
-        );
-    }
+    if (driveDistEstimate > MIN_DRIVE_DISTANCE)
+        plannerRequests.push(planner.getTripSection({ ...request, modes: { publicTransport: false, car: true, walk: false }}));
 }
 
-// Function filtering the plain list of found options
-function filterOptions(options: TripOption[], request: TripRequest): TripOption[] {
+// Function filtering the plain list of found trip options
+function filterOptions(options: TripOption[], preferences: UserPreferences): TripOption[] {
 
     // Get maximum walking distance from request object
-    const maxWalkDistance = request.preferences.walk.maxDistance;
+    const maxWalkDistance = preferences.walk.maxDistance;
 
     // Run each trip options through filters
     return options.filter(option => {
@@ -525,31 +500,4 @@ function addPlaceNames(trip: TripOption, request: TripRequest): void {
         if (destPointName !== undefined && section.legs[section.legs.length - 1]!.to.placeName === null)
             section.legs[section.legs.length - 1]!.to.placeName = destPointName;
     });
-}
-
-// Function creating the section request object for the planner adapter
-function createSectionRequest(
-    request: TripRequest,
-    pointA: LatLng, 
-    pointB: LatLng, 
-    modes: TransportMode[], 
-    datetime: string 
-): TripSectionInfo {
-    return {
-        pointA,
-        pointB,
-        modes: modes,
-        datetime: {
-            option: request.datetime.datetimeOption,
-            datetime
-        },
-        preferences: {
-            walk: {
-                speed: request.preferences.walk.avgSpeed,
-            },
-            publicTransport: {
-                allowedModes: request.preferences.publicTransport.allowedModes
-            }
-        }
-    }
 }

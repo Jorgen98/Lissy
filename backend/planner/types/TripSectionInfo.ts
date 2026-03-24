@@ -6,28 +6,16 @@
  */
 
 import { TransportMode } from "../../../frontend/modules/planner/types/TransportMode"
+import { UserPreferences } from "../../../frontend/modules/planner/types/TripDataExtended"
 import { LatLng } from "./LatLng"
 
-export type TripSectionInfo =  {
+export type TripSectionInfo = {
     pointA: LatLng,   // Coordinates of the first point
     pointB: LatLng,   // Coordinates of the second point
-    modes: TransportMode[],                 // Requested transport modes between the two points
+    modes: Record<TransportMode, boolean>,  // Requested transport modes between the two points
     datetime: {                             // Earliest departure/latest arrival date and time
         datetime: string,                   // ISO UTC string
         option: "departure" | "arrival"
     },
-    preferences: {                          // Preferences set by the user
-        walk: {
-            speed: number,                  // Average walking speed in m/s
-        },
-        publicTransport: {                  // Preferences for allowed modes in public transport
-            allowedModes: {
-                bus: boolean,
-                trolleybus: boolean,
-                tram: boolean,
-                train: boolean,
-                ferry: boolean,
-            }
-        }
-    }
+    preferences: UserPreferences,
 }

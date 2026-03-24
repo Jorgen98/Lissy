@@ -17,8 +17,8 @@ export type TripData = {
     
     // Transport modes used for the trip and its sections
     modes: {
-        global: Record<TransportMode, Boolean>,         // Modes currently selected for trip planning (for all sections of the trip)
-        sections: Record<TransportMode, Boolean>[],     // Modes selected for planning between two adjecent points 
+        global: Record<TransportMode, boolean>,         // Modes currently selected for trip planning (for all sections of the trip)
+        sections: Record<TransportMode, boolean>[],     // Modes selected for planning between two adjecent points 
     }
 
     // Date and time information about the trip

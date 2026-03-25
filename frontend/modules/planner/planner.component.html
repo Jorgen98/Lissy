@@ -35,6 +35,17 @@ Main component HTML template file for the planner module.
           </button>
         </div>
 
+        <!-- Car preferences settings button -->
+        <div [ngClass]="moduleFocus == 4 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button 
+            type="button" 
+            [ngClass]="moduleFocus == 4 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchModuleVisibility(4)"  
+          >
+            <img [src]="'./planner/car-white.svg'" class="setting-img">
+          </button>
+        </div>
+
         <!-- Import button -->
         <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
           <button 
@@ -75,6 +86,14 @@ Main component HTML template file for the planner module.
         </button>
       </div>
 
+      <!-- Car preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(4)">
+          <img [src]="'./planner/car-white.svg'" class="setting-img-mobile">
+          <p class="mobile-btn-text">{{ 'planner.settings.carPreferences' | translate }}</p>
+        </button>
+      </div>
+
       <!-- Public transport preferences settings button -->
       <div class="mobile-header-item">
         <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(3)">
@@ -101,7 +120,7 @@ Main component HTML template file for the planner module.
             <!-- Max walking distance -->
             <div class="side-control-selection-inner-div">
               <h3>{{ 'planner.settings.maxWalkingDistance' | translate }}</h3>
-              <div class="walk-distance-input-div">
+              <div class="number-input-div">
                 <p-inputnumber 
                   [(ngModel)]="selectedWalkDistanceKm" 
                   [inputStyle]="{'width': '70px', 'text-align': 'right'}"
@@ -110,7 +129,7 @@ Main component HTML template file for the planner module.
                   [max]="1000"
                   [showButtons]="true"
                   buttonLayout="horizontal"
-                  (onBlur)="walkDistanceBlur()"/>Km
+                  (onBlur)="setDefaultIfEmpty('walkDistance')"/>Km
               </div>
               <span class="side-control-checkbox-span">
                 <p-checkbox [binary]="true" [(ngModel)]="walkDistanceUnlimited">
@@ -125,7 +144,7 @@ Main component HTML template file for the planner module.
             <!-- Walking speed -->
             <div class="side-control-selection-inner-div">
               <h3>{{ 'planner.settings.walkingSpeed' | translate }}</h3>
-              <div class="walk-distance-input-div">
+              <div class="number-input-div">
                 <p-inputnumber 
                   [(ngModel)]="selectedWalkingSpeedKmh" 
                   [inputStyle]="{'width': '70px', 'text-align': 'right'}"
@@ -137,7 +156,7 @@ Main component HTML template file for the planner module.
                   [step]="0.1"
                   [showButtons]="true"
                   buttonLayout="horizontal"
-                  (onBlur)="walkSpeedBlur()"/>Km/h
+                  (onBlur)="setDefaultIfEmpty('walkSpeed')"/>Km/h
               </div>
             </div>
             
@@ -219,7 +238,7 @@ Main component HTML template file for the planner module.
             <!-- Max number of transfers in trip -->
             <div class="side-control-selection-inner-div">
               <h3>{{ 'planner.settings.maxTransfers' | translate }}</h3>
-              <div class="walk-distance-input-div">
+              <div class="number-input-div">
                 <p-inputnumber 
                   [(ngModel)]="selectedMaxNumberOfTransfers" 
                   [inputStyle]="{'width': '70px', 'text-align': 'right'}"
@@ -228,7 +247,7 @@ Main component HTML template file for the planner module.
                   [max]="1000"
                   [showButtons]="true"
                   buttonLayout="horizontal"
-                  (onBlur)="maxNumberOfTransfersBlur()"/>
+                  (onBlur)="setDefaultIfEmpty('maxTransfers')"/>
               </div>
               <span class="side-control-checkbox-span">
                 <p-checkbox [binary]="true" [(ngModel)]="maxNumberOfTransfersUnlimited">
@@ -251,6 +270,58 @@ Main component HTML template file for the planner module.
                 optionValue="type"
                 [(ngModel)]="selectedTicketType"
               />
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Car preferences settings -->
+      @else if (moduleFocus === 4) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'planner.settings.carPreferences' | translate }}</h4>
+            <button type="button" (click)="switchModuleVisibility(4)">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+
+            <!-- Average fuel consumption -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.fuelConsumption' | translate }}</h3>
+              <div class="number-input-div">
+                <p-inputnumber 
+                  [minFractionDigits]="1"
+                  [maxFractionDigits]="1"
+                  [(ngModel)]="selectedFuelConsumption" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [min]="0"
+                  [max]="1000"
+                  [step]="0.1"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="setDefaultIfEmpty('fuelConsumption')"
+                />l/100km
+              </div>
+            </div>
+
+            <!-- Fuel price -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.fuelPrice' | translate }}</h3>
+              <div class="number-input-div">
+                <p-inputnumber 
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [(ngModel)]="selectedFuelPrice" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [min]="0"
+                  [max]="1000"
+                  [step]="0.1"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="setDefaultIfEmpty('fuelPrice')"
+                />Kč/l
+              </div>
             </div>
           </div>
         </div>

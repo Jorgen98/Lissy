@@ -205,6 +205,7 @@
         "settings": {
             "walkingPreferences": "Preference chůze",
             "publicTransportPreferences": "Preference hromadné dopravy",
+            "carPreferences": "Preference pro auto",
             "maxWalkingDistance": "Maximální vzdálenost chůze",
             "unlimitedWalkDistance": "Neomezovat maximální vzdálenost chůze",
             "unlimitedTransfers": "Neomezovat maximální počet přestupů",
@@ -224,7 +225,9 @@
             "invalidFileTypeMessageSummary": "Formát souboru {0} není podporován, ",
             "invalidFileTypeMessageDetail": "povolený formát: {0}.",
             "ticketType": "Typ jízdenky",
-            "maxTransfers": "Maximální počet přestupů"
+            "maxTransfers": "Maximální počet přestupů",
+            "fuelConsumption": "Průměrná spotřeba paliva",
+            "fuelPrice": "Cena paliva"
         }
     },
     "map" : {

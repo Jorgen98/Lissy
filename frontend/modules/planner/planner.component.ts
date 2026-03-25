@@ -25,6 +25,13 @@ import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { TripSchema } from './schemas/TripSchema';
 import { TranslateService } from '@ngx-translate/core';
 import { 
+    MAX_WALK_DISTANCE_DEFAULT, 
+    AVG_FUEL_CONSUMPTION_DEFAULT, 
+    MAX_TRANSFERS_DEFAULT, 
+    AVG_WALK_SPEED_DEFAULT, 
+    FUEL_PRICE_DEFAULT 
+} from './utils/defaultSettingValues';
+import { 
     Component, 
     AfterViewInit, 
     ViewChild, 
@@ -87,15 +94,19 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     public tripOptions: TripOption[] | null = null;
 
     // Maximum walking distance from user preferences input
-    public selectedWalkDistanceKm = 5;  // Default value 5 km
+    public selectedWalkDistanceKm = MAX_WALK_DISTANCE_DEFAULT;
     public walkDistanceUnlimited = false;   // Whether the walking distance should be limited
 
     // Maximum number of transfers from user preferences input
-    public selectedMaxNumberOfTransfers = 10;        // Default value 10
+    public selectedMaxNumberOfTransfers = MAX_TRANSFERS_DEFAULT;
     public maxNumberOfTransfersUnlimited = true;     // Whether the maximum number of transfers should be limited (unlimited by default)
 
+    // Fuel price and average fuel consumption values from user settings with defaults
+    public selectedFuelConsumption = AVG_FUEL_CONSUMPTION_DEFAULT;
+    public selectedFuelPrice = FUEL_PRICE_DEFAULT;
+
     // Average walking speed from user preferences input
-    public selectedWalkingSpeedKmh = 5.0;
+    public selectedWalkingSpeedKmh = AVG_WALK_SPEED_DEFAULT;
 
     // Which modes for public transports are allowed by the user for planning in preferences
     public allowedPublicTransportModes = {
@@ -325,29 +336,33 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             this.resetCursor();
     }
 
-    // Function called when the max walk distance input is blurred
-    public walkDistanceBlur(): void {
+    // Function called when a number input is blurred
+    public setDefaultIfEmpty(input: 'walkDistance' | 'fuelConsumption' | 'maxTransfers' | 'walkSpeed' | 'fuelPrice'): void {
 
-        // Check for empty value and refill with default
-        if (this.selectedWalkDistanceKm === null)
-            this.selectedWalkDistanceKm = 5;
-    }
-
-    // Function called when the max number of transfers input is blurred
-    public maxNumberOfTransfersBlur(): void {
-
-        // Check for empty value and refill with default
-        if (this.selectedMaxNumberOfTransfers === null)
-            this.selectedMaxNumberOfTransfers = 10;
-    }
-
-    // Function called when the average walk speed input is blurred
-    public walkSpeedBlur(): void {
-
-        // Check for empty value and refill with default
-        if (this.selectedWalkingSpeedKmh === null)
-            this.selectedWalkingSpeedKmh = 5.0;
-    }
+        // Check if the blurred input has an invalid value, if so, set to default
+        switch (input) {
+            case 'walkDistance':
+                if (this.selectedWalkDistanceKm === null)
+                    this.selectedWalkDistanceKm = MAX_WALK_DISTANCE_DEFAULT;
+                break;
+            case 'fuelConsumption':
+                if (this.selectedFuelConsumption === null)
+                    this.selectedFuelConsumption = AVG_FUEL_CONSUMPTION_DEFAULT;
+                break;
+            case 'maxTransfers':
+                if (this.selectedMaxNumberOfTransfers === null)
+                    this.selectedMaxNumberOfTransfers = MAX_TRANSFERS_DEFAULT;
+                break;
+            case 'walkSpeed':
+                if (this.selectedWalkingSpeedKmh === null)
+                    this.selectedWalkingSpeedKmh = AVG_WALK_SPEED_DEFAULT;
+                break;
+            case 'fuelPrice':
+                if (this.selectedFuelPrice === null)
+                    this.selectedFuelPrice = FUEL_PRICE_DEFAULT;
+                break;
+        }
+    } 
 
     public clearItinerary(): void {
         this.tripOptions = null;

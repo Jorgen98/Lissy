@@ -204,6 +204,7 @@
         "settings": {
             "walkingPreferences": "Walking preferences",
             "publicTransportPreferences": "Public transport preferences",
+            "carPreferences": "Car preferences",
             "maxWalkingDistance": "Maximum walking distance",
             "unlimitedWalkDistance": "Do not limit maximum walking distance",
             "unlimitedTransfers": "Do not limit maximum transfers",
@@ -223,7 +224,9 @@
             "invalidFileTypeMessageSummary": "Format of file {0} is not supported, ",
             "invalidFileTypeMessageDetail": "allowed format: {0}.",
             "ticketType": "Ticket type",
-            "maxTransfers": "Maximum number of transfers"
+            "maxTransfers": "Maximum number of transfers",
+            "fuelConsumption": "Average fuel consumption",
+            "fuelPrice": "Fuel price"
         }
     },
     "map" : {

@@ -50,12 +50,38 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
 }
 
 // Function performing postprocessing operations on all of the found trip options
-function postprocessTripOptions(options: TripOption[], request: TripRequest) {
+function postprocessTripOptions(options: TripOption[], request: TripRequest): void {
     options.forEach(option => {
 
         // Add place names to sections origins and destinations based on the data from trip request
-        addPlaceNames(option, request);        
+        addPlaceNames(option, request);       
+        
+        addNumberOfTransfers(option);
     });
+}
+
+// Function calculating the number of transfers for one trip option
+function addNumberOfTransfers(trip: TripOption): void {
+
+    // Flatten the trip into a list of its legs
+    const legs = trip.sections.flatMap(section => section.legs);
+
+    // Count number of transfers
+    let possibleTransfer = false;
+    let numTransfers = 0;
+    legs.forEach(leg => {
+        if (leg.mode === "CAR")
+            possibleTransfer = true;
+        else if (leg.mode !== "WALK") {
+            if (possibleTransfer)
+                numTransfers++;
+            else
+                possibleTransfer = true;
+        }
+    });
+
+    // Update the trip object
+    trip.numTransfers = numTransfers;
 }
 
 // Function returning a list of TripOption objects
@@ -114,9 +140,13 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         // TODO will be changed when ranking is introduced
         if (points.length === 2) {
             return foundSections.map(section => ({
-                ...section,
+                distance: section.distance,
+                duration: section.duration,
+                endDatetime: section.endDatetime,
+                startDatetime: section.startDatetime,                
                 hasFullShape: false,
                 sections: [section],
+                numTransfers: 0 // Calculated later
             }));
         }
         const section = foundSections[0]!;
@@ -139,6 +169,7 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         startDatetime: tripSections[0]!.startDatetime,
         endDatetime: tripSections[tripSections.length - 1]!.endDatetime,
         hasFullShape: false,
+        numTransfers: 0 // Calculated later
     }];
 
     // TODO rate full options and rank them in order of rating

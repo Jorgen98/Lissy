@@ -77,4 +77,5 @@ export type TripOption = {
     startDatetime: Date,            // Datetime of beginning of the trip option (UTC)
     endDatetime: Date,              // Datetime of ending of the trip option (UTC)
     hasFullShape: boolean,
+    numTransfers: number,           // Number of transfers in the trip
 };

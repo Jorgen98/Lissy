@@ -112,7 +112,7 @@
 .accorion-header-distance-duration {
     font-size: 14px;
     display: flex;
-    gap: 50px;
+    gap: 30px;
 }
 
 .scrollbox {
@@ -167,6 +167,7 @@
 
 .accordion-header-info {
     display: flex;
+    align-items: center;
     gap: 5px;
 }
 

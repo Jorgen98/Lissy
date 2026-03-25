@@ -67,4 +67,5 @@ export const TripSchema = z.object({
     endDatetime: datePreprocess("endDatetime"),
     sections: z.array(SectionSchema).min(1),
     hasFullShape: z.boolean(),
+    numTransfers: z.number(),
 });

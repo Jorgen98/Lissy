@@ -18,7 +18,7 @@ import { Edges, Leg, Node, RoutingErrorCode } from "./types/PlanConnectionRespon
 import polyline from '@mapbox/polyline';
 import { Mode } from "../types/Mode";
 import { LatLng } from "../types/LatLng";
-import { OTP_MAX_WINDOW_PAGING_ATTEMPTS } from "../utils/coefficients";
+import { OTP_MAX_WINDOW_PAGING_ATTEMPTS } from "../utils/systemConstants";
 
 // Function for logging 
 function log(type: string, msg: string): void {

@@ -16,6 +16,7 @@ import { TransferHub } from "./types/TransferHub";
 import { LatLng } from "./types/LatLng";
 import { kmeans } from "ml-kmeans";
 import { UserPreferences } from "../../frontend/modules/planner/types/TripDataExtended";
+import { EMISSION_FACTORS } from "./utils/criteriaConstants";
 import { 
     WALKING_DISTANCE_COEF, 
     DRIVING_DISTANCE_COEF, 
@@ -28,8 +29,7 @@ import {
     CANDIDATES_NO_CLUSTER_LIMIT,
     TRANSFER_HUB_MIN_IMPROVEMENT,
     CLUSTER_NUMBER_FACTOR,
-    EMISSION_FACTORS,
-} from "./utils/coefficients";
+} from "./utils/systemConstants";
 
 // Trip routing entry point function
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {

@@ -26,6 +26,7 @@ export type UserPreferences = {
             ferry: boolean,
         }
         ticketType: TicketType,
+        maxTransfers: number | null,
     }
 }
 

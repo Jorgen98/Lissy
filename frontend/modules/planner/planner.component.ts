@@ -90,6 +90,10 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     public selectedWalkDistanceKm = 5;  // Default value 5 km
     public walkDistanceUnlimited = false;   // Whether the walking distance should be limited
 
+    // Maximum number of transfers from user preferences input
+    public selectedMaxNumberOfTransfers = 10;        // Default value 10
+    public maxNumberOfTransfersUnlimited = true;     // Whether the maximum number of transfers should be limited (unlimited by default)
+
     // Average walking speed from user preferences input
     public selectedWalkingSpeedKmh = 5.0;
 
@@ -219,6 +223,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                 publicTransport: {
                     allowedModes: this.allowedPublicTransportModes,
                     ticketType: this.selectedTicketType,
+                    maxTransfers: this.maxNumberOfTransfersUnlimited ? null : this.selectedMaxNumberOfTransfers,
                 }
             }
         }
@@ -326,6 +331,14 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Check for empty value and refill with default
         if (this.selectedWalkDistanceKm === null)
             this.selectedWalkDistanceKm = 5;
+    }
+
+    // Function called when the max number of transfers input is blurred
+    public maxNumberOfTransfersBlur(): void {
+
+        // Check for empty value and refill with default
+        if (this.selectedMaxNumberOfTransfers === null)
+            this.selectedMaxNumberOfTransfers = 10;
     }
 
     // Function called when the average walk speed input is blurred

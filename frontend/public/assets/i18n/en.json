@@ -206,6 +206,7 @@
             "publicTransportPreferences": "Public transport preferences",
             "maxWalkingDistance": "Maximum walking distance",
             "unlimitedWalkDistance": "Do not limit maximum walking distance",
+            "unlimitedTransfers": "Do not limit maximum transfers",
             "walkingSpeed": "Average walking speed",
             "selectedModes": "Allowed modes of transport",
             "bus": "Bus",  
@@ -221,7 +222,8 @@
             "invalidFileSizeMessageDetail": "the limit is {0}.",
             "invalidFileTypeMessageSummary": "Format of file {0} is not supported, ",
             "invalidFileTypeMessageDetail": "allowed format: {0}.",
-            "ticketType": "Ticket type"
+            "ticketType": "Ticket type",
+            "maxTransfers": "Maximum number of transfers"
         }
     },
     "map" : {

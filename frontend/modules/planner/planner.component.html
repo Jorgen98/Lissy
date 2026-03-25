@@ -216,6 +216,30 @@ Main component HTML template file for the planner module.
               </span>
             </div>
 
+            <!-- Max number of transfers in trip -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.maxTransfers' | translate }}</h3>
+              <div class="walk-distance-input-div">
+                <p-inputnumber 
+                  [(ngModel)]="selectedMaxNumberOfTransfers" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [disabled]="maxNumberOfTransfersUnlimited"
+                  [min]="0"
+                  [max]="1000"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="maxNumberOfTransfersBlur()"/>
+              </div>
+              <span class="side-control-checkbox-span">
+                <p-checkbox [binary]="true" [(ngModel)]="maxNumberOfTransfersUnlimited">
+                  <ng-template pTemplate="icon">
+                    <i class="pi pi-check"></i>
+                  </ng-template>
+                </p-checkbox>
+                <p class="side-control-checkbox-head">{{ 'planner.settings.unlimitedTransfers' | translate }}</p>
+              </span>
+            </div>
+
             <!-- Public transport ticket selection -->
             <div class="side-control-selection-inner-div">
               <h3>{{ 'planner.settings.ticketType' | translate }}</h3>

@@ -601,8 +601,9 @@ function carWalkCombination(planner: RoutePlanner, request: TripSectionInfo, pla
 // Function filtering the plain list of found trip options
 function filterOptions(options: TripOption[], preferences: UserPreferences): TripOption[] {
 
-    // Get maximum walking distance from request object
+    // Get values from request object
     const maxWalkDistance = preferences.walk.maxDistance;
+    const maxTransfers = preferences.publicTransport.maxTransfers;
 
     // Run each trip options through filters
     return options.filter(option => {
@@ -615,6 +616,12 @@ function filterOptions(options: TripOption[], preferences: UserPreferences): Tri
                         return false;
                 }
             }
+        }
+
+        // Filter out options with number of transfers higher than maximum set in user settings
+        if (maxTransfers !== null) {
+            if (option.numTransfers > maxTransfers)
+                return false;
         }
         
         // Option passed all filters

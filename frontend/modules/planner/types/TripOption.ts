@@ -67,6 +67,7 @@ export type TripSectionOption = {
     originName: string | null,      // Name of origin point of section
     destinationName: string | null, // Name of destination point of section
     legs: TripSectionLeg[],         // List of legs
+    emissions: number,       // Emissions in grams of CO2
 };
 
 // One trip option built out of sections
@@ -78,4 +79,5 @@ export type TripOption = {
     endDatetime: Date,              // Datetime of ending of the trip option (UTC)
     hasFullShape: boolean,
     numTransfers: number,           // Number of transfers in the trip
+    emissions: number,              // Emissions in grams of CO2
 };

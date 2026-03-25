@@ -28,6 +28,7 @@ import {
     CANDIDATES_NO_CLUSTER_LIMIT,
     TRANSFER_HUB_MIN_IMPROVEMENT,
     CLUSTER_NUMBER_FACTOR,
+    EMISSION_FACTORS,
 } from "./utils/coefficients";
 
 // Trip routing entry point function
@@ -56,8 +57,34 @@ function postprocessTripOptions(options: TripOption[], request: TripRequest): vo
         // Add place names to sections origins and destinations based on the data from trip request
         addPlaceNames(option, request);       
         
+        // Add number of transfer in the trip option
         addNumberOfTransfers(option);
     });
+}
+
+// Function performing postprocessing operations on trip sections
+function postprocessTripSections(options: TripSectionOption[]): void {
+    options.forEach(option => {
+
+        addEmissions(option);
+    });
+}
+
+// Function calculating emissions for a trip section
+function addEmissions(section: TripSectionOption) {
+
+    // No need to calculate if the emissions were defined earlier
+    if (section.emissions !== null)
+        return; 
+
+    // Accumulate emissions from legs of the section
+    let totalEmissions = 0;
+    section.legs.forEach(leg => {
+        totalEmissions += EMISSION_FACTORS[leg.mode] * (leg.distance / 1000);
+    });
+
+    // Update the object
+    section.emissions = totalEmissions;
 }
 
 // Function calculating the number of transfers for one trip option
@@ -99,9 +126,10 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
     // Datetime that should be used as departure/arrival time for the next section
     let followingDatetime = datetime.tripDatetime;
 
-    // Accumulators for total distance, duration and sections of the trip
+    // Accumulators for total distance, duration, emissions and sections of the trip
     let totalDistance = 0;
     let totalDuration = 0;
+    let totalEmissions = 0;
     const tripSections: TripSectionOption[] = []; 
 
     // Change the order of iteration based on the reverseOrder variable set earlier
@@ -146,7 +174,8 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
                 startDatetime: section.startDatetime,                
                 hasFullShape: false,
                 sections: [section],
-                numTransfers: 0 // Calculated later
+                numTransfers: 0, // Calculated later
+                emissions: section.emissions,
             }));
         }
         const section = foundSections[0]!;
@@ -158,6 +187,7 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         reverseOrder ? tripSections.unshift(section) : tripSections.push(section);
         totalDistance += section.distance;
         totalDuration += section.duration;
+        totalEmissions += section.emissions!;
     } 
 
     // Build final array of options
@@ -169,7 +199,8 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         startDatetime: tripSections[0]!.startDatetime,
         endDatetime: tripSections[tripSections.length - 1]!.endDatetime,
         hasFullShape: false,
-        numTransfers: 0 // Calculated later
+        numTransfers: 0, // Calculated later
+        emissions: totalEmissions,
     }];
 
     // TODO rate full options and rank them in order of rating
@@ -210,11 +241,15 @@ async function getSectionOptions(planner: RoutePlanner, request: TripSectionInfo
     // Filter out unsuccessful requests and flatten the 2D list returned by Promise.all into one 1D list with all options
     const foundSections = results.filter(result => result !== null).flat();
 
-    // TODO rate the section options and return them in order by rating
-    // NOTE first deduplicate, then rate
-
     // Deduplicate public transport options that have the same legs as another option, which departs earlier/later (depending on departure or arrival time)
-    return deduplicateSections(foundSections, request.datetime.option === "arrival");
+    const deduplicatedSections = deduplicateSections(foundSections, request.datetime.option === "arrival");
+
+    // Apply postprocessing operations to found options, calculates other useful data for the section
+    postprocessTripSections(deduplicatedSections);
+
+    // TODO rate the section options and return them in order by rating
+    
+    return deduplicatedSections;
 }
 
 // Function finding all candidate transfer hubs between pointA and pointB for a car->transit section

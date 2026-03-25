@@ -198,6 +198,9 @@ export class OTPAdapter implements RoutePlanner {
             // Initialize empty names for section origin and destination points
             originName: null,
             destinationName: null,
+
+            // Emissions not provided with OTP, will be calculated later
+            emissions: null,
         };
     }
 

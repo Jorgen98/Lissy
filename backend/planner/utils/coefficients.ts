@@ -5,6 +5,8 @@
  * Definitions and descriptions of coefficients/constants use during routing for different purposes.
  */
 
+import { Mode } from "../types/Mode";
+
 // Multiplying coefficients used for approximating walking/driving distance from straight line distance
 export const DRIVING_DISTANCE_COEF = 1.4;
 export const WALKING_DISTANCE_COEF = 1.2;
@@ -39,3 +41,16 @@ export const OTP_MAX_WINDOW_PAGING_ATTEMPTS = 10
 
 // Factor for the number of clusters function
 export const CLUSTER_NUMBER_FACTOR = 0.43;
+
+// Grams of CO2 per kilometer per passenger for each mode
+// Car, bus, rail from https://www.rekrabicka.cz/blog/ekologicky-dopad-dopravnich-prostredku
+// Other unmentioned modes given assumed values
+export const EMISSION_FACTORS: Record<Mode, number> = {
+    WALK: 0,
+    CAR: 192,
+    BUS: 68,
+    FERRY: 10,
+    RAIL: 14,
+    TRAM: 10,
+    TROLLEYBUS: 10
+}

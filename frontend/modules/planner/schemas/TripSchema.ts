@@ -57,6 +57,7 @@ const SectionSchema = z.object({
     originName: z.string().nullable(),
     destinationName: z.string().nullable(),
     legs: z.array(LegSchema).min(1),
+    emissions: z.number()
 });
 
 // Schema for TripOption datatype validation
@@ -68,4 +69,5 @@ export const TripSchema = z.object({
     sections: z.array(SectionSchema).min(1),
     hasFullShape: z.boolean(),
     numTransfers: z.number(),
+    emissions: z.number()
 });

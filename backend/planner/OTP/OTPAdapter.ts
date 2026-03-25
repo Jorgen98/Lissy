@@ -201,7 +201,48 @@ export class OTPAdapter implements RoutePlanner {
 
             // Emissions not provided with OTP, will be calculated later
             emissions: null,
+
+            // Cost not provided with IDS JMK GTFS data, calculated later
+            cost: null,
         };
+    }
+
+    // Function getting a list of unique zones used on a returned leg
+    private getZonesUsedOnLeg(leg: Leg): string[] | null {
+
+        // Get names of the trips where the legs starts and ends
+        const fromName = leg.from.stop?.name;
+        const toName = leg.to.stop?.name;
+
+        // Return no zones when there are none used
+        if (leg.trip === null || fromName === undefined || toName === undefined || leg.mode === "WALK" || leg.mode === "CAR")
+            return null;
+
+        // Set with unique zones for automatic uniqueness
+        const uniqueZones = new Set<string>();
+
+        // Iterate through stops of the trip the leg uses, only start accumulating the zones when the leg actually starts on the trip
+        let countZones = false;
+        for (const stop of leg.trip.stops) {
+
+            // Start accumulating only after countZones is true
+            if (!countZones) {
+                if (stop.name === fromName)
+                    countZones = true;
+                else 
+                    continue;
+            }
+
+            // Add zone ids to the set
+            uniqueZones.add(stop.zoneId);
+
+            // Finish when the last stop of the leg is reached on the trip
+            if (stop.name === toName)
+                break;
+        }
+
+        // Convert to array
+        return Array.from(uniqueZones);
     }
 
     // Function translating a single leg of a trip option returned from OTP to client format
@@ -234,6 +275,7 @@ export class OTPAdapter implements RoutePlanner {
             trip: leg.trip ? {
                 gtfsId: leg.trip.gtfsId,
             } : null,
+            zones: this.getZonesUsedOnLeg(leg),
         }
     }
 

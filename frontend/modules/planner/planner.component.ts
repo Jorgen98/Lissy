@@ -20,7 +20,7 @@ import { Subscription } from 'rxjs';
 import { MarkerType } from './types/MarkerType';
 import { TripOption, TripSectionLeg } from './types/TripOption';
 import { modeColors } from './utils/modeColors';
-import { TripDataExtended } from './types/TripDataExtended';
+import { TicketType, TripDataExtended } from './types/TripDataExtended';
 import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { TripSchema } from './schemas/TripSchema';
 import { TranslateService } from '@ngx-translate/core';
@@ -106,6 +106,14 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     // Or they can take up more space
     public formForceAction: "open" | "close" | null = null;
     public itineraryForceAction: "open" | "close" | null = null;
+
+    // List of tickets the user can use for public transport
+    public ticketOptions: { type: TicketType, label: string }[] = [
+        { type: "base", label: "Základní" },
+        { type: "discountedA", label: "Zlevněná A" },
+        { type: "discountedB", label: "Zlevněná B" },
+    ];
+    public selectedTicketType: TicketType = this.ticketOptions[0].type;
 
     constructor(
         private mapService: MapService,
@@ -209,7 +217,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                     avgSpeed: this.selectedWalkingSpeedKmh / 3.6    // Convert to m/s
                 },
                 publicTransport: {
-                    allowedModes: this.allowedPublicTransportModes
+                    allowedModes: this.allowedPublicTransportModes,
+                    ticketType: this.selectedTicketType,
                 }
             }
         }

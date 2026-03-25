@@ -77,6 +77,7 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                         legs {
                             trip {
                                 stops {
+                                    zoneId
                                     name
                                 }
                                 gtfsId

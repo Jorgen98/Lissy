@@ -215,6 +215,19 @@ Main component HTML template file for the planner module.
 
               </span>
             </div>
+
+            <!-- Public transport ticket selection -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.ticketType' | translate }}</h3>
+              <p-select 
+                [required]="true" 
+                [checkmark]="true" 
+                [options]="ticketOptions"
+                optionLabel="label"
+                optionValue="type"
+                [(ngModel)]="selectedTicketType"
+              />
+            </div>
           </div>
         </div>
       }

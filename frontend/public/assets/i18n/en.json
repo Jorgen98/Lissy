@@ -220,7 +220,8 @@
             "invalidFileSizeMessageSummary": "File {0} is too large, ",
             "invalidFileSizeMessageDetail": "the limit is {0}.",
             "invalidFileTypeMessageSummary": "Format of file {0} is not supported, ",
-            "invalidFileTypeMessageDetail": "allowed format: {0}."
+            "invalidFileTypeMessageDetail": "allowed format: {0}.",
+            "ticketType": "Ticket type"
         }
     },
     "map" : {

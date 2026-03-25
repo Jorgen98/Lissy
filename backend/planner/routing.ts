@@ -15,8 +15,8 @@ import { TripOption, TripSectionOption } from "./types/TripOption";
 import { TransferHub } from "./types/TransferHub";
 import { LatLng } from "./types/LatLng";
 import { kmeans } from "ml-kmeans";
-import { UserPreferences } from "../../frontend/modules/planner/types/TripDataExtended";
-import { EMISSION_FACTORS } from "./utils/criteriaConstants";
+import { TicketType, UserPreferences } from "../../frontend/modules/planner/types/TripDataExtended";
+import { EMISSION_FACTORS, IDS_JMK_FARE_SYSTEM, Ticket } from "./utils/criteriaConstants";
 import { 
     WALKING_DISTANCE_COEF, 
     DRIVING_DISTANCE_COEF, 
@@ -63,11 +63,91 @@ function postprocessTripOptions(options: TripOption[], request: TripRequest): vo
 }
 
 // Function performing postprocessing operations on trip sections
-function postprocessTripSections(options: TripSectionOption[]): void {
+function postprocessTripSections(options: TripSectionOption[], preferences: UserPreferences): void {
     options.forEach(option => {
 
+        // Add cost information to sections
+        addPricing(option, preferences.publicTransport.ticketType);
+
+        // Add emission levels to sections
         addEmissions(option);
     });
+}
+
+// Function accumulating the prices of usage of all modes on the trip section
+function addPricing(section: TripSectionOption, ticketType: TicketType): void {
+
+    // Calculate the price of using public transport
+    let sectionPrice = calculatePublicTransportPrice(section, ticketType);
+
+    // TODO add car pricing
+
+    // Adjust object
+    section.cost = sectionPrice;
+}
+
+// Function calculating the price of using public transport on a single trip section
+function calculatePublicTransportPrice(section: TripSectionOption, ticketType: TicketType): number {
+
+    // Get first and last transit legs of the section
+    const firstTransitLeg = section.legs.find(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
+    const lastTransitLeg = section.legs.findLast(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
+    if (!firstTransitLeg || !lastTransitLeg)
+        return 0;
+
+    // Get time when transit begins, and when it ends
+    const transitStartTime = firstTransitLeg.from.departureTime;
+    const transitEndTime = lastTransitLeg.to.arrivalTime;
+
+    // Create a list of unique transport system zones used in the section
+    const uniqueZones = new Set<string>();
+    section.legs.forEach(leg => {
+        if (leg.zones) {
+            leg.zones.forEach(zone => {
+                uniqueZones.add(zone);
+            });
+        }
+    });
+
+    // Get the minutes and zone count needed on the ticket
+    const neededMinutes = Math.ceil((transitEndTime.getTime() - transitStartTime.getTime()) / (1000 * 60));
+    const neededZoneNum = uniqueZones.size;
+
+    // Find cheapest ticket that satisfies conditions (or use fallback)
+    const ticket = findCheapestTicket(neededMinutes, neededZoneNum);
+
+    // Get the price based on the used ticket (could be discounted)
+    return ticket[ticketType];
+}
+
+// Function finding the cheapest ticket from the fare system that satisfies the criteria
+function findCheapestTicket(neededDuration: number, neededZones: number): Ticket {
+
+    let bestTicket: Ticket | null = null;
+
+    // Enforce types on the FARE_SYSTEM object when using Object.values
+    const typedFareSystem = Object.entries(IDS_JMK_FARE_SYSTEM) as [keyof typeof IDS_JMK_FARE_SYSTEM, typeof IDS_JMK_FARE_SYSTEM[keyof typeof IDS_JMK_FARE_SYSTEM]][];
+
+    // Iterate through entries in the fare system and find the cheapest ticket that satisfies needed zones and duration
+    for (const [key, ticket] of typedFareSystem) {
+        if (key === "universal")
+            continue;
+
+        const zonesInTicket = key === "short2" || key === "long2" ? 2 : (key === "all" ? Infinity : key);
+        const durationInTicket = ticket.duration;
+        if (zonesInTicket >= neededZones && durationInTicket >= neededDuration) {
+            if (bestTicket === null)
+                bestTicket = ticket;
+            else if (bestTicket.base > ticket.base)
+                bestTicket = ticket;
+        }
+    }
+
+    // Fallback if the a valid ticket isnt found (because transit is too long in duration)
+    if (bestTicket === null)
+        bestTicket = IDS_JMK_FARE_SYSTEM["universal"];
+
+    return bestTicket;
 }
 
 // Function calculating emissions for a trip section
@@ -245,7 +325,7 @@ async function getSectionOptions(planner: RoutePlanner, request: TripSectionInfo
     const deduplicatedSections = deduplicateSections(foundSections, request.datetime.option === "arrival");
 
     // Apply postprocessing operations to found options, calculates other useful data for the section
-    postprocessTripSections(deduplicatedSections);
+    postprocessTripSections(deduplicatedSections, request.preferences);
 
     // TODO rate the section options and return them in order by rating
     

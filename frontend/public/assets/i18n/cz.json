@@ -221,7 +221,8 @@
             "invalidFileSizeMessageSummary": "Soubor {0} je příliš velký, ",
             "invalidFileSizeMessageDetail": "maximální velikost je {0}.",
             "invalidFileTypeMessageSummary": "Formát souboru {0} není podporován, ",
-            "invalidFileTypeMessageDetail": "povolený formát: {0}."
+            "invalidFileTypeMessageDetail": "povolený formát: {0}.",
+            "ticketType": "Typ jízdenky"
         }
     },
     "map" : {

@@ -56,6 +56,10 @@ export type TripSectionLeg = {
         // Internal gtfsId of the trip, can be null if GTFS isnt used for example
         gtfsId: string | null
     } | null
+
+    // List of unique public transport zones this leg uses, needed for fare estimation
+    // Can be null for non-transit legs
+    zones: string[] | null, 
 };
 
 // One option for a requested trip section between two points
@@ -68,6 +72,7 @@ export type TripSectionOption = {
     destinationName: string | null, // Name of destination point of section
     legs: TripSectionLeg[],         // List of legs
     emissions: number | null,       // Emissions in grams of CO2
+    cost: number | null,            // Estimated cost of the section in CZK
 };
 
 // One trip option built out of sections
@@ -79,5 +84,5 @@ export type TripOption = {
     endDatetime: Date,              // Datetime of ending of the trip option (UTC)
     hasFullShape: boolean,
     numTransfers: number,           // Number of transfers in the trip
-    emissions: number | null,              // Emissions in grams of CO2
+    emissions: number | null,       // Emissions in grams of CO2
 };

@@ -60,9 +60,10 @@ export type Leg = {
     // Information about the trip used for the leg
     trip: {
 
-        // List of stops on the trip with thier names
+        // List of stops on the trip with thier names and zone ids
         stops: { 
             name: string 
+            zoneId: string,
         }[],
         gtfsId: string // GTFS internal trip id
     } | null

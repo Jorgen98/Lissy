@@ -8,6 +8,8 @@
 
 import { TripData } from "./TripData";
 
+export type TicketType = "base" | "discountedA" | "discountedB";
+
 export type UserPreferences = {
     walk: {
         maxDistance: number | null, // Maximum allowed walking distance
@@ -23,6 +25,7 @@ export type UserPreferences = {
             train: boolean,
             ferry: boolean,
         }
+        ticketType: TicketType,
     }
 }
 

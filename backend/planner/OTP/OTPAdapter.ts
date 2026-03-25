@@ -174,8 +174,8 @@ export class OTPAdapter implements RoutePlanner {
         // Accumulator for total distance (sum of leg distances)
         let totalDistance = 0;
 
-        // Accumulator for leg translations request of the trip (will be executed in 'parallel')
-        let legRequests: Promise<TripSectionLeg>[] = [];
+        // Accumulator for translated legs
+        let legs: TripSectionLeg[] = [];
 
         // Iterate over all legs returned from OTP
         for (const leg of edge.node.legs) {
@@ -183,8 +183,8 @@ export class OTPAdapter implements RoutePlanner {
             // Accumulate distance of this leg in the total distance of the trip section
             totalDistance += leg.distance;
 
-            // Register request to translate trip leg
-            legRequests.push(this.translateTripLeg(leg));
+            // Translate the leg
+            legs.push(this.translateTripLeg(leg));
         }
 
         // Once all legs are translated, create the final trip option object
@@ -193,7 +193,7 @@ export class OTPAdapter implements RoutePlanner {
             distance: totalDistance,
             startDatetime: new Date(edge.node.start),
             endDatetime: new Date(edge.node.end),
-            legs: await Promise.all(legRequests),       // Wait for all leg translations to finish
+            legs,
 
             // Initialize empty names for section origin and destination points
             originName: null,
@@ -246,7 +246,7 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Function translating a single leg of a trip option returned from OTP to client format
-    private async translateTripLeg(leg: Leg): Promise<TripSectionLeg> {
+    private translateTripLeg(leg: Leg): TripSectionLeg {
         return {
             distance: leg.distance,
             duration: leg.duration,

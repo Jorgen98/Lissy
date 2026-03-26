@@ -70,5 +70,6 @@ export const TripSchema = z.object({
     sections: z.array(SectionSchema).min(1),
     hasFullShape: z.boolean(),
     numTransfers: z.number(),
-    emissions: z.number()
+    emissions: z.number(),
+    cost: z.number(),
 });

@@ -11,7 +11,7 @@ import { RoutePlanner } from "./RoutePlanner";
 import { TripRequest } from "./types/TripRequest";
 import { TripSectionInfo } from "./types/TripSectionInfo";
 import { calculateDistanceHaversine, getIntermediatePoint } from "./geo";
-import { TripOption, TripSectionOption } from "./types/TripOption";
+import { TripOption, TripSectionLeg, TripSectionOption } from "./types/TripOption";
 import { TransferHub } from "./types/TransferHub";
 import { LatLng } from "./types/LatLng";
 import { kmeans } from "ml-kmeans";
@@ -59,6 +59,10 @@ function postprocessTripOptions(options: TripOption[], request: TripRequest): vo
         
         // Add number of transfer in the trip option
         addNumberOfTransfers(option);
+
+        // Add cost information for the trip option
+        const legs = option.sections.flatMap(section => section.legs);
+        addPricing(legs, option, request.preferences);
     });
 }
 
@@ -67,32 +71,35 @@ function postprocessTripSections(options: TripSectionOption[], preferences: User
     options.forEach(option => {
 
         // Add cost information to sections
-        addPricing(option, preferences);
+        addPricing(option.legs, option, preferences);
 
         // Add emission levels to sections
         addEmissions(option);
     });
 }
 
-// Function accumulating the prices of usage of all modes on the trip section
-function addPricing(section: TripSectionOption, preferences: UserPreferences): void {
+// Function accumulating the prices of usage of modes in a single trip section or trip option
+// The 'legs' parameter is a flat list of legs of a trip section of a full trip option
+// The 'object' parameter is either a trip section of a full trip option, both of which have the 'cost' field
+function addPricing(legs: TripSectionLeg[], object: TripSectionOption | TripOption, preferences: UserPreferences): void {
 
     // Calculate the price of using public transport
-    const publicTransportPrice = calculatePublicTransportPrice(section, preferences.publicTransport.ticketType);
+    const publicTransportPrice = calculatePublicTransportPrice(legs, preferences.publicTransport.ticketType);
 
     // Calculate the price of using car
-    const carPrice = calculateCarPrice(section, preferences.car.avgFuelConsumption, preferences.car.fuelPrice);
+    const carPrice = calculateCarPrice(legs, preferences.car.avgFuelConsumption, preferences.car.fuelPrice);
 
     // Adjust object with total estimated cost
-    section.cost = publicTransportPrice + carPrice;
+    object.cost = publicTransportPrice + carPrice;
 }
 
-// Function calculating the price of using the car on a single trip section
-function calculateCarPrice(section: TripSectionOption, avgConsumption: number, fuelPrice: number) {
+// Function calculating the price of using the car from a list of legs
+// Usable for both a trip section and a full trip option with multiple sections, since a list of legs is passed in
+function calculateCarPrice(legs: TripSectionLeg[], avgConsumption: number, fuelPrice: number) {
 
     // Get total distance of legs using the car
     let carDistanceMeters = 0;
-    section.legs.forEach(leg => {
+    legs.forEach(leg => {
         if (leg.mode === "CAR")
             carDistanceMeters += leg.distance;
     });
@@ -105,12 +112,13 @@ function calculateCarPrice(section: TripSectionOption, avgConsumption: number, f
     return (carDistanceKm * avgConsumption * fuelPrice) / 100;
 }
 
-// Function calculating the price of using public transport on a single trip section
-function calculatePublicTransportPrice(section: TripSectionOption, ticketType: TicketType): number {
+// Function calculating the price of using public transport from a list of legs
+// Usable for both a trip section and a full trip option with multiple sections, since a list of legs is passed in
+function calculatePublicTransportPrice(legs: TripSectionLeg[], ticketType: TicketType): number {
 
     // Get first and last transit legs of the section
-    const firstTransitLeg = section.legs.find(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
-    const lastTransitLeg = section.legs.findLast(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
+    const firstTransitLeg = legs.find(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
+    const lastTransitLeg = legs.findLast(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
     if (!firstTransitLeg || !lastTransitLeg)
         return 0;
 
@@ -120,7 +128,7 @@ function calculatePublicTransportPrice(section: TripSectionOption, ticketType: T
 
     // Create a list of unique transport system zones used in the section
     const uniqueZones = new Set<string>();
-    section.legs.forEach(leg => {
+    legs.forEach(leg => {
         if (leg.zones) {
             leg.zones.forEach(zone => {
                 uniqueZones.add(zone);
@@ -273,8 +281,9 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
                 startDatetime: section.startDatetime,                
                 hasFullShape: false,
                 sections: [section],
-                numTransfers: 0, // Calculated later
+                numTransfers: 0, // Calculated in postprocessing
                 emissions: section.emissions,
+                cost: null, // Calculated in postprocessing
             }));
         }
         const section = foundSections[0]!;
@@ -298,8 +307,9 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         startDatetime: tripSections[0]!.startDatetime,
         endDatetime: tripSections[tripSections.length - 1]!.endDatetime,
         hasFullShape: false,
-        numTransfers: 0, // Calculated later
+        numTransfers: 0, // Calculated in prostprocessing
         emissions: totalEmissions,
+        cost: null // Calculated in prostprocessing
     }];
 
     // TODO rate full options and rank them in order of rating

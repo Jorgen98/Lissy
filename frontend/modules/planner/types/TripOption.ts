@@ -81,4 +81,5 @@ export type TripOption = {
     hasFullShape: boolean,
     numTransfers: number,           // Number of transfers in the trip
     emissions: number,              // Emissions in grams of CO2
+    cost: number,                   // Estimated cost of trip in CZK
 };

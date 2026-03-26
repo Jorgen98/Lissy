@@ -621,12 +621,8 @@ async function unzipAndParseData(response, startTime) {
                     }
 
                     log('info', 'Finding parking near transport system stations');
-                    if (!await findParkingNearStations()) {
-                        log('error', 'Failed to find nearby parking near system stations');
-                        fs.rmSync(tmpFolderName, { recursive: true });
-                        resolve(false);
-                        return;
-                    }
+                    if (!await findParkingNearStations())
+                        log('warning', 'Failed to find nearby parking near system stations');
 
                     fs.rmSync(tmpFolderName, { recursive: true });
                     log('success', 'Processing GTFS data done');

@@ -69,6 +69,7 @@ export type TripSectionOption = {
     legs: TripSectionLeg[],         // List of legs
     emissions: number,              // Emissions in grams of CO2
     cost: number,                   // Estimated cost in CZK
+    numTransfers: number,           // Number of transfers in the sections
 };
 
 // One trip option built out of sections
@@ -79,7 +80,7 @@ export type TripOption = {
     startDatetime: Date,            // Datetime of beginning of the trip option (UTC)
     endDatetime: Date,              // Datetime of ending of the trip option (UTC)
     hasFullShape: boolean,
-    numTransfers: number,           // Number of transfers in the trip
+    numTransfers: number,           // Number of transfers in the trip, might not be the same as the sum of transfers in its sections
     emissions: number,              // Emissions in grams of CO2
     cost: number,                   // Estimated cost of trip in CZK
 };

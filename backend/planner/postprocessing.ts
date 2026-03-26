@@ -15,14 +15,16 @@ import { IDS_JMK_FARE_SYSTEM, EMISSION_FACTORS, Ticket } from "./utils/criteriaC
 export function postprocessTripOptions(options: TripOption[], request: TripRequest): void {
     options.forEach(option => {
 
+        // Get a flat list of legs on the trip
+        const legs = option.sections.flatMap(section => section.legs);
+
         // Add place names to sections origins and destinations based on the data from trip request
         addPlaceNames(option, request);       
         
         // Add number of transfer in the trip option
-        addNumberOfTransfers(option);
+        addNumberOfTransfers(legs, option);
 
         // Add cost information for the trip option
-        const legs = option.sections.flatMap(section => section.legs);
         addPricing(legs, option, request.preferences);
     });
 }
@@ -36,6 +38,9 @@ export function postprocessTripSections(options: TripSectionOption[], preference
 
         // Add emission levels to sections
         addEmissions(option);
+
+        // Add number of transfer in the trip sections
+        addNumberOfTransfers(option.legs, option);
     });
 }
 
@@ -156,10 +161,7 @@ function addEmissions(section: TripSectionOption) {
 }
 
 // Function calculating the number of transfers for one trip option
-function addNumberOfTransfers(trip: TripOption): void {
-
-    // Flatten the trip into a list of its legs
-    const legs = trip.sections.flatMap(section => section.legs);
+function addNumberOfTransfers(legs: TripSectionLeg[], object: TripSectionOption | TripOption): void {
 
     // Count number of transfers
     let possibleTransfer = false;
@@ -176,7 +178,7 @@ function addNumberOfTransfers(trip: TripOption): void {
     });
 
     // Update the trip object
-    trip.numTransfers = numTransfers;
+    object.numTransfers = numTransfers;
 }
 
 // Function adding place names to section origin points and destination points where they arent yet set

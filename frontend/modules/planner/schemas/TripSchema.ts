@@ -59,6 +59,7 @@ const SectionSchema = z.object({
     legs: z.array(LegSchema).min(1),
     emissions: z.number(),
     cost: z.number(),
+    numTransfers: z.number(),
 });
 
 // Schema for TripOption datatype validation

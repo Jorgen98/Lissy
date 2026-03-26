@@ -204,6 +204,9 @@ export class OTPAdapter implements RoutePlanner {
 
             // Cost not provided with IDS JMK GTFS data, calculated later
             cost: null,
+
+            // Not provided in OTP, calculated later
+            numTransfers: null,
         };
     }
 

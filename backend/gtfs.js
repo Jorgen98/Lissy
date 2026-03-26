@@ -18,6 +18,8 @@ const dbStats = require('./db-stats.js');
 const timeStamp = require('./timeStamp.js');
 const dbCache = require('./db-cache.js');
 
+import { fetchWithRetry } from './utils/fetchWithRetry.js';
+
 const tmpFileName = './gtfs.zip';
 const tmpFolderName = './gtfsFiles/'
 let file = fs.WriteStream;
@@ -118,77 +120,70 @@ async function findParkingNearStations() {
         out center;
     `;
 
-    try {
+    // Call overpass at URL in .env with user agent
+    // A couple delayed retires, public overpass tends to fail
+    const response = await fetchWithRetry(overpassUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": `Lissy (${envEmail})`,
+        },
+        body: new URLSearchParams({
+            data: query
+        })
+    }, 3, 5000);
 
-        // Call overpass at URL in .env with user agent
-        const response = await fetch(overpassUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "User-Agent": `Lissy (${envEmail})`,
-            },
-            body: new URLSearchParams({
-                data: query
-            })
-        });
-
-        // Check status code
-        if (!response.ok) {
-            log("warning", "Failed to fetch region parking lots with Overpass API.");
-            return false;
-        }
-
-        const data = await response.json();
-
-        // Parse and filter the received parking options
-        const parkings = data.elements.map(element => {
-            if (element.type === "node") 
-                return { lat: element.lat, lng: element.lon };
-            if (element.center)
-                return { lat: element.center.lat, lng: element.center.lon };
-            return null;            
-        }).filter(Boolean); // filter(Boolean) to remove falsy values
-
-        // Get all active stations in the system from DB
-        const stations = await dbPostGIS.getActiveStations();
-        if (!stations)
-            return false;
-
-        const totalStations = stations.stops.length;
-
-        // Look for closest parking spot for all stations
-        for (let idx = 0; idx < totalStations; idx++) {
-
-            const stop = stations.stops[idx];
-            const stopLat = stop.lat;
-            const stopLng = stop.lng;
-            let nearestParkingDistance = Infinity;
-            let nearestParkingCoords = { lat: 0, lng: 0 };
-
-            // Look through the fetched parking options and find nearest to the stop
-            for (const parking of parkings) {
-                const distance = routingService.countDistance([stopLat, stopLng], [parking.lat, parking.lng]);
-                if (distance < nearestParkingDistance) {
-                    nearestParkingDistance = distance;
-                    nearestParkingCoords = { lat: parking.lat, lng: parking.lng };
-                }
-            }
-
-            // Update the DB with coordinates of nearest stop or null based on the straight line distance from station to parking
-            const stopId = `0:${stop.name}:${stopLat}:${stopLng}`;
-            await dbPostGIS.updateStopNearbyParkingCoords(stopId, nearestParkingDistance <= 300 ? nearestParkingCoords : null);
-
-            // Progress reporting
-            if ((idx+1) % 500 === 0)
-                log("info", `Looking for nearby parking for stations. Progress: ${idx+1}/${totalStations}`);
-        };
-
-        return true;
-    }
-    catch (error) {
-        log("warning", "Failed to fetch region parking lots with Overpass API. Error: " + error);
+    if (!response) {
+        log("warning", "Failed to fetch region parking lots with Overpass API.");
         return false;
     }
+
+    const data = await response.json();
+
+    // Parse and filter the received parking options
+    const parkings = data.elements.map(element => {
+        if (element.type === "node") 
+            return { lat: element.lat, lng: element.lon };
+        if (element.center)
+            return { lat: element.center.lat, lng: element.center.lon };
+        return null;            
+    }).filter(Boolean); // filter(Boolean) to remove falsy values
+
+    // Get all active stations in the system from DB
+    const stations = await dbPostGIS.getActiveStations();
+    if (!stations)
+        return false;
+
+    const totalStations = stations.stops.length;
+
+    // Look for closest parking spot for all stations
+    for (let idx = 0; idx < totalStations; idx++) {
+
+        const stop = stations.stops[idx];
+        const stopLat = stop.lat;
+        const stopLng = stop.lng;
+        let nearestParkingDistance = Infinity;
+        let nearestParkingCoords = { lat: 0, lng: 0 };
+
+        // Look through the fetched parking options and find nearest to the stop
+        for (const parking of parkings) {
+            const distance = routingService.countDistance([stopLat, stopLng], [parking.lat, parking.lng]);
+            if (distance < nearestParkingDistance) {
+                nearestParkingDistance = distance;
+                nearestParkingCoords = { lat: parking.lat, lng: parking.lng };
+            }
+        }
+
+        // Update the DB with coordinates of nearest stop or null based on the straight line distance from station to parking
+        const stopId = `0:${stop.name}:${stopLat}:${stopLng}`;
+        await dbPostGIS.updateStopNearbyParkingCoords(stopId, nearestParkingDistance <= 300 ? nearestParkingCoords : null);
+
+        // Progress reporting
+        if ((idx+1) % 500 === 0)
+            log("info", `Looking for nearby parking for stations. Progress: ${idx+1}/${totalStations}`);
+    };
+
+    return true;
 }
 
 // Function calculating a transit accessibility score for each stop loaded from GTFS

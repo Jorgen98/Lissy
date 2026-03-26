@@ -349,8 +349,16 @@ app-page-not-found {
     .mobile-header-item {
         display: flex;
     }
+    
+    .leaflet-bottom {
+        z-index: 499 !important;
+    }
 }
 
 .mat-mdc-autocomplete-panel {
     box-shadow: none !important;
+}
+
+.leaflet-control-scale {
+    margin-bottom: 20px !important;
 }

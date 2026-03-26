@@ -59,50 +59,6 @@ Main component HTML template file for the planner module.
       </span>
     </div>
 
-    <!-- Mobile menu -->
-    <div class="mobile-header">
-
-      <!-- Homepage navigation button -->
-      <div class="mobile-header-item">
-        <button type="button" class="mobile-btn-header" routerLink="/">
-          <i class="pi pi-home"></i>
-          <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
-        </button>
-      </div>
-
-      <!-- Walking preferences settings button -->
-      <div class="mobile-header-item">
-        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(1)">
-          <img [src]="'./planner/pedestrian.svg'" class="setting-img-mobile">
-          <p class="mobile-btn-text">{{ 'planner.settings.walkingPreferences' | translate }}</p>
-        </button>
-      </div>
-
-      <!-- Public transport preferences settings button -->
-      <div class="mobile-header-item">
-        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(2)">
-          <img [src]="'./planner/pt-white.svg'" class="setting-img-mobile">
-          <p class="mobile-btn-text">{{ 'planner.settings.publicTransportPreferences' | translate }}</p>
-        </button>
-      </div>
-
-      <!-- Car preferences settings button -->
-      <div class="mobile-header-item">
-        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(4)">
-          <img [src]="'./planner/car-white.svg'" class="setting-img-mobile">
-          <p class="mobile-btn-text">{{ 'planner.settings.carPreferences' | translate }}</p>
-        </button>
-      </div>
-
-      <!-- Public transport preferences settings button -->
-      <div class="mobile-header-item">
-        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(3)">
-          <img [src]="'./planner/import.svg'" class="setting-img-mobile">
-          <p class="mobile-btn-text">{{ 'planner.settings.tripImport' | translate }}</p>
-        </button>
-      </div>
-    </div>
-
     <!-- Module content -->
     <div class="content">
 
@@ -362,6 +318,21 @@ Main component HTML template file for the planner module.
         </div>
       }
 
+      <!-- Button to go back when selecting point from map -->
+      @if (markerType !== null && isTouchDevice) {
+        <div class="point-from-map-tooltip">
+          {{ 'planner.clickToCancel' | translate }}
+        </div>
+      }
+
+      <!-- Button to go back when viewing option in map -->
+      <!-- TODO TEMPORARY -->
+      @else if (mobileShownOption !== null) {
+        <div class="point-from-map-tooltip" (click)="mobileShownOption = null">
+          {{ 'planner.clickToCancel' | translate }}
+        </div>
+      }
+
       <!-- The two components are located in the same column under each other -->
       <!-- Components notify each other about space requirements for rendering/updating their contents through inputs and outputs -->
       <!-- Or get notified by this component when new trip options are found -->
@@ -377,6 +348,7 @@ Main component HTML template file for the planner module.
           (collapseAction)="formCollapseAction($event)"
           (reverseGeocode)="reverseGeocodeRequest($event)"
           [geocodedPlaceName]="geocodedPlaceName"
+          [hidden]="tripOptions !== null && windowWidth < 700"
         />
 
         <!-- Itinerary component with trip options -->
@@ -386,6 +358,8 @@ Main component HTML template file for the planner module.
           (clearItinerary)="clearItinerary()"
           [forceAction]="itineraryForceAction"
           (forceDetail)="itineraryForceOpenDetail()"
+          (mobileShowTripOption)="this.mobileShownOption = $event"
+          [hidden]="mobileShownOption !== null"
         />
       </div>
 
@@ -408,6 +382,50 @@ Main component HTML template file for the planner module.
         class="cursor-image"
         [src]="'./planner/end-marker.svg'"
       />
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="mobile-header">
+
+      <!-- Homepage navigation button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" routerLink="/">
+          <i class="pi pi-home"></i>
+          <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Walking preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(1)">
+          <img [src]="'./planner/pedestrian.svg'" class="setting-img-mobile">
+          <p class="mobile-btn-text">{{ 'planner.settings.walkingPreferences' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Public transport preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(2)">
+          <img [src]="'./planner/pt-white.svg'" class="setting-img-mobile">
+          <p class="mobile-btn-text">{{ 'planner.settings.publicTransportPreferences' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Car preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(4)">
+          <img [src]="'./planner/car-white.svg'" class="setting-img-mobile">
+          <p class="mobile-btn-text">{{ 'planner.settings.carPreferences' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Public transport preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(3)">
+          <img [src]="'./planner/import.svg'" class="setting-img-mobile">
+          <p class="mobile-btn-text">{{ 'planner.settings.tripImport' | translate }}</p>
+        </button>
+      </div>
     </div>
   </main>
 }

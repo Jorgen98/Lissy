@@ -161,11 +161,12 @@
     },
     "planner" : {
         "name": "Planner",
+        "clickToCancel": "Tap here to cancel",
         "form": {
             "title": "Trip Plan",
             "submit": "Plan trip",
-            "departureTime": "Departure time",
-            "arrivalTime": "Arrival time",
+            "departureTime": "Depart after",
+            "arrivalTime": "Arrive by",
             "return": "Return trip",
             "modeSelect": "Selected transport modes",
             "publicTransport": "PT",
@@ -199,12 +200,13 @@
             "legDestination": "Leg destination",
             "destination": "Destination",
             "export": "Export",
-            "parkingSpot": "Parking spot"
+            "parkingSpot": "Parking spot",
+            "showOnMap": "Show in map"
         },
         "settings": {
-            "walkingPreferences": "Walking preferences",
-            "publicTransportPreferences": "Public transport preferences",
-            "carPreferences": "Car preferences",
+            "walkingPreferences": "Walking",
+            "publicTransportPreferences": "Public transport",
+            "carPreferences": "Car",
             "maxWalkingDistance": "Maximum walking distance",
             "unlimitedWalkDistance": "Do not limit maximum walking distance",
             "unlimitedTransfers": "Do not limit maximum transfers",
@@ -216,7 +218,7 @@
             "train": "Train",  
             "ferry": "Ferry",
             "rail": "Train",
-            "tripImport": "Trip import",
+            "tripImport": "Import",
             "fileImport": "JSON file import",
             "browse": "Browse",
             "invalidFileSizeMessageSummary": "File {0} is too large, ",

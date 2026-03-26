@@ -67,8 +67,14 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     @ViewChild('midpointCursor') midpointCursorRef!: ElementRef<SVGElement>;
     @ViewChild('endCursor') endCursorRef!: ElementRef<SVGElement>;
 
+    // Whether the device the planner is rendered on is a touchscreen device
+    public isTouchDevice: boolean = false;
+
+    // Index of the currently shown option on map, only used for mobile view
+    public mobileShownOption: number | null = null;
+
     // Type of the currently active marker cursor, null if not currently selected
-    private markerType: MarkerType | null = null;
+    public markerType: MarkerType | null = null;
 
     // Position of the current active marker cursor in the trip form, null if not currently selected
     private markerPosition: number | null = null;
@@ -130,6 +136,13 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     ];
     public selectedTicketType: TicketType = this.ticketOptions[0].type;
 
+    // Variable holding the width of the window, updates on resize
+    public windowWidth: number = window.innerWidth; 
+    @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        this.windowWidth = event.target.innerWidth;
+    }
+
     constructor(
         private mapService: MapService,
         private apiService: APIService,
@@ -146,7 +159,11 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.mapService.configureMapFeatures({ showScale: true });
     }
 
+
     async ngOnInit(): Promise<void> {
+
+        // Store flag if the device is touchscreen or not
+        this.isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
 
         // Check if API is running and connected
         if(!await this.apiService.isConnected()) {
@@ -191,15 +208,25 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.markerType = marker.type;
         this.markerPosition = marker.position;
 
-        // Hide classic cursor on the form and leaflet map elements
-        this.setCursor('none');
+        // Force collapse the form so the point can be selected easily on touch screen devices
+        if (this.isTouchDevice) {
+            this.formForceAction = "close";
+            this.resetComponentNotifs();
+        }
 
-        // Select new cursor image based on which marker was clicked in the form
-        const cursor = this.getCursorImageElement();
+        // Otherwise update the cursor
+        else {
 
-        // Make cursor visible
-        cursor.style.zIndex = '500';
-        cursor.style.display = 'inline';
+            // Hide classic cursor on the form and leaflet map elements
+            this.setCursor('none');
+
+            // Select new cursor image based on which marker was clicked in the form
+            const cursor = this.getCursorImageElement();
+
+            // Make cursor visible
+            cursor.style.zIndex = '500';
+            cursor.style.display = 'inline';
+        }
     }
 
     // Function called when a trip is submitted from the form
@@ -326,11 +353,12 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // If the sync flag is currently on, the cursor was just changed to a marker in markerClicked()
         if (this.clickSyncFlag) {
             this.clickSyncFlag = false;
-
-            // Initialize position of the SVG on the cursor
-            const cursor = this.getCursorImageElement();
-            cursor.style.left = (event.clientX - 12) + "px";
-            cursor.style.top = (event.clientY - 30) + "px";
+            if (!this.isTouchDevice) {
+                // Initialize position of the SVG on the cursor
+                const cursor = this.getCursorImageElement();
+                cursor.style.left = (event.clientX - 12) + "px";
+                cursor.style.top = (event.clientY - 30) + "px";
+            }
             return;
         }
 
@@ -369,6 +397,11 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     } 
 
     public clearItinerary(): void {
+
+        // Automatically open the form back up when itinerary clears
+        this.formForceAction = "open";
+        this.resetComponentNotifs();
+
         this.tripOptions = null;
         this.mapService.clearLayer('routes');
     }
@@ -567,16 +600,30 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         return luminance > 128;
     }
 
-    private resetCursor(): void {
+    private resetCursor(formUncollapseMobileDelay: number = 0): void {
 
-        // Reset the original cursor values given by .css files
-        this.setCursor('');
+        // Open the form back up if on a touch device
+        // Delay is set when the point is actually correctly selected, so it can be 
+        // viewed for a short bit before the form shows back up
+        if (this.isTouchDevice) {
+            setTimeout(() => {
+                this.formForceAction = "open";
+                this.resetComponentNotifs();
+            }, formUncollapseMobileDelay);
+        }
 
-        // Select svg cursor element based on the previously selected marker
-        const cursor = this.getCursorImageElement();
+        // Otherwise reset the cursor to default
+        else {
+            // Reset the original cursor values given by .css files
+            this.setCursor('');
 
-        // Clear the cursor state
-        cursor.style.display = 'none';
+            // Select svg cursor element based on the previously selected marker
+            const cursor = this.getCursorImageElement();
+
+            // Clear the cursor state
+            cursor.style.display = 'none';
+        }
+
         this.markerType = null;
         this.markerPosition = null;
     }
@@ -610,8 +657,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         if (this.markerPosition !== null){
             this.clickedCoordsWithMarker = { coords, position: this.markerPosition };
 
-            // Clear the marker cursor
-            this.resetCursor();
+            // Reset the marker cursor after a short delay
+            this.resetCursor(400);
         }
     }
 

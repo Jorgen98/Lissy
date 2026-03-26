@@ -103,6 +103,18 @@ Main component HTML template file for the itinerary used in the planner module.
               <!-- Option content with detail -->
               <p-accordion-content class="p-accordion-content">
                 <div class="trip-detail-main">
+
+                  <!-- Show on map and export buttons in mobile view -->
+                  @if (windowWidth <= 700) {
+                    <div class="trip-detail-mobile-extras">
+                      <button class="trip-detail-mobile-btn" (click)="mobileShowTripOption.emit($index)">
+                        <i class="pi pi-map"></i>{{ "planner.itinerary.showOnMap" | translate }}
+                      </button>
+                      <button class="trip-detail-mobile-btn" (click)="exportTrip(option)">
+                        <i class="pi pi-file-export"></i>{{ "planner.itinerary.export" | translate }}
+                      </button>
+                    </div>
+                  }
                   <span class="faint-text">{{ option.startDatetime | date: "d. M. yyyy" }}</span>
                   @for (section of option.sections; track $index; let firstSection = $first; let lastSection = $last; let sectionCount = $count; let sectionIdx = $index) {
                     @for (leg of section.legs; track $index; let firstLeg = $first; let lastLeg = $last; let legCount = $count) {
@@ -190,13 +202,15 @@ Main component HTML template file for the itinerary used in the planner module.
                   }
                 </div>
 
-                <!-- Export button -->
-                <div class="export-div">
-                  <button class="export-btn" (click)="exportTrip(option)">
-                    <img class="export-img" [src]="'./planner/export.svg'">
-                    {{ "planner.itinerary.export" | translate }}
-                  </button>
-                </div>
+                <!-- Export button (elsewhere in mobile view) -->
+                @if (windowWidth > 700) {
+                  <div class="export-div">
+                    <button class="export-btn" (click)="exportTrip(option)">
+                      <img class="export-img" [src]="'./planner/export.svg'">
+                      {{ "planner.itinerary.export" | translate }}
+                    </button>
+                  </div>
+                }
               </p-accordion-content>
             </p-accordion-panel>
           }

@@ -5,6 +5,7 @@
  * Class for the itinerary component used in the planner module.
  */
 
+import { HostListener } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TripSectionLeg, TripOption } from '../../types/TripOption';
 import { DatePipe } from '@angular/common';
@@ -49,6 +50,10 @@ export class ItineraryComponent implements OnChanges, OnInit {
     // Output emitting when the selected trip option has change, notifies the parent to redraw route
     public redrawTripOption = output<number>(); 
 
+    // Output emitting when the selected trip option should be shown on the map, notifies the parent
+    // Only used for mobile view
+    public mobileShowTripOption = output<number>();
+
     // Output emitting when the itinerary clear button is clicked
     public clearItinerary = output();
 
@@ -69,6 +74,13 @@ export class ItineraryComponent implements OnChanges, OnInit {
 
     // Output emitting when the compact view is being exited by clicking on the one shown option (opens detail of that option)
     public forceDetail = output();
+
+    // Variable holding the width of the window, updates on resize
+    public windowWidth: number = window.innerWidth; 
+    @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        this.windowWidth = event.target.innerWidth;
+    }
 
     // Called when the components directives or inputs change 
     ngOnChanges(changes: SimpleChanges): void {

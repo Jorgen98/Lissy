@@ -161,11 +161,12 @@
     },
     "planner" : {
         "name": "Plánovač",
+        "clickToCancel": "Klepnutím zde zrušíte",
         "form": {
             "title": "Plán Trasy",
             "submit": "Naplánovat trasu",
-            "departureTime": "Čas odjezdu",
-            "arrivalTime": "Čas příjezdu",
+            "departureTime": "Odjezd po",
+            "arrivalTime": "Příjezd před",
             "return": "Návrat zpět",
             "modeSelect": "Vybrané typy dopravy",
             "publicTransport": "MHD",
@@ -200,12 +201,13 @@
             "legDestination": "Konec úseku",
             "destination": "Cíl",
             "export": "Exportovat",
-            "parkingSpot": "Parkování"
+            "parkingSpot": "Parkování",
+            "showOnMap": "Zobrazit na mapě"
         },
         "settings": {
-            "walkingPreferences": "Preference chůze",
-            "publicTransportPreferences": "Preference hromadné dopravy",
-            "carPreferences": "Preference pro auto",
+            "walkingPreferences": "Chůze",
+            "publicTransportPreferences": "Hromadná doprava",
+            "carPreferences": "Auto",
             "maxWalkingDistance": "Maximální vzdálenost chůze",
             "unlimitedWalkDistance": "Neomezovat maximální vzdálenost chůze",
             "unlimitedTransfers": "Neomezovat maximální počet přestupů",
@@ -217,7 +219,7 @@
             "train": "Vlak",  
             "ferry": "Loď",
             "rail": "Vlak",
-            "tripImport": "Import trasy",
+            "tripImport": "Import",
             "fileImport": "Import souboru JSON",
             "browse": "Procházet",
             "invalidFileSizeMessageSummary": "Soubor {0} je příliš velký, ",

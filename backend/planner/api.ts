@@ -11,7 +11,7 @@ const dbPostgis = require('../db-postgis.js');
 import env from '../../frontend/modules/planner/config.json';
 
 import { TripRequest } from './types/TripRequest';
-import { planTrip } from './routing';
+import { planTrip } from './tripOrchestrator';
 import { RoutePlanner } from './RoutePlanner';
 import { reverseGeocodeNominatim } from './geo';
 import { LatLng } from './types/LatLng';

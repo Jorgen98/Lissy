@@ -17,8 +17,7 @@ const routingService = require('./routing.js');
 const dbStats = require('./db-stats.js');
 const timeStamp = require('./timeStamp.js');
 const dbCache = require('./db-cache.js');
-
-import { fetchWithRetry } from './utils/fetchWithRetry.js';
+const { fetchWithRetry } = require('./utils/fetchWithRetry');
 
 const tmpFileName = './gtfs.zip';
 const tmpFolderName = './gtfsFiles/'

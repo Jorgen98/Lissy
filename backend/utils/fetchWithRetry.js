@@ -1,5 +1,5 @@
 /*
- * File: fetchWithRetry.ts
+ * File: fetchWithRetry.js
  * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  *
  * Utility function wrapping fetch in a retry loop with custom delay.
@@ -8,18 +8,13 @@
 const logService = require('../log.js');
 
 // Help function for log writing
-function log(type: 'success' | 'warning' | 'error' | 'info', msg: string) {
+function log(type, msg) {
     logService.write(process.env.BE_PROCESSING_MODULE_NAME, type, msg)
 }
 
 // Function executing a HTTP request with fetch with 'retries' number of retries with
 // 'delayMs' delay between retries
-export async function fetchWithRetry(
-    url: string, 
-    options: RequestInit, 
-    retries: number, 
-    delayMs: number
-): Promise<Response | null> {
+async function fetchWithRetry(url, options, retries, delayMs) {
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
             const response = await fetch(url, options);
@@ -38,3 +33,5 @@ export async function fetchWithRetry(
 
     return null;
 }
+
+module.exports = { fetchWithRetry };

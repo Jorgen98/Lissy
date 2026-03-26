@@ -96,6 +96,7 @@ Main component HTML template file for the itinerary used in the planner module.
                     <span class="accordion-header-info"><i class="pi pi-wave-pulse"></i>{{ option.distance | distance }}</span>
                   }
                   <span class="accordion-header-info"><i class="pi pi-arrows-h"></i>{{ option.numTransfers }}</span>
+                  <span class="accordion-header-info"><i class="pi pi-wallet"></i>{{ `${option.cost | number:'1.0-0'} Kč` }}</span>
                 </div>
               </p-accordion-header>
 

@@ -13,6 +13,7 @@ import { DurationPipe } from '../../pipes/duration.pipe';
 import { AccordionModule } from 'primeng/accordion';
 import { modeColors } from '../../utils/modeColors';
 import { NgScrollbarModule } from 'ngx-scrollbar';
+import { DecimalPipe } from '@angular/common';
 import { 
     Component, 
     input, 
@@ -30,7 +31,8 @@ import {
         DistancePipe, 
         DurationPipe, 
         AccordionModule,
-        NgScrollbarModule
+        NgScrollbarModule,
+        DecimalPipe
     ],
     templateUrl: './itinerary.component.html',
     styleUrl: './itinerary.component.css',

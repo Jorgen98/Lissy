@@ -235,6 +235,10 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                     allowedModes: this.allowedPublicTransportModes,
                     ticketType: this.selectedTicketType,
                     maxTransfers: this.maxNumberOfTransfersUnlimited ? null : this.selectedMaxNumberOfTransfers,
+                },
+                car: {
+                    avgFuelConsumption: this.selectedFuelConsumption,
+                    fuelPrice: this.selectedFuelPrice,
                 }
             }
         }

@@ -27,6 +27,10 @@ export type UserPreferences = {
         }
         ticketType: TicketType,
         maxTransfers: number | null,
+    },
+    car: {
+        avgFuelConsumption: number,
+        fuelPrice: number,
     }
 }
 

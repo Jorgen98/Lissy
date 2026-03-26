@@ -67,7 +67,7 @@ function postprocessTripSections(options: TripSectionOption[], preferences: User
     options.forEach(option => {
 
         // Add cost information to sections
-        addPricing(option, preferences.publicTransport.ticketType);
+        addPricing(option, preferences);
 
         // Add emission levels to sections
         addEmissions(option);
@@ -75,15 +75,34 @@ function postprocessTripSections(options: TripSectionOption[], preferences: User
 }
 
 // Function accumulating the prices of usage of all modes on the trip section
-function addPricing(section: TripSectionOption, ticketType: TicketType): void {
+function addPricing(section: TripSectionOption, preferences: UserPreferences): void {
 
     // Calculate the price of using public transport
-    let sectionPrice = calculatePublicTransportPrice(section, ticketType);
+    const publicTransportPrice = calculatePublicTransportPrice(section, preferences.publicTransport.ticketType);
 
-    // TODO add car pricing
+    // Calculate the price of using car
+    const carPrice = calculateCarPrice(section, preferences.car.avgFuelConsumption, preferences.car.fuelPrice);
 
-    // Adjust object
-    section.cost = sectionPrice;
+    // Adjust object with total estimated cost
+    section.cost = publicTransportPrice + carPrice;
+}
+
+// Function calculating the price of using the car on a single trip section
+function calculateCarPrice(section: TripSectionOption, avgConsumption: number, fuelPrice: number) {
+
+    // Get total distance of legs using the car
+    let carDistanceMeters = 0;
+    section.legs.forEach(leg => {
+        if (leg.mode === "CAR")
+            carDistanceMeters += leg.distance;
+    });
+
+    // Convert to kilometers
+    const carDistanceKm = carDistanceMeters / 1000;
+
+    // Formula to calculate total car price of section
+    // (km * 100l/km * czk/l) / 100 ==> czk 
+    return (carDistanceKm * avgConsumption * fuelPrice) / 100;
 }
 
 // Function calculating the price of using public transport on a single trip section

@@ -120,6 +120,14 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         totalEmissions += section.emissions!;
     } 
 
+    // Accumulate time spent waiting on midpoints to total trip duration
+    for (let i = 0; i < tripSections.length - 1; i++) {
+        const arriveToMidpoint = tripSections[i]!.endDatetime;
+        const departFromMidpoint = tripSections[i+1]!.startDatetime;
+        const secondsAtMidpoint = (departFromMidpoint.getTime() - arriveToMidpoint.getTime()) / 1000;
+        totalDuration += secondsAtMidpoint; 
+    }
+
     // Build final array of options
     // NOTE: Always one for now, will be changed when ranking is introduced
     const options = [{

@@ -165,6 +165,11 @@ export class ItineraryComponent implements OnChanges, OnInit {
         else if (this.optionDetailActive) {
             this.optionDetailActive = false;
             this.accordionOptionValue = -1;
+
+            // Autoscroll to currently selected option after the list of options is rerendered
+            setTimeout(() => {
+                this.scrollToSelected();
+            });
         }
 
         // If the clicked trip option is different then the previous, emit to parent to redraw route

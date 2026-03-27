@@ -317,7 +317,8 @@ export class MapComponent implements AfterViewInit {
         }
 
         let bounds: L.LatLngBoundsExpression = this.map.getBounds();
-        let boundsPadding: L.PointTuple | undefined = undefined;
+        let boundsPaddingBottomRight: L.PointTuple | undefined = undefined;
+        let boundsPaddingTopLeft: L.PointTuple | undefined = undefined;
 
         switch (object.type) {
             // Polyline
@@ -400,7 +401,8 @@ export class MapComponent implements AfterViewInit {
                         bounds = this.layers[object.layerName].layer!.getBounds();
 
                         // Adjust padding based on mobile/desktop view
-                        boundsPadding = window.innerWidth > 700 ? [400, 0] : undefined as L.PointTuple | undefined;
+                        boundsPaddingBottomRight = window.innerWidth > 700 ? [400, 0] : undefined as L.PointTuple | undefined;
+                        boundsPaddingTopLeft = window.innerWidth > 700 ? undefined : [0, 100] as L.PointTuple | undefined;
                     }
                     else
                         bounds = lineOnMap.getBounds();
@@ -543,7 +545,8 @@ export class MapComponent implements AfterViewInit {
 
         if (object.focus) {
             this.map.fitBounds(bounds, {
-                paddingBottomRight: boundsPadding
+                paddingBottomRight: boundsPaddingBottomRight,
+                paddingTopLeft: boundsPaddingTopLeft,
             });
         }
     }

@@ -78,6 +78,31 @@
   font-weight: 600;
 }
 
+.trip-header-wrapper {
+  position: absolute;
+  z-index: 1001;
+  width: 100%;
+  padding: 10px;
+  background: var(--background);
+  border: 2px solid var(--p-gray-800);
+  font-weight: bold;
+  color: var(--p-gray-300);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.back-to-detail-btn {
+  background-color: var(--p-gray-800);
+  border-radius: 5px;
+  font-size: 13px;
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  padding: 5px;
+  width: fit-content;
+}
+
 @media only screen and (max-width: 700px) {
   .main-components-wrapper {
     width: 100%;

@@ -24,6 +24,7 @@ import { TicketType, TripDataExtended } from './types/TripDataExtended';
 import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { TripSchema } from './schemas/TripSchema';
 import { TranslateService } from '@ngx-translate/core';
+import { TripHeaderComponent } from './components/trip-header/trip-header/trip-header.component';
 import { 
     MAX_WALK_DISTANCE_DEFAULT, 
     AVG_FUEL_CONSUMPTION_DEFAULT, 
@@ -48,7 +49,8 @@ import {
         MapComponent, 
         TripFormComponent, 
         ItineraryComponent, 
-        FileUploadModule
+        FileUploadModule,
+        TripHeaderComponent
     ],
     templateUrl: './planner.component.html',
     styleUrl: './planner.component.css',

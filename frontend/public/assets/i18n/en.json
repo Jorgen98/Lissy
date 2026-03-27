@@ -201,7 +201,8 @@
             "destination": "Destination",
             "export": "Export",
             "parkingSpot": "Parking spot",
-            "showOnMap": "Show in map"
+            "showOnMap": "Show in map",
+            "backToDetail": "Back to detail"
         },
         "settings": {
             "walkingPreferences": "Walking",

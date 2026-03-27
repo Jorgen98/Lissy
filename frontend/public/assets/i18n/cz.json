@@ -202,7 +202,8 @@
             "destination": "Cíl",
             "export": "Exportovat",
             "parkingSpot": "Parkování",
-            "showOnMap": "Zobrazit na mapě"
+            "showOnMap": "Zobrazit na mapě",
+            "backToDetail": "Zpět na detail"
         },
         "settings": {
             "walkingPreferences": "Chůze",

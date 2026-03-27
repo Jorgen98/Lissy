@@ -330,7 +330,7 @@ Main component HTML template file for the planner module.
       @else if (mobileShownOption !== null) {
         <div class="trip-header-wrapper" (click)="mobileShownOption = null">
           <div class="back-to-detail-btn">
-            <i class="pi pi-arrow-left"></i><span>Back to detail</span>
+            <i class="pi pi-arrow-left"></i><span>{{ "planner.itinerary.backToDetail" | translate }}</span>
           </div>
           <trip-header 
             [option]="tripOptions![mobileShownOption]"

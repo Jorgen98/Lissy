@@ -28,7 +28,7 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
         return null;
 
     // Apply postprocessing operations to all trip options
-    postprocessTripOptions(tripOptions, request);
+    await postprocessTripOptions(tripOptions, request);
 
     // Filter out unsatisfactory trip options by given user preferences
     const filteredOptions = filterOptions(tripOptions, request.preferences);

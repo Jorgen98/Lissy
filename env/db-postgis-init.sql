@@ -21,6 +21,24 @@ CREATE TABLE IF NOT EXISTS shapes (id SERIAL PRIMARY KEY, geom GEOMETRY, route_t
 CREATE TABLE IF NOT EXISTS trips (id SERIAL PRIMARY KEY, route_id TEXT, route_id_id INT, CONSTRAINT route_id_id FOREIGN KEY(route_id_id) REFERENCES routes(id), trip_id TEXT,
     trip_headsign TEXT, trip_short_name TEXT, direction_id INT, block_id TEXT, wheelchair_accessible INT, bikes_allowed INT, gtfs_trip_id INT,
     shape_id INT, CONSTRAINT shape_id FOREIGN KEY(shape_id) REFERENCES shapes(id), stops INT[], stops_info JSON[], api TEXT, is_today BOOLEAN, is_active BOOLEAN);
+CREATE TABLE IF NOT EXISTS fare_tickets (id SERIAL PRIMARY KEY, code TEXT, zones INT, duration INT, 
+    base_price INT, discounted_a_price INT, discounted_b_price INT, is_universal BOOLEAN DEFAULT FALSE);
+    
+INSERT INTO fare_tickets (code, zones, duration, base_price, discounted_a_price, discounted_b_price, is_universal) VALUES
+('short2', 2, 15, 20, 10, 20, FALSE),
+('long2', 2, 60, 25, 12, 25, FALSE),
+('3', 3, 90, 33, 16, 31, FALSE),
+('4', 4, 90, 41, 20, 35, FALSE),
+('5', 5, 120, 49, 24, 39, FALSE),
+('6', 6, 120, 57, 28, 43, FALSE),
+('7', 7, 150, 65, 32, 47, FALSE),
+('8', 8, 150, 73, 36, 51, FALSE),
+('9', 9, 180, 81, 40, 55, FALSE),
+('10', 10, 180, 89, 44, 59, FALSE),
+('11', 11, 210, 97, 48, 63, FALSE),
+('12', 12, 210, 105, 52, 67, FALSE),
+('all', 2048, 240, 113, 56, 71, FALSE),
+('universal', NULL, NULL, 180, 90, 90, TRUE);
 
 CREATE INDEX IF NOT EXISTS idx_trips_active_route
     ON trips(route_id_id)

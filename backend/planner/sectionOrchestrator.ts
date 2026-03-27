@@ -54,7 +54,7 @@ export async function getSectionOptions(planner: RoutePlanner, request: TripSect
     const deduplicatedSections = deduplicateSections(foundSections, request.datetime.option === "arrival");
 
     // Apply postprocessing operations to found options, calculates other useful data for the section
-    postprocessTripSections(deduplicatedSections, request.preferences);
+    await postprocessTripSections(deduplicatedSections, request.preferences);
 
     // TODO rate the section options and return them in order by rating
     

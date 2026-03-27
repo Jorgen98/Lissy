@@ -1228,9 +1228,20 @@ async function getNearbyStations(lat, lng, radius, transitScoreMin = 0, requireP
     return output;
 }
 
+async function getAvailableFareTickets() {
+    try {
+        const result = await db_postgis.query('SELECT * FROM fare_tickets');
+        return result.rows;
+    }
+    catch(error) {
+        log('error', error);
+        return null;
+    }
+}
+
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
     getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
-    getNearbyStations, updateStopNearbyParkingCoords }
+    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets }

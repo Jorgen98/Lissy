@@ -6,15 +6,23 @@
  * Mostly deriving and calculating new data.
  */
 
+const dbPostgis = require("../db-postgis.js");
+
 import { TripOption, TripSectionOption, TripSectionLeg } from "./types/TripOption";
 import { TripRequest } from "./types/TripRequest";
 import { UserPreferences, TicketType } from "../../frontend/modules/planner/types/TripDataExtended";
-import { IDS_JMK_FARE_SYSTEM, EMISSION_FACTORS, Ticket } from "./utils/criteriaConstants";
+import { EMISSION_FACTORS } from "./utils/criteriaConstants";
+import { Ticket } from "./types/Ticket";
+
+let availableTickets: Ticket[] | null = null;
 
 // Function performing postprocessing operations on all of the found trip options
-export function postprocessTripOptions(options: TripOption[], request: TripRequest): void {
-    options.forEach(option => {
+export async function postprocessTripOptions(options: TripOption[], request: TripRequest): Promise<void> {
 
+    // Get available transport system tickets from the DB
+    availableTickets = await dbPostgis.getAvailableFareTickets() as Ticket[] | null;
+
+    for (const option of options) {
         // Get a flat list of legs on the trip
         const legs = option.sections.flatMap(section => section.legs);
 
@@ -25,32 +33,31 @@ export function postprocessTripOptions(options: TripOption[], request: TripReque
         addNumberOfTransfers(legs, option);
 
         // Add cost information for the trip option
-        addPricing(legs, option, request.preferences);
-    });
+        await addPricing(legs, option, request.preferences);
+    }
 }
 
 // Function performing postprocessing operations on trip sections
-export function postprocessTripSections(options: TripSectionOption[], preferences: UserPreferences): void {
-    options.forEach(option => {
-
+export async function postprocessTripSections(options: TripSectionOption[], preferences: UserPreferences): Promise<void> {
+    for (const option of options) {
         // Add cost information to sections
-        addPricing(option.legs, option, preferences);
+        await addPricing(option.legs, option, preferences);
 
         // Add emission levels to sections
         addEmissions(option);
 
         // Add number of transfer in the trip sections
         addNumberOfTransfers(option.legs, option);
-    });
+    }
 }
 
 // Function accumulating the prices of usage of modes in a single trip section or trip option
 // The 'legs' parameter is a flat list of legs of a trip section of a full trip option
 // The 'object' parameter is either a trip section of a full trip option, both of which have the 'cost' field
-function addPricing(legs: TripSectionLeg[], object: TripSectionOption | TripOption, preferences: UserPreferences): void {
+async function addPricing(legs: TripSectionLeg[], object: TripSectionOption | TripOption, preferences: UserPreferences): Promise<void> {
 
     // Calculate the price of using public transport
-    const publicTransportPrice = calculatePublicTransportPrice(legs, preferences.publicTransport.ticketType);
+    const publicTransportPrice = await calculatePublicTransportPrice(legs, preferences.publicTransport.ticketType);
 
     // Calculate the price of using car
     const carPrice = calculateCarPrice(legs, preferences.car.avgFuelConsumption, preferences.car.fuelPrice);
@@ -80,7 +87,7 @@ function calculateCarPrice(legs: TripSectionLeg[], avgConsumption: number, fuelP
 
 // Function calculating the price of using public transport from a list of legs
 // Usable for both a trip section and a full trip option with multiple sections, since a list of legs is passed in
-function calculatePublicTransportPrice(legs: TripSectionLeg[], ticketType: TicketType): number {
+async function calculatePublicTransportPrice(legs: TripSectionLeg[], ticketType: TicketType): Promise<number> {
 
     // Get first and last transit legs of the section
     const firstTransitLeg = legs.find(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
@@ -107,38 +114,39 @@ function calculatePublicTransportPrice(legs: TripSectionLeg[], ticketType: Ticke
     const neededZoneNum = uniqueZones.size;
 
     // Find cheapest ticket that satisfies conditions (or use fallback)
-    const ticket = findCheapestTicket(neededMinutes, neededZoneNum);
+    const ticket = await findCheapestTicket(neededMinutes, neededZoneNum);
+    if (!ticket)
+        return 0;
 
-    // Get the price based on the used ticket (could be discounted)
-    return ticket[ticketType];
+    // Get price based on selected ticket
+    if (ticketType === "discountedB")
+        return ticket.discounted_b_price;
+    else if (ticketType === "discountedA")
+        return ticket.discounted_a_price;
+    else 
+        return ticket.base_price;
+
 }
 
 // Function finding the cheapest ticket from the fare system that satisfies the criteria
-function findCheapestTicket(neededDuration: number, neededZones: number): Ticket {
+async function findCheapestTicket(neededDuration: number, neededZones: number): Promise<Ticket | null> {
+    if (availableTickets === null || availableTickets.length === 0)
+        return null;
 
+    // Find cheapest ticket that satisfies conditions
     let bestTicket: Ticket | null = null;
-
-    // Enforce types on the FARE_SYSTEM object when using Object.values
-    const typedFareSystem = Object.entries(IDS_JMK_FARE_SYSTEM) as [keyof typeof IDS_JMK_FARE_SYSTEM, typeof IDS_JMK_FARE_SYSTEM[keyof typeof IDS_JMK_FARE_SYSTEM]][];
-
-    // Iterate through entries in the fare system and find the cheapest ticket that satisfies needed zones and duration
-    for (const [key, ticket] of typedFareSystem) {
-        if (key === "universal")
-            continue;
-
-        const zonesInTicket = key === "short2" || key === "long2" ? 2 : (key === "all" ? Infinity : key);
-        const durationInTicket = ticket.duration;
-        if (zonesInTicket >= neededZones && durationInTicket >= neededDuration) {
-            if (bestTicket === null)
-                bestTicket = ticket;
-            else if (bestTicket.base > ticket.base)
-                bestTicket = ticket;
+    availableTickets.forEach(ticket => {
+        if (!ticket.is_universal) {
+            if (neededZones <= ticket.zones && neededDuration <= ticket.duration) {
+                if (bestTicket === null || bestTicket.base_price > ticket.base_price)
+                    bestTicket = ticket;
+            }
         }
-    }
+    });
 
-    // Fallback if the a valid ticket isnt found (because transit is too long in duration)
+    // Fall back to universal ticket
     if (bestTicket === null)
-        bestTicket = IDS_JMK_FARE_SYSTEM["universal"];
+        bestTicket = availableTickets.find(ticket => ticket.is_universal) ?? null;
 
     return bestTicket;
 }

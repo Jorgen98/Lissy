@@ -5,6 +5,27 @@
  * CSS styles file for the planner component.
  */
 
+:host {
+  --p-inputnumber-button-width: 25px;
+  --p-inputtext-background: var(--p-gray-800);
+  --p-inputtext-color: var(--p-gray-400);
+  --p-inputtext-border-color: var(--p-gray-700);
+  --p-inputtext-disabled-background: var(--p-gray-900);
+  --p-inputtext-disabled-color: var(--p-gray-800);
+  --p-inputnumber-button-border-color: var(--p-gray-700);
+  --p-inputtext-focus-border-color: var(--p-gray-500);
+  --p-select-background: var(--p-gray-800);
+  --p-select-border-color: var(--p-gray-700);
+  --p-select-color: var(--p-gray-400);
+  --p-select-overlay-background: var(--p-gray-800);
+  --p-select-overlay-border-color: var(--p-gray-800);
+  --p-select-overlay-color: var(--p-gray-400);
+  --p-inputnumber-button-hover-background: var(--p-gray-400);
+  --p-select-option-focus-color: var(--p-gray-300);
+  --p-select-checkmark-color: var(--p-gray-300);
+  --p-inputnumber-button-hover-border-color: var(--p-gray-700);
+}
+
 .cursor-image {
   position: fixed;     
   top: 0;
@@ -103,6 +124,36 @@
   width: fit-content;
 }
 
+.side-control-selection-div {
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.side-control-content {
+  width: fit-content;
+  min-width: 0;
+}
+
+.side-control-selection-div {
+  padding-right: 20px;
+}
+
+.side-control-select {
+  max-width: fit-content;
+}
+
+.side-control-checkbox-head {
+  color: var(--p-gray-400);
+}
+
+h3 {
+  color: var(--p-gray-300);
+}
+
+.settings-unit {
+  color: var(--p-gray-400);
+}
+
 @media only screen and (max-width: 700px) {
   .main-components-wrapper {
     width: 100%;
@@ -121,5 +172,16 @@
 
   .content {
     height: calc(100vh - 3em);
+  }
+
+  .side-control-content {
+    width: 100vw;
+    height: 100vh;
+    margin-bottom: 3.5em;
+  }
+
+  .side-control-selection-div {
+    max-width: 100vw;
+    padding-bottom: 3.5em;
   }
 }

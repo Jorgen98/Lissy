@@ -85,7 +85,7 @@ Main component HTML template file for the planner module.
                   [max]="1000"
                   [showButtons]="true"
                   buttonLayout="horizontal"
-                  (onBlur)="setDefaultIfEmpty('walkDistance')"/>Km
+                  (onBlur)="setDefaultIfEmpty('walkDistance')"/><span class="settings-unit">Km</span>
               </div>
               <span class="side-control-checkbox-span">
                 <p-checkbox [binary]="true" [(ngModel)]="walkDistanceUnlimited">
@@ -112,7 +112,7 @@ Main component HTML template file for the planner module.
                   [step]="0.1"
                   [showButtons]="true"
                   buttonLayout="horizontal"
-                  (onBlur)="setDefaultIfEmpty('walkSpeed')"/>Km/h
+                  (onBlur)="setDefaultIfEmpty('walkSpeed')"/><span class="settings-unit">Km/h</span>
               </div>
             </div>
             
@@ -225,6 +225,7 @@ Main component HTML template file for the planner module.
                 optionLabel="label"
                 optionValue="type"
                 [(ngModel)]="selectedTicketType"
+                class="side-control-select"
               />
             </div>
           </div>
@@ -257,7 +258,8 @@ Main component HTML template file for the planner module.
                   [showButtons]="true"
                   buttonLayout="horizontal"
                   (onBlur)="setDefaultIfEmpty('fuelConsumption')"
-                />l/100km
+                  class="p-input-number"
+                /><span class="settings-unit">l/100km</span>
               </div>
             </div>
 
@@ -276,7 +278,7 @@ Main component HTML template file for the planner module.
                   [showButtons]="true"
                   buttonLayout="horizontal"
                   (onBlur)="setDefaultIfEmpty('fuelPrice')"
-                />Kč/l
+                /><span class="settings-unit">Kč/l</span>
               </div>
             </div>
           </div>
@@ -326,7 +328,6 @@ Main component HTML template file for the planner module.
       }
 
       <!-- Button to go back when viewing option in map -->
-      <!-- TODO TEMPORARY -->
       @else if (mobileShownOption !== null) {
         <div class="trip-header-wrapper" (click)="mobileShownOption = null">
           <div class="back-to-detail-btn">

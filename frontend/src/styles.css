@@ -353,12 +353,12 @@ app-page-not-found {
     .leaflet-bottom {
         z-index: 499 !important;
     }
+
+    .leaflet-control-scale {
+        margin-bottom: 20px !important;
+    }
 }
 
 .mat-mdc-autocomplete-panel {
     box-shadow: none !important;
-}
-
-.leaflet-control-scale {
-    margin-bottom: 20px !important;
 }

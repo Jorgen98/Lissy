@@ -21,36 +21,34 @@ import {
 
 // Function returning a list of TripSectionOption objects, which is a part of the trip, always between two points in the trip request
 export async function getSectionOptions(planner: RoutePlanner, request: TripSectionInfo): Promise<TripSectionOption[]> {
-
-    // List of promises from requests to the planner so Promise.all can be used
-    const plannerRequests: Promise<TripSectionOption[] | null>[] = []; 
-
+    
     // Modes to be used for this section
     const modes = request.modes;
 
+    // List of Promises that are returned from functions in each individual if branch below
+    // every .push creates a request group for that specific mode/mode combination
+    const sectionRequestGroups: Promise<TripSectionOption[] | null>[] = [];
+
     // Always get trip options with public transport section if selected
     if (modes.publicTransport)
-        plannerRequests.push(planner.getTripSection({ ...request, modes: { publicTransport: true, car: false, walk: false }}));
+        sectionRequestGroups.push(planner.getTripSection({ ...request, modes: { publicTransport: true, car: false, walk: false }}));
 
     // If only one direct mode (car or walk) is selected, get trip sections for that mode
     if ((modes.car && !modes.walk) || (!modes.car && modes.walk))
-        plannerRequests.push(planner.getTripSection({ ...request, modes: { ...modes, publicTransport: false }}));
+        sectionRequestGroups.push(planner.getTripSection({ ...request, modes: { ...modes, publicTransport: false }}));
 
     // If both direct modes (car and walk) are selected, call function that handles this combination and creates requests
     if (modes.car && modes.walk)
-        carWalkCombination(planner, request, plannerRequests);
+        sectionRequestGroups.push(carWalkCombination(planner, request));
 
     // If car and public transport are both selected, decide if CAR->transfer_hub->TRANSIT options should be requested
-    if (modes.publicTransport && modes.car) {
-        const carTransitRequests = await carTransitCombination(planner, request);
-        plannerRequests.push(...carTransitRequests);
-    };
+    if (modes.publicTransport && modes.car)
+        sectionRequestGroups.push(carTransitCombination(planner, request));
 
-    // Wait for all created requests running in parallel
-    const results = await Promise.all(plannerRequests);
-
-    // Filter out unsuccessful requests and flatten the 2D list returned by Promise.all into one 1D list with all options
-    const foundSections = results.filter(result => result !== null).flat();
+    // Wait for all request groups to finish, filter out unsuccesfull requests and flatten to 1D array of TripSectionOption
+    const foundSections = (await Promise.all(sectionRequestGroups))
+        .filter(group => group !== null)
+        .flat();
 
     // Deduplicate public transport options that have the same legs as another option, which departs earlier/later (depending on departure or arrival time)
     const deduplicatedSections = deduplicateSections(foundSections, request.datetime.option === "arrival");
@@ -64,7 +62,7 @@ export async function getSectionOptions(planner: RoutePlanner, request: TripSect
 }
 
 // Function handling the combination of car and public transport in one request
-async function carTransitCombination(planner: RoutePlanner, request: TripSectionInfo): Promise<Promise<TripSectionOption[] | null>[]> {
+async function carTransitCombination(planner: RoutePlanner, request: TripSectionInfo): Promise<TripSectionOption[]> {
 
     // Get origin and destination point of the section
     const origin = request.pointA;
@@ -84,12 +82,15 @@ async function carTransitCombination(planner: RoutePlanner, request: TripSection
     // Cluster hubs if theres more of them than the threshold using KMeans
     const clusteredHubs = clusterHubs(filteredHubs);
 
-    // Create list of Promise objects and return it so it can be processed concurrently
-    return clusteredHubs.map(hub => buildCarTransitTrip(planner, request, hub));
+    // Maximum of two sequential requests for each transfer hub
+    const requests = clusteredHubs.map(hub => buildCarTransitTrip(planner, request, hub)); 
+
+    // Wait for all requests to finish and flatten into an array of section options with car and transit combined
+    return (await Promise.all(requests)).flat();
 }
 
 // Function building a trip section option/options that transfers from car to transit at 'transfer'
-async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionInfo, transfer: TransferHub): Promise<TripSectionOption[] | null> {
+async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionInfo, transfer: TransferHub): Promise<TripSectionOption[]> {
 
     // Get list of car legs that terminate at the nearest parking spot (most likely always one)
     const carOptions = await planner.getTripSection({ 
@@ -98,7 +99,7 @@ async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionIn
         modes: { car: true, publicTransport: false, walk: false } 
     });
     if (carOptions === null || carOptions.length === 0)
-        return null;
+        return [];
 
     // Get first car leg, most likely there will only be one anyway
     const carSection = carOptions[0]!;
@@ -114,7 +115,7 @@ async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionIn
         datetime: { datetime: carLegArrival, option: request.datetime.option }
     });
     if (transitOptions === null || transitOptions.length === 0)
-        return null;
+        return [];
 
     // Use only options that actually do start at the wanted hub, since the planner service could return options that access to some other station
     const validTransitOptions = transitOptions.filter(option => {
@@ -153,7 +154,7 @@ async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionIn
 }
 
 // Function handling the combination of car and walking in one trip section
-function carWalkCombination(planner: RoutePlanner, request: TripSectionInfo, plannerRequests: Promise<TripSectionOption[] | null>[]): void {
+async function carWalkCombination(planner: RoutePlanner, request: TripSectionInfo): Promise<TripSectionOption[]> {
 
     const origin = request.pointA;
     const destination = request.pointB;
@@ -166,13 +167,19 @@ function carWalkCombination(planner: RoutePlanner, request: TripSectionInfo, pla
     const driveDistEstimate = distance * DRIVING_DISTANCE_COEF;
     const walkDistEstimate = distance * WALKING_DISTANCE_COEF;
 
+    // List of promises for created requests
+    const requests: Promise<TripSectionOption[] | null>[] = [];
+
     // If the maximum walking distance is more than the estimate or not limited, create a walk request for the section
     if (walkPreferences.maxDistance === null || walkDistEstimate <= walkPreferences.maxDistance)
-        plannerRequests.push(planner.getTripSection({ ...request, modes: { publicTransport: false, car: false, walk: true }}));
+        requests.push(planner.getTripSection({ ...request, modes: { publicTransport: false, car: false, walk: true }}));
 
     // If the distance is too short, it might not make sense to get car options
     if (driveDistEstimate > MIN_DRIVE_DISTANCE)
-        plannerRequests.push(planner.getTripSection({ ...request, modes: { publicTransport: false, car: true, walk: false }}));
+        requests.push(planner.getTripSection({ ...request, modes: { publicTransport: false, car: true, walk: false }}));
+
+    // Wait for (both) requests to finish, filter out failed and flatten to 1D array
+    return (await Promise.all(requests)).filter(res => res !== null).flat();
 }
 
 // Function filtering public transport section options that are the same as another option but departure is later/earlier (depending on departure or arrival time selection)

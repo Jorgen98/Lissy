@@ -349,6 +349,7 @@ Main component HTML template file for the planner module.
           (reverseGeocode)="reverseGeocodeRequest($event)"
           [geocodedPlaceName]="geocodedPlaceName"
           [hidden]="tripOptions !== null && windowWidth < 700"
+          [isTouchDevice]="isTouchDevice"
         />
 
         <!-- Itinerary component with trip options -->
@@ -360,6 +361,7 @@ Main component HTML template file for the planner module.
           (forceDetail)="itineraryForceOpenDetail()"
           (mobileShowTripOption)="this.mobileShownOption = $event"
           [hidden]="mobileShownOption !== null"
+          [isTouchDevice]="isTouchDevice"
         />
       </div>
 

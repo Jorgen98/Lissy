@@ -33,7 +33,7 @@ Main component HTML template file for the itinerary used in the planner module.
     </div>
 
     <!-- PrimeNG accordion with the found options -->
-    <ng-scrollbar class="scrollbox" [visibility]="'hover'" [appearance]="'compact'" [orientation]="'vertical'">
+    <ng-scrollbar class="scrollbox" [visibility]="isTouchDevice() ? 'visible' : 'hover'" [appearance]="'compact'" [orientation]="'vertical'">
       <p-accordion expandIcon="none" collapseIcon="none" [(value)]="accordionOptionValue">
         @for (option of tripOptions(); track $index) {
 

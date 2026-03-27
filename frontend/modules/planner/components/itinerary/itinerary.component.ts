@@ -75,6 +75,8 @@ export class ItineraryComponent implements OnChanges, OnInit {
     // Output emitting when the compact view is being exited by clicking on the one shown option (opens detail of that option)
     public forceDetail = output();
 
+    public isTouchDevice = input<boolean>(false);
+
     // Variable holding the width of the window, updates on resize
     public windowWidth: number = window.innerWidth; 
     @HostListener('window:resize', ['$event'])

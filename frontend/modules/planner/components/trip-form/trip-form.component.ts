@@ -133,6 +133,8 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     // Output emitting when the form is collapsed or uncollapsed
     public collapseAction = output<"collapse" | "uncollapse">();
 
+    public isTouchDevice = input<boolean>(false);
+
     // Getter for number of globally selected transport modes
     get selectedModesCount(): number {
         const global = this.tripData.modes.global;

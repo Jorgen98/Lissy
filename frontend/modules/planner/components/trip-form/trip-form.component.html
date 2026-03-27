@@ -83,7 +83,7 @@ Main component HTML template file for the trip form used in the planner module.
     </div>
 
     <!-- Route points -->
-    <ng-scrollbar class="scrollbox" [visibility]="'hover'" [appearance]="'compact'" [orientation]="'vertical'">
+    <ng-scrollbar class="scrollbox" [visibility]="isTouchDevice() ? 'visible' : 'hover'" [appearance]="'compact'" [orientation]="'vertical'">
       <div class="trip-points form-section" (cdkDropListDropped)="pointDropped($event)" cdkDropListLockAxis="y" cdkDropList>
 
         <!-- Origin point -->

@@ -5,7 +5,7 @@
  * Class for the itinerary component used in the planner module.
  */
 
-import { HostListener } from '@angular/core';
+import { HostListener, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TripSectionLeg, TripOption } from '../../types/TripOption';
 import { DatePipe } from '@angular/common';
@@ -13,7 +13,7 @@ import { DistancePipe } from '../../pipes/distance.pipe';
 import { DurationPipe } from '../../pipes/duration.pipe';
 import { AccordionModule } from 'primeng/accordion';
 import { modeColors } from '../../utils/modeColors';
-import { NgScrollbarModule } from 'ngx-scrollbar';
+import { NgScrollbar, NgScrollbarModule } from 'ngx-scrollbar';
 import { DecimalPipe } from '@angular/common';
 import { 
     Component, 
@@ -76,6 +76,10 @@ export class ItineraryComponent implements OnChanges, OnInit {
     public forceDetail = output();
 
     public isTouchDevice = input<boolean>(false);
+
+    // Store references to the scrollbar and to its child items for autoscrolling
+    @ViewChild(NgScrollbar) scrollbox!: NgScrollbar;
+    @ViewChildren('scrollbarPanel') scrollboxPanels!: QueryList<any>;
 
     // Variable holding the width of the window, updates on resize
     public windowWidth: number = window.innerWidth; 
@@ -174,6 +178,11 @@ export class ItineraryComponent implements OnChanges, OnInit {
     public backButtonClicked() {
         this.accordionOptionValue = -1;
         this.optionDetailActive = false;
+
+        // Autoscroll to currently selected option after the list of options is rerendered
+        setTimeout(() => {
+            this.scrollToSelected();
+        });
     }
 
     // Function retrieving the color of the leg based on the mode and availability from GTFS
@@ -217,5 +226,12 @@ export class ItineraryComponent implements OnChanges, OnInit {
 
         // Release the created URL
         URL.revokeObjectURL(url);
+    }
+
+    // Function that autoscrolls to selected item after itinerary detail is closed
+    private scrollToSelected(): void {
+        const selectedOptionElement = this.scrollboxPanels.get(this.selectedOptionIdx)?.el?.nativeElement;
+        if (selectedOptionElement)
+            this.scrollbox.scrollTo({ top: selectedOptionElement.offsetTop, duration: 300 });
     }
 }

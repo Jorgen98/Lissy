@@ -41,7 +41,7 @@ Main component HTML template file for the itinerary used in the planner module.
           @if ((optionDetailActive || showCompactView) ? (selectedOptionIdx === $index) : true) {
 
             <!-- Option panel with header and content -->
-            <p-accordion-panel [value]="$index" class="p-accordion-panel">
+            <p-accordion-panel [value]="$index" class="p-accordion-panel" #scrollbarPanel>
 
               <!-- Option header containing start and end times, distance, duration and a timeline -->
               <p-accordion-header class="p-accordion-header" [class.option-selected]="selectedOptionIdx === $index" (click)="changeTripOption($index)">

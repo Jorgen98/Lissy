@@ -13,6 +13,7 @@ import { TripOption, TripSectionOption } from "./types/TripOption";
 import { TripSectionInfo } from "./types/TripSectionInfo";
 import { getSectionOptions } from "./sectionOrchestrator";
 import { UserPreferences } from "../../frontend/modules/planner/types/TripDataExtended";
+import { fillInTripShape } from "./shaping";
 
 // Trip routing entry point function
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
@@ -30,7 +31,13 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
     postprocessTripOptions(tripOptions, request);
 
     // Filter out unsatisfactory trip options by given user preferences
-    return filterOptions(tripOptions, request.preferences);
+    const filteredOptions = filterOptions(tripOptions, request.preferences);
+
+    // Fill in trip shapes for all options from the DB
+    for (const option of filteredOptions)
+        await fillInTripShape(option);
+
+    return filteredOptions;
 }
 
 // Function returning a list of TripOption objects
@@ -94,7 +101,7 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
                 duration: section.duration,
                 endDatetime: section.endDatetime,
                 startDatetime: section.startDatetime,                
-                hasFullShape: true,
+                hasFullShape: false,
                 sections: [section],
                 numTransfers: 0, // Calculated in postprocessing
                 emissions: section.emissions,
@@ -121,7 +128,7 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         sections: tripSections,
         startDatetime: tripSections[0]!.startDatetime,
         endDatetime: tripSections[tripSections.length - 1]!.endDatetime,
-        hasFullShape: true,
+        hasFullShape: false,
         numTransfers: 0, // Calculated in prostprocessing
         emissions: totalEmissions,
         cost: null // Calculated in prostprocessing

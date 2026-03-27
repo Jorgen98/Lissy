@@ -17,7 +17,7 @@ import { TripSectionOption, TripSectionLeg } from "../types/TripOption";
 import { Edges, Leg, Node, RoutingErrorCode } from "./types/PlanConnectionResponse";
 import { Mode } from "../types/Mode";
 import { OTP_MAX_WINDOW_PAGING_ATTEMPTS } from "../utils/systemConstants";
-import { getLegShape } from "../shaping";
+import { translateGooglePolyline } from "../shaping";
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -76,7 +76,7 @@ export class OTPAdapter implements RoutePlanner {
             return null;
 
         // Translate the fetched result from OTP to format expected by caller
-        return await this.translateTripOptions(edges);
+        return edges.map(edge => this.translateTripOption(edge));
     }
 
     // Function querying OTP (possibly multiple times with paging) to find trip section options
@@ -154,27 +154,14 @@ export class OTPAdapter implements RoutePlanner {
         return transitModes;
     }
 
-    // Function translating the plain OTP response into format expected by the client calling the adapter
-    private async translateTripOptions(edges: Edges): Promise<TripSectionOption[]> {
-
-        // Accumulator for translated trip options
-        let tripOptionRequests: TripSectionOption[] = [];
-
-        // Iterate over all options returned from OTP and wait for the translation
-        for (const edge of edges)
-            tripOptionRequests.push(await this.translateTripOption(edge));
-
-        return tripOptionRequests;
-    };
-
     // Function translating a single trip option returned from OTP to client format
-    private async translateTripOption(edge: { node: Node }): Promise<TripSectionOption> {
+    private translateTripOption(edge: { node: Node }): TripSectionOption {
 
         // Accumulator for total distance (sum of leg distances)
         let totalDistance = 0;
 
         // Accumulator for translated legs
-        const legRequests: Promise<TripSectionLeg>[] = [];
+        const legs: TripSectionLeg[] = [];
 
         // Iterate over all legs returned from OTP
         for (const leg of edge.node.legs) {
@@ -183,7 +170,7 @@ export class OTPAdapter implements RoutePlanner {
             totalDistance += leg.distance;
 
             // Translate the leg
-            legRequests.push(this.translateTripLeg(leg));
+            legs.push(this.translateTripLeg(leg));
         }
 
         // Once all legs are translated, create the final trip option object
@@ -192,7 +179,7 @@ export class OTPAdapter implements RoutePlanner {
             distance: totalDistance,
             startDatetime: new Date(edge.node.start),
             endDatetime: new Date(edge.node.end),
-            legs: await Promise.all(legRequests),
+            legs,
 
             // Initialize empty names for section origin and destination points
             originName: null,
@@ -248,15 +235,11 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Function translating a single leg of a trip option returned from OTP to client format
-    private async translateTripLeg(leg: Leg): Promise<TripSectionLeg> {
-
-        // Get shape of the leg, either from OTP google polyline or database
-        const shape = await getLegShape(leg); 
-
+    private translateTripLeg(leg: Leg): TripSectionLeg {
         return {
-            distance: shape.distance,
+            distance: leg.distance,
             duration: leg.duration,
-            points: shape.points,   
+            points: translateGooglePolyline(leg.legGeometry.points),   
             mode: leg.mode as Mode,
             from: {
                 arrivalTime: new Date(leg.from.arrival.scheduledTime),      // Convert dates as strings into actual UTC JS date objects

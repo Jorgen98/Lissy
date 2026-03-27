@@ -9,33 +9,54 @@ const gtfsService = require('../gtfs.js');
 
 import { calculateDistanceHaversine } from "./geo";
 import { LatLng } from "./types/LatLng";
-import { Leg } from "./OTP/types/PlanConnectionResponse";
 import polyline from '@mapbox/polyline';
+import { TripOption, TripSectionLeg } from "./types/TripOption";
 
+// Main entry point for filling in the trip shape of an option
+export async function fillInTripShape(trip: TripOption): Promise<void> {
+
+    // Get a flat list of legs on the trip
+    const legs = trip.sections.flatMap(section => section.legs);
+
+    // Process shapings of all legs in the trip concurrently
+    const legShapings: Promise<void>[] = [];
+    legs.forEach(leg => legShapings.push(getLegShape(leg)));
+    await Promise.all(legShapings);
+
+    // Recalculate distances with new shapes
+    trip.distance = 0;
+    trip.sections.forEach(section => {
+        const distance = section.legs.reduce((sum, leg) => sum + leg.distance, 0);
+        section.distance = distance;
+        trip.distance += distance;
+    });
+
+    trip.hasFullShape = true;
+}
 
 // Function accessing the database to get full shape of a leg and its new distance from that shape
-export async function getLegShape(leg: Leg): Promise<{ points: LatLng[], distance: number }> {
+async function getLegShape(leg: TripSectionLeg): Promise<void> {
 
     // Need valid route and trip objects with gtfs ids
     if (leg.route === null || leg.trip === null || leg.route.gtfsId === null || leg.trip.gtfsId === null)
-        return { points: translateGooglePolyline(leg.legGeometry.points), distance: leg.distance };
+        return;
 
     // Get existing shape from database
     const shape = await gtfsService.getShapeFromOTP(leg.route.gtfsId, leg.trip.gtfsId);
     if (shape === undefined || shape.stops === undefined || shape.coords === undefined)
-        return { points: translateGooglePolyline(leg.legGeometry.points), distance: leg.distance };
+        return;
 
     // The found shape has coordinates for the whole trip used for the leg, need only a subsection of the shape for the actual leg
     const subshape = getSubShape(leg, shape);
     if (subshape === null)
-        return { points: translateGooglePolyline(leg.legGeometry.points), distance: leg.distance };
+        return;
 
-    // Return the points and calculate the new leg distance from the new points
-    return { points: subshape, distance: calculateLegDistance(subshape) };
+    leg.points = subshape;
+    leg.distance = calculateLegDistance(leg.points);
 }
 
 // Function decoding google polyline to array of lat/lng coordinate object with mapbox package
-function translateGooglePolyline(encoded: string, precision?: number): LatLng[] {
+export function translateGooglePolyline(encoded: string, precision?: number): LatLng[] {
 
     // Use mapbox package to get a list of number tuples
     const decoded = polyline.decode(encoded, precision);
@@ -57,12 +78,12 @@ function calculateLegDistance(points: LatLng[]): number {
 }
 
 // Get a subsection of 'shape', which is the shape of 'leg'
-function getSubShape(leg: Leg, shape: any): LatLng[] | null {
+function getSubShape(leg: TripSectionLeg, shape: any): LatLng[] | null {
 
     // Get names of stops where the leg starts and ends
-    const legFrom = leg.from.stop?.name;
-    const legTo = leg.to.stop?.name;
-    if (legFrom === undefined || legTo === undefined)
+    const legFrom = leg.from.placeName;
+    const legTo = leg.to.placeName;
+    if (legFrom === null || legTo === null)
         return null;
 
     // Find start and end indicies of subshape of the trip shape corresponding to the leg

@@ -36,7 +36,8 @@
     filter: invert(70%) sepia(50%) saturate(1969%) hue-rotate(5deg) brightness(101%) contrast(94%);
 }
 
-.legend-base-div {
+.legend-base-div,
+.zoom-div {
     position: absolute;
     bottom: 1em;
     left: 6em;

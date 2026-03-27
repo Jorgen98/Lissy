@@ -86,7 +86,7 @@
     flex-direction: column;
     padding: 10px;
     --p-accordion-header-active-background: var(--background);
-    --p-accordion-header-active-color: var(--p-gray-80);
+    --p-accordion-header-active-color: var(--p-gray-300);
 }
 
 .p-accordion-content {
@@ -95,9 +95,16 @@
     border-top: 2px solid var(--p-gray-800);
 }
 
+@media (hover: none) and (pointer: coarse) {
+    .p-accordion-header {
+        --p-accordion-header-hover-color: var(--p-gray-300);
+        --p-accordion-header-active-hover-color: var(--p-gray-300);
+    }
+}
+
 .option-selected {
     border-left: 7px solid var(--p-gray-600) !important;
-    color: var(--p-gray-50);
+    color: var(--p-gray-300);
 }
 
 .accorion-header-timeline {

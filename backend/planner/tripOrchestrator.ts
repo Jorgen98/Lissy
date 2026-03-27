@@ -94,7 +94,7 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
                 duration: section.duration,
                 endDatetime: section.endDatetime,
                 startDatetime: section.startDatetime,                
-                hasFullShape: false,
+                hasFullShape: true,
                 sections: [section],
                 numTransfers: 0, // Calculated in postprocessing
                 emissions: section.emissions,
@@ -121,7 +121,7 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         sections: tripSections,
         startDatetime: tripSections[0]!.startDatetime,
         endDatetime: tripSections[tripSections.length - 1]!.endDatetime,
-        hasFullShape: false,
+        hasFullShape: true,
         numTransfers: 0, // Calculated in prostprocessing
         emissions: totalEmissions,
         cost: null // Calculated in prostprocessing

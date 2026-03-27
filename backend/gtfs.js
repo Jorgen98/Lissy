@@ -649,6 +649,9 @@ async function unzipAndParseData(response, startTime) {
                     await dbCache.clearTodayShapes();
                     await dbCache.setUpTodayShapes();
 
+                    // Clear cached active routes daily
+                    await dbCache.clearActiveRoutes();
+
                     resolve(true);
                 });
             })
@@ -1487,9 +1490,13 @@ async function getShapeFromOTP(routeId, tripId) {
         return undefined;
     }
 
-    const route = (await dbPostGIS.getActiveRoutes())[routeId.split(':')[1]];
+    // Try to fetch active routes from cache first
+    // If not in cache yet, store in cache
+    const cachedRoutes = await dbCache.getActiveRoutes();
+    const routes = cachedRoutes.data ?? await dbCache.setUpActiveRoutes();
+    const route = routes[routeId.split(':')[1]];
     if (route) {
-        const trips = await dbPostGIS.getActiveTrips([route]);
+        const trips = await dbPostGIS.getActiveTrips([route], true);
         for (const trip of Object.keys(trips)) {
             if (trips[trip].gtfs_trip_id === parseInt(tripId.split(':')[1])) {
                 return await dbPostGIS.getFullShape(trips[trip].shape_id);

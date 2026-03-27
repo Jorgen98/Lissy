@@ -1,5 +1,8 @@
 /*
  * DB Cache function file
+ *
+ * Author: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
 const dotenv = require('dotenv');
@@ -26,6 +29,7 @@ function log(type, msg) {
 }
 
 const todayShapesKey = "todayShapes";
+const activeRoutesKey = "activeRoutes";
 
 // Help function for DB connection test
 async function isDBConnected() {
@@ -108,4 +112,18 @@ async function clearTodayShapes() {
     return await db_redis.del(todayShapesKey);
 }
 
-module.exports = { isDBConnected, setUpValue, setUpTodayShapes, getTodayShapes, clearTodayShapes }
+async function setUpActiveRoutes() {
+    const newData = await dbPostGIS.getActiveRoutes();
+    await setUpValue(activeRoutesKey, newData, 100);
+    return newData;
+}
+
+async function getActiveRoutes() {
+    return await setUpValue(activeRoutesKey, null, null);
+}
+
+async function clearActiveRoutes() {
+    return await db_redis.del(activeRoutesKey);
+}
+
+module.exports = { isDBConnected, setUpValue, setUpTodayShapes, getTodayShapes, clearTodayShapes, setUpActiveRoutes, getActiveRoutes, clearActiveRoutes }

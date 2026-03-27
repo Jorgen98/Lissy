@@ -15,10 +15,9 @@ import { PlanDirectMode } from "./types/PlanDirectMode";
 import { PlanTransitModePreferenceInput } from "./types/PlanTransitModePreferenceInput";
 import { TripSectionOption, TripSectionLeg } from "../types/TripOption";
 import { Edges, Leg, Node, RoutingErrorCode } from "./types/PlanConnectionResponse";
-import polyline from '@mapbox/polyline';
 import { Mode } from "../types/Mode";
-import { LatLng } from "../types/LatLng";
 import { OTP_MAX_WINDOW_PAGING_ATTEMPTS } from "../utils/systemConstants";
+import { getLegShape } from "../shaping";
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -175,7 +174,7 @@ export class OTPAdapter implements RoutePlanner {
         let totalDistance = 0;
 
         // Accumulator for translated legs
-        let legs: TripSectionLeg[] = [];
+        const legRequests: Promise<TripSectionLeg>[] = [];
 
         // Iterate over all legs returned from OTP
         for (const leg of edge.node.legs) {
@@ -184,7 +183,7 @@ export class OTPAdapter implements RoutePlanner {
             totalDistance += leg.distance;
 
             // Translate the leg
-            legs.push(this.translateTripLeg(leg));
+            legRequests.push(this.translateTripLeg(leg));
         }
 
         // Once all legs are translated, create the final trip option object
@@ -193,7 +192,7 @@ export class OTPAdapter implements RoutePlanner {
             distance: totalDistance,
             startDatetime: new Date(edge.node.start),
             endDatetime: new Date(edge.node.end),
-            legs,
+            legs: await Promise.all(legRequests),
 
             // Initialize empty names for section origin and destination points
             originName: null,
@@ -249,11 +248,15 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Function translating a single leg of a trip option returned from OTP to client format
-    private translateTripLeg(leg: Leg): TripSectionLeg {
+    private async translateTripLeg(leg: Leg): Promise<TripSectionLeg> {
+
+        // Get shape of the leg, either from OTP google polyline or database
+        const shape = await getLegShape(leg); 
+
         return {
-            distance: leg.distance,
+            distance: shape.distance,
             duration: leg.duration,
-            points: this.translateGooglePolyline(leg.legGeometry.points),   
+            points: shape.points,   
             mode: leg.mode as Mode,
             from: {
                 arrivalTime: new Date(leg.from.arrival.scheduledTime),      // Convert dates as strings into actual UTC JS date objects
@@ -280,18 +283,5 @@ export class OTPAdapter implements RoutePlanner {
             } : null,
             zones: this.getZonesUsedOnLeg(leg),
         }
-    }
-
-    // Function decoding google polyline to array of lat/lng coordinate object with mapbox package
-    private translateGooglePolyline(encoded: string, precision?: number): LatLng[] {
-
-        // Use mapbox package to get a list of number tuples
-        const decoded = polyline.decode(encoded, precision);
-
-        // Convert into list of lat/lng objects
-        return decoded.map(tuple => ({
-            lat: tuple[0],
-            lng: tuple[1],
-        }));
     }
 };

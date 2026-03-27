@@ -414,8 +414,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         if (this.tripOptions === null)
             return;
 
-        // If the trip does not have a full shape from the DB yet, call the backend and get it
-        const trip = await this.getTripWithShape(index);
+        const trip = this.tripOptions[index];
 
         // Reset routes layer before rendering
         this.mapService.clearLayer('routes');
@@ -534,25 +533,6 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         setTimeout(() => {
             this.geocodedPlaceName = null;
         })
-    }
-
-    // Function calling the backend to fill in the full trip shape from the DB 
-    private async getTripWithShape(idx: number): Promise<TripOption> {
-
-        // If the trip already had the shape calculated before, use it
-        const trip = this.tripOptions![idx];
-        if (trip.hasFullShape)
-            return trip;
-
-        this.msgService.turnOnLoadingScreenWithoutPercentage();
-
-        // Overwrite the old trip with one that now has the actual leg shapes and hasFullShape set to true
-        const tripWithShape = await this.apiService.genericPost(`${config.apiPrefix}/tripShape`, trip) as TripOption;
-        this.tripOptions![idx] = tripWithShape;
-
-        this.msgService.turnOffLoadingScreen();
-
-        return tripWithShape;
     }
 
     // Function validating the schema and semantics of 'object' as a TripOption with created zod schema

@@ -5,6 +5,7 @@
  * Custom type containing information about one trip option.
  */
 
+import { LatLng } from "./LatLng";
 import { Mode } from "./Mode";
 
 // One leg of the connection
@@ -22,10 +23,7 @@ export type TripSectionLeg = {
     },
 
     // List of coordinates of points giving the shape of the leg on a map
-    points: {
-        lat: number,
-        lng: number,
-    }[] | null,
+    points: LatLng[] | null,
 
     // Place where the leg ends
     to: {

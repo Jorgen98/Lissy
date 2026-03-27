@@ -571,7 +571,9 @@ async function addTrip(trip) {
 }
 
 // Get all trips used in actual transit system state
-async function getActiveTrips(routeIds) {
+// 'shortQuery' is used as true for getting trip shape from DB in the planner component,
+// selecting less columns speeds the query up a lot, and the planner doesnt need all the data
+async function getActiveTrips(routeIds, shortQuery = false) {
     let result;
 
     let ids = [];
@@ -580,9 +582,16 @@ async function getActiveTrips(routeIds) {
     }
 
     try {
-        result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
-            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
-            stops_info, stops, api, gtfs_trip_id FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
+        if (shortQuery) {
+            result = await db_postgis.query(
+                `SELECT id, trip_id, shape_id, gtfs_trip_id FROM trips WHERE is_active=true AND route_id_id IN (${ids})`
+            );
+        }
+        else {
+            result = await db_postgis.query(`SELECT id, trip_id, trip_headsign,
+                trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
+                stops_info, stops, api, gtfs_trip_id FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
+        }
     } catch(error) {
         log('error', error);
         return [];

@@ -21,3 +21,9 @@ CREATE TABLE IF NOT EXISTS shapes (id SERIAL PRIMARY KEY, geom GEOMETRY, route_t
 CREATE TABLE IF NOT EXISTS trips (id SERIAL PRIMARY KEY, route_id TEXT, route_id_id INT, CONSTRAINT route_id_id FOREIGN KEY(route_id_id) REFERENCES routes(id), trip_id TEXT,
     trip_headsign TEXT, trip_short_name TEXT, direction_id INT, block_id TEXT, wheelchair_accessible INT, bikes_allowed INT, gtfs_trip_id INT,
     shape_id INT, CONSTRAINT shape_id FOREIGN KEY(shape_id) REFERENCES shapes(id), stops INT[], stops_info JSON[], api TEXT, is_today BOOLEAN, is_active BOOLEAN);
+
+CREATE INDEX IF NOT EXISTS idx_trips_active_route
+    ON trips(route_id_id)
+    WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_trips_shape_id
+    ON trips(shape_id);

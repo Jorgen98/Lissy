@@ -81,10 +81,8 @@
 .p-accordion-header {
     border-radius: 0 !important;
     background-color: var(--background);
+    padding: 0;
     color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
     --p-accordion-header-active-background: var(--background);
     --p-accordion-header-active-color: var(--p-gray-300);
 }
@@ -107,21 +105,6 @@
     color: var(--p-gray-300);
 }
 
-.accorion-header-timeline {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-bottom: 23px;
-    gap: 10px;
-    align-items: center;
-}
-
-.accorion-header-distance-duration {
-    font-size: 14px;
-    display: flex;
-    gap: 15px;
-}
-
 .scrollbox {
     overflow-y: auto;
     --scrollbar-track-color: transparent;
@@ -140,91 +123,6 @@
 
 .p-accordion-header:hover {
     background-color: var(--background) !important;
-}
-
-.timeline {
-    width: 100%;
-    display: flex;
-    height: 4px;
-}
-
-.dashed {
-    position: relative;
-    
-}
-
-.dashed::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 4px;
-    background-color: var(--background);
-    mask-image: repeating-linear-gradient(
-        to right,
-        black 0px,
-        black 3px,
-        transparent 3px,
-        transparent 6px
-    );
-    z-index: 1;
-}
-
-.accordion-header-info {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.timeline-segment {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 10px;
-    position: relative;
-}
-
-.mode-circle {
-    width: 22px;
-    height: 22px;
-    background-color: white;
-    border-radius: 11px;
-    border: 1px solid black;
-    z-index: 2;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.midpoint-circle {
-    width: 10px;
-    height: 13px;
-    background-color: yellow;
-    border-radius: 50% 50% 0 0;
-    clip-path: polygon(0% 0%, 100% 0%, 100% 50%, 50% 100%, 0% 50%);
-    position: absolute;
-    right: -4px;
-    z-index: 10;
-}
-
-.mode-img {
-    height: 12px;
-}
-
-.line-label {
-    background-color: white;
-    color: black;
-    font-size: 12px;
-    border-radius: 5px;
-    position: absolute;
-    margin-top: 42px;
-}
-
-.line-label span {
-    padding: 1px;
 }
 
 .trip-detail-main {

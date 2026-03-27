@@ -1,0 +1,48 @@
+<!--
+File: trip-header.component.html
+Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+
+Component HTML template file for the header component describing a single trip option.
+-->
+
+<!-- Timeline and start,end times -->
+<div class="header-timeline">
+  <span>{{ option()!.startDatetime | date: "HH:mm" }}</span>
+  <div class="timeline">
+    @for(section of option()!.sections; track $index; let lastSection = $last) {
+      @for(leg of section.legs; track $index; let lastLeg = $last) {
+      <div class="timeline-segment" [style.background]="getLegColor(leg)" [style.flex]="leg.distance"
+        [class.dashed]="leg.mode === 'CAR' || leg.mode === 'WALK'">
+
+        <!-- Circle with mode image -->
+        <!-- Dont show for walking legs that are less than 10% of the trip (most likely a tranfer, access, egress) -->
+        @if (leg.mode !== "WALK" || (leg.distance / option()!.distance >= 0.1)) {
+          <div class="mode-circle" [title]="`planner.itinerary.${leg.mode.toLowerCase()}` | translate">
+            <img class="mode-img" [src]="`./planner/${leg.mode.toLowerCase()}-dark.svg`" />
+          </div>
+          <div class="line-label" [style.background]="getLegColor(leg)" [style.color]="getLegTextColor(leg)">
+            @if (leg.route?.lineId) {
+              <span>{{ leg.route?.lineId }}</span>
+            }
+          </div>
+        }
+
+        @if (lastLeg && !lastSection) {
+          <div class="midpoint-circle" [title]="`planner.itinerary.${leg.mode.toLowerCase()}` | translate"></div>
+        }
+      </div>
+      }
+    }
+  </div>
+  <span>{{ option()!.endDatetime | date: "HH:mm" }}</span>
+</div>
+
+<!-- Distance and duration of option -->
+<div class="header-distance-duration">
+  <span class="header-info"><i class="pi pi-stopwatch"></i>{{ option()!.duration | duration }}</span>
+  @if(option()!.hasFullShape) {
+    <span class="header-info"><i class="pi pi-wave-pulse"></i>{{ option()!.distance | distance }}</span>
+  }
+  <span class="header-info"><i class="pi pi-arrows-h"></i>{{ option()!.numTransfers }}</span>
+  <span class="header-info"><i class="pi pi-wallet"></i>{{ `${option()!.cost | number:'1.0-0'} Kč` }}</span>
+</div>

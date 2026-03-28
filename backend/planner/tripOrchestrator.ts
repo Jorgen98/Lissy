@@ -6,7 +6,7 @@
  * Entry point to the trip planning process.
  */
 
-import { postprocessTripOptions } from "./postprocessing";
+import { getParetoOptimalTrips, postprocessTripOptions } from "./postprocessing";
 import { TripRequest } from "./types/TripRequest";
 import { RoutePlanner } from "./RoutePlanner";
 import { TripOption, TripSectionOption } from "./types/TripOption";
@@ -33,11 +33,14 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
     // Filter out unsatisfactory trip options by given user preferences
     const filteredOptions = filterOptions(tripOptions, request.preferences);
 
+    // Get only pareto-optimal options
+    const paretoOptions = getParetoOptimalTrips(filteredOptions);
+
     // Fill in trip shapes for all options from the DB
-    for (const option of filteredOptions)
+    for (const option of paretoOptions)
         await fillInTripShape(option);
 
-    return filteredOptions;
+    return paretoOptions;
 }
 
 // Function returning a list of TripOption objects

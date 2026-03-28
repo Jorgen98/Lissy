@@ -37,6 +37,49 @@ export async function postprocessTripOptions(options: TripOption[], request: Tri
     }
 }
 
+// Function filtering the input trips based on pareto-optimalty
+export function getParetoOptimalTrips(options: TripOption[]): TripOption[] {
+    return options.filter((optionB, idx) => {
+        for (let i = 0; i < options.length; i++) {
+            if (i === idx) continue;
+
+            // If the current option is dominated by any other option, filter out
+            if (dominates(options[i]!, optionB))
+                return false;
+        }
+        return true;
+    });
+}
+
+// Function deciding whether tripA dominates tripB
+// Dominates = is at least as good in all criteria and strictly better then at least one criteria
+function dominates(tripA: TripOption, tripB: TripOption): boolean {
+
+    let betterInOne = false;
+
+    if (tripA.cost! < tripB.cost!) 
+        betterInOne = true;
+    else if (tripA.cost! > tripB.cost!)
+        return false;
+
+    if (tripA.duration! < tripB.duration!) 
+        betterInOne = true;
+    else if (tripA.duration! > tripB.duration!)
+        return false;
+
+    if (tripA.emissions! < tripB.emissions!) 
+        betterInOne = true;
+    else if (tripA.emissions! > tripB.emissions!)
+        return false;
+
+    if (tripA.numTransfers! < tripB.numTransfers!) 
+        betterInOne = true;
+    else if (tripA.numTransfers! > tripB.numTransfers!)
+        return false;
+
+    return betterInOne;
+}
+
 // Function performing postprocessing operations on trip sections
 export async function postprocessTripSections(options: TripSectionOption[], preferences: UserPreferences): Promise<void> {
     for (const option of options) {

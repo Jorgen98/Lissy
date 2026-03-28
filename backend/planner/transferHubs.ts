@@ -74,7 +74,7 @@ export function clusterHubs(hubs: TransferHub[]): TransferHub[] {
     const coords = hubs.map(hub => [hub.coords.lat, hub.coords.lng]);
     
     // Calculate number of clusters with a base constant and a slow growing factor (numHubs^factor)
-    const numClusters = CANDIDATES_NO_CLUSTER_LIMIT + Math.floor(Math.pow(hubs.length, CLUSTER_NUMBER_FACTOR));
+    const numClusters = Math.min(hubs.length, CANDIDATES_NO_CLUSTER_LIMIT + Math.floor(Math.pow(hubs.length, CLUSTER_NUMBER_FACTOR)));
 
     // Run KMeans for the array of coordinates with custom distance function (straight line distance between points on globe)
     const kmeansResult = kmeans(coords, numClusters, {

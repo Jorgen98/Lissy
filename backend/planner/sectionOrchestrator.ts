@@ -134,6 +134,13 @@ async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionIn
     // Get first transit option
     // TODO use a few of them (ranking)
     const firstTransitOption = validTransitOptions[0]!;
+    
+    // Since the car is fetched first and only then transit trips are queried, a gap is going to get created between the car leg arrival and transit leg departure
+    // This gap isnt necessary, since the car can just leave later and match up exactly to the departure of the transit leg
+    // These three lines shift the arrival of the car leg to the departure of the transit leg, whilst also shifting the car leg departure, since the duration is already known
+    const carSectionIdealStart = firstTransitOption.startDatetime.getTime() - carSection.duration * 1000;
+    carSection.startDatetime = new Date(carSectionIdealStart);
+    carSection.endDatetime = firstTransitOption.startDatetime;
 
     // Destination of the car leg is a parking spot
     carSection.legs[0]!.to.isParking = true;

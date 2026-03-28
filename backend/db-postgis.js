@@ -570,10 +570,27 @@ async function addTrip(trip) {
     }
 }
 
+// Get trip in the database based on gtfs id and route id
+async function getGtfsTrip(gtfs_trip_id, route_id) {
+    try {
+        const result = await db_postgis.query(
+            `SELECT id, trip_id, shape_id, gtfs_trip_id FROM trips WHERE route_id_id = $1 AND gtfs_trip_id = $2`,
+            [route_id, gtfs_trip_id]
+        );
+
+        let output = {};
+        for (const row of result.rows)
+            output[row['gtfs_trip_id']] = row;    
+
+        return output;
+    } catch(error) {
+        log('error', error);
+        return null;
+    }
+}
+
 // Get all trips used in actual transit system state
-// 'shortQuery' is used as true for getting trip shape from DB in the planner component,
-// selecting less columns speeds the query up a lot, and the planner doesnt need all the data
-async function getActiveTrips(routeIds, shortQuery = false) {
+async function getActiveTrips(routeIds) {
     let result;
 
     let ids = [];
@@ -582,16 +599,9 @@ async function getActiveTrips(routeIds, shortQuery = false) {
     }
 
     try {
-        if (shortQuery) {
-            result = await db_postgis.query(
-                `SELECT id, trip_id, shape_id, gtfs_trip_id FROM trips WHERE is_active=true AND route_id_id IN (${ids})`
-            );
-        }
-        else {
-            result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
-                trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
-                stops_info, stops, api, gtfs_trip_id FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
-        }
+        result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
+            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
+            stops_info, stops, api, gtfs_trip_id FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
     } catch(error) {
         log('error', error);
         return [];
@@ -1244,4 +1254,4 @@ module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, ad
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
     getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
-    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets }
+    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getGtfsTrip }

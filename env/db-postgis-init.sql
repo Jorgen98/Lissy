@@ -40,8 +40,7 @@ INSERT INTO fare_tickets (code, zones, duration, base_price, discounted_a_price,
 ('all', 2048, 240, 113, 56, 71, FALSE),
 ('universal', NULL, NULL, 180, 90, 90, TRUE);
 
-CREATE INDEX IF NOT EXISTS idx_trips_active_route
-    ON trips(route_id_id)
-    WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_trips_route_gtfs
+    ON trips(route_id_id, gtfs_trip_id);
 CREATE INDEX IF NOT EXISTS idx_trips_shape_id
     ON trips(shape_id);

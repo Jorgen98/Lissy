@@ -1496,12 +1496,14 @@ async function getShapeFromOTP(routeId, tripId) {
     const routes = cachedRoutes.data ?? await dbCache.setUpActiveRoutes();
     const route = routes[routeId.split(':')[1]];
     if (route) {
-        const trips = await dbPostGIS.getActiveTrips([route], true);
-        for (const trip of Object.keys(trips)) {
-            if (trips[trip].gtfs_trip_id === parseInt(tripId.split(':')[1])) {
-                return await dbPostGIS.getFullShape(trips[trip].shape_id);
-            }
-        }
+
+        // Get gtfs trip that match route id and gtfs id
+        const trips = await dbPostGIS.getGtfsTrip(tripId.split(':')[1], route["id"]);
+        const trip = trips[tripId.split(':')[1]];
+        if (!trip)
+            return undefined;
+
+        return await dbPostGIS.getFullShape(trip.shape_id);
     }
 }
 

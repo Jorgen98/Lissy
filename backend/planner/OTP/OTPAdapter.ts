@@ -122,7 +122,7 @@ export class OTPAdapter implements RoutePlanner {
             shouldAttemptPaging = 
                 response.data.planConnection.pageInfo.hasNextPage 
                 && nextPageAttempts++ < OTP_MAX_WINDOW_PAGING_ATTEMPTS 
-                && routingErrorCode === "NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW";
+                && (routingErrorCode === "NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW" || routingErrorCode === null);
             params.cursor = response.data.planConnection.pageInfo.endCursor;
 
             if (shouldAttemptPaging) log('info', `Attempting routing with OTP in next search window...`);

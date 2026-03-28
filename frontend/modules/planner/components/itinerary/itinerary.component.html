@@ -13,13 +13,12 @@ Main component HTML template file for the itinerary used in the planner module.
     <div class="header">
 
       <!-- Back button to hide option detail -->
-      @if (optionDetailActive) {
-        <img 
-          class="back-btn" 
-          src="./planner/chevron.svg" 
-          (click)="backButtonClicked()" 
-        />
-      }
+      <img 
+        class="back-btn" 
+        src="./planner/chevron.svg" 
+        (click)="backButtonClicked()" 
+        [hidden]="!optionDetailActive"
+      />
 
       <span class="title">{{ "planner.itinerary.title" | translate }}</span>
 

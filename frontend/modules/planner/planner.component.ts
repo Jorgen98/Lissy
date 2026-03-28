@@ -16,7 +16,7 @@ import { APIService } from '../../src/app/services/api';
 import { UIMessagesService } from '../../src/app/services/messages';
 import { Stop } from './types/Stop';
 import { TripData } from './types/TripData';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
 import { MarkerType } from './types/MarkerType';
 import { TripOption, TripSectionLeg } from './types/TripOption';
 import { modeColors } from './utils/modeColors';
@@ -127,8 +127,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
     // Changes to these variables notify child components if they should give up space by going into a more compact mode
     // Or they can take up more space
-    public formForceAction: "open" | "close" | null = null;
-    public itineraryForceAction: "open" | "close" | null = null;
+    public formForceAction = new Subject<"open" | "close">();
+    public itineraryForceAction = new Subject<"open" | "close">();
 
     // List of tickets the user can use for public transport
     public ticketOptions: { type: TicketType, label: string }[] = [
@@ -211,10 +211,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.markerPosition = marker.position;
 
         // Force collapse the form so the point can be selected easily on touch screen devices
-        if (this.isTouchDevice) {
-            this.formForceAction = "close";
-            this.resetComponentNotifs();
-        }
+        if (this.isTouchDevice)
+            this.formForceAction.next("close");
 
         // Otherwise update the cursor
         else {
@@ -283,13 +281,14 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Turn off loading screen after routes are retrieved
         this.msgService.turnOffLoadingScreen();
 
-        // Force collapse the form and expand the itinerary with all options
-        this.formForceAction = "close";
-        this.itineraryForceAction = "open";
-        this.resetComponentNotifs();
-
         // Store the backend call result in the frontend planner for displaying
         this.tripOptions = tripOptions;
+
+        // Force collapse the form and expand the itinerary with all options
+        setTimeout(() => {
+            this.formForceAction.next("close");
+            this.itineraryForceAction.next("open");
+        });
 
         // Render the first trip option
         this.renderTrip(0);
@@ -299,8 +298,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     public itineraryForceOpenDetail() {
 
         // Force collapse the form, make space for itinerary
-        this.formForceAction = "close";
-        this.resetComponentNotifs();
+        this.formForceAction.next("close");
     }
 
     // Notification from the form that its either collapsing or uncollapsing
@@ -308,11 +306,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
         // Notify itinerary to compact/expand based on action from form
         if (action === "uncollapse")
-            this.itineraryForceAction = "close";
+            this.itineraryForceAction.next("close");
         else
-            this.itineraryForceAction = "open";
-
-        this.resetComponentNotifs();
+            this.itineraryForceAction.next("open");
     }
 
     // Function called when the mouse is moved (mousemove event happens)
@@ -401,8 +397,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     public clearItinerary(): void {
 
         // Automatically open the form back up when itinerary clears
-        this.formForceAction = "open";
-        this.resetComponentNotifs();
+        this.formForceAction.next("open");
 
         this.tripOptions = null;
         this.mapService.clearLayer('routes');
@@ -494,9 +489,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             setTimeout(() => {
 
                 // Force collapse the form and expand the itinerary with the trip
-                this.formForceAction = "close";
-                this.itineraryForceAction = "open";
-                this.resetComponentNotifs();
+                this.formForceAction.next("close");
+                this.itineraryForceAction.next("open");
 
                 // Store the trip option
                 this.tripOptions = [tripObject];
@@ -555,16 +549,6 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         return parseResult.data;
     }
 
-    private resetComponentNotifs() {
-
-        // setTimout forces the change to run in the next change detection cycle
-        // This allows for the changes to these variables that happened right before this to actually get detected
-        setTimeout(() => {
-            this.formForceAction = null;
-            this.itineraryForceAction = null;
-        });
-    }
-
     // Function determining if the passed in hex color is light or dark
     private isColorLight(hex: string): boolean {
 
@@ -589,8 +573,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // viewed for a short bit before the form shows back up
         if (this.isTouchDevice) {
             setTimeout(() => {
-                this.formForceAction = "open";
-                this.resetComponentNotifs();
+                this.formForceAction.next("open");
             }, formUncollapseMobileDelay);
         }
 

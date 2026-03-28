@@ -5,7 +5,7 @@
  * Class for the itinerary component used in the planner module.
  */
 
-import { HostListener, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { HostListener, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TripSectionLeg, TripOption } from '../../types/TripOption';
 import { DatePipe } from '@angular/common';
@@ -15,13 +15,15 @@ import { AccordionModule } from 'primeng/accordion';
 import { modeColors } from '../../utils/modeColors';
 import { NgScrollbar, NgScrollbarModule } from 'ngx-scrollbar';
 import { TripHeaderComponent } from '../trip-header/trip-header/trip-header.component';
+import { Subscription, Subject } from 'rxjs';
 import { 
     Component, 
     input, 
     output, 
     OnChanges, 
     SimpleChanges, 
-    OnInit 
+    OnInit,
+    Input
 } from '@angular/core';
 
 @Component({
@@ -38,7 +40,7 @@ import {
     templateUrl: './itinerary.component.html',
     styleUrl: './itinerary.component.css',
 })
-export class ItineraryComponent implements OnChanges, OnInit {
+export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
 
     constructor(
         public translate: TranslateService,
@@ -70,7 +72,8 @@ export class ItineraryComponent implements OnChanges, OnInit {
     public showCompactView: boolean = false;
 
     // Input from the parent telling to itinerary to close itself (compact mode) or open (all options shown)
-    public forceAction = input<"close" | "open" | null>(null);
+    @Input() public forceAction!: Subject<"open" | "close">;
+    private forceActionSubscription!: Subscription;
 
     // Output emitting when the compact view is being exited by clicking on the one shown option (opens detail of that option)
     public forceDetail = output();
@@ -97,10 +100,13 @@ export class ItineraryComponent implements OnChanges, OnInit {
             this.selectedOptionIdx = 0;
             this.optionDetailActive = false;
         }
+    }
 
-        // React to a force close or force open from the parent component 
-        if (changes["forceAction"]) {
-            if (this.forceAction() === "open"){
+    ngOnInit(): void {
+
+        // Subscribe to changes from parent to collapse/uncollapse the form
+        this.forceActionSubscription = this.forceAction.subscribe(action => {
+            if (action === "open"){
                 this.showCompactView = false;
 
                 // If theres only one trip option available open the detail automatically
@@ -110,15 +116,12 @@ export class ItineraryComponent implements OnChanges, OnInit {
                     this.optionDetailActive = true;
                 }
             }
-            else if (this.forceAction() === "close") {
+            else if (action === "close") {
                 this.showCompactView = true;
                 this.accordionOptionValue = -1;
                 this.optionDetailActive = false;
             }
-        }
-    }
-
-    ngOnInit(): void {
+        });
 
         // Subscribe to language changes
         this.translate.onLangChange.subscribe(() => {
@@ -143,6 +146,10 @@ export class ItineraryComponent implements OnChanges, OnInit {
             });
 
         });
+    }
+
+    ngOnDestroy(): void {
+        this.forceActionSubscription.unsubscribe();
     }
 
     // Function called when the user clicks on a trip option

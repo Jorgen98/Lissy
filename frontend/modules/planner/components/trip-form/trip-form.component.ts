@@ -17,7 +17,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { FormControl, FormsModule, ReactiveFormsModule, FormArray } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
 import { Stop } from '../../types/Stop';
-import { debounceTime, map, startWith, Observable } from 'rxjs';
+import { debounceTime, map, startWith, Observable, Subject, Subscription } from 'rxjs';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { 
     CdkDrag, 
@@ -34,7 +34,11 @@ import {
     input, 
     OnInit, 
     OnChanges, 
-    SimpleChanges 
+    SimpleChanges, 
+    Input,
+    ViewChildren,
+    QueryList,
+    ElementRef
 } from '@angular/core';
 
 @Component({
@@ -87,6 +91,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         }
     }
 
+    // List of element references to the point <input> elements
+    @ViewChildren('pointInput') inputs!: QueryList<ElementRef<HTMLInputElement>>;
+
     // Status of current location availability
     public locationStatus: LocationStatus = "default";
 
@@ -127,8 +134,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     // Set of trip point indicies for point which are currently tracking the live location
     private tripPointsWithLocationTracking = new Set<number>();
 
-    // Input from the parent telling the form to collapse itself or uncollapse
-    public forceAction = input<"close" | "open" | null>(null);
+    // Input from the parent telling the form to collapse itself or uncollapse (Input directive instead of input<> for rxjs Subject)
+    @Input() public forceAction!: Subject<"open" | "close">;
+    private forceActionSubscription!: Subscription;
 
     // Output emitting when the form is collapsed or uncollapsed
     public collapseAction = output<"collapse" | "uncollapse">();
@@ -156,6 +164,14 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
             this.createFilteredStops(0),
             this.createFilteredStops(1)
         ];
+
+        // Subscribe to changes from parent to collapse/uncollapse the form
+        this.forceActionSubscription = this.forceAction.subscribe(action => {
+            if (action === "close")
+                this.formCollapsed = true;
+            else
+                this.formCollapsed = false;
+        });
 
         // Subscribe to language changes
         this.translate.onLangChange.subscribe(() => {
@@ -196,6 +212,8 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
 
     ngOnDestroy(): void {
 
+        this.forceActionSubscription.unsubscribe();
+
         // Clear watching for current location and remove existing layers
         navigator.geolocation.clearWatch(this.locationWatchId);
         this.mapService.removeLayer("currentLocation");
@@ -221,14 +239,6 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
 
             // Redraw markers with new trip point
             this.redrawTripMarkers();
-        }
-
-        // React to notification from the parent by collapsing or uncollapsing the form
-        if (changes["forceAction"]) {
-            if (this.forceAction() === "open") 
-                this.formCollapsed = false;
-            else if (this.forceAction() === "close")
-                this.formCollapsed = true;
         }
 
         // Geocoded place name was received in the parent planner
@@ -291,6 +301,13 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
 
     // Function for fetching the current location on user request
     public locationClicked(tripPointPosition?: number): void {
+
+        // Blur the filled input
+        if (tripPointPosition !== undefined) {
+            setTimeout(() => {
+                this.inputs.get(tripPointPosition)?.nativeElement.blur();
+            }, 0);
+        }
 
         // If the location hasnt been fetched before, add a new layer on the map and fetch
         if (this.locationStatus === "default") {
@@ -385,6 +402,11 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     // 'stop' is the selected stop and 'position' holds which trip point the stop was selected for
     public stopSelected(stop: Stop, position: number): void {
 
+        // Blur the filled input
+        setTimeout(() => {
+            this.inputs.get(position)?.nativeElement.blur();
+        }, 0);
+
         // Store coordinates of selected stop in the main trip data and name of stop
         this.tripData.points[position].lat = stop.lat;
         this.tripData.points[position].lng = stop.lng;
@@ -405,6 +427,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
 
         // Clear the lat, lng coordinates at the give position
         this.tripData.points[position] = {};
+        this.tripPointsWithLocationTracking.delete(position);
 
         // Redraw the trip markers due to change
         this.redrawTripMarkers();

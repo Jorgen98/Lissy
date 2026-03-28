@@ -21,7 +21,7 @@ button {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    opacity: 0.5;
+    opacity: 0.8;
 }
 /**************************************************/
 
@@ -127,12 +127,12 @@ button {
 
 .mode-img {
     height: 17px;
+    width: 17px;
 }
 
 .mode-selected {
     background-color: var(--p-gray-800);
     color: var(--p-gray-400);
-    opacity: 1;    
 }
 /*******************************************/
 
@@ -142,9 +142,9 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
     overflow-y: auto;
     flex: 1 1 auto;
+    overflow-x: hidden;
 }
 
 .scrollbox {
@@ -176,9 +176,11 @@ button {
 }
 
 input[type="text"] {
-    height: 37px;
-    width: 100%;
-    font-size: 12px;
+    height: 45px;
+    width: 133%;
+    font-size: 16px;
+    transform: scale(0.75);
+    transform-origin: left center;
 }
 
 .point-input-extra {
@@ -205,13 +207,17 @@ input[type="text"] {
     transition: opacity 0.15s ease;
 }
 
+.remove-midpoint-div {
+    padding: 3px;
+}
+
 .circle-button {
-    height: 27px;
-    width: 27px;
+    height: 23px;
+    width: 23px;
     background-color: var(--background);
     border-radius: 20px;
     border: 2px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
-    font-size: 20px;
+    font-size: 12px;
 }
 
 .reverse-img {
@@ -263,6 +269,10 @@ mat-option {
     border: 1px solid var(--p-gray-700);
     font-weight: 600;
     font-size: 13px;
+}
+
+::ng-deep .mat-pseudo-checkbox {
+    display: none !important;
 }
 
 .point-input-clear {
@@ -368,3 +378,11 @@ input[type="checkbox"]
     flex: 0 0 auto;
 }
 /********************************************/
+
+/* Mobile view style overrides ********************/
+@media only screen and (max-width: 700px) {
+  .form {
+    border-left: 0;
+  }
+}
+/**************************************************/

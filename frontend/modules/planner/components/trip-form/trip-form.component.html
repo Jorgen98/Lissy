@@ -37,7 +37,7 @@ Main component HTML template file for the trip form used in the planner module.
   </div>
 
   <!-- Form content -->
-  @if (!formCollapsed) {
+  <div [hidden]="formCollapsed">
     
     <!-- Mode select section -->
     <div class="mode-select form-section">
@@ -96,8 +96,10 @@ Main component HTML template file for the trip form used in the planner module.
               [placeholder]="'planner.form.startPoint' | translate"
               [formControl]="pointControls.controls[0]"
               [matAutocomplete]="autoOrigin"
+              (click)="pointInputFocused(0)"
+              #pointInput
             />
-            <mat-autocomplete #autoOrigin="matAutocomplete" (opened)="pointInputFocused(0)">
+            <mat-autocomplete #autoOrigin="matAutocomplete">
               @if (locationStatus !== "disabled") {
                 <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(0)">
                   <div class="location-input-option">
@@ -134,7 +136,7 @@ Main component HTML template file for the trip form used in the planner module.
             (click)="addMidpoint(1)"
             [title]="'planner.form.addMidpointTooltip' | translate"
           >
-            +
+            <i class="pi pi-plus"></i>
           </button>
 
           <!-- Mode select under origin point if theres at least one midpoint -->
@@ -200,8 +202,10 @@ Main component HTML template file for the trip form used in the planner module.
                   [placeholder]="'planner.form.midpoint' | translate"
                   [formControl]="control"
                   [matAutocomplete]="autoMid"
+                  (click)="pointInputFocused(outerIdx)"
+                  #pointInput
                 />
-                <mat-autocomplete #autoMid="matAutocomplete" (opened)="pointInputFocused(outerIdx)">
+                <mat-autocomplete #autoMid="matAutocomplete">
                   @if (locationStatus !== "disabled") {
                     <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked($index)">
                       <div class="location-input-option">
@@ -231,12 +235,13 @@ Main component HTML template file for the trip form used in the planner module.
               </div>
 
               <!-- Remove midpoint button -->
-              <img
-                [src]="'./planner/trash-bin-dark.svg'"
-                class="point-input-pointer remove-midpoint"
-                (click)="removeMidpoint($index)"
-                [title]="'planner.form.removeMidpointTooltip' | translate"
-              />
+              <div (click)="removeMidpoint($index)" class="remove-midpoint-div">
+                <img
+                  [src]="'./planner/trash-bin-dark.svg'"
+                  class="point-input-pointer remove-midpoint"
+                  [title]="'planner.form.removeMidpointTooltip' | translate"
+                />
+              </div>
             </div>
 
             <!-- Add midpoint button and mode select between two points-->
@@ -248,7 +253,7 @@ Main component HTML template file for the trip form used in the planner module.
                 (click)="addMidpoint($index + 1)"
                 [title]="'planner.form.addMidpointTooltip' | translate"
               >
-                +
+                <i class="pi pi-plus"></i>
               </button>
 
               <!-- Mode select between adjacent points -->
@@ -312,8 +317,10 @@ Main component HTML template file for the trip form used in the planner module.
               [placeholder]="'planner.form.endPoint' | translate"
               [formControl]="pointControls.controls[this.tripData.points.length - 1]"
               [matAutocomplete]="autoDest"
+              (click)="pointInputFocused(this.tripData.points.length - 1)"
+              #pointInput
             />
-            <mat-autocomplete #autoDest="matAutocomplete" (opened)="pointInputFocused(this.tripData.points.length - 1)">
+            <mat-autocomplete #autoDest="matAutocomplete">
               @if (locationStatus !== "disabled") {
                 <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(this.tripData.points.length - 1)">
                   <div class="location-input-option">
@@ -351,7 +358,7 @@ Main component HTML template file for the trip form used in the planner module.
             (click)="addMidpoint(tripData.points.length)"
             [title]="'planner.form.addMidpointTooltip' | translate"
           >
-            +
+            <i class="pi pi-plus"></i>
           </button>
 
           <!-- Switch midpoint button -->
@@ -459,5 +466,5 @@ Main component HTML template file for the trip form used in the planner module.
         {{ "planner.form.submit" | translate }}
       </button>
     </div>
-  }
+  </div>
 </div>

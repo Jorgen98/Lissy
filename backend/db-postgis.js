@@ -588,7 +588,7 @@ async function getActiveTrips(routeIds, shortQuery = false) {
             );
         }
         else {
-            result = await db_postgis.query(`SELECT id, trip_id, trip_headsign,
+            result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
                 trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
                 stops_info, stops, api, gtfs_trip_id FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
         }

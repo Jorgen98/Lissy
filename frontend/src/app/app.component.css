@@ -1,5 +1,13 @@
+/*
+ * File: app.component.css
+ * Author: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * CSS styles file for the main Angular app component.
+ */
+
 .main {
-    height: 100vh;
+    height: 100dvh;
     width: 100vw;
     margin: 0;
     padding: 0;

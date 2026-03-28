@@ -1,3 +1,11 @@
+/*
+ * File: styles.css
+ * Author: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * Global CSS styles file.
+ */
+
 :root {
     --background: #0f0f11;
     --warning: #eab308;
@@ -329,6 +337,7 @@ app-page-not-found {
         margin: auto;
         max-width: 100vw;
         width: 100vw;
+        min-height: 0;
     }
 
     .side-control-content {

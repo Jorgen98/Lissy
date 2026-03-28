@@ -1,3 +1,11 @@
+/*
+ * File: map.component.css
+ * Author: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * CSS styles file for the leaflet map component.
+ */
+
 #map {
     height: 100%;
     width: 100%;
@@ -213,7 +221,7 @@
 @media only screen and (max-width: 700px) {
     #map {
         width: 100vw;
-        height: 100vh;
+        height: 100dvh;
     }
 
     .zoom-div {

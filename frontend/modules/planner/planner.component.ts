@@ -24,7 +24,7 @@ import { TicketType, TripDataExtended } from './types/TripDataExtended';
 import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { TripSchema } from './schemas/TripSchema';
 import { TranslateService } from '@ngx-translate/core';
-import { TripHeaderComponent } from './components/trip-header/trip-header/trip-header.component';
+import { TripHeaderComponent } from './components/trip-header/trip-header.component';
 import { TripSortField } from './types/TripSortField';
 import { 
     MAX_WALK_DISTANCE_DEFAULT, 

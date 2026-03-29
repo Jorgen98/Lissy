@@ -6,13 +6,13 @@
  */
 
 import { Component, input } from '@angular/core';
-import { TripOption, TripSectionLeg } from '../../../types/TripOption';
-import { modeColors } from '../../../utils/modeColors';
+import { TripOption, TripSectionLeg } from '../../types/TripOption';
+import { modeColors } from '../../utils/modeColors';
 import { DatePipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
-import { DurationPipe } from '../../../pipes/duration.pipe';
+import { DurationPipe } from '../../pipes/duration.pipe';
 import { DecimalPipe } from '@angular/common';
-import { DistancePipe } from '../../../pipes/distance.pipe';
+import { DistancePipe } from '../../pipes/distance.pipe';
 
 @Component({
     selector: 'trip-header',

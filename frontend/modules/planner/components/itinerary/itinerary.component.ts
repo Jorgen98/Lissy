@@ -14,7 +14,7 @@ import { DurationPipe } from '../../pipes/duration.pipe';
 import { AccordionModule } from 'primeng/accordion';
 import { modeColors } from '../../utils/modeColors';
 import { NgScrollbar, NgScrollbarModule } from 'ngx-scrollbar';
-import { TripHeaderComponent } from '../trip-header/trip-header/trip-header.component';
+import { TripHeaderComponent } from '../trip-header/trip-header.component';
 import { Subscription, Subject } from 'rxjs';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';

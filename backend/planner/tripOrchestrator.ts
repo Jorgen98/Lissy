@@ -132,7 +132,6 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
     }
 
     // Build final array of options
-    // NOTE: Always one for now, will be changed when ranking is introduced
     const options = [{
         distance: totalDistance,
         duration: totalDuration,

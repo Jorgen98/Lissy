@@ -51,7 +51,6 @@ export class OTPAdapter implements RoutePlanner {
         const transitModes = usePublicTransport ? this.getAllowedTransitModes(sectionInfo.preferences.publicTransport.allowedModes) : null;
 
         // Select one direct mode, since OTP only allows one
-        // NOTE: Right now this doesnt matter, since requests from routing.ts are made with exactly one mode anyway
         const directModes: PlanDirectMode[] | null = transitOnly ? null : (useCar ? ["CAR"] : ["WALK"]);
 
         // Object with parameters for the planConnection query

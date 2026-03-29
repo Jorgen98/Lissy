@@ -52,6 +52,38 @@
 }
 /**************************************************/
 
+/* Sort select ************************************/
+.sort-div {
+    background-color: var(--p-gray-800);
+    display: flex;
+    align-items: center;
+    padding: 3px 40px;
+    gap: 10px;
+    height: 35px;
+}
+
+.sort-select {
+    flex: 1;
+    height: 100%;
+}
+
+::ng-deep .sort-select .p-select-label {
+    font-size: 14px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+}
+::ng-deep .sort-select .p-select-option {
+    font-size: 13px;
+    padding: 5px 15px;
+}
+
+.sort-label {
+    font-size: 14px;
+}
+/**************************************************/
+
 /* List of found trip options in accordion *********/
 .trip-options {
     display: flex;

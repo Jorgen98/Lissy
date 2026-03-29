@@ -25,6 +25,7 @@ import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { TripSchema } from './schemas/TripSchema';
 import { TranslateService } from '@ngx-translate/core';
 import { TripHeaderComponent } from './components/trip-header/trip-header/trip-header.component';
+import { TripSortField } from './types/TripSortField';
 import { 
     MAX_WALK_DISTANCE_DEFAULT, 
     AVG_FUEL_CONSUMPTION_DEFAULT, 
@@ -282,7 +283,12 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.msgService.turnOffLoadingScreen();
 
         // Store the backend call result in the frontend planner for displaying
-        this.tripOptions = tripOptions;
+        // Also convert dates to actual date object since they convert to strings in fetch responses
+        this.tripOptions = tripOptions.map(option => ({
+            ...option,
+            endDatetime: new Date(option.endDatetime),
+            startDatetime: new Date(option.startDatetime),
+        }));
 
         // Force collapse the form and expand the itinerary with all options
         setTimeout(() => {
@@ -527,6 +533,32 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         setTimeout(() => {
             this.geocodedPlaceName = null;
         })
+    }
+
+    // Function sorting the array of available trip options based on the passed in field name
+    public sortTripOptions(field: TripSortField): void {
+        if (!this.tripOptions)
+            return;
+
+        // Instead of sorting in place, reassign value, so itenerary gets notified about the change
+        switch (field) {
+            case "cost": 
+                this.tripOptions = [...this.tripOptions].sort((a, b) => a.cost - b.cost);
+                break;
+            case "duration":
+                this.tripOptions = [...this.tripOptions].sort((a, b) => a.duration - b.duration);
+                break;
+            case "numTransfers":
+                this.tripOptions = [...this.tripOptions].sort((a, b) => a.numTransfers - b.numTransfers);
+                break;
+            case "startDatetime":
+                this.tripOptions = [...this.tripOptions].sort((a, b) => a.startDatetime.getTime() - b.startDatetime.getTime());
+                break;
+            case "default": 
+                // TODO rating trips
+                this.tripOptions = [...this.tripOptions].sort((a, b) => a.startDatetime.getTime() - b.startDatetime.getTime());
+                break;
+        }
     }
 
     // Function validating the schema and semantics of 'object' as a TripOption with created zod schema

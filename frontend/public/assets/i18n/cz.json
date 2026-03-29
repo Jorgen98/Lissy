@@ -203,7 +203,13 @@
             "export": "Exportovat",
             "parkingSpot": "Parkování",
             "showOnMap": "Zobrazit na mapě",
-            "backToDetail": "Zpět na detail"
+            "backToDetail": "Zpět na detail",
+            "sortBy": "Řadit dle",
+            "sortDefault": "Výchozí",
+            "sortDeparture": "Čas odjezdu",
+            "sortCost": "Odhad ceny",
+            "sortDuration": "Rychlost",
+            "sortNumTransfers": "Počet přestupů"
         },
         "settings": {
             "walkingPreferences": "Chůze",

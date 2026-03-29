@@ -16,6 +16,9 @@ import { modeColors } from '../../utils/modeColors';
 import { NgScrollbar, NgScrollbarModule } from 'ngx-scrollbar';
 import { TripHeaderComponent } from '../trip-header/trip-header/trip-header.component';
 import { Subscription, Subject } from 'rxjs';
+import { SelectModule } from 'primeng/select';
+import { FormsModule } from '@angular/forms';
+import { TripSortField } from '../../types/TripSortField';
 import { 
     Component, 
     input, 
@@ -36,6 +39,8 @@ import {
         AccordionModule,
         NgScrollbarModule,
         TripHeaderComponent,
+        SelectModule,
+        FormsModule
     ],
     templateUrl: './itinerary.component.html',
     styleUrl: './itinerary.component.css',
@@ -78,7 +83,21 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
     // Output emitting when the compact view is being exited by clicking on the one shown option (opens detail of that option)
     public forceDetail = output();
 
+    // Output to notify the parent component to sort the trip options array by specified field
+    public sortTripOptions = output<TripSortField>();
+
     public isTouchDevice = input<boolean>(false);
+
+    // List of field values and labels the trip options array can get sorted by
+    // The label propery is translated in the HTML template of this component
+    public sortSelectOptions: { value: TripSortField, label: string }[] = [
+        { value: "default", label: "planner.itinerary.sortDefault" },
+        { value: "startDatetime", label: "planner.itinerary.sortDeparture" },
+        { value: "cost", label: "planner.itinerary.sortCost" },
+        { value: "duration", label: "planner.itinerary.sortDuration" },
+        { value: "numTransfers", label: "planner.itinerary.sortNumTransfers" },
+    ];
+    public selectedSortField: TripSortField = "default";
 
     // Store references to the scrollbar and to its child items for autoscrolling
     @ViewChild(NgScrollbar) scrollbox!: NgScrollbar;

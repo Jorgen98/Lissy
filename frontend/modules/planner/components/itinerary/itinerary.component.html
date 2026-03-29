@@ -31,6 +31,29 @@ Main component HTML template file for the itinerary used in the planner module.
       />
     </div>
 
+    <!-- Sort select -->
+    <div class="sort-div" [hidden]="showCompactView || optionDetailActive">
+      <span class="sort-label">{{ 'planner.itinerary.sortBy' | translate }}: </span>
+      <p-select 
+        [(ngModel)]="selectedSortField"
+        class="sort-select" 
+        [checkmark]="true" 
+        [options]="sortSelectOptions" 
+        [optionLabel]="'label'" 
+        [optionValue]="'value'" 
+        (onChange)="sortTripOptions.emit(selectedSortField)"
+      >
+
+        <!-- ng-template for using translate pipe -->
+        <ng-template let-option pTemplate="item">
+          {{ option.label | translate }}
+        </ng-template>
+        <ng-template let-option pTemplate="selectedItem">
+          {{ option.label | translate }}
+        </ng-template>
+      </p-select>
+    </div>
+
     <!-- PrimeNG accordion with the found options -->
     <ng-scrollbar class="scrollbox" [visibility]="isTouchDevice() ? 'visible' : 'hover'" [appearance]="'compact'" [orientation]="'vertical'">
       <p-accordion expandIcon="none" collapseIcon="none" [(value)]="accordionOptionValue">

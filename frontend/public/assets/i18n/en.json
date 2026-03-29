@@ -202,7 +202,13 @@
             "export": "Export",
             "parkingSpot": "Parking spot",
             "showOnMap": "Show in map",
-            "backToDetail": "Back to detail"
+            "backToDetail": "Back to detail",
+            "sortBy": "Sort by",
+            "sortDefault": "Default",
+            "sortDeparture": "Departure time",
+            "sortCost": "Price estimate",
+            "sortDuration": "Duration",
+            "sortNumTransfers": "Number of transfers"
         },
         "settings": {
             "walkingPreferences": "Walking",

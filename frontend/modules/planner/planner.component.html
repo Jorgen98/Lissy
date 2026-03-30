@@ -335,6 +335,7 @@ Main component HTML template file for the planner module.
           </div>
           <trip-header 
             [option]="tripOptions![mobileShownOption]"
+            [showTags]="(tripOptions?.length ?? 0) > 2"
           />
         </div>
       }

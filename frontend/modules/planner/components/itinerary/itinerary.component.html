@@ -69,6 +69,7 @@ Main component HTML template file for the itinerary used in the planner module.
               <p-accordion-header class="p-accordion-header" [class.option-selected]="selectedOptionIdx === $index" (click)="changeTripOption($index)">
                 <trip-header 
                   [option]="option"
+                  [showTags]="(tripOptions()?.length ?? 0) > 2"
                 />
               </p-accordion-header>
 

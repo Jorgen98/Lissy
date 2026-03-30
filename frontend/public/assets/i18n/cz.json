@@ -209,7 +209,10 @@
             "sortDeparture": "Čas odjezdu",
             "sortCost": "Odhad ceny",
             "sortDuration": "Rychlost",
-            "sortNumTransfers": "Počet přestupů"
+            "sortNumTransfers": "Počet přestupů",
+            "cheapest": "Nejnižší cena",
+            "best": "Nejlepší",
+            "fastest": "Nejrychlejší"
         },
         "settings": {
             "walkingPreferences": "Chůze",

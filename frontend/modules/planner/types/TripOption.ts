@@ -84,4 +84,7 @@ export type TripOption = {
     emissions: number,              // Emissions in grams of CO2
     cost: number,                   // Estimated cost of trip in CZK
     score: number,
+    fastest: boolean,
+    cheapest: boolean,
+    best: boolean,
 };

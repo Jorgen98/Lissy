@@ -5,6 +5,30 @@ Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
 Component HTML template file for the header component describing a single trip option.
 -->
 
+<!-- Ranking tags -->
+@if (showTags() && (option()?.best || option()?.fastest || option()?.cheapest)) {
+  <div class="ranking-tags">
+    @if (option()?.best) {
+      <div class="ranking-tag best-tag">{{ 'planner.itinerary.best' | translate }}</div>
+    }
+    @else {
+      <div class="ranking-tag"></div>
+    }
+    @if (option()?.fastest) {
+      <div class="ranking-tag fastest-tag">{{ 'planner.itinerary.fastest' | translate }}</div>
+    }
+    @else {
+      <div class="ranking-tag"></div>
+    }
+    @if (option()?.cheapest) {
+      <div class="ranking-tag cheapest-tag">{{ 'planner.itinerary.cheapest' | translate }}</div>
+    }
+    @else {
+      <div class="ranking-tag"></div>
+    }
+  </div>
+}
+
 <!-- Timeline and start,end times -->
 <div class="header-timeline">
   <span>{{ option()!.startDatetime | date: "HH:mm" }}</span>

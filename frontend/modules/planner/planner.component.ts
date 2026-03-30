@@ -502,7 +502,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                 this.itineraryForceAction.next("open");
 
                 // Store the trip option
-                this.tripOptions = [tripObject];
+                // Dont want ranking tags when the trip option is imported
+                this.tripOptions = [{...tripObject, cheapest: false, fastest: false, best: false}];
 
                 // Collapse import side panel
                 this.switchModuleVisibility(3);
@@ -561,7 +562,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     }
 
     // Function validating the schema and semantics of 'object' as a TripOption with created zod schema
-    private validateTripObject(object: unknown): TripOption | null {
+    private validateTripObject(object: unknown): Omit<TripOption, "cheapest" | "best" | "fastest"> | null {
 
         // Parse with created zod schema
         const parseResult = TripSchema.safeParse(object);

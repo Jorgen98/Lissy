@@ -208,7 +208,10 @@
             "sortDeparture": "Departure time",
             "sortCost": "Price estimate",
             "sortDuration": "Duration",
-            "sortNumTransfers": "Number of transfers"
+            "sortNumTransfers": "Number of transfers",
+            "cheapest": "Cheapest",
+            "best": "Best",
+            "fastest": "Fastest"
         },
         "settings": {
             "walkingPreferences": "Walking",

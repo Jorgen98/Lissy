@@ -25,6 +25,9 @@ export class TripHeaderComponent {
     // The trip option to render, input from parent
     public option = input<TripOption | null>(null);
 
+    // Whether tags like 'fastest' should be shown
+    public showTags = input<boolean>(false);
+
     // Function retrieving the color of the leg based on the mode and availability from GTFS
     public getLegColor(leg: TripSectionLeg): string {
 

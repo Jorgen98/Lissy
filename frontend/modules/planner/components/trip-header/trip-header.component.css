@@ -21,6 +21,43 @@
     margin-bottom: 23px;
     gap: 10px;
     align-items: center;
+    margin-top: 8px;
+}
+
+.ranking-tags {
+    width: 100%;
+    height: 12px;
+    display: flex;
+    gap: 10px;
+}
+
+.ranking-tag {
+    flex: 1;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.best-tag {
+    background-color: #3a2a10;
+    color: #fbbf24;
+    border-top: 0;
+}
+
+.fastest-tag {
+    background-color: #1a2a3a;
+    color: #60a5fa;
+    border-top: 0;
+}
+
+.cheapest-tag {
+    background-color: #1a3a2a;
+    color: #4ade80;
+    border-top: 0;
 }
 
 .timeline {

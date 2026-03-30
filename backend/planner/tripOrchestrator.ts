@@ -112,7 +112,10 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
                 numTransfers: 0, // Calculated in postprocessing
                 emissions: section.emissions,
                 cost: null, // Calculated in postprocessing
-                score: null // Calculated in postprocessing
+                score: null, // Calculated in postprocessing,
+                fastest: false,
+                cheapest: false,
+                best: false
             }));
         }
         const section = foundSections[0]!;
@@ -146,7 +149,10 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         numTransfers: 0, // Calculated in prostprocessing
         emissions: totalEmissions,
         cost: null, // Calculated in prostprocessing
-        score: null // Calculated in prostprocessing
+        score: null, // Calculated in prostprocessing
+        fastest: false,
+        cheapest: false,
+        best: false,
     }];
 
     return options;

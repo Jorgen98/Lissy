@@ -60,6 +60,7 @@
     padding: 3px 40px;
     gap: 10px;
     height: 35px;
+    min-height: 35px;
 }
 
 .sort-select {
@@ -114,6 +115,7 @@
     border-radius: 0 !important;
     background-color: var(--background);
     padding: 10px;
+    padding-top: 0;
     color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
     --p-accordion-header-active-background: var(--background);
     --p-accordion-header-active-color: var(--p-gray-300);

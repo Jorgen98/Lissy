@@ -73,4 +73,5 @@ export const TripSchema = z.object({
     numTransfers: z.number(),
     emissions: z.number(),
     cost: z.number(),
+    score: z.number(),
 });

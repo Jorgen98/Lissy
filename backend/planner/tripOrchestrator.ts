@@ -6,7 +6,7 @@
  * Entry point to the trip planning process.
  */
 
-import { getParetoOptimalTrips, postprocessTripOptions } from "./postprocessing";
+import { getParetoOptimalTrips, postprocessTripOptions, rateTripOptions } from "./postprocessing";
 import { TripRequest } from "./types/TripRequest";
 import { RoutePlanner } from "./RoutePlanner";
 import { TripOption, TripSectionOption } from "./types/TripOption";
@@ -35,6 +35,9 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
 
     // Get only pareto-optimal options
     const paretoOptions = getParetoOptimalTrips(filteredOptions);
+
+    // Add a score to all options using the custom scoring system
+    rateTripOptions(paretoOptions);
 
     // Fill in trip shapes for all options from the DB
     for (const option of paretoOptions)
@@ -109,6 +112,7 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
                 numTransfers: 0, // Calculated in postprocessing
                 emissions: section.emissions,
                 cost: null, // Calculated in postprocessing
+                score: null // Calculated in postprocessing
             }));
         }
         const section = foundSections[0]!;
@@ -141,10 +145,9 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         hasFullShape: false,
         numTransfers: 0, // Calculated in prostprocessing
         emissions: totalEmissions,
-        cost: null // Calculated in prostprocessing
+        cost: null, // Calculated in prostprocessing
+        score: null // Calculated in prostprocessing
     }];
-
-    // TODO rate full options and rank them in order of rating
 
     return options;
 } 

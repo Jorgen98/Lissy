@@ -21,29 +21,9 @@ import {
 
 // Function returning a list of TripSectionOption objects, which is a part of the trip, always between two points in the trip request
 export async function getSectionOptions(planner: RoutePlanner, request: TripSectionInfo): Promise<TripSectionOption[]> {
-    
-    // Modes to be used for this section
-    const modes = request.modes;
 
-    // List of Promises that are returned from functions in each individual if branch below
-    // every .push creates a request group for that specific mode/mode combination
-    const sectionRequestGroups: Promise<TripSectionOption[] | null>[] = [];
-
-    // Always get trip options with public transport section if selected
-    if (modes.publicTransport)
-        sectionRequestGroups.push(planner.getTripSection({ ...request, modes: { publicTransport: true, car: false, walk: false }}));
-
-    // If only one direct mode (car or walk) is selected, get trip sections for that mode
-    if ((modes.car && !modes.walk) || (!modes.car && modes.walk))
-        sectionRequestGroups.push(planner.getTripSection({ ...request, modes: { ...modes, publicTransport: false }}));
-
-    // If both direct modes (car and walk) are selected, call function that handles this combination and creates requests
-    if (modes.car && modes.walk)
-        sectionRequestGroups.push(carWalkCombination(planner, request));
-
-    // If car and public transport are both selected, decide if CAR->transfer_hub->TRANSIT options should be requested
-    if (modes.publicTransport && modes.car)
-        sectionRequestGroups.push(carTransitCombination(planner, request));
+    // Get groups of requests that are executed concurrently with Promise.all
+    const sectionRequestGroups = getRequestGroups(request, planner);
 
     // Wait for all request groups to finish, filter out unsuccesfull requests and flatten to 1D array of TripSectionOption
     const foundSections = (await Promise.all(sectionRequestGroups))
@@ -59,6 +39,42 @@ export async function getSectionOptions(planner: RoutePlanner, request: TripSect
     // TODO rate the section options and return them in order by rating
     
     return deduplicatedSections;
+}
+
+// Function building requests based on the selected modes for the section
+function getRequestGroups(request: TripSectionInfo, planner: RoutePlanner): Promise<TripSectionOption[] | null>[] {
+    const modes = request.modes;
+
+    // If the number of selected modes is exactly one, request trips for that mode
+    if (Number(modes.walk) + Number(modes.car) + Number(modes.publicTransport) === 1)  
+        return [planner.getTripSection({ ...request, modes })];
+
+    // If only walk and car are seleced, call function that decides if both request should be made based on distance 
+    if (modes.walk && modes.car && !modes.publicTransport)                                  
+        return [carWalkCombination(planner, request)];
+
+    // If only walk and public transport are chosen, make both requests
+    if (modes.walk && !modes.car && modes.publicTransport) {
+        return [
+            planner.getTripSection({ ...request, modes: { walk: true, car: false, publicTransport: false }}),
+            planner.getTripSection({ ...request, modes: { walk: false, car: false, publicTransport: true }}),
+        ];
+    }
+
+    // If only car and public transport are chosen, request pure public transport options, and car->transit options
+    if (!modes.walk && modes.car && modes.publicTransport) {
+        return [
+            carTransitCombination(planner, request),
+            planner.getTripSection({ ...request, modes: { walk: false, car: false, publicTransport: true }}),
+        ];
+    }
+
+    // If all options are selected, request pure public transport, car->transit, and a walk section
+    return [
+        carTransitCombination(planner, request),
+        planner.getTripSection({ ...request, modes: { walk: false, car: false, publicTransport: true }}),
+        planner.getTripSection({ ...request, modes: { walk: true, car: false, publicTransport: false }}),
+    ];
 }
 
 // Function handling the combination of car and public transport in one request

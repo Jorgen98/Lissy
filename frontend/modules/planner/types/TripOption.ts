@@ -83,4 +83,5 @@ export type TripOption = {
     numTransfers: number,           // Number of transfers in the trip, might not be the same as the sum of transfers in its sections
     emissions: number,              // Emissions in grams of CO2
     cost: number,                   // Estimated cost of trip in CZK
+    score: number,
 };

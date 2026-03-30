@@ -13,6 +13,7 @@ import { TripRequest } from "./types/TripRequest";
 import { UserPreferences, TicketType } from "../../frontend/modules/planner/types/TripDataExtended";
 import { CAR_MAINTENANCE_FACTOR, EMISSION_FACTORS } from "./utils/criteriaConstants";
 import { Ticket } from "./types/Ticket";
+import { RATING_WEIGHTS } from "./utils/tripRatingWeights";
 
 let availableTickets: Ticket[] | null = null;
 
@@ -257,5 +258,44 @@ function addPlaceNames(trip: TripOption, request: TripRequest): void {
         // Same with destination of the last legs and section destination name
         if (destPointName !== undefined && section.legs[section.legs.length - 1]!.to.placeName === null)
             section.legs[section.legs.length - 1]!.to.placeName = destPointName;
+    });
+}
+
+// Function adding a score to each trip option, calculated from the chosen criteria
+export function rateTripOptions(trips: TripOption[]): void {
+
+    // Minimum and maximum value object
+    const minMaxs = {
+        duration: { min: Infinity, max: 0 },
+        cost: { min: Infinity, max: 0 },
+        numTransfers: { min: Infinity, max: 0 },
+        emissions: { min: Infinity, max: 0 },
+    };
+
+    // Get minimum and maximum values for each criteria for min-max normalization
+    trips.forEach(trip => {
+        (Object.keys(minMaxs) as (keyof typeof minMaxs)[]).forEach(criteriaKey => {
+            const minMaxCriteria = minMaxs[criteriaKey];
+            const tripCriteriaValue = trip[criteriaKey]!;
+            minMaxCriteria.max = Math.max(minMaxCriteria.max, tripCriteriaValue);
+            minMaxCriteria.min = Math.min(minMaxCriteria.min, tripCriteriaValue);
+        });
+    });
+
+    // Calculate score for each trip option with min-max normalization to 0-100 range
+    trips.forEach(trip => {
+        trip.score = (Object.keys(minMaxs) as (keyof typeof minMaxs)[]).reduce((score, criteriaKey) => {
+            const { min, max } = minMaxs[criteriaKey];
+            const value = trip[criteriaKey]!;
+
+            let normalized;
+            if (max - min === 0)
+                normalized = 0;
+            else 
+                normalized = 100 - ((value - min) / (max - min)) * 100; // higher score === better trip
+
+            // Multiply by criteria weights and sum all criteria scores
+            return score + normalized * RATING_WEIGHTS[criteriaKey];
+        }, 0);
     });
 }

@@ -11,7 +11,7 @@ const dbPostgis = require("../db-postgis.js");
 import { TripOption, TripSectionOption, TripSectionLeg } from "./types/TripOption";
 import { TripRequest } from "./types/TripRequest";
 import { UserPreferences, TicketType } from "../../frontend/modules/planner/types/TripDataExtended";
-import { EMISSION_FACTORS } from "./utils/criteriaConstants";
+import { CAR_MAINTENANCE_FACTOR, EMISSION_FACTORS } from "./utils/criteriaConstants";
 import { Ticket } from "./types/Ticket";
 
 let availableTickets: Ticket[] | null = null;
@@ -125,7 +125,9 @@ function calculateCarPrice(legs: TripSectionLeg[], avgConsumption: number, fuelP
 
     // Formula to calculate total car price of section
     // (km * 100l/km * czk/l) / 100 ==> czk 
-    return (carDistanceKm * avgConsumption * fuelPrice) / 100;
+    const sectionFuelCost = (carDistanceKm * avgConsumption * fuelPrice) / 100;
+    const sectionMaintenanceCost = carDistanceKm * CAR_MAINTENANCE_FACTOR;
+    return sectionFuelCost + sectionMaintenanceCost; 
 }
 
 // Function calculating the price of using public transport from a list of legs

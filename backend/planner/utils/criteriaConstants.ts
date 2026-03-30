@@ -18,4 +18,7 @@ export const EMISSION_FACTORS: Record<Mode, number> = {
     RAIL: 14,
     TRAM: 10,
     TROLLEYBUS: 10
-}
+};
+
+// A rough estimate of the service cost per km of a car journey 
+export const CAR_MAINTENANCE_FACTOR = 2; 

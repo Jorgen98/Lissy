@@ -14,7 +14,7 @@ import { PlanConnectionParams } from "./types/PlanConnectionParams";
 import { PlanDirectMode } from "./types/PlanDirectMode";
 import { PlanTransitModePreferenceInput } from "./types/PlanTransitModePreferenceInput";
 import { TripSectionOption, TripSectionLeg } from "../types/TripOption";
-import { Edges, Leg, Node, RoutingErrorCode } from "./types/PlanConnectionResponse";
+import { Edges, Leg, Node, PlanConnectionResponse, RoutingErrorCode } from "./types/PlanConnectionResponse";
 import { Mode } from "../types/Mode";
 import { OTP_MAX_WINDOW_PAGING_ATTEMPTS } from "../utils/systemConstants";
 import { translateGooglePolyline } from "../shaping";
@@ -66,7 +66,8 @@ export class OTPAdapter implements RoutePlanner {
             datetime: sectionInfo.datetime.datetime,
             numOptions: numOptions !== undefined ? numOptions : 0,  // If the number of options isnt set, 0 is interpreted as unlimited by OTP
             walkingSpeed: sectionInfo.preferences.walk.avgSpeed,
-            cursor: null,
+            afterCursor: null,
+            beforeCursor: null,
         }
         
         // Query OTP and use the built-in paging mechanism when necessary
@@ -82,8 +83,7 @@ export class OTPAdapter implements RoutePlanner {
     private async planConnectionWithPaging(params: PlanConnectionParams, sectionInfo: TripSectionInfo): Promise<Edges | null> {
 
         let nextPageAttempts = 0;
-        let shouldAttemptPaging = true;
-        while (shouldAttemptPaging) {
+        while (true) {
 
             // Call OTP service with prepared parameters
             const response = await this.otpService.planConnection(params, sectionInfo.datetime.option);
@@ -118,17 +118,35 @@ export class OTPAdapter implements RoutePlanner {
                 return edges;
 
             // Decide if next page should be fetched with following search window, based on attempt, page availiability and routing error
-            shouldAttemptPaging = 
-                response.data.planConnection.pageInfo.hasNextPage 
-                && nextPageAttempts++ < OTP_MAX_WINDOW_PAGING_ATTEMPTS 
-                && (routingErrorCode === "NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW" || routingErrorCode === null);
-            params.cursor = response.data.planConnection.pageInfo.endCursor;
-
-            if (shouldAttemptPaging) log('info', `Attempting routing with OTP in next search window...`);
+            const datetimeOption = sectionInfo.datetime.option;
+            params.afterCursor = datetimeOption === "departure" ? response.data.planConnection.pageInfo.endCursor : null;
+            params.beforeCursor = datetimeOption === "arrival" ? response.data.planConnection.pageInfo.startCursor : null;
+            if (this.shouldAttemptPaging(response, routingErrorCode, nextPageAttempts++, datetimeOption))
+                log('info', `Attempting routing with OTP in next search window...`);
+            else
+                return null;
         }
-
-        return null;    // Paging no longer possible and no trip options found
     }
+
+    // Function deciding if the paging loop should continue
+    private shouldAttemptPaging(
+        response: PlanConnectionResponse, 
+        errorCode: RoutingErrorCode | null, 
+        attempts: number,
+        datetimeOption: "arrival" | "departure"
+    ): boolean {
+
+        if (attempts >= OTP_MAX_WINDOW_PAGING_ATTEMPTS)
+            return false;
+
+        if (errorCode !== "NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW" && errorCode !== null)
+            return false;
+
+        if (datetimeOption === "departure")
+            return response.data!.planConnection.pageInfo.hasNextPage;
+        else 
+            return response.data!.planConnection.pageInfo.hasPreviousPage;
+    }   
 
     // Function performing any initializations for the OTPAdapter, empty implementation
     public async initialize(): Promise<boolean> {

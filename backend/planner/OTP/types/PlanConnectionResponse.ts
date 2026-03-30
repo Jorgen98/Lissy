@@ -90,7 +90,9 @@ export type PlanConnectionResponse = {
             edges: Edges,
             pageInfo: {
                 hasNextPage: boolean,
+                startCursor: string | null,
                 endCursor: string | null,
+                hasPreviousPage: boolean,
             }
             routingErrors: {
                 description: string 

@@ -70,7 +70,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         modes: {
             global: {       // Modes globally selected for planning
                 publicTransport: true,
-                car: true, 
+                car: false, 
                 walk: false,
             },
             sections: [],   // Modes selected between adjacent midpoints
@@ -140,6 +140,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
 
     // Output emitting when the form is collapsed or uncollapsed
     public collapseAction = output<"collapse" | "uncollapse">();
+
+    // Index of modes between trip points where there are invalid modes selected
+    public invalidModesIdx: number | null = null;
 
     public isTouchDevice = input<boolean>(false);
 
@@ -265,6 +268,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
             // Adjust section modes if the global modes were edited
             this.updateSectionModes(mode);
         }
+
+        // Check valid modes across sections
+        this.checkSeperatedCarSections();
     }
 
     // Function called when the collapse button in the header is clicked
@@ -376,6 +382,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         // Copy global selected modes to the new created section
         else
             this.tripData.modes.sections.splice(position - 1, 0, { ...this.tripData.modes.global });
+
+        // Check valid modes across sections
+        this.checkSeperatedCarSections();
     }
 
     // Function deleting trip midpoint from the form
@@ -396,6 +405,8 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
 
         // Redraw markers after midpoint has been removed
         this.redrawTripMarkers();
+
+        this.checkSeperatedCarSections();
     }
 
     // Function called when a stop has been selected from autocomplete
@@ -460,6 +471,10 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         if (this.tripData.return.active && (this.tripData.return.tripDate === "" || this.tripData.return.tripTime === ""))
             return false;
 
+        // Check if points between all sections are valid
+        if (this.invalidModesIdx !== null)
+            return false;
+
         return true;
     }
 
@@ -487,6 +502,36 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         else
             this.tripSubmit.emit(this.tripData);
 
+    }
+
+    // Function checking the array with selected modes for each section for validity (separated car sections)
+    private checkSeperatedCarSections() {
+        let carValid = true;
+        const sectionModes = this.tripData.modes.sections;
+
+        // Iterate over the modes in all sections
+        for (let i = 0; i < sectionModes.length; i++) {
+
+            // The section has car selected as a possible mode
+            if (sectionModes[i].car) {
+
+                // If the car cannot be used here, set the invalid modes index (displays warning message)
+                if (!carValid) {
+                    this.invalidModesIdx = i;
+                    return;
+                }
+
+                // Make the car invalid for next sections if this section might use a car together with another mode
+                else if (sectionModes[i].publicTransport || sectionModes[i].walk)
+                    carValid = false;
+            }
+
+            // If the previous section already uses the car, and the current one isnt, car will no longer be valid
+            else if (i !== 0 && sectionModes[i - 1].car)
+                carValid = false;
+        }
+
+        this.invalidModesIdx = null;
     }
 
     private updateSectionModes(mode: TransportMode): void {

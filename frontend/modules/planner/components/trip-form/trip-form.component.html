@@ -37,7 +37,7 @@ Main component HTML template file for the trip form used in the planner module.
   </div>
 
   <!-- Form content -->
-  <div [hidden]="formCollapsed">
+  <div [hidden]="formCollapsed" class="form-collapse-wrapper">
     
     <!-- Mode select section -->
     <div class="mode-select form-section">
@@ -163,6 +163,7 @@ Main component HTML template file for the trip form used in the planner module.
                   class="midpoint-mode-button"
                   [class.mode-selected]="tripData.modes.sections[0].car"
                   (click)="modeToggled('car', 0)"
+                  [class.mode-disabled]="0 === invalidModesIdx"
                 >
                   <img
                     [src]="'./planner/car-light.svg'"
@@ -185,6 +186,11 @@ Main component HTML template file for the trip form used in the planner module.
                 </button>
               }
             </fieldset>
+          }
+          @if (invalidModesIdx === 0) {
+            <span class="invalid-modes-warning">
+              {{ 'planner.form.carParkedEarlier' | translate }}
+            </span>
           }
         </div>
 
@@ -279,6 +285,7 @@ Main component HTML template file for the trip form used in the planner module.
                     <button
                       class="midpoint-mode-button"
                       [class.mode-selected]="tripData.modes.sections[$index].car"
+                      [class.mode-disabled]="$index === invalidModesIdx"
                       (click)="modeToggled('car', $index)"
                     >
                       <img
@@ -302,6 +309,11 @@ Main component HTML template file for the trip form used in the planner module.
                     </button>
                   }
                 </fieldset>
+              }
+              @if (invalidModesIdx === $index) {
+                <span class="invalid-modes-warning">
+                  {{ 'planner.form.carParkedEarlier' | translate }}
+                </span>
               }
             </div>
           }

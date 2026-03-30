@@ -39,6 +39,12 @@ button {
 .form-section {
     background: linear-gradient(var(--p-gray-800), var(--p-gray-800)) top center / 96% 0.15em no-repeat, var(--background);
 }
+
+.form-collapse-wrapper {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
 /**************************************************/
 
 /* Form header *****************************/
@@ -133,6 +139,22 @@ button {
 .mode-selected {
     background-color: var(--p-gray-800);
     color: var(--p-gray-400);
+}
+
+.mode-disabled {
+    opacity: 0.5;
+    outline: 2px solid red;
+}
+
+.mode-disabled:hover {
+    opacity: 0.2 !important;
+}
+
+.invalid-modes-warning {
+    font-size: 11px;
+    max-width: 75px;
+    color: brown;
+    font-weight: bold;
 }
 /*******************************************/
 

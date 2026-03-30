@@ -181,7 +181,8 @@
             "markerTooltip": "Vybrat z mapy",
             "myLocation": "Moje poloha",
             "pointClearTooltip": "Obnovit bod",
-            "pointFromMap": "Bod z mapy"
+            "pointFromMap": "Bod z mapy",
+            "carParkedEarlier": "Cesta autem již ukončena" 
         },
         "itinerary": {
             "title": "Itinerář",

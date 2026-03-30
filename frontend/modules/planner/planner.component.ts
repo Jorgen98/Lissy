@@ -290,6 +290,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             startDatetime: new Date(option.startDatetime),
         }));
 
+        // Implicitly sort by departure time
+        this.sortTripOptions("startDatetime");
+
         // Force collapse the form and expand the itinerary with all options
         setTimeout(() => {
             this.formForceAction.next("close");
@@ -552,10 +555,6 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                 this.tripOptions = [...this.tripOptions].sort((a, b) => a.numTransfers - b.numTransfers);
                 break;
             case "startDatetime":
-                this.tripOptions = [...this.tripOptions].sort((a, b) => a.startDatetime.getTime() - b.startDatetime.getTime());
-                break;
-            case "default": 
-                // TODO rating trips
                 this.tripOptions = [...this.tripOptions].sort((a, b) => a.startDatetime.getTime() - b.startDatetime.getTime());
                 break;
         }

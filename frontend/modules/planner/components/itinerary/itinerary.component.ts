@@ -91,13 +91,12 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
     // List of field values and labels the trip options array can get sorted by
     // The label propery is translated in the HTML template of this component
     public sortSelectOptions: { value: TripSortField, label: string }[] = [
-        { value: "default", label: "planner.itinerary.sortDefault" },
         { value: "startDatetime", label: "planner.itinerary.sortDeparture" },
         { value: "cost", label: "planner.itinerary.sortCost" },
         { value: "duration", label: "planner.itinerary.sortDuration" },
         { value: "numTransfers", label: "planner.itinerary.sortNumTransfers" },
     ];
-    public selectedSortField: TripSortField = "default";
+    public selectedSortField: TripSortField = "startDatetime";
 
     // Store references to the scrollbar and to its child items for autoscrolling
     @ViewChild(NgScrollbar) scrollbox!: NgScrollbar;

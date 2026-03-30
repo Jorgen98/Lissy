@@ -72,6 +72,7 @@ export type TripSectionOption = {
     emissions: number | null,       // Emissions in grams of CO2
     cost: number | null,            // Estimated cost of the section in CZK
     numTransfers: number | null,    // Number of transfers on the option
+    score: number | null,
 };
 
 // One trip option built out of sections

@@ -210,6 +210,9 @@ export class OTPAdapter implements RoutePlanner {
 
             // Not provided in OTP, calculated later
             numTransfers: null,
+
+            // Calculated later
+            score: null,
         };
     }
 

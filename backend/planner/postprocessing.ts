@@ -261,8 +261,13 @@ function addPlaceNames(trip: TripOption, request: TripRequest): void {
     });
 }
 
-// Function adding a score to each trip option, calculated from the chosen criteria
-export function rateTripOptions(trips: TripOption[]): void {
+// Function adding a score to each trip option/section, calculated from the chosen criteria
+export function rateOptions(objects: TripOption[] | TripSectionOption[]): void {
+
+    if (objects.length === 0)
+        return;
+
+    const addTags = 'fastest' in objects[0]!;
 
     // Minimum and maximum value object
     const minMaxs = {
@@ -273,10 +278,10 @@ export function rateTripOptions(trips: TripOption[]): void {
     };
 
     // Get minimum and maximum values for each criteria for min-max normalization
-    trips.forEach(trip => {
+    objects.forEach(object => {
         (Object.keys(minMaxs) as (keyof typeof minMaxs)[]).forEach(criteriaKey => {
             const minMaxCriteria = minMaxs[criteriaKey];
-            const tripCriteriaValue = trip[criteriaKey]!;
+            const tripCriteriaValue = object[criteriaKey]!;
             minMaxCriteria.max = Math.max(minMaxCriteria.max, tripCriteriaValue);
             minMaxCriteria.min = Math.min(minMaxCriteria.min, tripCriteriaValue);
         });
@@ -286,18 +291,18 @@ export function rateTripOptions(trips: TripOption[]): void {
     let maxIdx = 0;
     let fastestSet = false;
     let cheapestSet = false;
-    trips.forEach((trip, idx) => {
+    objects.forEach((object, idx) => {
         const score = (Object.keys(minMaxs) as (keyof typeof minMaxs)[]).reduce((score, criteriaKey) => {
             const { min, max } = minMaxs[criteriaKey];
-            const value = trip[criteriaKey]!;
+            const value = object[criteriaKey]!;
 
             // Mark fastest and cheapest trips with flags (only first one if equal)
             if (!fastestSet && criteriaKey === "duration" && min === value) {
-                trip.fastest = true
+                if (addTags) (object as TripOption).fastest = true
                 fastestSet = true;
             }
             else if (!cheapestSet && criteriaKey === "cost" && min === value) {
-                trip.cheapest = true
+                if (addTags) (object as TripOption).cheapest = true
                 cheapestSet = true;
             }
 
@@ -312,10 +317,10 @@ export function rateTripOptions(trips: TripOption[]): void {
         }, 0);
 
         // Update the object with calculated score
-        trip.score = score;
-        if (score > trips[maxIdx]?.score!) maxIdx = idx;
+        object.score = score;
+        if (score > objects[maxIdx]?.score!) maxIdx = idx;
     });
 
     // Mark trip with best score as best
-    trips[maxIdx]!.best = true; 
+    if (addTags) (objects[maxIdx]! as TripOption).best = true; 
 }

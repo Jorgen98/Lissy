@@ -6,7 +6,7 @@
  * Entry point to the trip planning process.
  */
 
-import { getParetoOptimalTrips, postprocessTripOptions, rateTripOptions } from "./postprocessing";
+import { getParetoOptimalTrips, postprocessTripOptions, rateOptions } from "./postprocessing";
 import { TripRequest } from "./types/TripRequest";
 import { RoutePlanner } from "./RoutePlanner";
 import { TripOption, TripSectionOption } from "./types/TripOption";
@@ -37,7 +37,7 @@ export async function planTrip(request: TripRequest, planner: RoutePlanner): Pro
     const paretoOptions = getParetoOptimalTrips(filteredOptions);
 
     // Add a score to all options using the custom scoring system
-    rateTripOptions(paretoOptions);
+    rateOptions(paretoOptions);
 
     // Fill in trip shapes for all options from the DB
     for (const option of paretoOptions)

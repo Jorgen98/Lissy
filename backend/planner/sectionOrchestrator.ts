@@ -8,7 +8,7 @@
 import { RoutePlanner } from "./RoutePlanner";
 import { TripSectionInfo } from "./types/TripSectionInfo";
 import { TripSectionOption } from "./types/TripOption";
-import { postprocessTripSections } from "./postprocessing";
+import { postprocessTripSections, rateOptions } from "./postprocessing";
 import { calculateDistanceHaversine } from "./geo";
 import { getTransferHubs, filterTransferHubs, clusterHubs } from "./transferHubs";
 import { TransferHub } from "./types/TransferHub";
@@ -36,7 +36,11 @@ export async function getSectionOptions(planner: RoutePlanner, request: TripSect
     // Apply postprocessing operations to found options, calculates other useful data for the section
     await postprocessTripSections(deduplicatedSections, request.preferences);
 
-    // TODO rate the section options and return them in order by rating
+    // Rate the found sections
+    rateOptions(deduplicatedSections);
+
+    // Sort the options by calculated rating
+    deduplicatedSections.sort((a, b) => b.score! - a.score!);
     
     return deduplicatedSections;
 }

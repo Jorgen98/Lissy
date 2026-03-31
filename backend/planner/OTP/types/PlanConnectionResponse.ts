@@ -55,6 +55,8 @@ export type Leg = {
         stop: {
             name: string
         } | null,
+        lat: number,
+        lon: number,
     },
 
     // Information about the trip used for the leg

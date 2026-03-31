@@ -156,6 +156,10 @@ button {
     color: brown;
     font-weight: bold;
 }
+
+.form-collapse-wrapper[hidden] {
+  display: none !important;
+}
 /*******************************************/
 
 /* Trip points *****************************/

@@ -34,12 +34,19 @@ export type UserPreferences = {
     }
 }
 
-export type TripDataExtended = Omit<TripData, 'datetime'> & {
+export type TripDataExtended = Omit<TripData, 'datetime' | 'return'> & {
 
     // Date and time information about the trip
     datetime: {
         tripDatetime: string, // ISO UTC
         datetimeOption: "departure" | "arrival"         // If the trip datetime represents departure or arrival time  
+    }
+
+    // Return trip with updated datetime format
+    return: {
+        active: boolean
+        datetime: string // ISO UTC
+        datetimeOption: "departure" | "arrival"
     }
 
     // Append information about user preferences to TripData type

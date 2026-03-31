@@ -111,6 +111,8 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                                 gtfsId
                             }
                             to {
+                                lat
+                                lon
                                 arrival {
                                     scheduledTime
                                 }

@@ -236,12 +236,13 @@ function addNumberOfTransfers(legs: TripSectionLeg[], object: TripSectionOption 
 }
 
 // Function adding place names to section origin points and destination points where they arent yet set
-function addPlaceNames(trip: TripOption, request: TripRequest): void {
+export function addPlaceNames(trip: TripOption, request: TripRequest, returnTrip: boolean = false): void {
     trip.sections.forEach((section, index) => {
 
         // Get the possible new names for section origin and destination from the request
-        const originPointName = request.points[index]!.placeName;
-        const destPointName = request.points[index + 1]!.placeName;
+        // Reverse the first and last point if the return trip flag is true
+        const originPointName = !returnTrip ? request.points[index]!.placeName : request.points[request.points.length - 1]!.placeName;
+        const destPointName = !returnTrip ? request.points[index + 1]!.placeName : request.points[0]!.placeName;
 
         // Update the section origin name if its available and not set yet
         if (originPointName !== undefined && section.originName === null) 

@@ -63,6 +63,10 @@
     min-height: 35px;
 }
 
+.sort-div[hidden] {
+  display: none !important;
+}
+
 .sort-select {
     flex: 1;
     height: 100%;
@@ -298,6 +302,22 @@ button {
 .parking-icon {
     width: 11px;
 }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+}
+
 /**************************************************/
 
 /* Classes used only on mobile view elements *******/

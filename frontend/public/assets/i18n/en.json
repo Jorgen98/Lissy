@@ -212,7 +212,9 @@
             "sortNumTransfers": "Number of transfers",
             "cheapest": "Cheapest",
             "best": "Best",
-            "fastest": "Fastest"
+            "fastest": "Fastest",
+            "returnTrip": "Return trip",
+            "returnTripNotFound": "Return trip was not found"
         },
         "settings": {
             "walkingPreferences": "Walking",

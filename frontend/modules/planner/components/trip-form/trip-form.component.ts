@@ -471,6 +471,14 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         if (this.tripData.return.active && (this.tripData.return.tripDate === "" || this.tripData.return.tripTime === ""))
             return false;
 
+        // Check if the return time datetime is later than the way there
+        if (this.tripData.return.active) {
+            const datetime = new Date(`${this.tripData.datetime.tripDate}T${this.tripData.datetime.tripTime}`).getTime();
+            const datetimeReturn = new Date(`${this.tripData.return.tripDate}T${this.tripData.return.tripTime}`).getTime();
+            if (datetimeReturn < datetime)
+                return false;
+        }
+
         // Check if points between all sections are valid
         if (this.invalidModesIdx !== null)
             return false;

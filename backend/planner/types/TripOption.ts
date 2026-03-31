@@ -31,7 +31,8 @@ export type TripSectionLeg = {
         departureTime: Date | null,
         placeName: string | null,
         isTransportStop: boolean, 
-        isParking: boolean,         
+        isParking: boolean,      
+        latLng: LatLng,   
     },
     mode: Mode,     // Mode used for the leg
 
@@ -90,4 +91,5 @@ export type TripOption = {
     fastest: boolean,
     cheapest: boolean,
     best: boolean,
+    returnTrip: TripSectionOption | null | "not available"
 };

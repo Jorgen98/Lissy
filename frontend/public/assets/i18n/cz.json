@@ -213,7 +213,9 @@
             "sortNumTransfers": "Počet přestupů",
             "cheapest": "Nejnižší cena",
             "best": "Nejlepší",
-            "fastest": "Nejrychlejší"
+            "fastest": "Nejrychlejší",
+            "returnTrip": "Zpáteční cesta",
+            "returnTripNotFound": "Zpáteční cesta nebyla nalezena"
         },
         "settings": {
             "walkingPreferences": "Chůze",

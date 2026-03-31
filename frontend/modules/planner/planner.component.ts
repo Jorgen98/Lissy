@@ -246,6 +246,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
         // Convert time from form format to ISO string in UTC
         const isoDatetime = new Date(`${tripData.datetime.tripDate}T${tripData.datetime.tripTime}`).toISOString();
+        const isoDatetimeReturn = tripData.return.active 
+            ? new Date(`${tripData.return.tripDate}T${tripData.return.tripTime}`).toISOString()
+            : "";
 
         // Add user preferences to trip data from form
         const tripDataPreferences: TripDataExtended = {
@@ -253,6 +256,11 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             datetime: {
                 tripDatetime: isoDatetime,
                 datetimeOption: tripData.datetime.datetimeOption,
+            },
+            return: {
+                active: tripData.return.active,
+                datetime: isoDatetimeReturn,
+                datetimeOption: tripData.return.datetimeOption
             },
             preferences: {
                 walk: {
@@ -412,6 +420,46 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.mapService.clearLayer('routes');
     }
 
+    // Function rendering a single leg on the map via map service
+    private renderLeg(leg: TripSectionLeg, shouldFocus: boolean, isReturnTrip: boolean) {
+
+        // Get color of leg on the map, a faint gray color for return trip legs
+        const bgColor = isReturnTrip ? "#444444" : this.getLegColor(leg);
+        this.mapService.addToLayer({
+            layerName: "routes",
+            type: "route",
+            focus: shouldFocus,
+            latLng: leg.points,
+            color: "provided",
+            metadata: {
+                color: bgColor,
+                dashed: leg.mode === "CAR" || leg.mode === "WALK",
+
+                // For good contrast the color of the mode image is either dark or white based on the background color
+                modeImg: `${leg.mode.toLowerCase()}-${this.isColorLight(bgColor) ? 'dark' : 'white'}.svg`,
+
+                // Flag if this leg is the last leg, used so the full route can be focused onto in the map
+                isLastLeg: shouldFocus,
+            },
+            interactive: true,
+            hoover: false,
+        });
+
+        // Add parking icon to the map if applicable
+        if (!isReturnTrip && (leg.from.isParking || leg.to.isParking)) {
+            this.mapService.addToLayer({
+                layerName: "routes",
+                type: "parking",
+                focus: false,
+                latLng: [leg.from.isParking ? leg.points[0] : leg.points[leg.points.length - 1]],
+                color: "provided",
+                metadata: {},
+                interactive: false,
+                hoover: false,
+            });                  
+        }
+    }   
+
     // Function rendering a single trip on the leaflet map using polylines
     public async renderTrip(index: number): Promise<void> {
 
@@ -424,46 +472,22 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.mapService.clearLayer('routes');
         this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
     
-        // Iterate through each leg and add it to the map layer with color given by GTFS or hardcoded for specific modes
+        // Iterate through each leg and call function to render it
         trip.sections.forEach((section, sectionIdx) => {
             section.legs.forEach((leg, legIdx) => {
+
+                // Focus when the last leg of the last seciton is being rendered
                 const shouldFocus = sectionIdx === trip.sections.length - 1 && legIdx === section.legs.length - 1;
-                const bgColor = this.getLegColor(leg);
-                this.mapService.addToLayer({
-                    layerName: "routes",
-                    type: "route",
-                    focus: shouldFocus,
-                    latLng: leg.points,
-                    color: "provided",
-                    metadata: {
-                        color: bgColor,
-                        dashed: leg.mode === "CAR" || leg.mode === "WALK",
-
-                        // For good contrast the color of the mode image is either dark or white based on the background color
-                        modeImg: `${leg.mode.toLowerCase()}-${this.isColorLight(bgColor) ? 'dark' : 'white'}.svg`,
-
-                        // Flag if this leg is the last leg, used so the full route can be focused onto in the map
-                        isLastLeg: shouldFocus,
-                    },
-                    interactive: true,
-                    hoover: false,
-                });
-
-                // Add parking icon to the map if applicable
-                if (leg.from.isParking || leg.to.isParking) {
-                    this.mapService.addToLayer({
-                        layerName: "routes",
-                        type: "parking",
-                        focus: false,
-                        latLng: [leg.from.isParking ? leg.points[0] : leg.points[leg.points.length - 1]],
-                        color: "provided",
-                        metadata: {},
-                        interactive: false,
-                        hoover: false,
-                    });                  
-                }
+                this.renderLeg(leg, shouldFocus, false);
             });
         });
+
+        // Render legs of the return trip if its available
+        if (trip.returnTrip !== "not available" && trip.returnTrip !== null) {
+            trip.returnTrip.legs.forEach(leg => {
+                this.renderLeg(leg, false, true);
+            });
+        }
     }
 
     // Function for settings module switch

@@ -274,6 +274,7 @@ export class OTPAdapter implements RoutePlanner {
                 placeName: leg.to.stop?.name ?? null,
                 isTransportStop: leg.to.stop !== null,  
                 isParking: false,
+                latLng: { lat: leg.to.lat, lng: leg.to.lon }
             },
             route: leg.route ? {
                 lineId: leg.route.shortName,

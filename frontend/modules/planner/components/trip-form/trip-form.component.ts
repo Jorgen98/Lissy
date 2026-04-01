@@ -257,6 +257,25 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         }
     }
 
+    // Function called when the state of the return trip checkbox changes
+    public returnTripToggled() {
+
+        // If it was switched to active, automatically add todays date to date input
+        if (this.tripData.return.active) {
+            // Get current date individual elements
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+
+            // Register callback to store the current trip date and time in the form
+            // The assignment of datetime needs to happen only after the first Angular change detection cycle is done to avoid errors in this.isFormValid()
+            setTimeout(() => {
+                this.tripData.return.tripDate = `${year}-${month}-${day}`;
+            });
+        }   
+    }
+
     // Function called when a transport mode is toggled as on/off
     // If index is set, the transport mode was set/unset between adjacent points in a trip section, otherwise globally
     public modeToggled(mode: TransportMode, index?: number): void {

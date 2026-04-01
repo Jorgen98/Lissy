@@ -427,6 +427,7 @@ Main component HTML template file for the trip form used in the planner module.
             type="checkbox"
             id="return"
             [(ngModel)]="tripData.return.active"
+            (change)="returnTripToggled()"
           />
           <label for="return">{{ "planner.form.return" | translate }}</label>
         </div>

@@ -69,7 +69,6 @@ export const TripSchema = z.object({
     startDatetime: datePreprocess("startDatetime"),
     endDatetime: datePreprocess("endDatetime"),
     sections: z.array(SectionSchema).min(1),
-    hasFullShape: z.boolean(),
     numTransfers: z.number(),
     emissions: z.number(),
     cost: z.number(),

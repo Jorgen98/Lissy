@@ -83,7 +83,6 @@ export type TripOption = {
     distance: number,               // Distance in meters    
     startDatetime: Date,            // Datetime of beginning of the trip option (UTC)
     endDatetime: Date,              // Datetime of ending of the trip option (UTC)
-    hasFullShape: boolean,
     numTransfers: number,           // Number of transfers in the trip, might not be the same as the sum of transfers in its sections
     emissions: number | null,       // Emissions in grams of CO2
     cost: number | null,            // Estimated cost of the full trip in CZK

@@ -30,8 +30,6 @@ export async function fillInTripShape(trip: TripOption): Promise<void> {
         section.distance = distance;
         trip.distance += distance;
     });
-
-    trip.hasFullShape = true;
 }
 
 // Function accessing the database to get full shape of a leg and its new distance from that shape

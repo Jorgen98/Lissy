@@ -64,9 +64,7 @@ Component HTML template file for the header component describing a single trip o
 <!-- Distance and duration of option -->
 <div class="header-distance-duration">
   <span class="header-info"><i class="pi pi-stopwatch"></i>{{ option()!.duration | duration }}</span>
-  @if(option()!.hasFullShape) {
-    <span class="header-info"><i class="pi pi-wave-pulse"></i>{{ option()!.distance | distance }}</span>
-  }
+  <span class="header-info"><i class="pi pi-wave-pulse"></i>{{ option()!.distance | distance }}</span>
   <span class="header-info"><i class="pi pi-arrows-h"></i>{{ option()!.numTransfers }}</span>
   <span class="header-info"><i class="pi pi-wallet"></i>{{ `${option()!.cost | number:'1.0-0'} Kč` }}</span>
 </div>

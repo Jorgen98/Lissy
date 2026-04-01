@@ -125,6 +125,8 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
             this.accordionOptionValue = -1;
             this.selectedOptionIdx = 0;
             this.optionDetailActive = false;
+            this.selectedSortField = "startDatetime";
+            this.returnTripRendered = false;
         }
     }
 

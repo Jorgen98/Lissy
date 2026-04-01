@@ -90,5 +90,8 @@ export type TripOption = {
     fastest: boolean,
     cheapest: boolean,
     best: boolean,
-    returnTrip: TripSectionOption | null | "not available"
+    returnTrip: { 
+        section: TripSectionOption | null | "not available",
+        hasShape: boolean,
+    }
 };

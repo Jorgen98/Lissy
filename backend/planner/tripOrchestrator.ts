@@ -120,7 +120,10 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
                 fastest: false,
                 cheapest: false,
                 best: false,
-                returnTrip: null,
+                returnTrip: {
+                    section: null,
+                    hasShape: false,
+                },
             }));
         }
         const section = foundSections[0]!;
@@ -157,7 +160,10 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
         fastest: false,
         cheapest: false,
         best: false,
-        returnTrip: null,
+        returnTrip: { 
+            section: null,
+            hasShape: false,
+        },
     }];
 
     return options;

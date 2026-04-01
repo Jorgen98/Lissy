@@ -486,7 +486,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     }
 
     // Function reacting to itinerary emit when trip option return trip is toggled on map
-    public toggleReturnTrip(idx: number | null): void {
+    public async toggleReturnTrip(idx: number | null): Promise<void> {
         if (this.tripOptions === null)
             return;
 
@@ -498,9 +498,24 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Add layer to draw the return trip onto
         this.mapService.addNewLayer({ name: 'returnTrip', palette: {}, layer: undefined, paletteItemName: '' });
 
-        // Render each leg
         const trip = this.tripOptions[idx];
-        (trip.returnTrip as TripSectionOption).legs.forEach(leg => {
+
+        // Turn on loading screen when fetching shape of the return trip
+        this.msgService.turnOnLoadingScreenWithoutPercentage();
+
+        // Only request the return trip shape if it hasnt already been received before
+        // note: hasShape flag is set in the backend
+        if (!trip.returnTrip.hasShape) {
+            trip.returnTrip = await this.apiService.genericPost(
+                `${config.apiPrefix}/getReturnTripShape`, trip.returnTrip
+            );
+        }
+
+        // Turn loading screen back off when the trip shape is received
+        this.msgService.turnOffLoadingScreen();
+
+        // Render legs of the return trip in the map
+        (trip.returnTrip.section as TripSectionOption).legs.forEach(leg => {
             this.renderLeg(leg, false, true);
         });
     }

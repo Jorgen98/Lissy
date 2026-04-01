@@ -24,7 +24,7 @@ export async function findReturnTrips(planner: RoutePlanner, options: TripOption
     for (const trip of options) {
         // Check if the arrival time of the original trip is earlier than the requested return datetime
         if (trip.endDatetime.getTime() > new Date(request.return.datetime).getTime())
-            trip.returnTrip = "not available";
+            trip.returnTrip.section = "not available";
 
         // Find place where car was left last
         const legs = trip.sections.flatMap(section => section.legs);
@@ -34,7 +34,7 @@ export async function findReturnTrips(planner: RoutePlanner, options: TripOption
         if (!lastCarLeg) {
             if (ptReturnTrip === null)
                 ptReturnTrip = await findReturnTripPTOnly(planner, request, trip.endDatetime);
-            trip.returnTrip = ptReturnTrip;
+            trip.returnTrip.section = ptReturnTrip;
         }
         else {
             // Find spot where car was left at and last leg of the trip
@@ -46,17 +46,18 @@ export async function findReturnTrips(planner: RoutePlanner, options: TripOption
             if (carLeftAt.latLng.lat === lastLeg!.to.latLng.lat && carLeftAt.latLng.lng === lastLeg!.to.latLng.lng) {
                 if (carReturnTrip === null)
                     carReturnTrip = await findReturnTripCarOnly(planner, request, trip.endDatetime);
-                trip.returnTrip = carReturnTrip;
+                trip.returnTrip.section = carReturnTrip;
             }
 
             // Otherwise find return trip that connects a public transport section that terminates at carLeftAt
             // and continues with car to the origin
             else 
-                trip.returnTrip = await findReturnTripCarPT(planner, request, trip.endDatetime, carLeftAt);
+                trip.returnTrip.section = await findReturnTripCarPT(planner, request, trip.endDatetime, carLeftAt);
         }
-        if (trip.returnTrip !== "not available" && trip.returnTrip !== null)
-            addPlaceNames({ ...trip, sections: [trip.returnTrip] }, request, true);
-            // TODO add shapes to return trips (dont compute more times if not necessary for same option)
+
+        // If a valid return trip was found, fill in available place names
+        if (trip.returnTrip.section !== "not available" && trip.returnTrip.section !== null)
+            addPlaceNames({ ...trip, sections: [trip.returnTrip.section] }, request, true);
     }
 }
 

@@ -174,15 +174,15 @@ Main component HTML template file for the itinerary used in the planner module.
                     }
                   }
 
-                  @if (option.returnTrip !== null) {
+                  @if (option.returnTrip.section !== null) {
                     <div class="divider">{{ "planner.itinerary.returnTrip" | translate }}</div>
                   }
-                  @if (option.returnTrip === "not available") {
+                  @if (option.returnTrip.section === "not available") {
                     <div class="faint-text">{{ "planner.itinerary.returnTripNotFound" | translate }}</div>
                   }
-                  @else if (option.returnTrip !== null) {
+                  @else if (option.returnTrip.section !== null) {
                     <span class="faint-text return-trip-header">
-                      {{ option.returnTrip.startDatetime | date: "d. M. yyyy" }}
+                      {{ option.returnTrip.section.startDatetime | date: "d. M. yyyy" }}
                       <button class="show-return-trip" (click)="returnTripToggled($index)" [hidden]="returnTripRendered">
                         {{ 'planner.itinerary.showOnMap' | translate }}
                       </button>
@@ -190,13 +190,13 @@ Main component HTML template file for the itinerary used in the planner module.
                         {{ 'planner.itinerary.hide' | translate }}
                       </button>
                     </span>
-                    @for (leg of option.returnTrip.legs; track $index; let firstLeg = $first; let lastLeg = $last; let legCount = $count) {
+                    @for (leg of option.returnTrip.section.legs; track $index; let firstLeg = $first; let lastLeg = $last; let legCount = $count) {
 
                       <!-- Origin point with departure time -->
                       @if (firstLeg) {
                         <div class="box point-box-start">
-                          <span class="point-title">{{ option.returnTrip.originName ?? "planner.itinerary.origin" | translate }}</span>
-                          <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${option.returnTrip.startDatetime | date: " HH:mm"}` }}</span>
+                          <span class="point-title">{{ option.returnTrip.section.originName ?? "planner.itinerary.origin" | translate }}</span>
+                          <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${option.returnTrip.section.startDatetime | date: " HH:mm"}` }}</span>
                         </div>
                       }
 
@@ -256,8 +256,8 @@ Main component HTML template file for the itinerary used in the planner module.
                       <!-- Destination point with arrival time -->
                       @if (lastLeg) {
                         <div class="box point-box-end">
-                          <span class="point-title">{{ option.returnTrip.destinationName ?? "planner.itinerary.destination" | translate }}</span>
-                          <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${option.returnTrip.endDatetime | date: " HH:mm"}` }}</span>
+                          <span class="point-title">{{ option.returnTrip.section.destinationName ?? "planner.itinerary.destination" | translate }}</span>
+                          <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${option.returnTrip.section.endDatetime | date: " HH:mm"}` }}</span>
                         </div>
                       }
                     }

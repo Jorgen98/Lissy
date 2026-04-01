@@ -73,5 +73,8 @@ export const TripSchema = z.object({
     emissions: z.number(),
     cost: z.number(),
     score: z.number(),
-    returnTrip: SectionSchema.or(z.literal("not available")).nullable(),
+    returnTrip: z.object({
+        section: SectionSchema.or(z.literal("not available")).nullable(),
+        hasShape: z.boolean(),
+    }),
 });

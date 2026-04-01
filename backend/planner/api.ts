@@ -15,6 +15,8 @@ import { planTrip } from './tripOrchestrator';
 import { RoutePlanner } from './RoutePlanner';
 import { reverseGeocodeNominatim } from './geo';
 import { LatLng } from './types/LatLng';
+import { TripSectionOption } from './types/TripOption';
+import { getLegShape } from './shaping';
 
 // Implemented adapters and services in TypeScript
 import { OTPAdapter } from './OTP/OTPAdapter';
@@ -68,6 +70,19 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
         case 'reverseGeocode': {
             const coords = JSON.parse(req.query.data) as LatLng;
             res.send(await reverseGeocodeNominatim(coords));
+            break;
+        }
+
+        // Endpoint for getting the shape of a return trip, which isnt computed in the original trip request
+        case 'getReturnTripShape': {
+            const returnTrip = req.body as { section: TripSectionOption, hasShape: boolean };
+
+            // Find shapes of all legs concurrently
+            await Promise.all(returnTrip.section.legs.map(leg => getLegShape(leg)));
+            returnTrip.hasShape = true;
+
+            // Return the mutated return trip object with shapes
+            res.send(returnTrip);
             break;
         }
 

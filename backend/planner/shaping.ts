@@ -33,7 +33,7 @@ export async function fillInTripShape(trip: TripOption): Promise<void> {
 }
 
 // Function accessing the database to get full shape of a leg and its new distance from that shape
-async function getLegShape(leg: TripSectionLeg): Promise<void> {
+export async function getLegShape(leg: TripSectionLeg): Promise<void> {
 
     // Need valid route and trip objects with gtfs ids
     if (leg.route === null || leg.trip === null || leg.route.gtfsId === null || leg.trip.gtfsId === null)

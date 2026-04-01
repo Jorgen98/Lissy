@@ -18,7 +18,7 @@ import { Stop } from './types/Stop';
 import { TripData } from './types/TripData';
 import { Subscription, Subject } from 'rxjs';
 import { MarkerType } from './types/MarkerType';
-import { TripOption, TripSectionLeg } from './types/TripOption';
+import { TripOption, TripSectionLeg, TripSectionOption } from './types/TripOption';
 import { modeColors } from './utils/modeColors';
 import { TicketType, TripDataExtended } from './types/TripDataExtended';
 import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
@@ -236,6 +236,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Clear trip options when a new trip is being requested
         this.tripOptions = null;
         this.mapService.clearLayer('routes');
+        this.mapService.clearLayer('returnTrip');
 
         // Check if API is running and connected
         if(!await this.apiService.isConnected()) {
@@ -418,6 +419,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
         this.tripOptions = null;
         this.mapService.clearLayer('routes');
+        this.mapService.clearLayer('returnTrip');
     }
 
     // Function rendering a single leg on the map via map service
@@ -426,7 +428,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Get color of leg on the map, a faint gray color for return trip legs
         const bgColor = isReturnTrip ? "#444444" : this.getLegColor(leg);
         this.mapService.addToLayer({
-            layerName: "routes",
+            layerName: isReturnTrip ? "returnTrip" : "routes",
             type: "route",
             focus: shouldFocus,
             latLng: leg.points,
@@ -481,13 +483,26 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                 this.renderLeg(leg, shouldFocus, false);
             });
         });
+    }
 
-        // Render legs of the return trip if its available
-        if (trip.returnTrip !== "not available" && trip.returnTrip !== null) {
-            trip.returnTrip.legs.forEach(leg => {
-                this.renderLeg(leg, false, true);
-            });
-        }
+    // Function reacting to itinerary emit when trip option return trip is toggled on map
+    public toggleReturnTrip(idx: number | null): void {
+        if (this.tripOptions === null)
+            return;
+
+        // Always clear the layer, continue to render only if the index is set
+        this.mapService.clearLayer('returnTrip');
+        if (idx === null)
+            return;
+
+        // Add layer to draw the return trip onto
+        this.mapService.addNewLayer({ name: 'returnTrip', palette: {}, layer: undefined, paletteItemName: '' });
+
+        // Render each leg
+        const trip = this.tripOptions[idx];
+        (trip.returnTrip as TripSectionOption).legs.forEach(leg => {
+            this.renderLeg(leg, false, true);
+        });
     }
 
     // Function for settings module switch

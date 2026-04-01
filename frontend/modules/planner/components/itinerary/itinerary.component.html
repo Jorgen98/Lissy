@@ -26,7 +26,7 @@ Main component HTML template file for the itinerary used in the planner module.
       <img 
         class="trashbin-btn" 
         src="./planner/trash-bin-dark.svg" 
-        (click)="clearItinerary.emit()" 
+        (click)="clearItineraryState()" 
         [title]="'planner.itinerary.clearItinerary' | translate" 
       />
     </div>
@@ -181,7 +181,15 @@ Main component HTML template file for the itinerary used in the planner module.
                     <div class="faint-text">{{ "planner.itinerary.returnTripNotFound" | translate }}</div>
                   }
                   @else if (option.returnTrip !== null) {
-                    <span class="faint-text">{{ option.returnTrip.startDatetime| date: "d. M. yyyy" }}</span>
+                    <span class="faint-text return-trip-header">
+                      {{ option.returnTrip.startDatetime | date: "d. M. yyyy" }}
+                      <button class="show-return-trip" (click)="returnTripToggled($index)" [hidden]="returnTripRendered">
+                        {{ 'planner.itinerary.showOnMap' | translate }}
+                      </button>
+                      <button class="show-return-trip" (click)="returnTripToggled(null)" [hidden]="!returnTripRendered">
+                        {{ 'planner.itinerary.hide' | translate }}
+                      </button>
+                    </span>
                     @for (leg of option.returnTrip.legs; track $index; let firstLeg = $first; let lastLeg = $last; let legCount = $count) {
 
                       <!-- Origin point with departure time -->

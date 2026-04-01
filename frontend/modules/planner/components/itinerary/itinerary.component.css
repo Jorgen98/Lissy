@@ -318,6 +318,18 @@ button {
   background: currentColor;
 }
 
+.show-return-trip {
+    background-color: var(--p-gray-800);
+    font-size: 12px;
+    padding: 3px;
+    font-weight: bold;
+}
+
+.return-trip-header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
 /**************************************************/
 
 /* Classes used only on mobile view elements *******/

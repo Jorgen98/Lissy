@@ -86,6 +86,14 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
     // Output to notify the parent component to sort the trip options array by specified field
     public sortTripOptions = output<TripSortField>();
 
+    // Output emitting to planner component that return trip render has been toggled
+    // The parameter is type number if a return trip should be render from the trip options at the given index
+    // If return trip is already drawn, null is emitted to clear it 
+    public toggleReturnTrip = output<number | null>();
+
+    // Whether a return trip is currently rendered
+    public returnTripRendered = false;
+
     public isTouchDevice = input<boolean>(false);
 
     // List of field values and labels the trip options array can get sorted by
@@ -170,6 +178,18 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
         this.forceActionSubscription.unsubscribe();
     }
 
+    public returnTripToggled(idx: number | null): void {
+        this.toggleReturnTrip.emit(idx);
+        this.returnTripRendered = idx !== null;
+    }
+
+    // Function setting necessary variables to default values when the itinerary is cleared
+    public clearItineraryState(): void {
+        this.selectedSortField = "startDatetime";
+        this.returnTripRendered = false;
+        this.clearItinerary.emit();
+    }
+
     // Function called when the user clicks on a trip option
     public changeTripOption(index: number): void {
 
@@ -198,8 +218,11 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
         }
 
         // If the clicked trip option is different then the previous, emit to parent to redraw route
-        if (this.selectedOptionIdx !== index)
+        if (this.selectedOptionIdx !== index) {
             this.redrawTripOption.emit(index);
+            this.returnTripRendered = false;
+            this.toggleReturnTrip.emit(null);
+        }
 
         this.selectedOptionIdx = index;
     }

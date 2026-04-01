@@ -162,22 +162,8 @@ async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionIn
     carSection.startDatetime = new Date(carSectionIdealStart);
     carSection.endDatetime = firstTransitOption.startDatetime;
 
-    // Destination of the car leg is a parking spot
-    carSection.legs[0]!.to.isParking = true;
-
-    // Set the destination name of the car leg to the name of the transfer point (if it hasnt already been set earlier)
-    if (carSection.legs[0]!.to.placeName === null)
-        carSection.legs[0]!.to.placeName = transfer.name;
-
-    // Update the transit section object with data from the car leg object
-    firstTransitOption.distance += carSection.distance;
-    firstTransitOption.duration += carSection.duration;
-    firstTransitOption.originName = carSection.originName;
-    firstTransitOption.startDatetime = carSection.startDatetime;
-    firstTransitOption.legs.unshift(carSection.legs[0]!);
-
-    // Return one option for now
-    return [firstTransitOption];
+    // Connect the two sections
+    return [connectSections(carSection, firstTransitOption, transfer.name, false)];
 }
 
 // Function handling the combination of car and walking in one trip section
@@ -241,4 +227,47 @@ function buildSectionOptionId(option: TripSectionOption): string {
     });
 
     return id;
+}
+
+// Function connecting a car section and a public transport section into one section by given order
+export function connectSections(carSection: TripSectionOption, ptSection: TripSectionOption, transferName: string | null, returnTrip: boolean): TripSectionOption {
+
+    // If this is part of finding a return trip, the public transport leg comes first
+    if (returnTrip) {
+
+        // Start of car section is parking spot
+        carSection.legs[0]!.from.isParking = true;
+
+        // Update place name of the origin point of the car section to name of the transfer point
+        if (carSection.legs[0]!.from.placeName === null)
+            carSection.legs[0]!.from.placeName = transferName;
+
+        // Update destination name and time with data from the connected car section
+        ptSection.destinationName = carSection.destinationName;
+        ptSection.endDatetime = carSection.endDatetime;
+
+        // Add the car leg to the end of the legs of the public transport leg array
+        ptSection.legs.push(carSection.legs[0]!);
+    }
+    else {
+
+        // End of car section is parking spot
+        carSection.legs[0]!.to.isParking = true;
+
+        // Update place name of the destination point of the car section to name of the transfer point
+        if (carSection.legs[0]!.to.placeName === null)
+            carSection.legs[0]!.to.placeName = transferName;
+
+        // Update origin name and time with data from the connected car section
+        ptSection.originName = carSection.originName;
+        ptSection.startDatetime = carSection.startDatetime;
+
+        // Add the car leg to the start of the legs of the public transport leg array
+        ptSection.legs.unshift(carSection.legs[0]!);
+    }
+
+    // Sum distance and duration of the two sections
+    ptSection.distance += carSection.distance;
+    ptSection.duration += carSection.duration;
+    return ptSection;
 }

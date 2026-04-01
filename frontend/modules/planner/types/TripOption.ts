@@ -67,9 +67,9 @@ export type TripSectionOption = {
     originName: string | null,      // Name of origin point of section
     destinationName: string | null, // Name of destination point of section
     legs: TripSectionLeg[],         // List of legs
-    emissions: number,              // Emissions in grams of CO2
-    cost: number,                   // Estimated cost in CZK
-    numTransfers: number,           // Number of transfers in the sections
+    emissions: number | null,       // Emissions in grams of CO2
+    cost: number | null,            // Estimated cost in CZK
+    numTransfers: number | null,    // Number of transfers in the sections
 };
 
 // One trip option built out of sections

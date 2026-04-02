@@ -31,6 +31,7 @@
   top: 0;
   left: 0;
   pointer-events: none;
+  display: none;
 }
 
 .side-btn-div {
@@ -111,6 +112,14 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.horizontal-line {
+  margin-left: -10px;
+  margin-right: -10px;
+  background-color: var(--p-gray-800);
+  height: 2px;
+  margin-bottom: -10px;
 }
 
 .back-to-detail-btn {

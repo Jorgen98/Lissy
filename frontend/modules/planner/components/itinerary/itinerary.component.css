@@ -156,7 +156,7 @@
 }
 
 .p-accordion-panel {
-    border-bottom: 1px solid var(--p-gray-800);
+    border-bottom: 0;
 }
 
 .p-accordion-header:hover {

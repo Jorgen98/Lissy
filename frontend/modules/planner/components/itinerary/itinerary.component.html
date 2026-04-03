@@ -183,10 +183,10 @@ Main component HTML template file for the itinerary used in the planner module.
                   @else if (option.returnTrip.section !== null) {
                     <span class="faint-text return-trip-header">
                       {{ option.returnTrip.section.startDatetime | date: "d. M. yyyy" }}
-                      <button class="show-return-trip" (click)="returnTripToggled($index)" [hidden]="returnTripRendered">
-                        {{ 'planner.itinerary.showOnMap' | translate }}
+                      <button class="show-return-trip" (click)="returnTripToggled({ idx: $index, draw: !returnTripRendered })" [hidden]="returnTripRendered">
+                        <i class="pi pi-map"></i>{{ 'planner.itinerary.showOnMap' | translate }}
                       </button>
-                      <button class="show-return-trip" (click)="returnTripToggled(null)" [hidden]="!returnTripRendered">
+                      <button class="show-return-trip" (click)="returnTripToggled({ idx: $index, draw: !returnTripRendered })" [hidden]="!returnTripRendered">
                         {{ 'planner.itinerary.hide' | translate }}
                       </button>
                     </span>

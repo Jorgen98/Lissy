@@ -423,12 +423,12 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     }
 
     // Function rendering a single leg on the map via map service
-    private renderLeg(leg: TripSectionLeg, shouldFocus: boolean, isReturnTrip: boolean) {
+    private renderLeg(leg: TripSectionLeg, shouldFocus: boolean, gray: boolean, layerName: string) {
 
         // Get color of leg on the map, a faint gray color for return trip legs
-        const bgColor = isReturnTrip ? "#444444" : this.getLegColor(leg);
+        const bgColor = gray ? "#444444" : this.getLegColor(leg);
         this.mapService.addToLayer({
-            layerName: isReturnTrip ? "returnTrip" : "routes",
+            layerName,
             type: "route",
             focus: shouldFocus,
             latLng: leg.points,
@@ -448,7 +448,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         });
 
         // Add parking icon to the map if applicable
-        if (!isReturnTrip && (leg.from.isParking || leg.to.isParking)) {
+        if (leg.from.isParking || leg.to.isParking) {
             this.mapService.addToLayer({
                 layerName: "routes",
                 type: "parking",
@@ -480,25 +480,35 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
                 // Focus when the last leg of the last seciton is being rendered
                 const shouldFocus = sectionIdx === trip.sections.length - 1 && legIdx === section.legs.length - 1;
-                this.renderLeg(leg, shouldFocus, false);
+                this.renderLeg(leg, shouldFocus, false, 'routes');
             });
         });
     }
 
     // Function reacting to itinerary emit when trip option return trip is toggled on map
-    public async toggleReturnTrip(idx: number | null): Promise<void> {
+    public async toggleReturnTrip(params: { idx: number, draw: boolean }): Promise<void> {
         if (this.tripOptions === null)
             return;
 
-        // Always clear the layer, continue to render only if the index is set
+        const trip = this.tripOptions[params.idx];
+
+        // Reset the layers
         this.mapService.clearLayer('returnTrip');
-        if (idx === null)
+        this.mapService.clearLayer('routes');
+        this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
+
+        // If the return trip shouldnt be drawn, draw the actual trip in color and stio rendering
+        if (!params.draw) {
+            trip.sections.forEach(section => {
+                section.legs.forEach(leg => {
+                    this.renderLeg(leg, false, false, 'routes');
+                });
+            });
             return;
+        }
 
         // Add layer to draw the return trip onto
         this.mapService.addNewLayer({ name: 'returnTrip', palette: {}, layer: undefined, paletteItemName: '' });
-
-        const trip = this.tripOptions[idx];
 
         // Turn on loading screen when fetching shape of the return trip
         this.msgService.turnOnLoadingScreenWithoutPercentage();
@@ -514,10 +524,21 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Turn loading screen back off when the trip shape is received
         this.msgService.turnOffLoadingScreen();
 
-        // Render legs of the return trip in the map
-        (trip.returnTrip.section as TripSectionOption).legs.forEach(leg => {
-            this.renderLeg(leg, false, true);
+        // Render the actual trip in gray
+        trip.sections.forEach(section => {
+            section.legs.forEach(leg => {
+                this.renderLeg(leg, false, true, 'routes');
+            });
         });
+
+        // Render legs of the return trip in the map in color
+        (trip.returnTrip.section as TripSectionOption).legs.forEach(leg => {
+            this.renderLeg(leg, false, false, 'returnTrip');
+        });
+
+        // Set index of shown option on the map in case the rendering is happening on a small device
+        if (this.windowWidth < 700)
+            this.mobileShownOption = params.idx;
     }
 
     // Function for settings module switch
@@ -526,6 +547,27 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             this.moduleFocus = value;
         else
             this.moduleFocus = 0;
+    }
+
+    // Function called when back to detail is clicked, when a trip option is shown on the map in mobile view
+    public mobileHideMap(): void {
+        if (!this.tripOptions)
+            return;
+
+        const trip = this.tripOptions[this.mobileShownOption!];
+
+        // Redraw only the route of the original trip, not the return
+        this.mapService.clearLayer('returnTrip');
+        this.mapService.clearLayer('routes');
+        this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
+        trip.sections.forEach(section => {
+            section.legs.forEach(leg => {
+                this.renderLeg(leg, false, false, 'routes');
+            });
+        });
+
+        // No option is shown
+        this.mobileShownOption = null;
     }
 
     // Custom upload handler for file importing

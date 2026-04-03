@@ -329,7 +329,7 @@ Main component HTML template file for the planner module.
 
       <!-- Button to go back when viewing option in map -->
       @else if (mobileShownOption !== null) {
-        <div class="trip-header-wrapper" (click)="mobileShownOption = null">
+        <div class="trip-header-wrapper" (click)="mobileHideMap()">
           <div class="back-to-detail-btn">
             <i class="pi pi-arrow-left"></i><span>{{ "planner.itinerary.backToDetail" | translate }}</span>
           </div>

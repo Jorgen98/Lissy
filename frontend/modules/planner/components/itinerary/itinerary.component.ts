@@ -87,9 +87,7 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
     public sortTripOptions = output<TripSortField>();
 
     // Output emitting to planner component that return trip render has been toggled
-    // The parameter is type number if a return trip should be render from the trip options at the given index
-    // If return trip is already drawn, null is emitted to clear it 
-    public toggleReturnTrip = output<number | null>();
+    public toggleReturnTrip = output<{ idx: number, draw: boolean }>();
 
     // Whether a return trip is currently rendered
     public returnTripRendered = false;
@@ -180,9 +178,10 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
         this.forceActionSubscription.unsubscribe();
     }
 
-    public returnTripToggled(idx: number | null): void {
-        this.toggleReturnTrip.emit(idx);
-        this.returnTripRendered = idx !== null;
+    public returnTripToggled(params: { idx: number, draw: boolean }): void {
+        this.toggleReturnTrip.emit(params);
+        if (this.windowWidth >= 700)
+            this.returnTripRendered = params.draw;
     }
 
     // Function setting necessary variables to default values when the itinerary is cleared
@@ -223,7 +222,7 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
         if (this.selectedOptionIdx !== index) {
             this.redrawTripOption.emit(index);
             this.returnTripRendered = false;
-            this.toggleReturnTrip.emit(null);
+            this.toggleReturnTrip.emit({ idx: index, draw: false });
         }
 
         this.selectedOptionIdx = index;

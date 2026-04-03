@@ -68,7 +68,8 @@ export type Leg = {
             zoneId: string,
         }[],
         gtfsId: string // GTFS internal trip id
-    } | null
+    } | null,
+    transitLeg: boolean,
 }
 
 // One trip Node (one option for the connection)

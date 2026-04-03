@@ -59,6 +59,7 @@ export type TripSectionLeg = {
     // List of unique public transport zones this leg uses, needed for fare estimation
     // Can be null for non-transit legs
     zones: string[] | null, 
+    isTransitLeg: boolean,
 };
 
 // One option for a requested trip section between two points

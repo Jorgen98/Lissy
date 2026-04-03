@@ -45,7 +45,8 @@ const LegSchema = z.object({
     }).nullable(),
     trip: z.object({
         gtfsId: z.string().nullable(),
-    }).nullable()
+    }).nullable(),
+    isTransitLeg: z.boolean(),
 });
 
 // Schema for one section of a trip 

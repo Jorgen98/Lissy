@@ -435,7 +435,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             color: "provided",
             metadata: {
                 color: bgColor,
-                dashed: leg.mode === "CAR" || leg.mode === "WALK",
+                dashed: !leg.isTransitLeg,
 
                 // For good contrast the color of the mode image is either dark or white based on the background color
                 modeImg: `${leg.mode.toLowerCase()}-${this.isColorLight(bgColor) ? 'dark' : 'white'}.svg`,

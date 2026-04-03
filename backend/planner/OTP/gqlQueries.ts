@@ -79,6 +79,7 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                         start        
                         end
                         legs {
+                            transitLeg
                             trip {
                                 stops {
                                     zoneId

@@ -103,7 +103,7 @@ Main component HTML template file for the itinerary used in the planner module.
                       <!-- Legs between two points -->
                       <!-- Do not show boxes for walking lex that are access/egress/transfers walks -->
                       @if (leg.mode !== "WALK" || legCount === 1) {
-                        <div class="box leg-box" [style.borderLeft]="`4px ${leg.mode === 'WALK' || leg.mode === 'CAR' ? 'dashed' : 'solid'} ${getLegColor(leg)}`">
+                        <div class="box leg-box" [style.borderLeft]="`4px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`">
                           <div class="leg-box-left">
 
                             <!-- Mode used for the leg and possibly the route identifier if its defined -->
@@ -139,8 +139,8 @@ Main component HTML template file for the itinerary used in the planner module.
 
                           <!-- For transit - departure time and arrival time of leg, for direct (walk | car) - distance and duration of leg -->
                           <div class="two-column-text">
-                            <span class="base-text">{{ leg.mode === "CAR" || leg.mode === "WALK" ? (leg.distance | distance) : leg.from.departureTime | date: "HH:mm" }}</span>
-                            <span class="base-text">{{ leg.mode === "CAR" || leg.mode === "WALK" ? (leg.duration | duration) : leg.to.arrivalTime | date: "HH:mm" }}</span>
+                            <span class="base-text">{{ !leg.isTransitLeg ? (leg.distance | distance) : leg.from.departureTime | date: "HH:mm" }}</span>
+                            <span class="base-text">{{ !leg.isTransitLeg ? (leg.duration | duration) : leg.to.arrivalTime | date: "HH:mm" }}</span>
                           </div>
                         </div>
                       }
@@ -203,7 +203,7 @@ Main component HTML template file for the itinerary used in the planner module.
                       <!-- Legs between two points -->
                       <!-- Do not show boxes for walking lex that are access/egress/transfers walks -->
                       @if (leg.mode !== "WALK" || legCount === 1) {
-                        <div class="box leg-box" [style.borderLeft]="`4px ${leg.mode === 'WALK' || leg.mode === 'CAR' ? 'dashed' : 'solid'} ${getLegColor(leg)}`">
+                        <div class="box leg-box" [style.borderLeft]="`4px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`">
                           <div class="leg-box-left">
 
                             <!-- Mode used for the leg and possibly the route identifier if its defined -->
@@ -239,8 +239,8 @@ Main component HTML template file for the itinerary used in the planner module.
 
                           <!-- For transit - departure time and arrival time of leg, for direct (walk | car) - distance and duration of leg -->
                           <div class="two-column-text">
-                            <span class="base-text">{{ leg.mode === "CAR" || leg.mode === "WALK" ? (leg.distance | distance) : leg.from.departureTime | date: "HH:mm" }}</span>
-                            <span class="base-text">{{ leg.mode === "CAR" || leg.mode === "WALK" ? (leg.duration | duration) : leg.to.arrivalTime | date: "HH:mm" }}</span>
+                            <span class="base-text">{{ !leg.isTransitLeg ? (leg.distance | distance) : leg.from.departureTime | date: "HH:mm" }}</span>
+                            <span class="base-text">{{ !leg.isTransitLeg ? (leg.duration | duration) : leg.to.arrivalTime | date: "HH:mm" }}</span>
                           </div>
                         </div>
                       }

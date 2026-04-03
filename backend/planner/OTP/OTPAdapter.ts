@@ -224,7 +224,7 @@ export class OTPAdapter implements RoutePlanner {
         const toName = leg.to.stop?.name;
 
         // Return no zones when there are none used
-        if (leg.trip === null || fromName === undefined || toName === undefined || leg.mode === "WALK" || leg.mode === "CAR")
+        if (leg.trip === null || fromName === undefined || toName === undefined || !leg.transitLeg)
             return null;
 
         // Set with unique zones for automatic uniqueness
@@ -286,6 +286,7 @@ export class OTPAdapter implements RoutePlanner {
                 gtfsId: leg.trip.gtfsId,
             } : null,
             zones: this.getZonesUsedOnLeg(leg),
+            isTransitLeg: leg.transitLeg,
         }
     }
 };

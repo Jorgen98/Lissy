@@ -141,7 +141,7 @@ async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionIn
     const validTransitOptions = transitOptions.filter(option => {
 
         // Get first transit leg in the section option
-        const firstTransitLeg = option.legs.find(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
+        const firstTransitLeg = option.legs.find(leg => leg.isTransitLeg);
         if (firstTransitLeg === undefined)
             return false;
 

@@ -55,7 +55,8 @@ export type TripSectionLeg = {
 
         // Internal gtfsId of the trip, can be null if GTFS isnt used for example
         gtfsId: string | null
-    } | null
+    } | null,
+    isTransitLeg: boolean,
 };
 
 // One option for a requested trip section between two points

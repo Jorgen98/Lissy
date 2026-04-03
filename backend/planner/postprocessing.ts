@@ -136,8 +136,8 @@ function calculateCarPrice(legs: TripSectionLeg[], avgConsumption: number, fuelP
 async function calculatePublicTransportPrice(legs: TripSectionLeg[], ticketType: TicketType): Promise<number> {
 
     // Get first and last transit legs of the section
-    const firstTransitLeg = legs.find(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
-    const lastTransitLeg = legs.findLast(leg => leg.mode !== "WALK" && leg.mode !== "CAR");
+    const firstTransitLeg = legs.find(leg => leg.isTransitLeg);
+    const lastTransitLeg = legs.findLast(leg => leg.isTransitLeg);
     if (!firstTransitLeg || !lastTransitLeg)
         return 0;
 

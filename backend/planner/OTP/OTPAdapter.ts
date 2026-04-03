@@ -91,7 +91,7 @@ export class OTPAdapter implements RoutePlanner {
                 return null;
 
             // Check OTP specific errors
-            if (!response.data) {
+            if (!response.data || !response.data.planConnection) {
                 if (response.errors) {
                     response.errors.forEach(error => {
                         log('error', `Error while planing connection with OTP. Error: ${error.message}`);

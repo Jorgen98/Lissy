@@ -7,6 +7,7 @@
  */
 
 const dbPostgis = require('../db-postgis.js');
+const logService = require('../log.js');
 
 import { TripRequest } from "./types/TripRequest";
 import { RoutePlanner } from "./RoutePlanner";
@@ -20,8 +21,17 @@ import { getParetoOptimalTrips, postprocessTripOptions, rateOptions } from "./po
 import { PlannerConfig } from "./types/PlannerConfig";
 import { MAX_RETURNED_OPTIONS } from "./utils/systemConstants";
 
+function log(type: string, msg: string): void {
+    logService.write(process.env.BE_PLANNER_MODULE_NAME, type, msg);
+}
+
 export let plannerConfig: PlannerConfig | null = null;
 async function loadPlannerConfig() {
+    if (!process.env.BE_PLANNER_CONFIG_NAME) {
+        log("error", "Missing environment variable with planner configuration name");
+        return;
+    }
+
     plannerConfig = await dbPostgis.getPlannerConfig(process.env.BE_PLANNER_CONFIG_NAME);
 }
 

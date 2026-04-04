@@ -25,13 +25,18 @@ export class OTPService {
     // Get a route between two points using OTPs planConnection function
     async planConnection(variables: PlanConnectionParams, datetimeOption: "arrival" | "departure"): Promise<PlanConnectionResponse | null> {
 
+        if (!process.env.BE_PLANNER_OTP_URL) {
+            log('error', "Missing environment variable with OTP URL");
+            return null;
+        }
+
         // Get parametrized planConnection query
         const query = getPlanConnectionQuery(datetimeOption);
 
         try {
 
             // Call OTP instance at given URL with given variables
-            const response = await fetch(process.env.BE_PLANNER_OTP_URL!, {
+            const response = await fetch(process.env.BE_PLANNER_OTP_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

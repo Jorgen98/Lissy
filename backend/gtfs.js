@@ -91,21 +91,22 @@ async function reloadActualSystemState() {
 async function findParkingNearStations() {
 
     const envEmail = process.env.BE_PLANNER_USER_AGENT_EMAIL;
-    if (!envEmail)
-        return false;
-
-    // Get URL for overpass API
     const overpassUrl = process.env.BE_PLANNER_OVERPASS_URL;
-    if (!overpassUrl)
+
+    if (!envEmail || !overpassUrl) {
+        log("warning", "Missing environment variables for fetching parking spots with overpass API");
         return false;
+    }
 
     // Get bounds of region set in .env
     const boundsLatMin = process.env.BE_PLANNER_REGION_BOUNDS_LAT_MIN;
     const boundsLatMax = process.env.BE_PLANNER_REGION_BOUNDS_LAT_MAX;
     const boundsLngMin = process.env.BE_PLANNER_REGION_BOUNDS_LNG_MIN;
     const boundsLngMax = process.env.BE_PLANNER_REGION_BOUNDS_LNG_MAX;
-    if (boundsLatMin === undefined || boundsLatMax === undefined || boundsLngMax === undefined || boundsLngMin === undefined)
+    if (boundsLatMin === undefined || boundsLatMax === undefined || boundsLngMax === undefined || boundsLngMin === undefined) {
+        log("warning", "Missing environment variables with transport system bounds for fetching parking spots with overpass API");
         return false;
+    }
     const boundsString = `${boundsLatMin},${boundsLngMin},${boundsLatMax},${boundsLngMax}`;
 
     // Create query to get all transit stops within bounding box (3 minute timeout)

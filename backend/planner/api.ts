@@ -33,7 +33,7 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
     // Get the selected service identifier from .env file
     const selectedPlannerService = process.env.BE_PLANNER_MODULE_SERVICE;
     if (!selectedPlannerService) {
-        log('error', `A route planner service was not selected`);
+        log('error', `A route planner service was not selected in .env`);
         res.send(null);
         return;
     }

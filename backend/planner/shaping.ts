@@ -46,7 +46,7 @@ export async function getLegShape(leg: TripSectionLeg): Promise<void> {
 
     // The found shape has coordinates for the whole trip used for the leg, need only a subsection of the shape for the actual leg
     const subshape = getSubShape(leg, shape);
-    if (subshape === null)
+    if (subshape === null || subshape.length < 2)
         return;
 
     leg.points = subshape;

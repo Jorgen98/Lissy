@@ -243,7 +243,8 @@
             "ticketType": "Typ jízdenky",
             "maxTransfers": "Maximální počet přestupů",
             "fuelConsumption": "Průměrná spotřeba paliva",
-            "fuelPrice": "Cena paliva"
+            "fuelPrice": "Cena paliva",
+            "fuelPriceAttribution": "Zdroj dat pro základní hodnotu"
         }
     },
     "map" : {

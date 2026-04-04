@@ -242,7 +242,8 @@
             "ticketType": "Ticket type",
             "maxTransfers": "Maximum number of transfers",
             "fuelConsumption": "Average fuel consumption",
-            "fuelPrice": "Fuel price"
+            "fuelPrice": "Fuel price",
+            "fuelPriceAttribution": "Default value data source"
         }
     },
     "map" : {

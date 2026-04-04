@@ -130,6 +130,11 @@ async function processData() {
     }
     await dbStats.saveStateProcessingStats();
 
+    // Find parking spots near all stations in transport system
+    log('info', 'Finding parking near transport system stations');
+    if (!await plannerProcessingService.findParkingNearStations())
+        log('warning', 'Failed to find nearby parking near transport system stations');
+
     // Get latest gas prices for the planner module and update the config
     log('info', 'Fetching latest fuel prices from data.kurzy.cz');
     await plannerProcessingService.updateFuelPrice();

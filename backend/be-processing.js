@@ -15,6 +15,7 @@ const gtfsService = require('./gtfs.js');
 const opProcessingService = require('./be-processing-operational-data.js');
 const timeStamp = require('./timeStamp.js');
 const weather = require('./be-weather.js');
+const plannerProcessingService = require('./be-processing-planner.js');
 
 // .env file include
 dotenv.config();
@@ -128,6 +129,10 @@ async function processData() {
         return false;
     }
     await dbStats.saveStateProcessingStats();
+
+    // Get latest gas prices for the planner module and update the config
+    log('info', 'Fetching latest fuel prices from data.kurzy.cz');
+    await plannerProcessingService.updateFuelPrice();
 
     return true;
 }

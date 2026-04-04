@@ -1261,9 +1261,20 @@ async function getPlannerConfig(configName) {
     }
 }
 
+// Update the default fuel price in the given planner configuration
+async function updateFuelPrice(configName, price) {
+    try {
+        await db_postgis.query(`UPDATE planner_config SET fuel_price_default = $1 WHERE config_name = $2`, [price, configName]);
+        return true;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
     getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
-    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getGtfsTrip, getPlannerConfig }
+    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getGtfsTrip, getPlannerConfig, updateFuelPrice }

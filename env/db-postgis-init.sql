@@ -21,9 +21,9 @@ CREATE TABLE IF NOT EXISTS shapes (id SERIAL PRIMARY KEY, geom GEOMETRY, route_t
 CREATE TABLE IF NOT EXISTS trips (id SERIAL PRIMARY KEY, route_id TEXT, route_id_id INT, CONSTRAINT route_id_id FOREIGN KEY(route_id_id) REFERENCES routes(id), trip_id TEXT,
     trip_headsign TEXT, trip_short_name TEXT, direction_id INT, block_id TEXT, wheelchair_accessible INT, bikes_allowed INT, gtfs_trip_id INT,
     shape_id INT, CONSTRAINT shape_id FOREIGN KEY(shape_id) REFERENCES shapes(id), stops INT[], stops_info JSON[], api TEXT, is_today BOOLEAN, is_active BOOLEAN);
+
 CREATE TABLE IF NOT EXISTS fare_tickets (id SERIAL PRIMARY KEY, code TEXT, zones INT, duration INT, 
     base_price INT, discounted_a_price INT, discounted_b_price INT, is_universal BOOLEAN DEFAULT FALSE);
-    
 INSERT INTO fare_tickets (code, zones, duration, base_price, discounted_a_price, discounted_b_price, is_universal) VALUES
 ('short2', 2, 15, 20, 10, 20, FALSE),
 ('long2', 2, 60, 25, 12, 25, FALSE),
@@ -39,6 +39,26 @@ INSERT INTO fare_tickets (code, zones, duration, base_price, discounted_a_price,
 ('12', 12, 210, 105, 52, 67, FALSE),
 ('all', 2048, 240, 113, 56, 71, FALSE),
 ('universal', NULL, NULL, 180, 90, 90, TRUE);
+
+CREATE TABLE IF NOT EXISTS planner_config (
+    id SERIAL PRIMARY KEY, 
+	config_name TEXT UNIQUE DEFAULT 'ids_jmk',
+    fuel_price_default NUMERIC(10, 2) DEFAULT 40.00, 
+    avg_fuel_consumption_default NUMERIC(6, 1) DEFAULT 6.5,
+    car_maintenance_factor NUMERIC(5, 2) DEFAULT 2,
+    emission_factor_CAR INT DEFAULT 192,
+    emission_factor_BUS INT DEFAULT 68,
+    emission_factor_FERRY INT DEFAULT 10,
+    emission_factor_RAIL INT DEFAULT 14,
+    emission_factor_TRAM INT DEFAULT 10,
+    emission_factor_TROLLEYBUS INT DEFAULT 10,
+    clustering_factor NUMERIC(4, 3) DEFAULT 0.43,
+    transfer_hub_score INT DEFAULT 60,
+    park_and_ride_decision_score INT DEFAULT 75,
+    park_and_ride_decision_distance INT DEFAULT 5000, 
+    transfer_hub_min_improvement INT DEFAULT 10
+);
+INSERT INTO planner_config DEFAULT VALUES;
 
 CREATE INDEX IF NOT EXISTS idx_trips_route_gtfs
     ON trips(route_id_id, gtfs_trip_id);

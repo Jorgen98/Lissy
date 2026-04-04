@@ -325,6 +325,10 @@
             "invalidTripObject": {
                 "head": "Nevalidní obsahu souboru",
                 "body": "Obsah nahraného JSON souboru nepopisuje validní trasu."
+            },
+            "configUnavailable": {
+                "head": "Konfigurace není dostupná",
+                "body": "Chyba při načtení konfigurace ze serveru. Prosím nastavte hodnoty pro cenu paliva a spotřebu manuálně v rozšířeném nastavení pro auto."
             }
         }   
     }

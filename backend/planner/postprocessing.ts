@@ -11,9 +11,9 @@ const dbPostgis = require("../db-postgis.js");
 import { TripOption, TripSectionOption, TripSectionLeg } from "./types/TripOption";
 import { TripRequest } from "./types/TripRequest";
 import { UserPreferences, TicketType } from "../../frontend/modules/planner/types/TripDataExtended";
-import { CAR_MAINTENANCE_FACTOR, EMISSION_FACTORS } from "./utils/criteriaConstants";
 import { Ticket } from "./types/Ticket";
 import { RATING_WEIGHTS } from "./utils/tripRatingWeights";
+import { plannerConfig } from "./tripOrchestrator";
 
 let availableTickets: Ticket[] | null = null;
 
@@ -127,7 +127,7 @@ function calculateCarPrice(legs: TripSectionLeg[], avgConsumption: number, fuelP
     // Formula to calculate total car price of section
     // (km * 100l/km * czk/l) / 100 ==> czk 
     const sectionFuelCost = (carDistanceKm * avgConsumption * fuelPrice) / 100;
-    const sectionMaintenanceCost = carDistanceKm * CAR_MAINTENANCE_FACTOR;
+    const sectionMaintenanceCost = carDistanceKm * parseFloat(plannerConfig!.car_maintenance_factor);
     return sectionFuelCost + sectionMaintenanceCost; 
 }
 
@@ -207,7 +207,30 @@ function addEmissions(section: TripSectionOption) {
     // Accumulate emissions from legs of the section
     let totalEmissions = 0;
     section.legs.forEach(leg => {
-        totalEmissions += EMISSION_FACTORS[leg.mode] * (leg.distance / 1000);
+        
+        let emissionFactor = 0;
+        switch (leg.mode) {
+            case "BUS": 
+                emissionFactor = plannerConfig!.emission_factor_bus;
+                break;
+            case "CAR": 
+                emissionFactor = plannerConfig!.emission_factor_car;
+                break;
+            case "FERRY": 
+                emissionFactor = plannerConfig!.emission_factor_ferry;
+                break;
+            case "RAIL": 
+                emissionFactor = plannerConfig!.emission_factor_rail;
+                break;
+            case "TRAM": 
+                emissionFactor = plannerConfig!.emission_factor_tram;
+                break;
+            case "TROLLEYBUS": 
+                emissionFactor = plannerConfig!.emission_factor_trolleybus;
+                break;
+        }
+
+        totalEmissions += emissionFactor * (leg.distance / 1000);
     });
 
     // Update the object

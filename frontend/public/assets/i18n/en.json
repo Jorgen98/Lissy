@@ -324,6 +324,10 @@
             "invalidTripObject": {
                 "head": "Invalid content",
                 "body": "The contents of the uploaded JSON file do not describe a valid trip."
+            },
+            "configUnavailable": {
+                "head": "Configuration unavailable",
+                "body": "Failed to load planner configuration from the server. Please set fuel price and consumption values manually in the car settings."
             }
         }
     }

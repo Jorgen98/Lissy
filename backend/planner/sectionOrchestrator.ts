@@ -12,8 +12,8 @@ import { postprocessTripSections, rateOptions } from "./postprocessing";
 import { calculateDistanceHaversine } from "./geo";
 import { getTransferHubs, filterTransferHubs, clusterHubs } from "./transferHubs";
 import { TransferHub } from "./types/TransferHub";
+import { plannerConfig } from "./tripOrchestrator";
 import { 
-    PARK_AND_RIDE_DECISION_DISTANCE, 
     MIN_DRIVE_DISTANCE,
     WALKING_DISTANCE_COEF,
     DRIVING_DISTANCE_COEF
@@ -90,7 +90,7 @@ async function carTransitCombination(planner: RoutePlanner, request: TripSection
 
     // Get straight line distance between the two points, check if its not too short for car->transit
     const distance = calculateDistanceHaversine(origin, destination);
-    if (distance < PARK_AND_RIDE_DECISION_DISTANCE)
+    if (distance < plannerConfig!.park_and_ride_decision_distance)
         return [];
 
     // Find candidate transit hubs for the two points

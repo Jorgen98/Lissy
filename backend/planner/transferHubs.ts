@@ -11,14 +11,11 @@ import { getIntermediatePoint, calculateDistanceHaversine } from "./geo";
 import { TransferHub } from "./types/TransferHub";
 import { LatLng } from "./types/LatLng";
 import { kmeans } from "ml-kmeans";
+import { plannerConfig } from "./tripOrchestrator";
 import { 
     TRANSFER_HUB_RADIUS_SHIFT, 
-    TRANSFER_HUB_SCORE, 
     SCORE_STOP_RADIUS,
     CANDIDATES_NO_CLUSTER_LIMIT,
-    CLUSTER_NUMBER_FACTOR,
-    PARK_AND_RIDE_DECISION_SCORE,
-    TRANSFER_HUB_MIN_IMPROVEMENT
 } from "./utils/systemConstants";
 
 // Function finding all candidate transfer hubs between pointA and pointB for a car->transit section
@@ -29,7 +26,7 @@ export async function getTransferHubs(pointA: LatLng, pointB: LatLng, distance: 
 
     // Get stations that are in a given radius around this intermediate point, have a good enough score and parking nearby
     const candidateHubs = await dbPostgis
-        .getNearbyStations(intermediatePoint.lat, intermediatePoint.lng, distance / 2, TRANSFER_HUB_SCORE, true);
+        .getNearbyStations(intermediatePoint.lat, intermediatePoint.lng, distance / 2, plannerConfig!.transfer_hub_score, true);
 
     // Convert response into list of candidate stations with their coordinates, nearest parking coordinates, scores and name
     return (Object.values(candidateHubs) as { 
@@ -74,7 +71,7 @@ export function clusterHubs(hubs: TransferHub[]): TransferHub[] {
     const coords = hubs.map(hub => [hub.coords.lat, hub.coords.lng]);
     
     // Calculate number of clusters with a base constant and a slow growing factor (numHubs^factor)
-    const numClusters = Math.min(hubs.length, CANDIDATES_NO_CLUSTER_LIMIT + Math.floor(Math.pow(hubs.length, CLUSTER_NUMBER_FACTOR)));
+    const numClusters = Math.min(hubs.length, CANDIDATES_NO_CLUSTER_LIMIT + Math.floor(Math.pow(hubs.length, parseFloat(plannerConfig!.clustering_factor))));
 
     // Run KMeans for the array of coordinates with custom distance function (straight line distance between points on globe)
     const kmeansResult = kmeans(coords, numClusters, {
@@ -119,17 +116,17 @@ export async function filterTransferHubs(candidates: TransferHub[], origin: LatL
     const destinationScore = await getPointTransitAccessScore(destination);
 
     // If they both have good access to public transport, dont request the combined leg
-    if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore >= PARK_AND_RIDE_DECISION_SCORE)
+    if (originScore >= plannerConfig!.park_and_ride_decision_score && destinationScore >= plannerConfig!.park_and_ride_decision_score)
         return [];
 
     // If they both have not great access to public transport, use only hubs that actually improve on both of them
-    if (originScore < PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+    if (originScore < plannerConfig!.park_and_ride_decision_score && destinationScore < plannerConfig!.park_and_ride_decision_score) {
         const worseScore = Math.min(originScore, destinationScore);
-        return candidates.filter(candidate => candidate.score >= worseScore + TRANSFER_HUB_MIN_IMPROVEMENT);
+        return candidates.filter(candidate => candidate.score >= worseScore + plannerConfig!.transfer_hub_min_improvement);
     }
 
     // If origin has good transit access and destionation does not, find hubs that improve on destinationScore and are closer to destination than origin
-    else if (originScore >= PARK_AND_RIDE_DECISION_SCORE && destinationScore < PARK_AND_RIDE_DECISION_SCORE) {
+    else if (originScore >= plannerConfig!.park_and_ride_decision_score && destinationScore < plannerConfig!.park_and_ride_decision_score) {
         return candidates.filter(candidate => {
             const distToOrigin = calculateDistanceHaversine(origin, candidate.coords);
             const distToDestination = calculateDistanceHaversine(candidate.coords, destination);

@@ -1249,9 +1249,21 @@ async function getAvailableFareTickets() {
     }
 }
 
+// Get the planner configuration by config_name
+async function getPlannerConfig(configName) {
+    try {
+        const result = await db_postgis.query('SELECT * FROM planner_config WHERE config_name = $1', [configName]);
+        return result.rows[0];
+    }
+    catch(error) {
+        log('error', error);
+        return null;
+    }
+}
+
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
     getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
-    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getGtfsTrip }
+    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getGtfsTrip, getPlannerConfig }

@@ -6,6 +6,8 @@
  * Entry point to the trip planning process.
  */
 
+const dbPostgis = require('../db-postgis.js');
+
 import { TripRequest } from "./types/TripRequest";
 import { RoutePlanner } from "./RoutePlanner";
 import { TripOption, TripSectionOption } from "./types/TripOption";
@@ -15,12 +17,23 @@ import { UserPreferences } from "../../frontend/modules/planner/types/TripDataEx
 import { fillInTripShape } from "./shaping";
 import { findReturnTrips } from "./returnTrips";
 import { getParetoOptimalTrips, postprocessTripOptions, rateOptions } from "./postprocessing";
+import { PlannerConfig } from "./types/PlannerConfig";
+
+export let plannerConfig: PlannerConfig | null = null;
+async function loadPlannerConfig() {
+    plannerConfig = await dbPostgis.getPlannerConfig(process.env.BE_PLANNER_CONFIG_NAME);
+}
 
 // Trip routing entry point function
 export async function planTrip(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
 
     // Perform possible initialization steps
     if (!await planner.initialize())
+        return null;
+
+    // Load config from DB
+    await loadPlannerConfig();
+    if (!plannerConfig)
         return null;
 
     // Get list of trip options 

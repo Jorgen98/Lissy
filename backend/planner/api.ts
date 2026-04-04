@@ -86,6 +86,16 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
             break;
         }
 
+        // Endpoint to get the planner configuration with default values from DB
+        case 'getConfig': {
+            const plannerConfig = await dbPostgis.getPlannerConfig(process.env.BE_PLANNER_CONFIG_NAME);
+            if (!plannerConfig)
+                res.send(null);
+            else
+                res.send({ fuel_price_default: parseFloat(plannerConfig.fuel_price_default), avg_fuel_consumption_default: parseFloat(plannerConfig.avg_fuel_consumption_default) });
+            break;
+        }
+
         // Unexpected endpoint
         default: {
             log('error', `Endpoint with this url (${url[0]}) does not exist`);

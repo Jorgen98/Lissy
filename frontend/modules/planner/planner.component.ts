@@ -26,12 +26,11 @@ import { TripSchema } from './schemas/TripSchema';
 import { TranslateService } from '@ngx-translate/core';
 import { TripHeaderComponent } from './components/trip-header/trip-header.component';
 import { TripSortField } from './types/TripSortField';
+import { PlannerConfig } from './types/PlannerConfig';
 import { 
     MAX_WALK_DISTANCE_DEFAULT, 
-    AVG_FUEL_CONSUMPTION_DEFAULT, 
     MAX_TRANSFERS_DEFAULT, 
     AVG_WALK_SPEED_DEFAULT, 
-    FUEL_PRICE_DEFAULT 
 } from './utils/defaultSettingValues';
 import { 
     Component, 
@@ -111,8 +110,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     public maxNumberOfTransfersUnlimited = true;     // Whether the maximum number of transfers should be limited (unlimited by default)
 
     // Fuel price and average fuel consumption values from user settings with defaults
-    public selectedFuelConsumption = AVG_FUEL_CONSUMPTION_DEFAULT;
-    public selectedFuelPrice = FUEL_PRICE_DEFAULT;
+    // Actual default values are stored in DB, values are kept at 0 when loading them fails
+    public selectedFuelConsumption = 0;
+    public selectedFuelPrice = 0;
 
     // Average walking speed from user preferences input
     public selectedWalkingSpeedKmh = AVG_WALK_SPEED_DEFAULT;
@@ -145,6 +145,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     onResize(event: any) {
         this.windowWidth = event.target.innerWidth;
     }
+
+    // Planner configuration from database
+    private plannerConfig: PlannerConfig | null = null;
 
     constructor(
         private mapService: MapService,
@@ -186,6 +189,19 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         }
 
         this.allStops = stops.stops;
+
+        // Get planner configuration from DB
+        const plannerConfig = await this.apiService.genericGet(`${config.apiPrefix}/getConfig`) as PlannerConfig | null;
+        if (!plannerConfig) {
+            this.msgService.showMessage('error', 'UIMessagesService.toasts.configUnavailable.head', 'UIMessagesService.toasts.configUnavailable.body');
+            this.msgService.turnOffLoadingScreen();
+            return;
+        }
+
+        // Set default values for user settings and store the config
+        this.selectedFuelConsumption = plannerConfig.avg_fuel_consumption_default;
+        this.selectedFuelPrice = plannerConfig.fuel_price_default;
+        this.plannerConfig = plannerConfig;
 
         // Turn off loading screen after initialization is done
         this.msgService.turnOffLoadingScreen();
@@ -394,8 +410,12 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                     this.selectedWalkDistanceKm = MAX_WALK_DISTANCE_DEFAULT;
                 break;
             case 'fuelConsumption':
+                if (!this.plannerConfig) {
+                    this.selectedFuelConsumption = 0;
+                    return;
+                }
                 if (this.selectedFuelConsumption === null)
-                    this.selectedFuelConsumption = AVG_FUEL_CONSUMPTION_DEFAULT;
+                    this.selectedFuelConsumption = this.plannerConfig.avg_fuel_consumption_default;
                 break;
             case 'maxTransfers':
                 if (this.selectedMaxNumberOfTransfers === null)
@@ -406,8 +426,12 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
                     this.selectedWalkingSpeedKmh = AVG_WALK_SPEED_DEFAULT;
                 break;
             case 'fuelPrice':
+                if (!this.plannerConfig) {
+                    this.selectedFuelPrice = 0;
+                    return;
+                }
                 if (this.selectedFuelPrice === null)
-                    this.selectedFuelPrice = FUEL_PRICE_DEFAULT;
+                    this.selectedFuelPrice = this.plannerConfig.fuel_price_default;
                 break;
         }
     } 

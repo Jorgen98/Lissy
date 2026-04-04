@@ -23,3 +23,6 @@ export const CANDIDATES_NO_CLUSTER_LIMIT = 10;
 
 // Maximum attempts to query OTP with when a transit trip isnt found due to there not being an option in the generated search window
 export const OTP_MAX_WINDOW_PAGING_ATTEMPTS = 10
+
+// Maximum number of returned trip options from the backend
+export const MAX_RETURNED_OPTIONS = 5;

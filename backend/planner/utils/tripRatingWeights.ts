@@ -1,7 +1,7 @@
 // Temporary, move to DB?
 export const RATING_WEIGHTS = {
-    duration: 0.338,
-    cost: 0.262,
-    numTransfers: 0.275,
-    emissions: 0.125
+    duration: 0.336,
+    cost: 0.264,
+    numTransfers: 0.274,
+    emissions: 0.126,
 };

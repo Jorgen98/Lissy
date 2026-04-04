@@ -43,7 +43,7 @@ INSERT INTO fare_tickets (code, zones, duration, base_price, discounted_a_price,
 CREATE TABLE IF NOT EXISTS planner_config (
     id SERIAL PRIMARY KEY, 
 	config_name TEXT UNIQUE DEFAULT 'ids_jmk',
-    fuel_price_default NUMERIC(10, 2) DEFAULT 40.00, 
+    fuel_price_default NUMERIC(10, 2) DEFAULT 44.50, 
     avg_fuel_consumption_default NUMERIC(6, 1) DEFAULT 6.5,
     car_maintenance_factor NUMERIC(5, 2) DEFAULT 2,
     emission_factor_CAR INT DEFAULT 192,

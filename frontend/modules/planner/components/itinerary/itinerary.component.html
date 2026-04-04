@@ -11,24 +11,12 @@ Main component HTML template file for the itinerary used in the planner module.
 
     <!-- Itinerary header -->
     <div class="header">
-
-      <!-- Back button to hide option detail -->
-      <img 
-        class="back-btn" 
-        src="./planner/chevron.svg" 
-        (click)="backButtonClicked()" 
-        [hidden]="!optionDetailActive"
-      />
-
       <span class="title">{{ "planner.itinerary.title" | translate }}</span>
 
       <!-- Button to clear itinerary -->
-      <img 
-        class="trashbin-btn" 
-        src="./planner/trash-bin-dark.svg" 
-        (click)="clearItineraryState()" 
-        [title]="'planner.itinerary.clearItinerary' | translate" 
-      />
+      <button class="clear-itinerary-btn" (click)="clearItineraryState()">
+        {{ 'planner.itinerary.clearItinerary' | translate }}
+      </button>
     </div>
 
     <!-- Sort select -->

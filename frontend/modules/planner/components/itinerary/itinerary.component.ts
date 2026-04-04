@@ -228,17 +228,6 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
         this.selectedOptionIdx = index;
     }
 
-    // Function called when the go back button is clicked in the itinerary, closes detail of option
-    public backButtonClicked() {
-        this.accordionOptionValue = -1;
-        this.optionDetailActive = false;
-
-        // Autoscroll to currently selected option after the list of options is rerendered
-        setTimeout(() => {
-            this.scrollToSelected();
-        });
-    }
-
     // Function retrieving the color of the leg based on the mode and availability from GTFS
     public getLegColor(leg: TripSectionLeg): string {
 

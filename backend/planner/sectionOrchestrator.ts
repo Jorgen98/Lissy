@@ -89,9 +89,10 @@ async function carTransitCombination(planner: RoutePlanner, request: TripSection
     const destination = request.pointB;
 
     // Get straight line distance between the two points, check if its not too short for car->transit
+    // Request a full car section if car->transit wont be used
     const distance = calculateDistanceHaversine(origin, destination);
     if (distance < plannerConfig!.park_and_ride_decision_distance)
-        return [];
+        return await planner.getTripSection({ ...request, modes: { publicTransport: false, car: true, walk: false }}) ?? [];
 
     // Find candidate transit hubs for the two points
     const candidateHubs = await getTransferHubs(origin, destination, distance);
@@ -103,7 +104,10 @@ async function carTransitCombination(planner: RoutePlanner, request: TripSection
     const clusteredHubs = clusterHubs(filteredHubs);
 
     // Maximum of two sequential requests for each transfer hub
+    // Request a full car section if car->transit wont be used
     const requests = clusteredHubs.map(hub => buildCarTransitTrip(planner, request, hub)); 
+    if (requests.length === 0)
+        return await planner.getTripSection({ ...request, modes: { publicTransport: false, car: true, walk: false }}) ?? [];
 
     // Wait for all requests to finish and flatten into an array of section options with car and transit combined
     return (await Promise.all(requests)).flat();

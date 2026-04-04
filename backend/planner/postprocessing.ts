@@ -241,21 +241,13 @@ function addEmissions(section: TripSectionOption) {
 function addNumberOfTransfers(legs: TripSectionLeg[], object: TripSectionOption | TripOption): void {
 
     // Count number of transfers
-    let possibleTransfer = false;
-    let numTransfers = 0;
+    let numTransitLegs = 0;
     legs.forEach(leg => {
-        if (leg.mode === "CAR")
-            possibleTransfer = true;
-        else if (leg.mode !== "WALK") {
-            if (possibleTransfer)
-                numTransfers++;
-            else
-                possibleTransfer = true;
-        }
+        if (leg.isTransitLeg) numTransitLegs++;
     });
 
     // Update the trip object
-    object.numTransfers = numTransfers;
+    object.numTransfers = (numTransitLegs > 0) ? numTransitLegs - 1 : 0;
 }
 
 // Function adding place names to section origin points and destination points where they arent yet set
@@ -293,31 +285,31 @@ export function rateOptions(objects: TripOption[] | TripSectionOption[]): void {
 
     const addTags = 'fastest' in objects[0]!;
 
-    // Minimum and maximum value object
-    const minMaxs = {
-        duration: { min: Infinity, max: 0 },
-        cost: { min: Infinity, max: 0 },
-        numTransfers: { min: Infinity, max: 0 },
-        emissions: { min: Infinity, max: 0 },
+    // Minimum values object
+    const mins = {
+        duration: Infinity,
+        cost: Infinity,
+        numTransfers: Infinity,
+        emissions: Infinity,
     };
 
-    // Get minimum and maximum values for each criteria for min-max normalization
+    // Get minimum values for each criteria for normalization
     objects.forEach(object => {
-        (Object.keys(minMaxs) as (keyof typeof minMaxs)[]).forEach(criteriaKey => {
-            const minMaxCriteria = minMaxs[criteriaKey];
-            const tripCriteriaValue = object[criteriaKey]!;
-            minMaxCriteria.max = Math.max(minMaxCriteria.max, tripCriteriaValue);
-            minMaxCriteria.min = Math.min(minMaxCriteria.min, tripCriteriaValue);
+        (Object.keys(mins) as (keyof typeof mins)[]).forEach(criteriaKey => {
+            const minimumValue = mins[criteriaKey];
+            const currentOptionValue = object[criteriaKey]!;
+            if (currentOptionValue < minimumValue)
+                mins[criteriaKey] = currentOptionValue;
         });
     });
 
-    // Calculate score for each trip option with min-max normalization to 0-100 range
+    // Calculate score for each trip option with normalization to 0-100 range
     let maxIdx = 0;
     let fastestSet = false;
     let cheapestSet = false;
     objects.forEach((object, idx) => {
-        const score = (Object.keys(minMaxs) as (keyof typeof minMaxs)[]).reduce((score, criteriaKey) => {
-            const { min, max } = minMaxs[criteriaKey];
+        const score = (Object.keys(mins) as (keyof typeof mins)[]).reduce((score, criteriaKey) => {
+            const min = mins[criteriaKey];
             const value = object[criteriaKey]!;
 
             // Mark fastest and cheapest trips with flags (only first one if equal)
@@ -330,11 +322,7 @@ export function rateOptions(objects: TripOption[] | TripSectionOption[]): void {
                 cheapestSet = true;
             }
 
-            let normalized;
-            if (max - min === 0)
-                normalized = 0;
-            else 
-                normalized = 100 - ((value - min) / (max - min)) * 100; // higher score === better trip
+            const normalized = Math.pow((min + 1) / (value + 1), 0.5) * 100;
 
             // Multiply by criteria weights and sum all criteria scores
             return score + normalized * RATING_WEIGHTS[criteriaKey];

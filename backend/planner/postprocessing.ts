@@ -283,23 +283,46 @@ export function rateOptions(objects: TripOption[] | TripSectionOption[]): void {
     if (objects.length === 0)
         return;
 
-    const addTags = 'fastest' in objects[0]!;
+    const isTripOption = 'fastest' in objects[0]!;
 
     // Minimum values object
+    // The 'actual' field holds the actual minimum across the entier list of objects
+    // The 'rating' field holds the minimum used for criteria rating (objects that are fully direct (car, walk) arent used for ranking)
     const mins = {
-        duration: Infinity,
-        cost: Infinity,
-        numTransfers: Infinity,
-        emissions: Infinity,
+        duration: { actual: Infinity, rating: Infinity },
+        cost: { actual: Infinity, rating: Infinity },
+        numTransfers: { actual: Infinity, rating: Infinity },
+        emissions: { actual: Infinity, rating: Infinity },
     };
 
     // Get minimum values for each criteria for normalization
     objects.forEach(object => {
+
+        // Check if the objects values should be used as a minimum for ranking (not using strictly direct legs)
+        let ratingMinimum = true;
+        if (!isTripOption) {
+            const section = object as TripSectionOption;
+            if (section.legs.length === 1 && !section.legs[0]!.isTransitLeg) 
+                ratingMinimum = false;
+        } 
+        else {
+            const trip = object as TripOption;
+            if (trip.sections.length === 1 && trip.sections[0]!.legs.length === 1 && !trip.sections[0]!.legs[0]!.isTransitLeg)
+                ratingMinimum = false;
+        }
+
         (Object.keys(mins) as (keyof typeof mins)[]).forEach(criteriaKey => {
-            const minimumValue = mins[criteriaKey];
+            const minRating = mins[criteriaKey].rating;
+            const minActual = mins[criteriaKey].actual;
             const currentOptionValue = object[criteriaKey]!;
-            if (currentOptionValue < minimumValue)
-                mins[criteriaKey] = currentOptionValue;
+
+            // Update the rating minimum if the object is used for it
+            if (ratingMinimum && currentOptionValue < minRating)
+                mins[criteriaKey].rating = currentOptionValue;
+
+            // Track the actual minimum even with fully direct objects
+            if (currentOptionValue < minActual)
+                mins[criteriaKey].actual = currentOptionValue;
         });
     });
 
@@ -308,21 +331,36 @@ export function rateOptions(objects: TripOption[] | TripSectionOption[]): void {
     let fastestSet = false;
     let cheapestSet = false;
     objects.forEach((object, idx) => {
+
+        // Check if the score should be calculated for the object (not calculating for fully direct ones)
+        let calculateScore = true;
+        if (!isTripOption) {
+            const section = object as TripSectionOption;
+            if (section.legs.length === 1 && !section.legs[0]!.isTransitLeg) 
+                calculateScore = false;
+        }
+        else {
+            const trip = object as TripOption;
+            if (trip.sections.length === 1 && trip.sections[0]!.legs.length === 1 && !trip.sections[0]!.legs[0]!.isTransitLeg) 
+                calculateScore = false;
+        }
+
         const score = (Object.keys(mins) as (keyof typeof mins)[]).reduce((score, criteriaKey) => {
-            const min = mins[criteriaKey];
+            const minRating = mins[criteriaKey].rating;
+            const minActual = mins[criteriaKey].actual;
             const value = object[criteriaKey]!;
 
             // Mark fastest and cheapest trips with flags (only first one if equal)
-            if (!fastestSet && criteriaKey === "duration" && min === value) {
-                if (addTags) (object as TripOption).fastest = true
+            if (!fastestSet && criteriaKey === "duration" && minActual === value) {
+                if (isTripOption) (object as TripOption).fastest = true
                 fastestSet = true;
             }
-            else if (!cheapestSet && criteriaKey === "cost" && min === value) {
-                if (addTags) (object as TripOption).cheapest = true
+            else if (!cheapestSet && criteriaKey === "cost" && minActual === value) {
+                if (isTripOption) (object as TripOption).cheapest = true
                 cheapestSet = true;
             }
 
-            const normalized = Math.pow((min + 1) / (value + 1), 0.5) * 100;
+            const normalized = calculateScore ? Math.pow((minRating + 1) / (value + 1), 0.5) * 100 : 0;
 
             // Multiply by criteria weights and sum all criteria scores
             return score + normalized * RATING_WEIGHTS[criteriaKey];
@@ -334,5 +372,5 @@ export function rateOptions(objects: TripOption[] | TripSectionOption[]): void {
     });
 
     // Mark trip with best score as best
-    if (addTags) (objects[maxIdx]! as TripOption).best = true; 
+    if (isTripOption) (objects[maxIdx]! as TripOption).best = true; 
 }

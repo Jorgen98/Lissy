@@ -56,7 +56,11 @@ CREATE TABLE IF NOT EXISTS planner_config (
     transfer_hub_score INT DEFAULT 60,
     park_and_ride_decision_score INT DEFAULT 75,
     park_and_ride_decision_distance INT DEFAULT 5000, 
-    transfer_hub_min_improvement INT DEFAULT 10
+    transfer_hub_min_improvement INT DEFAULT 10,
+    bounds_lat_min NUMERIC(6, 3) DEFAULT 48.63,
+    bounds_lat_max NUMERIC(6, 3) DEFAULT 49.62,
+    bounds_lng_min NUMERIC(6, 3) DEFAULT 15.62,
+    bounds_lng_max NUMERIC(6, 3) DEFAULT 17.50
 );
 INSERT INTO planner_config DEFAULT VALUES;
 

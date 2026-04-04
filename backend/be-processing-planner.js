@@ -57,22 +57,20 @@ async function findParkingNearStations() {
 
     const envEmail = process.env.BE_PLANNER_USER_AGENT_EMAIL;
     const overpassUrl = process.env.BE_PLANNER_OVERPASS_URL;
+    const configName = process.env.BE_PLANNER_CONFIG_NAME;
 
-    if (!envEmail || !overpassUrl) {
+    if (!envEmail || !overpassUrl || !configName) {
         log("warning", "Missing environment variables for fetching parking spots with overpass API");
         return false;
     }
 
     // Get bounds of region set in .env
-    const boundsLatMin = process.env.BE_PLANNER_REGION_BOUNDS_LAT_MIN;
-    const boundsLatMax = process.env.BE_PLANNER_REGION_BOUNDS_LAT_MAX;
-    const boundsLngMin = process.env.BE_PLANNER_REGION_BOUNDS_LNG_MIN;
-    const boundsLngMax = process.env.BE_PLANNER_REGION_BOUNDS_LNG_MAX;
-    if (boundsLatMin === undefined || boundsLatMax === undefined || boundsLngMax === undefined || boundsLngMin === undefined) {
-        log("warning", "Missing environment variables with transport system bounds for fetching parking spots with overpass API");
+    const plannerConfig = await dbPostgis.getPlannerConfig(configName);
+    if (!plannerConfig) {
+        log("warning", "Failed to get region bounds from config for finding parking spots in transport system");
         return false;
     }
-    const boundsString = `${boundsLatMin},${boundsLngMin},${boundsLatMax},${boundsLngMax}`;
+    const boundsString = `${plannerConfig.bounds_lat_min},${plannerConfig.bounds_lng_min},${plannerConfig.bounds_lat_max},${plannerConfig.bounds_lng_max}`;
 
     // Create query to get all transit stops within bounding box (3 minute timeout)
     const query = `

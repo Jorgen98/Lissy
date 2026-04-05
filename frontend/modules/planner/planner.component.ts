@@ -211,6 +211,10 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
         // Cancel the map click event subscribtion on component destroy
         this.mapClickSub.unsubscribe();
+
+        this.mapService.removeLayer('routes');
+        this.mapService.removeLayer('returnTrip');
+        this.mapService.removeLayer('stops');
     }
 
     // Function called when a marker in the form is clicked
@@ -253,6 +257,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.tripOptions = null;
         this.mapService.clearLayer('routes');
         this.mapService.clearLayer('returnTrip');
+        this.mapService.clearLayer('stops');
 
         // Check if API is running and connected
         if(!await this.apiService.isConnected()) {
@@ -444,6 +449,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.tripOptions = null;
         this.mapService.clearLayer('routes');
         this.mapService.clearLayer('returnTrip');
+        this.mapService.clearLayer('stops');
     }
 
     // Function rendering a single leg on the map via map service
@@ -471,20 +477,30 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             hoover: false,
         });
 
-        // Add parking icon to the map if applicable
-        if (leg.from.isParking || leg.to.isParking) {
-            this.mapService.addToLayer({
-                layerName: "routes",
-                type: "parking",
-                focus: false,
-                latLng: [leg.from.isParking ? leg.points[0] : leg.points[leg.points.length - 1]],
-                color: "provided",
-                metadata: {},
-                interactive: false,
-                hoover: false,
-            });                  
-        }
+        // Render stops for a leg that isnt grayed out
+        if (!gray)
+            this.renderStops(leg, bgColor);
     }   
+
+    // Function rendering stops on the leaflet map
+    private renderStops(leg: TripSectionLeg, bgColor: string) {
+        leg.stops?.forEach(stop => {
+            this.mapService.addToLayer({
+                layerName: "stops",
+                type: "stop",
+                focus: false,
+                latLng: [{ lat: stop.lat, lng: stop.lng }],
+                color: "provided",
+                metadata: {
+                    color: bgColor,
+                    stop_name: stop.name,
+                    zone_id: stop.zone,
+                },
+                interactive: true,
+                hoover: false, 
+            });
+        });
+    }
 
     // Function rendering a single trip on the leaflet map using polylines
     public async renderTrip(index: number): Promise<void> {
@@ -494,9 +510,11 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
         const trip = this.tripOptions[index];
 
-        // Reset routes layer before rendering
+        // Reset routes and stops layers before rendering
         this.mapService.clearLayer('routes');
+        this.mapService.clearLayer('stops');
         this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
+        this.mapService.addNewLayer({ name: 'stops', palette: {}, layer: undefined, paletteItemName: '' });
     
         // Iterate through each leg and call function to render it
         trip.sections.forEach((section, sectionIdx) => {
@@ -519,7 +537,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Reset the layers
         this.mapService.clearLayer('returnTrip');
         this.mapService.clearLayer('routes');
+        this.mapService.clearLayer('stops');
         this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
+        this.mapService.addNewLayer({ name: 'stops', palette: {}, layer: undefined, paletteItemName: '' });
 
         // If the return trip shouldnt be drawn, draw the actual trip in color and stio rendering
         if (!params.draw) {
@@ -583,7 +603,9 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         // Redraw only the route of the original trip, not the return
         this.mapService.clearLayer('returnTrip');
         this.mapService.clearLayer('routes');
+        this.mapService.clearLayer('stops');
         this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
+        this.mapService.addNewLayer({ name: 'stops', palette: {}, layer: undefined, paletteItemName: '' });
         trip.sections.forEach(section => {
             section.legs.forEach(leg => {
                 this.renderLeg(leg, false, false, 'routes');
@@ -613,6 +635,8 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
             // Remove existing trip options and clear existing routes
             this.tripOptions = null;
             this.mapService.clearLayer('routes');
+            this.mapService.clearLayer('stops');
+            this.mapService.clearLayer('returnTrip');
 
             // Wait for next change detection cycle so changes to tripOptions are propagated to itinerary
             setTimeout(() => {

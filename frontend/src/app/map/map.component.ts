@@ -141,6 +141,23 @@ export class MapComponent implements AfterViewInit {
             objectClass = objectLayer.palette[object.metadata.zone_id];
         }
 
+        // Circle icon with custom color (for planner)
+        else if (object.color === 'provided') {
+            const size = this.map.getZoom() * 1.05;
+            return L.divIcon({
+                html: `<div style="
+                    width: ${size}px;
+                    height: ${size}px;
+                    background-color: ${object.metadata.color};
+                    border-radius: 50%;
+                    border: 2px solid black;
+                "></div>`,
+                iconSize: [size, size],
+                iconAnchor: [size / 2, size / 2],
+                className: ''
+            })
+        }
+
         return L.icon({
             iconUrl: object.metadata.wheelchair_boarding === 1 ? 'icons/stop-wheelchair.svg' : 'icons/stop.svg',
             iconSize: [this.map.getZoom() * 1.35, this.map.getZoom() * 1.35],
@@ -455,14 +472,16 @@ export class MapComponent implements AfterViewInit {
                     }
                 }
 
-                L.marker(
-                    L.latLng(object.latLng[0]),
-                    {
-                        icon: this.createStopIconShadow(),
-                        interactive: false
-                    }
-                )
-                .addTo(this.layers[object.layerName].layer!);
+                if (object.color !== "provided") {
+                    L.marker(
+                        L.latLng(object.latLng[0]),
+                        {
+                            icon: this.createStopIconShadow(),
+                            interactive: false
+                        }
+                    )
+                    .addTo(this.layers[object.layerName].layer!);
+                }
                 L.marker(
                     L.latLng(object.latLng[0]),
                     {

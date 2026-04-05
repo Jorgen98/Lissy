@@ -84,6 +84,8 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                                 stops {
                                     zoneId
                                     name
+                                    lat
+                                    lon
                                 }
                                 gtfsId
                             }

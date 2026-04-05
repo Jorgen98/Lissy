@@ -254,6 +254,37 @@ export class OTPAdapter implements RoutePlanner {
         return Array.from(uniqueZones);
     }
 
+    // Function getting a list of stops that are actually used on the leg
+    private getStopsOnLeg(leg: Leg): { name: string, zone: string, lat: number, lng: number }[] | null {
+
+        // Check if all necessary information is available in the response Leg object
+        const firstStop = leg.from.stop;
+        const lastStop = leg.to.stop;
+        const trip = leg.trip;
+        if (!lastStop || !firstStop || !trip)
+            return null;
+
+        // Accumulate stops from the leg.trip object that has all stops on the trip the leg uses
+        // Only accumulate ones from the first stop on the leg to the last
+        const stops: { name: string, zone: string, lat: number, lng: number }[] = [];
+        let accStops = false;
+        for (const stop of trip.stops) {
+
+            // Once the current stop is the same as the first stop, start accumulating
+            if (!accStops && stop.name === firstStop.name)
+                accStops = true;
+
+            if (accStops)
+                stops.push({ name: stop.name, zone: stop.zoneId, lat: stop.lat, lng: stop.lon });
+
+            // Stop accumulating when the last stop on the leg is reached
+            if (stop.name === lastStop.name)
+                break;
+        }
+
+        return stops;
+    }
+
     // Function translating a single leg of a trip option returned from OTP to client format
     private translateTripLeg(leg: Leg): TripSectionLeg {
         return {
@@ -287,6 +318,7 @@ export class OTPAdapter implements RoutePlanner {
             } : null,
             zones: this.getZonesUsedOnLeg(leg),
             isTransitLeg: leg.transitLeg,
+            stops: this.getStopsOnLeg(leg),
         }
     }
 };

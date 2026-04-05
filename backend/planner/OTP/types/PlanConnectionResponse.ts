@@ -66,6 +66,8 @@ export type Leg = {
         stops: { 
             name: string 
             zoneId: string,
+            lat: number, 
+            lon: number,
         }[],
         gtfsId: string // GTFS internal trip id
     } | null,

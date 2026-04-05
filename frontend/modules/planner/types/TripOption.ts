@@ -57,6 +57,9 @@ export type TripSectionLeg = {
         gtfsId: string | null
     } | null,
     isTransitLeg: boolean,
+
+    // List of stops used on the leg, null for non-transit legs
+    stops: { name: string, zone: string, lat: number, lng: number }[] | null,
 };
 
 // One option for a requested trip section between two points

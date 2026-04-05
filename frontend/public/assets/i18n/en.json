@@ -255,7 +255,9 @@
         "avg": "Average delay",
         "sum": "Sum of delay",
         "max": "Maximum delay",
-        "min": "Minimum delay"
+        "min": "Minimum delay",
+        "departure": "Departure",
+        "arrival": "Arrival"
     },
     "primeng": {
         "dayNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],

@@ -453,7 +453,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
     }
 
     // Function rendering a single leg on the map via map service
-    private renderLeg(leg: TripSectionLeg, shouldFocus: boolean, gray: boolean, layerName: string) {
+    private renderLeg(leg: TripSectionLeg, shouldFocus: boolean, gray: boolean, layerName: string, renderOrigin: boolean, renderDest: boolean) {
 
         // Get color of leg on the map, a faint gray color for return trip legs
         const bgColor = gray ? "#444444" : this.getLegColor(leg);
@@ -479,26 +479,74 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
         // Render stops for a leg that isnt grayed out
         if (!gray)
-            this.renderStops(leg, bgColor);
+            this.renderStops(leg, bgColor, renderOrigin, renderDest);
     }   
 
+    // Function rendering a stop onto the leaflet map on the stops layer 
+    private renderStop(point: { lat: number, lng: number }, stop_name: string, color: string, zone?: string, departure?: string, arrival?: string) {
+        this.mapService.addToLayer({
+            layerName: "stops",
+            type: "stop",
+            focus: false,
+            latLng: [point],
+            color: "provided",
+            metadata: {
+                color,
+                stop_name,
+                departure,
+                arrival,
+                zone_id: zone,
+            },
+            interactive: true,
+            hoover: false, 
+        });
+    }
+
     // Function rendering stops on the leaflet map
-    private renderStops(leg: TripSectionLeg, bgColor: string) {
-        leg.stops?.forEach(stop => {
-            this.mapService.addToLayer({
-                layerName: "stops",
-                type: "stop",
-                focus: false,
-                latLng: [{ lat: stop.lat, lng: stop.lng }],
-                color: "provided",
-                metadata: {
-                    color: bgColor,
-                    stop_name: stop.name,
-                    zone_id: stop.zone,
-                },
-                interactive: true,
-                hoover: false, 
-            });
+    private renderStops(leg: TripSectionLeg, bgColor: string, renderOrigin: boolean, renderDest: boolean) {
+
+        // Invert color for dark mode if its black, just like to route
+        if (bgColor === "#000000")
+            bgColor = "#FFFFFF";
+
+        // Render leg origin point
+        if (renderOrigin) {
+            this.renderStop(
+                leg.points[0], 
+                leg.from.placeName ?? this.translate.instant("planner.itinerary.legOrigin"),
+                bgColor, 
+                undefined,
+                new Date(leg.from.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            )
+        }
+
+        // Render leg destination point
+        if (renderDest) {
+            this.renderStop(
+                leg.points[leg.points.length - 1], 
+                leg.to.placeName ?? this.translate.instant("planner.itinerary.legDestination"),
+                bgColor, 
+                undefined,
+                undefined,
+                new Date(leg.to.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            )
+        }
+
+        // Render stops on public transport trips
+        const stops = leg.stops;
+        if (!stops)
+            return;
+        stops.forEach((stop, idx) => {
+            const firstStop = idx === 0;
+            const lastStop = idx === stops.length - 1;
+            this.renderStop(
+                { lat: stop.lat, lng: stop.lng }, 
+                stop.name,
+                bgColor, 
+                stop.zone,
+                firstStop ? new Date(leg.from.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+                lastStop ? new Date(leg.to.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined
+            )
         });
     }
 
@@ -517,13 +565,16 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.mapService.addNewLayer({ name: 'stops', palette: {}, layer: undefined, paletteItemName: '' });
     
         // Iterate through each leg and call function to render it
-        trip.sections.forEach((section, sectionIdx) => {
-            section.legs.forEach((leg, legIdx) => {
+        const legs = trip.sections.flatMap(section => section.legs);
+        legs.forEach((leg, legIdx) => {
 
-                // Focus when the last leg of the last seciton is being rendered
-                const shouldFocus = sectionIdx === trip.sections.length - 1 && legIdx === section.legs.length - 1;
-                this.renderLeg(leg, shouldFocus, false, 'routes');
-            });
+            // Focus when the last leg of the last seciton is being rendered
+            const shouldFocus = legIdx === legs.length - 1;
+
+            // Get flags if the origin and destination points of the leg should be explicitly rendered
+            const renderOrigin = !leg.isTransitLeg && (legIdx === 0 || (!legs[legIdx - 1].isTransitLeg));
+            const renderDest = !leg.isTransitLeg && legIdx === legs.length - 1;
+            this.renderLeg(leg, shouldFocus, false, 'routes', renderOrigin, renderDest);
         });
     }
 
@@ -543,10 +594,13 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
 
         // If the return trip shouldnt be drawn, draw the actual trip in color and stio rendering
         if (!params.draw) {
-            trip.sections.forEach(section => {
-                section.legs.forEach(leg => {
-                    this.renderLeg(leg, false, false, 'routes');
-                });
+            const legs = trip.sections.flatMap(section => section.legs);
+            legs.forEach((leg, legIdx) => {
+
+                // Get flags if the origin and destination points of the leg should be explicitly rendered
+                const renderOrigin = !leg.isTransitLeg && (legIdx === 0 || (!legs[legIdx - 1].isTransitLeg));
+                const renderDest = !leg.isTransitLeg && legIdx === legs.length - 1;
+                this.renderLeg(leg, false, false, 'routes', renderOrigin, renderDest);
             });
             return;
         }
@@ -569,15 +623,18 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.msgService.turnOffLoadingScreen();
 
         // Render the actual trip in gray
-        trip.sections.forEach(section => {
-            section.legs.forEach(leg => {
-                this.renderLeg(leg, false, true, 'routes');
-            });
+        const legs = trip.sections.flatMap(section => section.legs);
+        legs.forEach((leg, legIdx) => {
+            this.renderLeg(leg, false, true, 'routes', false, false);
         });
 
         // Render legs of the return trip in the map in color
-        (trip.returnTrip.section as TripSectionOption).legs.forEach(leg => {
-            this.renderLeg(leg, false, false, 'returnTrip');
+        (trip.returnTrip.section as TripSectionOption).legs.forEach((leg, legIdx) => {
+
+            // Get flags if the origin and destination points of the leg should be explicitly rendered
+            const renderOrigin = !leg.isTransitLeg && (legIdx === 0 || (!(trip.returnTrip.section as TripSectionOption).legs[legIdx - 1].isTransitLeg));
+            const renderDest = !leg.isTransitLeg && legIdx === (trip.returnTrip.section as TripSectionOption).legs.length - 1;
+            this.renderLeg(leg, false, false, 'returnTrip', renderOrigin, renderDest);
         });
 
         // Set index of shown option on the map in case the rendering is happening on a small device
@@ -606,10 +663,15 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.mapService.clearLayer('stops');
         this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
         this.mapService.addNewLayer({ name: 'stops', palette: {}, layer: undefined, paletteItemName: '' });
-        trip.sections.forEach(section => {
-            section.legs.forEach(leg => {
-                this.renderLeg(leg, false, false, 'routes');
-            });
+
+        // Flatten the legs and render each one
+        const legs = trip.sections.flatMap(section => section.legs);
+        legs.forEach((leg, legIdx) => {
+
+            // Get flags if the origin and destination points of the leg should be explicitly rendered
+            const renderOrigin = !leg.isTransitLeg && (legIdx === 0 || (!legs[legIdx - 1].isTransitLeg));
+            const renderDest = !leg.isTransitLeg && legIdx === legs.length - 1;
+            this.renderLeg(leg, false, false, 'routes', renderOrigin, renderDest);
         });
 
         // No option is shown

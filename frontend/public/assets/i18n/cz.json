@@ -256,7 +256,9 @@
         "avg": "Průměrné zpoždění",
         "sum": "Součet zpoždění",
         "max": "Maximální zpoždění",
-        "min": "Minimální zpoždění"
+        "min": "Minimální zpoždění",
+        "departure": "Odjezd",
+        "arrival": "Příjezd"
     },
     "primeng": {
         "dayNames": ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"],

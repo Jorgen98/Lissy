@@ -143,7 +143,7 @@ export class MapComponent implements AfterViewInit {
 
         // Circle icon with custom color (for planner)
         else if (object.color === 'provided') {
-            const size = this.map.getZoom() * 1.05;
+            const size = this.map.getZoom();
             return L.divIcon({
                 html: `<div style="
                     width: ${size}px;
@@ -408,7 +408,8 @@ export class MapComponent implements AfterViewInit {
                         L.marker(
                             [centerCoords[1], centerCoords[0]], 
                             { 
-                                icon: circle 
+                                icon: circle, 
+                                zIndexOffset: 10000,
                             }
                         ).addTo(this.layers[object.layerName].layer!);
                     }
@@ -500,6 +501,8 @@ export class MapComponent implements AfterViewInit {
                             ${object.metadata.zone_id ? "<span><b>" + this.translate.instant("map.zone") + ":</b> " + object.metadata.zone_id + "</span>": ""}
                             ${object.metadata.order ? "<span><b>" + this.translate.instant("map.order") + ":</b> " + object.metadata.order + "</span>": ""}
                             ${object.metadata.wheelchair_boarding === 1 ? "<span>" + this.translate.instant("map.wheelchair") + "</span>": ""}
+                            ${object.metadata.departure ? `<span><b>${this.translate.instant("map.departure")}: </b>${object.metadata.departure}</span>`: ""}
+                            ${object.metadata.arrival ? `<span><b>${this.translate.instant("map.arrival")}: </b>${object.metadata.arrival}</span>`: ""}
                             ${object.metadata.delays ? "<span><b>" + this.translate.instant("map.delayStats") + "</b></span>": ""}
                             ${
                                 object.metadata.delays && delayCategories.length > 0 ?
@@ -640,6 +643,7 @@ export class MapComponent implements AfterViewInit {
                             iconAnchor: [zoom * 2.2 / 2, zoom * 2.2],
                             iconSize: [zoom * 2.2, zoom * 2.2],
                         }),
+                        zIndexOffset: 10001,
                     }
                 ).addTo(layer.layer!);
             });

@@ -38,7 +38,6 @@ import {
     ViewChild, 
     ElementRef, 
     HostListener,
-    OnInit,
     OnDestroy
 } from '@angular/core';
 
@@ -55,7 +54,7 @@ import {
     templateUrl: './planner.component.html',
     styleUrl: './planner.component.css',
 })
-export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
+export class PlannerModule implements AfterViewInit, OnDestroy {
 
     // JSON config file
     static modulConfig: ModuleConfig = config;
@@ -160,13 +159,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.mapClickSub = this.mapService.mapClickObj.subscribe(coords => this.mapClicked(coords));
     }
 
-    ngAfterViewInit(): void {
-        // Show map scale
-        this.mapService.configureMapFeatures({ showScale: true });
-    }
-
-
-    async ngOnInit(): Promise<void> {
+    async ngAfterViewInit(): Promise<void> {
 
         // Store flag if the device is touchscreen or not
         this.isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
@@ -203,6 +196,25 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.selectedFuelPrice = plannerConfig.fuel_price_default;
         this.plannerConfig = plannerConfig;
 
+        // Show map scale
+        this.mapService.configureMapFeatures({ showScale: true });
+
+        // Show faint region outline with geometry from DB
+        this.mapService.clearLayer('region');
+        this.mapService.addNewLayer({ name: 'region', palette: {}, layer: undefined, paletteItemName: '' });
+        this.mapService.addToLayer({
+            layerName: 'region',
+            type: 'regionBound',
+            focus: false,
+            latLng: [],
+            color: "provided",
+            metadata: {
+                polygon: this.plannerConfig?.region_geom ?? undefined,
+            },
+            interactive: false,
+            hoover: false,
+        });
+
         // Turn off loading screen after initialization is done
         this.msgService.turnOffLoadingScreen();
     }
@@ -215,6 +227,7 @@ export class PlannerModule implements AfterViewInit, OnInit, OnDestroy {
         this.mapService.removeLayer('routes');
         this.mapService.removeLayer('returnTrip');
         this.mapService.removeLayer('stops');
+        this.mapService.removeLayer('region');
     }
 
     // Function called when a marker in the form is clicked

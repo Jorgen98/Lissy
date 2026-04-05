@@ -149,4 +149,51 @@ async function findParkingNearStations() {
     return true;
 }
 
-module.exports = { updateFuelPrice, findParkingNearStations };
+// Function fetching outline geometry of the selected region from Nominatim
+async function getRegionOutline() {
+
+    // Check needed environment variables
+    const envEmail = process.env.BE_PLANNER_USER_AGENT_EMAIL;
+    const configName = process.env.BE_PLANNER_CONFIG_NAME;
+    if (!envEmail || !configName) {
+        log("warning", "Missing environment variables for fetching region bounds with nominatim API");
+        return false;
+    }
+
+    // Get variable part of query string based on selected config
+    let q;
+    switch(configName) {
+        case 'ids_jmk':
+            q = "Jihomoravský+kraj";
+            break;
+        default:
+            log("warning", "Unexpected config name for getting region bounds with nominatim");
+            return false;
+    }
+
+    // Call the URL with chosen query string part (3 attempts, retry after 5s) 
+    const response = await fetchWithRetry(`https://nominatim.openstreetmap.org/search?q=${q}&format=geojson&polygon_geojson=1`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": `Lissy (${envEmail})`,
+        },
+    }, 3, 5000);
+    if (!response) {
+        log("warning", "Failed to fetch region bounds from nominatim API");
+        return;
+    }
+
+    const data = await response.json();
+
+    // Check if the geometry field exists
+    if (!data || !data.features[0] || !data.features[0].geometry) {
+        log("warning", "Invalid region bounds data format returned from nominatim API");
+        return;
+    }
+
+    // Update the region outline geometry in the DB, so it can be drawn later in the frontend
+    dbPostgis.insertRegionOutline(configName, data.features[0].geometry);
+};
+
+module.exports = { updateFuelPrice, findParkingNearStations, getRegionOutline };

@@ -1252,8 +1252,15 @@ async function getAvailableFareTickets() {
 // Get the planner configuration by config_name
 async function getPlannerConfig(configName) {
     try {
-        const result = await db_postgis.query('SELECT * FROM planner_config WHERE config_name = $1', [configName]);
-        return result.rows[0];
+        const result = await db_postgis.query('SELECT *, ST_AsGeoJSON(region_geom) as region_geom FROM planner_config WHERE config_name = $1', [configName]);
+        if (!result || !result.rows[0])
+            return null;
+
+        const row = result.rows[0];
+        if (row.region_geom)
+            row.region_geom = JSON.parse(row.region_geom);
+
+        return row;
     }
     catch(error) {
         log('error', error);
@@ -1272,9 +1279,20 @@ async function updateFuelPrice(configName, price) {
     }
 }
 
+// Function to update region outline for given planner configuration
+async function insertRegionOutline(configName, geometry) {
+    try {
+        await db_postgis.query(`UPDATE planner_config SET region_geom = ST_Multi(ST_GeomFromGeoJSON($1)) WHERE config_name = $2`, [JSON.stringify(geometry), configName]);
+        return true;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
     getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
-    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getGtfsTrip, getPlannerConfig, updateFuelPrice }
+    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getGtfsTrip, getPlannerConfig, updateFuelPrice, insertRegionOutline }

@@ -139,5 +139,9 @@ async function processData() {
     log('info', 'Fetching latest fuel prices from data.kurzy.cz');
     await plannerProcessingService.updateFuelPrice();
 
+    // Get region bounds for highlighting the region the planner is used for
+    log('info', 'Fetching region bounds for selected region config');
+    await plannerProcessingService.getRegionOutline();
+
     return true;
 }

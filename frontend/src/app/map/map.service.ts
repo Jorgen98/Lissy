@@ -14,7 +14,7 @@ export interface mapObject {
     // Name of layer to which should be the object placed
     layerName: string,
     // Type of object
-    type: "stop" | "route" | "location" | "parking",
+    type: "stop" | "route" | "location" | "parking" | "regionBound",
     // Focus map on object after render
     focus: boolean,
     // Object latitude and longitude

@@ -563,6 +563,20 @@ export class MapComponent implements AfterViewInit {
                 ).addTo(this.layers[object.layerName].layer!);
                 break;
             }
+            case "regionBound": {
+
+                // Add faint outline to map from given geoJSON
+                if (object.metadata.polygon) {
+                    L.geoJSON(object.metadata.polygon, {
+                        style: {
+                            color: "#777",
+                            weight: 1,
+                            fill: false
+                        }
+                    }).addTo(this.layers[object.layerName].layer!);
+                }
+                break;
+            }
         }
 
         if (object.focus) {

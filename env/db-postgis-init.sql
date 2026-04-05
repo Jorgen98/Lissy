@@ -60,7 +60,8 @@ CREATE TABLE IF NOT EXISTS planner_config (
     bounds_lat_min NUMERIC(6, 3) DEFAULT 48.63,
     bounds_lat_max NUMERIC(6, 3) DEFAULT 49.62,
     bounds_lng_min NUMERIC(6, 3) DEFAULT 15.62,
-    bounds_lng_max NUMERIC(6, 3) DEFAULT 17.50
+    bounds_lng_max NUMERIC(6, 3) DEFAULT 17.50,
+    region_geom geometry(MultiPolygon, 4326) DEFAULT NULL
 );
 INSERT INTO planner_config DEFAULT VALUES;
 

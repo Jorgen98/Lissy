@@ -22,4 +22,5 @@ export type PlannerConfig = {
     park_and_ride_decision_score: number,
     park_and_ride_decision_distance: number,
     transfer_hub_min_improvement: number,
+    region_geom: any,
 }

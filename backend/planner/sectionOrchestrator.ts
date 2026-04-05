@@ -77,7 +77,7 @@ function getRequestGroups(request: TripSectionInfo, planner: RoutePlanner): Prom
     return [
         carTransitCombination(planner, request),
         planner.getTripSection({ ...request, modes: { walk: false, car: false, publicTransport: true }}),
-        planner.getTripSection({ ...request, modes: { walk: true, car: false, publicTransport: false }}),
+        carWalkCombination(planner, request),
     ];
 }
 

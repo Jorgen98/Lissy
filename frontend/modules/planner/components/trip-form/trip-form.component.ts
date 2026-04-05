@@ -94,6 +94,9 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
     // List of element references to the point <input> elements
     @ViewChildren('pointInput') inputs!: QueryList<ElementRef<HTMLInputElement>>;
 
+    // Maximum number of points in the form
+    public MAX_POINTS = 5;
+
     // Status of current location availability
     public locationStatus: LocationStatus = "default";
 

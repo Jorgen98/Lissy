@@ -135,6 +135,7 @@ Main component HTML template file for the trip form used in the planner module.
             class="circle-button"
             (click)="addMidpoint(1)"
             [title]="'planner.form.addMidpointTooltip' | translate"
+            [disabled]="tripData.points.length === MAX_POINTS"
           >
             <i class="pi pi-plus"></i>
           </button>
@@ -258,6 +259,7 @@ Main component HTML template file for the trip form used in the planner module.
                 class="circle-button"
                 (click)="addMidpoint($index + 1)"
                 [title]="'planner.form.addMidpointTooltip' | translate"
+                [disabled]="tripData.points.length === MAX_POINTS"
               >
                 <i class="pi pi-plus"></i>
               </button>
@@ -369,6 +371,7 @@ Main component HTML template file for the trip form used in the planner module.
             class="circle-button"
             (click)="addMidpoint(tripData.points.length)"
             [title]="'planner.form.addMidpointTooltip' | translate"
+            [disabled]="tripData.points.length === MAX_POINTS"
           >
             <i class="pi pi-plus"></i>
           </button>

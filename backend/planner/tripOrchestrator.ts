@@ -17,7 +17,7 @@ import { getSectionOptions } from "./sectionOrchestrator";
 import { UserPreferences } from "../../frontend/modules/planner/types/TripDataExtended";
 import { fillInTripShape } from "./shaping";
 import { findReturnTrips } from "./returnTrips";
-import { getParetoOptimalTrips, postprocessTripOptions, rateOptions } from "./postprocessing";
+import { getParetoOptimalTrips, postprocessTripOptions, postprocessTripSections, rateOptions } from "./postprocessing";
 import { PlannerConfig } from "./types/PlannerConfig";
 import { MAX_RETURNED_OPTIONS } from "./utils/systemConstants";
 
@@ -129,8 +129,7 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
             return null;
 
         // If its a trip request without midpoints, return all found section options wrapped in a TripOption object
-        // Otherwise get only the first found section option 
-        // TODO will be changed when ranking is introduced
+        // Otherwise get only the best rated found section
         if (points.length === 2) {
             return foundSections.map(section => ({
                 distance: section.distance,
@@ -151,6 +150,13 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
                 },
             }));
         }
+
+        // Postprocess, rate and sort by rating
+        await postprocessTripSections(foundSections, request.preferences);
+        rateOptions(foundSections);
+        foundSections.sort((a, b) => b.score! - a.score!);
+
+        // Get best rated option
         const section = foundSections[0]!;
 
         // Datetime of the next/previous section will be the ending/starting dateTime of the previous/next

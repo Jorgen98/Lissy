@@ -130,8 +130,10 @@ export async function filterTransferHubs(candidates: TransferHub[], origin: LatL
         return candidates.filter(candidate => {
             const distToOrigin = calculateDistanceHaversine(origin, candidate.coords);
             const distToDestination = calculateDistanceHaversine(candidate.coords, destination);
+            const totalDistance = distToDestination + distToOrigin;
+            const progress = distToOrigin / totalDistance;
 
-            return distToDestination < distToOrigin && candidate.score > destinationScore;
+            return progress >= 0.4 && candidate.score > destinationScore;
         });
     }
 

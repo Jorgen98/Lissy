@@ -155,19 +155,28 @@ async function buildCarTransitTrip(planner: RoutePlanner, request: TripSectionIn
     if (validTransitOptions.length === 0)
         return [];
 
-    // Get first transit option
-    // TODO use a few of them (ranking)
-    const firstTransitOption = validTransitOptions[0]!;
-    
-    // Since the car is fetched first and only then transit trips are queried, a gap is going to get created between the car leg arrival and transit leg departure
-    // This gap isnt necessary, since the car can just leave later and match up exactly to the departure of the transit leg
-    // These three lines shift the arrival of the car leg to the departure of the transit leg, whilst also shifting the car leg departure, since the duration is already known
-    const carSectionIdealStart = firstTransitOption.startDatetime.getTime() - carSection.duration * 1000;
-    carSection.startDatetime = new Date(carSectionIdealStart);
-    carSection.endDatetime = firstTransitOption.startDatetime;
+    // Postprocess and rate to find best scored transit option and use that one 
+    await postprocessTripSections(validTransitOptions, request.preferences);
+    rateOptions(validTransitOptions);
+    validTransitOptions.sort((a, b) => b.score! - a.score!);
 
-    // Connect the two sections
-    return [connectSections(carSection, firstTransitOption, transfer.name, false)];
+    // Find the best two options by rating and connect them with the car leg
+    const connectedSections = [];
+    for (const option of validTransitOptions) {
+        if (connectedSections.length === 2)
+            break;
+
+        // Since the car is fetched first and only then transit trips are queried, a gap is going to get created between the car leg arrival and transit leg departure
+        // This gap isnt necessary, since the car can just leave later and match up exactly to the departure of the transit leg
+        // These three lines shift the arrival of the car leg to the departure of the transit leg, whilst also shifting the car leg departure, since the duration is already known
+        const carSectionCopy = { ...carSection };
+        const carSectionIdealStart = option.startDatetime.getTime() - carSectionCopy.duration * 1000;
+        carSectionCopy.startDatetime = new Date(carSectionIdealStart);
+        carSectionCopy.endDatetime = option.startDatetime;
+        connectedSections.push(connectSections(carSectionCopy, option, transfer.name, false));
+    }
+    
+    return connectedSections;
 }
 
 // Function handling the combination of car and walking in one trip section

@@ -247,7 +247,9 @@ Main component HTML template file for the trip form used in the planner module.
               </div>
 
               <!-- Remove midpoint button -->
-              <i class="pi pi-trash point-input-pointer remove-midpoint" (click)="removeMidpoint($index)"></i>
+              <div (click)="removeMidpoint($index)" class="remove-midpoint-wrapper">
+                <i class="pi pi-trash point-input-pointer remove-midpoint"></i>
+              </div>
             </div>
 
             <!-- Add midpoint button and mode select between two points-->

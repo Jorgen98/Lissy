@@ -28,6 +28,7 @@
     --zoom-btn-color: var(--p-gray-50);
     --zoom-btn-opacity: 0.5;
     --planner-background: var(--background);
+    --planner-background-filled: var(--background);
     --planner-input-background-color: var(--p-gray-800);
     --planner-input-color: var(--p-gray-400);
     --planner-input-border-color: var(--p-gray-700);
@@ -78,7 +79,8 @@ body.light-theme {
     --leaflet-attribution-color: var(--background);
     --zoom-btn-color: black;
     --zoom-btn-opacity: 0.7;
-    --planner-background: rgba(255, 255, 255, 0.9);
+    --planner-background: rgba(250, 250, 250, 0.9);
+    --planner-background-filled: rgba(250, 250, 250, 1);
     --planner-input-background-color: white;
     --planner-input-color: var(--p-gray-800);
     --planner-autocomplete-option-background-color: var(--p-gray-50);

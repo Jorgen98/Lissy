@@ -370,14 +370,14 @@ button {
 
 /* Classes used only on mobile view elements *******/
 .trip-detail-mobile-btn {
-    background-color: var(--p-gray-800);
+    background-color: var(--planner-button-small-background-color);
     font-size: 15px;
     padding: 4px 8px;
     margin-top: 5px;
     display: flex;
     align-items: center;
     gap: 4px;
-    color: var(--p-gray-300);
+    color: var(--planner-button-small-color);
 }
 
 .trip-detail-mobile-extras {
@@ -385,22 +385,18 @@ button {
     justify-content: center;
     gap: 10px;
     padding-bottom: 8px;
-    border-bottom: 2px solid var(--p-gray-800);
+    border-bottom: 2px solid var(--planner-main-outline);
 }
 /*************************************************/
 
 /* Mobile view style overrides ********************/
 @media only screen and (max-width: 700px) {
   .itinerary {
-    max-height: 100%;
-    height: calc(100vh - 3em);
+    max-height: 100dvh;
+    height: calc(100dvh - 3em);
     overflow-y: auto;
     border: 0;
-    background: var(--background);
-  }
-
-  .header {
-    padding: 0;
+    background: var(--planner-background-filled);
   }
 
   :host {

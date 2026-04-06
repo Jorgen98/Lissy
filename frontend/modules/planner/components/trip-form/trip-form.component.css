@@ -235,6 +235,10 @@ input[type="text"] {
     margin-right: 3px;
 }
 
+.remove-midpoint-wrapper {
+    padding: 10px 3px;
+}
+
 .circle-button {
     height: 23px;
     width: 23px;

@@ -60,6 +60,17 @@
     row-gap: 0;
 }
 
+.zoom-btn {
+    color: var(--zoom-btn-color);
+    opacity: var(--zoom-btn-opacity);
+}
+
+.zoom-btn:hover {
+    transition: .5s;
+    opacity: 1;
+    background-color: transparent;
+}
+
 ::ng-deep .legend-layer-div {
     display: flex;
     flex-direction: column;

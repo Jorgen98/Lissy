@@ -21,6 +21,8 @@
 :root {
     --leaflet-attribution-background-color: var(--background);
     --leaflet-attribution-color: var(--p-gray-50);
+    --zoom-btn-color: var(--p-gray-50);
+    --zoom-btn-opacity: 0.5;
     --planner-background: var(--background);
     --planner-input-background-color: var(--p-gray-800);
     --planner-input-color: var(--p-gray-400);
@@ -49,6 +51,8 @@
 body.light-theme {
     --leaflet-attribution-background-color: var(--p-gray-100);
     --leaflet-attribution-color: var(--background);
+    --zoom-btn-color: black;
+    --zoom-btn-opacity: 0.7;
     --planner-background: rgba(255, 255, 255, 0.85);
     --planner-input-background-color: var(--p-gray-50);
     --planner-input-color: var(--p-gray-800);

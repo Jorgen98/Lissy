@@ -509,6 +509,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy {
                 departure,
                 arrival,
                 zone_id: zone,
+                is_planner_stop: true, 
             },
             interactive: true,
             hoover: false, 

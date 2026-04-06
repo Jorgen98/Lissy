@@ -82,6 +82,10 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
     // Get information from the trip request, for less access to the request object
     const { datetime, preferences, points, modes } = request;
 
+    // Handle special case where there are exactly three points in the request
+    if (points.length === 3) 
+        return await getTripOptionsWithOneMidpoint(request, planner);
+
     // The sections need to be built in reverse if arrival time is selected
     const reverseOrder = datetime.datetimeOption === "arrival";
 
@@ -199,6 +203,99 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
 
     return options;
 } 
+
+// Function handliung the special case where there are three points in the request
+// Find the top three first sections and for each one, finds the top three seconds sections
+async function getTripOptionsWithOneMidpoint(request: TripRequest, planner: RoutePlanner): Promise<TripOption[] | null> {
+    const { datetime, preferences, points, modes } = request;
+
+    // The sections need to be built in reverse if arrival time is selected
+    const reverseOrder = datetime.datetimeOption === "arrival";
+
+    // Request the first section options
+    // If datetime option is arrive by, this is actually chronologically the second section in the trip
+    const firstSections = await getSectionOptions(planner, {
+        pointA: reverseOrder ? points[1]! : points[0]!,
+        pointB: reverseOrder ? points[2]! : points[1]!,
+        preferences,
+        modes: modes.sections[reverseOrder ? 1 : 0]!,
+        datetime: {
+            datetime: datetime.tripDatetime,
+            option: datetime.datetimeOption,
+        }
+    });
+    if (firstSections.length === 0) return null;
+
+    // Rate the found sections and get only the top three
+    await postprocessTripSections(firstSections, preferences);
+    rateOptions(firstSections);
+    firstSections.sort((a, b) => b.score! - a.score!);
+    const topFirstSections = firstSections.slice(0, 3);
+
+    // Accumulator for built trip options from two sections
+    const tripOptions: TripOption[] = [];
+
+    // Iterate over every one of the top first sections and find second sections for each one
+    for (const firstSection of topFirstSections) {
+
+        // Get datetime of the next secion based on the reverseOrder flag
+        const nextDatetime = reverseOrder
+            ? firstSection.startDatetime.toISOString()
+            : firstSection.endDatetime.toISOString();
+
+        // Request a list of second section in the trip 
+        const secondSections = await getSectionOptions(planner, {
+            pointA: reverseOrder ? points[0]! : points[1]!,
+            pointB: reverseOrder ? points[1]! : points[2]!,
+            preferences,
+            modes: modes.sections[reverseOrder ? 0 : 1]!,
+            datetime: {
+                datetime: nextDatetime,
+                option: datetime.datetimeOption,
+            }
+        });
+
+        // No need to exit the function here, only silently ignore the current first section
+        if (secondSections.length === 0) continue;
+
+        // Rank and get top three of the found second sections
+        await postprocessTripSections(secondSections, preferences);
+        rateOptions(secondSections);
+        secondSections.sort((a, b) => b.score! - a.score!)
+        const topSecondSections = secondSections.slice(0, 3);
+
+        // Iterate over the found top second sections and build final TripOption objects
+        for (const secondSection of topSecondSections) {
+
+            // Put the sections in actual chronological order
+            const sectionsOrdered = reverseOrder
+                ? [secondSection, firstSection]
+                : [firstSection, secondSection];
+
+            // Get the time that is spent waiting on the midpoint between the two sections in seconds 
+            const waitSeconds = (sectionsOrdered[1]!.startDatetime.getTime() - sectionsOrdered[0]!.endDatetime.getTime()) / 1000;
+
+            // Build a full TripOption object from the two sections
+            tripOptions.push({
+                distance: sectionsOrdered[0]!.distance + sectionsOrdered[1]!.distance,
+                duration: sectionsOrdered[0]!.duration + sectionsOrdered[1]!.duration + waitSeconds,
+                sections: sectionsOrdered,
+                startDatetime: sectionsOrdered[0]!.startDatetime,
+                endDatetime: sectionsOrdered[1]!.endDatetime,
+                numTransfers: 0,
+                emissions: sectionsOrdered[0]!.emissions! + sectionsOrdered[1]!.emissions!,
+                cost: null,
+                score: null,
+                fastest: false,
+                cheapest: false,
+                best: false,
+                returnTrip: { section: null, hasShape: false },
+            });
+        }
+    }
+
+    return tripOptions;
+}
 
 // Function filtering the plain list of found trip options
 function filterOptions(options: TripOption[], preferences: UserPreferences): TripOption[] {

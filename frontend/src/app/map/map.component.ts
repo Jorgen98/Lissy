@@ -143,7 +143,7 @@ export class MapComponent implements AfterViewInit {
 
         // Circle icon with custom color (for planner)
         else if (object.color === 'provided') {
-            const size = this.map.getZoom();
+            const size = this.map.getZoom() * 1.1;
             return L.divIcon({
                 html: `<div style="
                     width: ${size}px;

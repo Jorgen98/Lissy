@@ -39,7 +39,8 @@ import {
     ViewChild, 
     ElementRef, 
     HostListener,
-    OnDestroy
+    OnDestroy,
+    OnInit
 } from '@angular/core';
 
 @Component({
@@ -55,7 +56,7 @@ import {
     templateUrl: './planner.component.html',
     styleUrl: './planner.component.css',
 })
-export class PlannerModule implements AfterViewInit, OnDestroy {
+export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
     // JSON config file
     static modulConfig: ModuleConfig = config;
@@ -161,6 +162,12 @@ export class PlannerModule implements AfterViewInit, OnDestroy {
         this.mapClickSub = this.mapService.mapClickObj.subscribe(coords => this.mapClicked(coords));
     }
 
+    ngOnInit(): void {
+
+        // Initialize themes, so they can be used in this module
+        this.theme.init();
+    }
+
     async ngAfterViewInit(): Promise<void> {
 
         // Store flag if the device is touchscreen or not
@@ -231,7 +238,8 @@ export class PlannerModule implements AfterViewInit, OnDestroy {
         this.mapService.removeLayer('stops');
         this.mapService.removeLayer('region');
 
-        this.theme.setIsDark(true);
+        // Set themes back to default state (dark)
+        this.theme.setDefault();
     }
 
     // Function called when a marker in the form is clicked

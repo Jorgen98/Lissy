@@ -11,7 +11,10 @@
   </button>
 
   <!-- TODO temporary button to toggle theme during development -->
-  <button (click)="theme.toggle()">Toggle theme</button>
+  <!-- Show only if the module that is using the map initializes themes -->
+  @if (theme.themesEnabled) {
+    <button (click)="theme.toggle()">Toggle theme</button>
+  }
 </div>
 <!-- Main map div -->
 <div id="map"></div>

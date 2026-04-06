@@ -12,8 +12,8 @@
 }
 
 ::ng-deep .leaflet-control-attribution {
-    background: var(--background) !important;
-    color: var(--p-gray-50);
+    background: var(--leaflet-attribution-background-color) !important;
+    color: var(--leaflet-attribution-color);
 }
 
 ::ng-deep .color-base {

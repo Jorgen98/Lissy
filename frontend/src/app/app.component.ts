@@ -1,9 +1,18 @@
-import { Component } from '@angular/core';
+/*
+ * Main Angular App component
+ *
+ * Authors: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ */
+
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ImportsModule } from './imports';
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { UIMessagesService } from './services/messages';
 import { PrimeNG } from 'primeng/config';
+import { ThemeService } from './services/theme';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-root',
@@ -12,7 +21,7 @@ import { PrimeNG } from 'primeng/config';
     styleUrl: './app.component.css'
 })
 
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
     public isDBConnected: boolean = false;
 
     public langs = [
@@ -24,11 +33,15 @@ export class AppComponent {
     public loadingElemVisibility = false;
     public loadingElemPercentage = '0%';
 
+    // Subscription to theme change events
+    private themeSub!: Subscription;
+
     constructor (
         private translate: TranslateService,
         public router: Router,
         private msgService: UIMessagesService,
-        private primeng: PrimeNG
+        private primeng: PrimeNG,
+        private theme: ThemeService
     ) {
         this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
         this.translate.setDefaultLang(this.langs[0].code);
@@ -49,6 +62,24 @@ export class AppComponent {
         msgService.actualLoadingPercentage.subscribe((percentage: number) => {
             isNaN(percentage) ? this.loadingElemPercentage = '' : this.loadingElemPercentage = `${percentage}%`;
         });
+    }
+
+    ngOnInit(): void {
+
+        // Subscribe to the changing observable in theme service
+        this.themeSub = this.theme.isDark$.subscribe(isDark => {
+
+            // Toggle classes based on the value
+            // Right now only the light-theme class is used, dark theme is just the implicit default values
+            document.body.classList.toggle('dark-theme', isDark);
+            document.body.classList.toggle('light-theme', !isDark);
+        });
+    }
+
+    ngOnDestroy(): void {
+
+        // Unsubscribe from theme changes
+        this.themeSub.unsubscribe();
     }
 
     public changeLang() {

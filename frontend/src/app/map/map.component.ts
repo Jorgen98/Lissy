@@ -6,7 +6,7 @@
  * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy } from '@angular/core';
 import * as L from 'leaflet';
 import { environment } from '../../environments/environment';
 import { mapLayer, mapObject, MapService } from './map.service';
@@ -15,6 +15,8 @@ import * as turf from "@turf/turf";
 
 import { DomSanitizer } from '@angular/platform-browser';
 import { delayCategoriesService, delayCategory } from '../services/delayCategories';
+import { ThemeService } from '../services/theme';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'map',
@@ -22,7 +24,7 @@ import { delayCategoriesService, delayCategory } from '../services/delayCategori
     styleUrls: ['./map.component.css'],
     imports: []
 })
-export class MapComponent implements AfterViewInit {
+export class MapComponent implements AfterViewInit, OnDestroy {
     private map: L.Map | undefined = undefined;
     private layers: {[name: string]: mapLayer} = {};
     private colorPalette: {[id: number]: string} = {
@@ -39,18 +41,38 @@ export class MapComponent implements AfterViewInit {
     public enableLegend: boolean = false;
     public enableDelayCategories: boolean = false;
 
+    private darkTiles!: L.TileLayer;
+    private lightTiles!: L.TileLayer;
+    private currentTiles!: L.TileLayer;
+
+    // Theme change emit subscription
+    private themeSub!: Subscription;
+
+
     // Init map
     private initMap(): void {
-        const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+
+        // Create dark theme map tiles layer
+        this.darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
             maxZoom: 20,
             minZoom: 7
         });
 
+        // Create light theme map tiles layer
+        this.lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 20,
+            minZoom: 7
+        });
+
+        // Default dark theme
+        this.currentTiles = this.darkTiles;
+
         this.map = L.map('map', {
             center: JSON.parse(environment.mapCenter),
             zoom: JSON.parse(environment.mapZoom),
-            layers: [tiles],
+            layers: [this.currentTiles],
             zoomControl: false
         });
 
@@ -86,13 +108,32 @@ export class MapComponent implements AfterViewInit {
             this.mapService.clearLayerObj.next('hoover');
             this.mapService.mapClick(event.latlng);         // Emit coordinates of the click on the map
         });
+
+        // Subscribe to theme changes so the map tiles can be switched and store the subscription
+        this.themeSub = this.theme.isDark$.subscribe(isDark => {
+            if (!this.map) 
+                return;
+
+            // Get the tiles that should be used based on the toggle
+            const newTiles = isDark ? this.darkTiles : this.lightTiles;
+
+            // Dont spend time adjusting layers if not necessary, just in case
+            if (this.currentTiles === newTiles) 
+                return;
+
+            // Switch out current map tile layer
+            this.map.removeLayer(this.currentTiles);
+            this.map.addLayer(newTiles);
+            this.currentTiles = newTiles;
+        });
     }
 
     constructor(
         public mapService: MapService,
         private translate: TranslateService,
         private sanitizer: DomSanitizer,
-        private delayCategoriesService: delayCategoriesService
+        private delayCategoriesService: delayCategoriesService,
+        public theme: ThemeService
     ) {
         this.mapService.addNewLayerObj.subscribe((newLayer) => this.addNewLayer(newLayer));
         this.mapService.addToLayerObj.subscribe((object) => this.addToLayer(object));
@@ -121,6 +162,12 @@ export class MapComponent implements AfterViewInit {
         this.translate.onLangChange.subscribe(() => {
             this.actualizeColorLegend();
         });
+    }
+
+    ngOnDestroy(): void {
+
+        // Unsubscribe from theme changes
+        this.themeSub.unsubscribe();
     }
 
     // Create stop icon object

@@ -11,12 +11,11 @@ Main component HTML template file for the trip form used in the planner module.
   <div class="header">
 
     <!-- Form collapse button -->
-    <img
-      class="collapse-btn"
-      src="./planner/chevron.svg"
+    <i 
+      class="pi pi-chevron-down collapse-btn" 
       (click)="collapseBtnClicked()"
       [style.transform]="formCollapsed ? 'rotate(180deg)' : 'rotate(0deg)'"
-    />
+    ></i>
     <span class="title">{{ "planner.form.title" | translate }}</span>
     <button 
       (click)="locationClicked()"
@@ -25,12 +24,12 @@ Main component HTML template file for the trip form used in the planner module.
     >
       <img
         class="location-btn"
-        src="./planner/location.svg"
+        [src]="(theme.isDark$ | async) ? './planner/location-light.svg' : './planner/location-dark.svg'"
       />
       @if (locationStatus === "disabled") {
         <img
           class="location-disabled"
-          src="./planner/cross-line.svg"
+          [src]="(theme.isDark$ | async) ? './planner/cross-line-light.svg' : './planner/cross-line-dark.svg'"
         />
       }
     </button>
@@ -49,7 +48,7 @@ Main component HTML template file for the trip form used in the planner module.
         (click)="modeToggled('publicTransport')"
       >
         <img
-          [src]="'./planner/pt-light.svg'"
+          [src]="(theme.isDark$ | async) ? './planner/pt-light.svg' : './planner/bus-dark.svg'"
           class="mode-img"
         />
         {{ "planner.form.publicTransport" | translate }}
@@ -62,7 +61,7 @@ Main component HTML template file for the trip form used in the planner module.
         (click)="modeToggled('car')"
       >
         <img
-          [src]="'./planner/car-light.svg'"
+          [src]="(theme.isDark$ | async) ? './planner/car-light.svg' : './planner/car-dark.svg'"
           class="mode-img"
         />
         {{ "planner.form.car" | translate }}
@@ -75,7 +74,7 @@ Main component HTML template file for the trip form used in the planner module.
         (click)="modeToggled('walk')"
       >
         <img
-          [src]="'./planner/walk-light.svg'"
+          [src]="(theme.isDark$ | async) ? './planner/walk-light.svg' : './planner/walk-dark.svg'"
           class="mode-img"
         />
         {{ "planner.form.walk" | translate }}
@@ -88,7 +87,10 @@ Main component HTML template file for the trip form used in the planner module.
 
         <!-- Origin point -->
         <div class="trip-point" cdkDrag>
-          <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
+          <div class="drag-chevron" cdkDragHandle>
+            <i class="pi pi-chevron-down drag-chevron-part drag-chevron-part-turned"></i>
+            <i class="pi pi-chevron-down drag-chevron-part"></i>
+          </div>
           <div class="point-input-wrapper">
             <input
               type="text"
@@ -152,7 +154,7 @@ Main component HTML template file for the trip form used in the planner module.
                   (click)="modeToggled('publicTransport', 0)"
                 >
                   <img
-                    [src]="'./planner/pt-light.svg'"
+                    [src]="(theme.isDark$ | async) ? './planner/pt-light.svg' : './planner/bus-dark.svg'"
                     class="midpoint-mode-img"
                   />
                 </button>
@@ -167,7 +169,7 @@ Main component HTML template file for the trip form used in the planner module.
                   [class.mode-disabled]="0 === invalidModesIdx"
                 >
                   <img
-                    [src]="'./planner/car-light.svg'"
+                    [src]="(theme.isDark$ | async) ? './planner/car-light.svg' : './planner/car-dark.svg'"
                     class="midpoint-mode-img"
                   />
                 </button>
@@ -181,7 +183,7 @@ Main component HTML template file for the trip form used in the planner module.
                   (click)="modeToggled('walk', 0)"
                 >
                   <img
-                    [src]="'./planner/walk-light.svg'"
+                    [src]="(theme.isDark$ | async) ? './planner/walk-light.svg' : './planner/walk-dark.svg'"
                     class="midpoint-mode-img"
                   />
                 </button>
@@ -202,7 +204,10 @@ Main component HTML template file for the trip form used in the planner module.
 
             <!-- Midpoint -->
             <div class="trip-point" cdkDrag>
-              <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
+              <div class="drag-chevron" cdkDragHandle>
+                <i class="pi pi-chevron-down drag-chevron-part drag-chevron-part-turned"></i>
+                <i class="pi pi-chevron-down drag-chevron-part"></i>
+              </div>
               <div class="point-input-wrapper">
                 <input
                   type="text"
@@ -242,13 +247,7 @@ Main component HTML template file for the trip form used in the planner module.
               </div>
 
               <!-- Remove midpoint button -->
-              <div (click)="removeMidpoint($index)" class="remove-midpoint-div">
-                <img
-                  [src]="'./planner/trash-bin-dark.svg'"
-                  class="point-input-pointer remove-midpoint"
-                  [title]="'planner.form.removeMidpointTooltip' | translate"
-                />
-              </div>
+              <i class="pi pi-trash point-input-pointer remove-midpoint" (click)="removeMidpoint($index)"></i>
             </div>
 
             <!-- Add midpoint button and mode select between two points-->
@@ -276,7 +275,7 @@ Main component HTML template file for the trip form used in the planner module.
                       (click)="modeToggled('publicTransport', $index)"
                     >
                       <img
-                        [src]="'./planner/pt-light.svg'"
+                        [src]="(theme.isDark$ | async) ? './planner/pt-light.svg' : './planner/bus-dark.svg'"
                         class="midpoint-mode-img"
                       />
                     </button>
@@ -291,7 +290,7 @@ Main component HTML template file for the trip form used in the planner module.
                       (click)="modeToggled('car', $index)"
                     >
                       <img
-                        [src]="'./planner/car-light.svg'"
+                        [src]="(theme.isDark$ | async) ? './planner/car-light.svg' : './planner/car-dark.svg'"
                         class="midpoint-mode-img"
                       />
                     </button>
@@ -305,7 +304,7 @@ Main component HTML template file for the trip form used in the planner module.
                       (click)="modeToggled('walk', $index)"
                     >
                       <img
-                        [src]="'./planner/walk-light.svg'"
+                        [src]="(theme.isDark$ | async) ? './planner/walk-light.svg' : './planner/walk-dark.svg'"
                         class="midpoint-mode-img"
                       />
                     </button>
@@ -323,7 +322,10 @@ Main component HTML template file for the trip form used in the planner module.
 
         <!-- Destination point -->
         <div class="trip-point" cdkDrag>
-          <img [src]="'./planner/drag-chevron.svg'" class="point-drag" cdkDragHandle />
+          <div class="drag-chevron" cdkDragHandle>
+            <i class="pi pi-chevron-down drag-chevron-part drag-chevron-part-turned"></i>
+            <i class="pi pi-chevron-down drag-chevron-part"></i>
+          </div>
           <div class="point-input-wrapper">
             <input
               type="text"
@@ -382,7 +384,7 @@ Main component HTML template file for the trip form used in the planner module.
             (click)="reverseTripPoints()"
             [title]="'planner.form.switchDirectionTooltip' | translate"
           >
-            <img [src]="'./planner/double-arrow.svg'" class="reverse-img" />
+            <i class="pi pi-arrow-right-arrow-left reverse-img"></i>
           </button>
         </div>
       </div>
@@ -478,6 +480,7 @@ Main component HTML template file for the trip form used in the planner module.
       <button 
         [disabled]="!isFormValid()"
         (click)="tripRequestSubmitted()"
+        class="submit-btn"
       >
         {{ "planner.form.submit" | translate }}
       </button>

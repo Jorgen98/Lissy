@@ -1,5 +1,6 @@
 /*
  * File: styles.css
+ *
  * Author: Juraj Lazur (ilazur@fit.vut.cz) 
  * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  *
@@ -15,6 +16,58 @@
     --graph-color-b: #3b82f6;
     --graph-color-c: #22c55e;
     --graph-color-d: #ff3d32;
+}
+
+:root {
+    --planner-background: var(--background);
+    --planner-input-background-color: var(--p-gray-800);
+    --planner-input-color: var(--p-gray-400);
+    --planner-input-border-color: var(--p-gray-700);
+    --planner-autocomplete-option-background-color: var(--p-gray-800);
+    --planner-autocomplete-option-color: var(--p-gray-300);
+    --planner-autocomplete-option-border: var(--p-gray-700);
+    --planner-form-outline: var(--p-gray-800);
+    --planner-form-border: 0.15em solid var(--p-gray-800);
+    --planner-form-title-color: var(--p-gray-50);
+    --planner-faint-label-color: var(--p-gray-400);
+    --planner-mode-select-color: var(--p-gray-50);
+    --planner-mode-selected-background-color: var(--p-gray-800);
+    --planner-mode-selected-color: var(--p-gray-400);
+    --planner-remove-midpoint-btn-color: var(--p-gray-500);
+    --planner-drag-chevron-color: var(--p-gray-50);
+    --planner-form-accent-color: var(--p-gray-800);
+    --planner-circle-button-color: var(--p-gray-300);
+    --planner-circle-button-border: 2px solid var(--p-gray-600);
+    --planner-large-button-color: var(--p-gray-200);
+    --planner-scrollbar-thumb-color: var(--p-gray-600);
+    --planner-scrollbar-thumb-hover-color: var(--p-gray-500);
+    --planner-midpoint-mode-select-border-color: var(--p-gray-800);
+}
+
+body.light-theme {
+    --planner-background: rgba(255, 255, 255, 0.85);
+    --planner-input-background-color: var(--p-gray-50);
+    --planner-input-color: var(--p-gray-800);
+    --planner-autocomplete-option-background-color: var(--p-gray-50);
+    --planner-autocomplete-option-color: var(--p-gray-900);
+    --planner-autocomplete-option-border: var(--p-gray-300);
+    --planner-form-outline: var(--p-green-100);
+    --planner-form-border: 0;
+    --planner-form-title-color: var(--p-gray-600);
+    --planner-faint-label-color: var(--p-gray-600);
+    --planner-mode-select-color: var(--p-gray-900);
+    --planner-mode-selected-background-color: var(--p-green-300);
+    --planner-mode-selected-color: var(--p-gray-950);
+    --planner-input-border-color: var(--p-gray-300);
+    --planner-remove-midpoint-btn-color: var(--p-gray-600);
+    --planner-drag-chevron-color: var(--p-gray-400);
+    --planner-form-accent-color: var(--p-gray-500);
+    --planner-circle-button-color: var(--p-gray-800);
+    --planner-circle-button-border: 2px solid var(--p-gray-400);
+    --planner-large-button-color: black;
+    --planner-scrollbar-thumb-color: var(--p-green-300);
+    --planner-scrollbar-thumb-hover-color: var(--p-green-200);
+    --planner-midpoint-mode-select-border-color: var(--p-gray-300);
 }
 
 * {

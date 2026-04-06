@@ -9,10 +9,10 @@
 input {
     font-weight: bold;
     font-size: 13px;
-    background-color: var(--p-gray-800);
-    color: var(--p-gray-400);
+    background-color: var(--planner-input-background-color);
+    color: var(--planner-input-color);
     border-radius: 3px;
-    border: 1px solid var(--p-gray-700);
+    border: 1px solid var(--planner-input-border-color);
 }
 
 button {
@@ -29,15 +29,15 @@ button {
 .form {
     width: 100%;
     right: 0;
-    border-left: 0.15em solid var(--p-gray-800);
-    border-bottom: 0.15em solid var(--p-gray-800);
+    border-left: var(--planner-form-border);
+    border-bottom: var(--planner-form-border);
     display: flex;
     flex-direction: column;
     max-height: 70vh; 
 }
 
 .form-section {
-    background: linear-gradient(var(--p-gray-800), var(--p-gray-800)) top center / 96% 0.15em no-repeat, var(--background);
+    background: linear-gradient(var(--planner-form-outline), var(--planner-form-outline)) top center / 96% 0.15em no-repeat, var(--planner-background);
 }
 
 .form-collapse-wrapper {
@@ -49,16 +49,16 @@ button {
 
 /* Form header *****************************/
 .header {
-    background-color: var(--p-gray-800);
+    background-color: var(--planner-form-outline);
     height: 40px;
     display: flex;
     align-items: center;
     flex: 0 0 auto;
-    padding-left: 5px;
+    padding-left: 10px;
 }
 
 .title {
-    color: var(--p-gray-50);
+    color: var(--planner-form-title-color);
     margin-left: auto;
     margin-right: auto;
     font-weight: 550;
@@ -66,9 +66,10 @@ button {
 }
 
 .collapse-btn {
-    height: 40px;
     cursor: pointer;
     transition: transform 0.15s ease;
+    color: var(--planner-form-title-color);
+    font-size: 25px;
 }
 
 .location-btn {
@@ -109,7 +110,7 @@ button {
     padding: 6px 20px;
     display: flex;
     gap: 15px;
-    background: linear-gradient(var(--p-gray-800), var(--p-gray-800)) top center / 0% 0.15em no-repeat, var(--background);
+    background: linear-gradient(var(--p-gray-800), var(--p-gray-800)) top center / 0% 0.15em no-repeat, var(--planner-background);
 }
 
 .mode-select-window {
@@ -129,6 +130,7 @@ button {
 .mode-button {
     width: 100%;
     font-size: 16px;
+    color: var(--planner-mode-select-color);
 }
 
 .mode-img {
@@ -137,8 +139,8 @@ button {
 }
 
 .mode-selected {
-    background-color: var(--p-gray-800);
-    color: var(--p-gray-400);
+    background-color: var(--planner-mode-selected-background-color);
+    color: var(--planner-mode-selected-color);
 }
 
 .mode-disabled {
@@ -175,13 +177,13 @@ button {
 
 .scrollbox {
     overflow-y: auto;
-    --scrollbar-track-color: var(--background);
-    --scrollbar-thumb-color: var(--p-gray-600);
+    --scrollbar-track-color: var(--planner-background);
+    --scrollbar-thumb-color: var(--planner-scrollbar-thumb-color);
     --scrollbar-thumb-size: 80;
     --scrollbar-track-shape: 10px;
     --scrollbar-track-thickness: 8px;
     --scrollbar-container-offset: 4px;
-    --scrollbar-thumb-hover-color: var(--p-gray-500);
+    --scrollbar-thumb-hover-color: var(--planner-scrollbar-thumb-hover-color);
     --scrollbar-hover-opacity-transition-leave-delay: 0s;
 }
 
@@ -190,10 +192,6 @@ button {
     align-items: center;
     gap: 10px;
     width: 100%;
-}
-
-.point-drag {
-    cursor: grab;
 }
 
 .point-input-wrapper {
@@ -231,32 +229,33 @@ input[type="text"] {
 
 .remove-midpoint {
     transition: opacity 0.15s ease;
-}
-
-.remove-midpoint-div {
-    padding: 3px;
+    color: var(--planner-remove-midpoint-btn-color);
+    font-size: 21px;
+    margin-top: 4px;
+    margin-right: 3px;
 }
 
 .circle-button {
     height: 23px;
     width: 23px;
-    background-color: var(--background);
+    background-color: transparent;
+    color: var(--planner-circle-button-color);
     border-radius: 20px;
-    border: 2px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
-    font-size: 12px;
+    border: var(--planner-circle-button-border);
+    font-size: 13px;
 }
 
 .circle-button[disabled] {
     cursor: default;
-    opacity: 0.3;
+    opacity: 0.2;
 }
 
 .circle-button[disabled]:hover {
-    opacity: 0.3;
+    opacity: 0.2;
 }
 
 .reverse-img {
-    height: 13px;
+    transform: rotate(90deg);
 }
 
 .cdk-drag-placeholder {
@@ -273,7 +272,7 @@ input[type="text"] {
     display: flex;
     flex-direction: row;
     gap: 5px;
-    border: 1px solid var(--p-gray-800);
+    border: 1px solid var(--planner-midpoint-mode-select-border-color);
     color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
     padding: 3px;
 }
@@ -297,11 +296,11 @@ input[type="text"] {
 }
 
 mat-option {
-    background-color: var(--p-gray-800) !important;
-    color: var(--p-gray-300) !important;
+    background-color: var(--planner-autocomplete-option-background-color) !important;
+    color: var(--planner-autocomplete-option-color) !important;
     min-height: 0;
     padding: 7px 5px;
-    border: 1px solid var(--p-gray-700);
+    border: 1px solid var(--planner-autocomplete-option-border);
     font-weight: 600;
     font-size: 13px;
 }
@@ -345,6 +344,20 @@ mat-option {
 
 .cdk-drag-preview {
     overflow: hidden;
+}
+
+.drag-chevron {
+    width: 20px;
+    cursor: grab;
+}
+
+.drag-chevron-part {
+    font-size: 20px;
+    color: var(--planner-drag-chevron-color);
+}
+
+.drag-chevron-part-turned {
+    transform: rotate(180deg);
 }
 /********************************************/
 
@@ -396,12 +409,13 @@ input[type="time"] {
 
 .control-pair label {
     white-space: nowrap;
+    color: var(--planner-faint-label-color);
 }
 
 input[type="radio"],
 input[type="checkbox"]
 {
-    accent-color: var(--p-gray-800);
+    accent-color: var(--planner-form-accent-color);
     transform: scale(1.5);
     height: 10px;
 }
@@ -415,6 +429,14 @@ input[type="checkbox"]
     justify-content: center;
     align-items: center;
     flex: 0 0 auto;
+}
+
+.submit-btn {
+    color: var(--planner-large-button-color);
+}
+
+.submit-btn[disabled] {
+    opacity: 0.2;
 }
 /********************************************/
 

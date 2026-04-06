@@ -19,6 +19,7 @@ import { AsyncPipe } from '@angular/common';
 import { Stop } from '../../types/Stop';
 import { debounceTime, map, startWith, Observable, Subject, Subscription } from 'rxjs';
 import { NgScrollbarModule } from 'ngx-scrollbar';
+import { ThemeService } from '../../../../src/app/services/theme';
 import { 
     CdkDrag, 
     CdkDropList, 
@@ -161,6 +162,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         public translate: TranslateService,
         private msgService: UIMessagesService,
         private mapService: MapService,
+        public theme: ThemeService,
     ) { }
 
     ngOnInit(): void {

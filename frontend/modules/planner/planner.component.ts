@@ -27,6 +27,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { TripHeaderComponent } from './components/trip-header/trip-header.component';
 import { TripSortField } from './types/TripSortField';
 import { PlannerConfig } from './types/PlannerConfig';
+import { ThemeService } from '../../src/app/services/theme';
 import { 
     MAX_WALK_DISTANCE_DEFAULT, 
     MAX_TRANSFERS_DEFAULT, 
@@ -152,7 +153,8 @@ export class PlannerModule implements AfterViewInit, OnDestroy {
         private mapService: MapService,
         private apiService: APIService,
         private msgService: UIMessagesService,
-        private translate: TranslateService
+        private translate: TranslateService,
+        private theme: ThemeService
     ) {
 
         // Subscribe to map mouse clicks
@@ -228,6 +230,8 @@ export class PlannerModule implements AfterViewInit, OnDestroy {
         this.mapService.removeLayer('returnTrip');
         this.mapService.removeLayer('stops');
         this.mapService.removeLayer('region');
+
+        this.theme.setIsDark(true);
     }
 
     // Function called when a marker in the form is clicked

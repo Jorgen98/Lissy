@@ -4,7 +4,7 @@
     <div class="header-left">
       @if (router.url != '/') {
         <button type="button" class="btn-header" routerLink="/">
-          <i class="pi pi-bars"></i>
+          <i class="pi pi-bars bars-menu"></i>
         </button>
       }
     </div>
@@ -25,7 +25,10 @@
       }
       @if (router.url != '/') {
         <div class="header-link-item" (click)="goToLink('brno')">
-          <img class="header-link-img" src="./brno.png"/>
+          <img 
+            class="header-link-img" 
+            [src]="(theme.isDark$ | async) ? './brno.png' : './brno-red.png'"
+          />
         </div>
       }
       <div class="header-link-item" (click)="changeLang()">

@@ -41,7 +41,7 @@ export class AppComponent implements OnInit, OnDestroy {
         public router: Router,
         private msgService: UIMessagesService,
         private primeng: PrimeNG,
-        private theme: ThemeService
+        public theme: ThemeService
     ) {
         this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
         this.translate.setDefaultLang(this.langs[0].code);

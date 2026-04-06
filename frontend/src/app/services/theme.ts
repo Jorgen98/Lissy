@@ -24,4 +24,9 @@ export class ThemeService {
     public toggle() {
         this.isDark.next(!this.isDark.value);
     }
+
+    // Function setting the value of the isDark Subject
+    public setIsDark(value: boolean) {
+        this.isDark.next(value);
+    }
 }

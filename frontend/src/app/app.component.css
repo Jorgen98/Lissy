@@ -24,11 +24,11 @@
     display: grid;
     padding: 0.5em 1.5em;
     grid-template-columns: 0.2fr auto 0.2fr;
-    border-bottom: 0.15em solid var(--p-gray-800);
+    border-bottom: 0.15em solid var(--header-border-color);
     min-height: 3.5em;
     position: fixed;
     width: 100%;
-    background-color: var(--background);
+    background-color: var(--header-background);
     z-index: 10000;
     max-width: 100vw;
 }
@@ -59,7 +59,11 @@
     flex-direction: row;
     align-items: center;
     transition: .5s;
-    opacity: 0.5;
+    opacity: var(--header-link-item-opacity);
+}
+
+.bars-menu {
+    color: var(--header-bars-menu-color);
 }
 
 .header-lang-item {

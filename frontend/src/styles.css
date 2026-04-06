@@ -19,6 +19,10 @@
 }
 
 :root {
+    --header-background: var(--background);
+    --header-border-color: var(--p-gray-800);
+    --header-link-item-opacity: 0.5;
+    --header-bars-menu-color: white;
     --leaflet-attribution-background-color: var(--background);
     --leaflet-attribution-color: var(--p-gray-50);
     --zoom-btn-color: var(--p-gray-50);
@@ -49,11 +53,15 @@
 }
 
 body.light-theme {
+    --header-background: var(--p-green-50);
+    --header-border-color: var(--p-green-100);
+    --header-link-item-opacity: 0.85;
+    --header-bars-menu-color: black;
     --leaflet-attribution-background-color: var(--p-gray-100);
     --leaflet-attribution-color: var(--background);
     --zoom-btn-color: black;
     --zoom-btn-opacity: 0.7;
-    --planner-background: rgba(255, 255, 255, 0.85);
+    --planner-background: rgba(255, 255, 255, 0.9);
     --planner-input-background-color: var(--p-gray-50);
     --planner-input-color: var(--p-gray-800);
     --planner-autocomplete-option-background-color: var(--p-gray-50);
@@ -64,7 +72,7 @@ body.light-theme {
     --planner-form-title-color: var(--p-gray-600);
     --planner-faint-label-color: var(--p-gray-600);
     --planner-mode-select-color: var(--p-gray-900);
-    --planner-mode-selected-background-color: var(--p-green-300);
+    --planner-mode-selected-background-color: var(--p-green-200);
     --planner-mode-selected-color: var(--p-gray-950);
     --planner-input-border-color: var(--p-gray-300);
     --planner-remove-midpoint-btn-color: var(--p-gray-600);

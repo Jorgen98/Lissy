@@ -531,8 +531,8 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
     // Function rendering stops on the leaflet map
     private renderStops(leg: TripSectionLeg, bgColor: string, renderOrigin: boolean, renderDest: boolean) {
 
-        // Invert color for dark mode if its black, just like to route
-        if (bgColor === "#000000")
+        // Invert color for dark theme if the background should be black
+        if (bgColor === "#000000" && this.theme.isDarkTheme)
             bgColor = "#FFFFFF";
 
         // Render leg origin point
@@ -816,8 +816,8 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
     // Function determining if the passed in hex color is light or dark
     private isColorLight(hex: string): boolean {
 
-        // Adjust to route color switching from black to white in map.component
-        if (hex === "#000000")
+        // Invert color for dark theme
+        if (hex === "#000000" && this.theme.isDarkTheme)
             return true;
 
         // Get individual RGB components

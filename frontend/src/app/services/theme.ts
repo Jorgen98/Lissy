@@ -27,6 +27,11 @@ export class ThemeService {
     get themesEnabled() {
         return this.useThemes;
     }
+
+    // Getter, whether the theme is currently dark
+    get isDarkTheme() {
+        return this.isDark.value;
+    }
     
     // Initialization function, enabled usage of themes when called
     public init() {

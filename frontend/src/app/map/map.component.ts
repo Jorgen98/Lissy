@@ -244,7 +244,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
             return undefined;
         }
 
-        if (object.color === 'provided' && object.metadata.color === '#000000') {
+        // Invert color only for dark theme
+        if (object.color === 'provided' && object.metadata.color === '#000000' && this.theme.isDarkTheme) {
             object.metadata.color = '#FFFFFF';
         }
 

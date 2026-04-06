@@ -34,12 +34,12 @@
     --planner-autocomplete-option-background-color: var(--p-gray-800);
     --planner-autocomplete-option-color: var(--p-gray-300);
     --planner-autocomplete-option-border: var(--p-gray-700);
-    --planner-form-outline: var(--p-gray-800);
-    --planner-form-border: 0.15em solid var(--p-gray-800);
-    --planner-form-title-color: var(--p-gray-50);
+    --planner-main-outline: var(--p-gray-800);
+    --planner-main-border: 0.15em solid var(--p-gray-800);
+    --planner-title-color: var(--p-gray-50);
     --planner-faint-label-color: var(--p-gray-400);
     --planner-mode-select-color: var(--p-gray-50);
-    --planner-mode-selected-background-color: var(--p-gray-800);
+    --planner-selected-background-color: var(--p-gray-800);
     --planner-mode-selected-color: var(--p-gray-400);
     --planner-remove-midpoint-btn-color: var(--p-gray-500);
     --planner-drag-chevron-color: var(--p-gray-50);
@@ -50,6 +50,23 @@
     --planner-scrollbar-thumb-color: var(--p-gray-600);
     --planner-scrollbar-thumb-hover-color: var(--p-gray-500);
     --planner-midpoint-mode-select-border-color: var(--p-gray-800);
+    --planner-trip-header-background-color: var(--background);
+    --planner-trip-header-color: var(--p-gray-500);
+    --planner-trip-header-active-color: var(--p-gray-300);
+    --planner-trip-header-best-tag-background-color: #3a2a10;
+    --planner-trip-header-fastest-tag-background-color: #1a2a3a;
+    --planner-trip-header-cheapest-tag-background-color: #1a3a2a;
+    --planner-trip-header-best-tag-border: 0;
+    --planner-trip-header-fastest-tag-border: 0;
+    --planner-trip-header-cheapest-tag-border: 0;
+    --planner-itinerary-faint-text-color: var(--p-gray-500);
+    --planner-select-background: var(--p-gray-800);
+    --planner-select-border-color: var(--p-gray-600);
+    --planner-select-color: var(--p-gray-400);
+    --planner-select-focus-color: var(--p-gray-300);
+    --planner-select-option-background-color: var(--p-gray-900);
+    --planner-button-small-background-color: var(--p-gray-800);
+    --planner-button-small-color: var(--p-gray-400);
 }
 
 body.light-theme {
@@ -62,28 +79,45 @@ body.light-theme {
     --zoom-btn-color: black;
     --zoom-btn-opacity: 0.7;
     --planner-background: rgba(255, 255, 255, 0.9);
-    --planner-input-background-color: var(--p-gray-50);
+    --planner-input-background-color: white;
     --planner-input-color: var(--p-gray-800);
     --planner-autocomplete-option-background-color: var(--p-gray-50);
     --planner-autocomplete-option-color: var(--p-gray-900);
     --planner-autocomplete-option-border: var(--p-gray-300);
-    --planner-form-outline: var(--p-green-100);
-    --planner-form-border: 0;
-    --planner-form-title-color: var(--p-gray-600);
+    --planner-main-outline: var(--p-green-100);
+    --planner-main-border: 1px solid var(--p-green-200);
+    --planner-title-color: var(--p-gray-600);
     --planner-faint-label-color: var(--p-gray-600);
     --planner-mode-select-color: var(--p-gray-900);
-    --planner-mode-selected-background-color: var(--p-green-200);
+    --planner-selected-background-color: var(--p-green-200);
     --planner-mode-selected-color: var(--p-gray-950);
-    --planner-input-border-color: var(--p-gray-300);
+    --planner-input-border-color: var(--p-gray-400);
     --planner-remove-midpoint-btn-color: var(--p-gray-600);
     --planner-drag-chevron-color: var(--p-gray-400);
     --planner-form-accent-color: var(--p-gray-500);
     --planner-circle-button-color: var(--p-gray-800);
     --planner-circle-button-border: 2px solid var(--p-gray-400);
-    --planner-large-button-color: black;
+    --planner-large-button-color: var(--p-gray-900);
     --planner-scrollbar-thumb-color: var(--p-green-300);
     --planner-scrollbar-thumb-hover-color: var(--p-green-200);
     --planner-midpoint-mode-select-border-color: var(--p-gray-300);
+    --planner-trip-header-background-color: var(--p-gray-50);
+    --planner-trip-header-color: var(--p-gray-500);
+    --planner-trip-header-active-color: var(--p-gray-800);
+    --planner-trip-header-best-tag-background-color: var(--planner-trip-header-background-color);
+    --planner-trip-header-fastest-tag-background-color: var(--planner-trip-header-background-color);
+    --planner-trip-header-cheapest-tag-background-color: var(--planner-trip-header-background-color);
+    --planner-trip-header-best-tag-border: 2px solid #fbbf24;
+    --planner-trip-header-fastest-tag-border: 2px solid #60a5fa;
+    --planner-trip-header-cheapest-tag-border: 2px solid #4ade80;
+    --planner-itinerary-faint-text-color: var(--p-gray-600);
+    --planner-select-background: var(--p-green-50);
+    --planner-select-border-color: 0;
+    --planner-select-color: var(--p-gray-700);
+    --planner-select-focus-color: var(--p-gray-500);
+    --planner-select-option-background-color: var(--p-green-200);
+    --planner-button-small-background-color: var(--p-green-200);
+    --planner-button-small-color: var(--p-gray-900);
 }
 
 * {

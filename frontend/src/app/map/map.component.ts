@@ -190,7 +190,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
         // Circle icon with custom color (for planner)
         else if (object.metadata.is_planner_stop) {
-            const size = this.map.getZoom() * 1.1;
+            const size = this.map.getZoom();
             return L.divIcon({
                 html: `<div style="
                     width: ${size}px;

@@ -8,7 +8,7 @@
 /* Main itinerary div and sections ********************/
 .itinerary {
     width: 100%;
-    border: 0.15em solid var(--p-gray-800);
+    border: var(--planner-main-border);
     display: flex;
     flex-direction: column;
     max-height: 75vh; 
@@ -22,9 +22,10 @@
 /* Itinerary header *****************************/
 .clear-itinerary-btn {
     cursor: pointer;
-    opacity: 0.7;
-    border: 1px solid var(--p-gray-500);
-    background-color: var(--p-gray-900);
+    opacity: 0.8;
+    border: 1px solid var(--p-gray-400);
+    color: var(--planner-button-small-color);
+    background-color: var(--planner-button-small-background-color);
     font-size: 15px;
 }
 
@@ -33,7 +34,7 @@
 }
 
 .header {
-    background-color: var(--p-gray-800);
+    background-color: var(--planner-main-outline);
     height: 40px;
     display: flex;
     align-items: center;
@@ -52,7 +53,7 @@
 }
 
 .title {
-    color: var(--p-gray-50);
+    color: var(--planner-title-color);
     font-weight: 550;
     font-size: medium;
 }
@@ -60,7 +61,7 @@
 
 /* Sort select ************************************/
 .sort-div {
-    background-color: var(--p-gray-800);
+    background-color: var(--planner-main-outline);
     display: flex;
     align-items: center;
     padding: 3px 40px;
@@ -88,10 +89,22 @@
 ::ng-deep .sort-select .p-select-option {
     font-size: 13px;
     padding: 5px 15px;
+    background-color: var(--planner-select-option-background-color);
+    color: var(--planner-select-color);
+    opacity: 0.8;
+}
+.sort-select {
+    --p-select-background: var(--planner-select-background);
+    --p-select-border-color: var(--planner-select-border-color);
+    --p-select-color: var(--planner-select-color);
+    --p-select-overlay-background: var(--planner-select-background);
+    --p-select-option-focus-color: var(--planner-select-focus-color);
+    --p-select-overlay-border-color: 0;
 }
 
 .sort-label {
     font-size: 14px;
+    color: var(--planner-title-color);
 }
 /**************************************************/
 
@@ -123,18 +136,18 @@
 
 .p-accordion-header {
     border-radius: 0 !important;
-    background-color: var(--background);
+    background-color: var(--planner-trip-header-background-color);
     padding: 10px;
     padding-top: 0;
-    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
-    --p-accordion-header-active-background: var(--background);
-    --p-accordion-header-active-color: var(--p-gray-300);
+    --p-accordion-header-active-background: var(--planner-trip-header-background-color);
+    --p-accordion-header-active-color: var(--planner-trip-header-active-color);
+    --p-accordion-header-color: var(--planner-trip-header-color);
 }
 
 .p-accordion-content {
-    --p-accordion-content-background: var(--background);
+    --p-accordion-content-background: var(--planner-background);
     --p-accordion-content-padding: 0;
-    border-top: 2px solid var(--p-gray-800);
+    border-top: 2px solid var(--planner-main-outline);
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -145,19 +158,19 @@
 }
 
 .option-selected {
-    border-left: 7px solid var(--p-gray-600) !important;
-    color: var(--p-gray-300);
+    border-left: 7px solid var(--planner-selected-background-color) !important;
+    color: var(--planner-trip-header-active-color) !important;
 }
 
 .scrollbox {
     overflow-y: auto;
     --scrollbar-track-color: transparent;
-    --scrollbar-thumb-color: var(--p-gray-600);
+    --scrollbar-thumb-color: var(--planner-scrollbar-thumb-color);
     --scrollbar-thumb-size: 80;
     --scrollbar-track-shape: 10px;
     --scrollbar-track-thickness: 8px;
     --scrollbar-container-offset: 0px;
-    --scrollbar-thumb-hover-color: var(--p-gray-500);
+    --scrollbar-thumb-hover-color: var(--planner-scrollbar-thumb-hover-color);
     --scrollbar-hover-opacity-transition-leave-delay: 0s;
 }
 
@@ -166,7 +179,7 @@
 }
 
 .p-accordion-header:hover {
-    background-color: var(--background) !important;
+    background-color: var(--planner-trip-header-background-color) !important;
 }
 
 .trip-detail-main {
@@ -179,9 +192,9 @@
 }
 
 .box {
-    background-color: var(--p-gray-800);
+    background-color: var(--planner-main-outline);
     border-radius: 6px;
-    color: var(--p-gray-300);
+    color: var(--planner-title-color);
     padding: 0 7px;
     display: flex;
     justify-content: space-between;
@@ -208,7 +221,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 223px;
-    color: var(--p-gray-300);
+    color: var(--planner-title-color);
 }
 
 .two-column-text {
@@ -228,11 +241,11 @@
 
 .leg-box {
     margin: 0 10px;
-    color: var(--p-gray-300);
+    color: var(--planner-title-color);
 }
 
 .detail-mode-img {
-    height: 20px;
+    height: 18px;
 }
 
 .leg-mode-box {
@@ -258,7 +271,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    color: var(--planner-itinerary-faint-text-color);
     font-size: 13px;
     width: 100%;
     justify-content: center;
@@ -287,7 +300,7 @@ button {
 }
 
 .export-div {
-    background: linear-gradient(var(--p-gray-800), var(--p-gray-800)) top center / 96% 0.15em no-repeat, var(--background);
+    background: linear-gradient(var(--planner-main-outline), var(--planner-main-outline)) top center / 96% 0.15em no-repeat, var(--planner-background);
     height: 38px;
     display: flex;
     justify-content: center;
@@ -299,10 +312,13 @@ button {
     align-items: center;
     gap: 8px;
     font-size: 17px;
+    color: var(--planner-large-button-color);
+    opacity: 0.8;
 }
 
 .export-img {
     height: 20px;
+    color: var(--planner-large-button-color)
 }
 
 .parking-icon {
@@ -325,13 +341,18 @@ button {
 }
 
 .show-return-trip {
-    background-color: var(--p-gray-800);
+    background-color: var(--planner-button-small-background-color);
     font-size: 12px;
     padding: 3px;
     padding-left: 5px;
     font-weight: bold;
     display: flex;
     gap: 5px;
+    color: var(--planner-button-small-color);
+    opacity: 0.8;
+}
+
+.show-return-trip:hover {
     opacity: 1;
 }
 

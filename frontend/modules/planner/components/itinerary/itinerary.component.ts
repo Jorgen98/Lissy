@@ -19,6 +19,8 @@ import { Subscription, Subject } from 'rxjs';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { TripSortField } from '../../types/TripSortField';
+import { AsyncPipe } from '@angular/common';
+import { ThemeService } from '../../../../src/app/services/theme';
 import { 
     Component, 
     input, 
@@ -40,7 +42,8 @@ import {
         NgScrollbarModule,
         TripHeaderComponent,
         SelectModule,
-        FormsModule
+        FormsModule,
+        AsyncPipe
     ],
     templateUrl: './itinerary.component.html',
     styleUrl: './itinerary.component.css',
@@ -49,6 +52,7 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
 
     constructor(
         public translate: TranslateService,
+        public theme: ThemeService,
     ) { }
 
     // List of trip options, input from the root planner component

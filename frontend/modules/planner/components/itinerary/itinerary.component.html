@@ -96,7 +96,11 @@ Main component HTML template file for the itinerary used in the planner module.
 
                             <!-- Mode used for the leg and possibly the route identifier if its defined -->
                             <div class="leg-mode-box">
-                              <img class="detail-mode-img" [src]="`./planner/${leg.mode.toLowerCase()}-white.svg`" >
+                              <img 
+                                class="detail-mode-img" 
+                                [src]="`./planner/${leg.mode.toLowerCase()}-${(theme.isDark$ | async) ? 'white' : 'dark'}.svg`" 
+                                [style.opacity]="(theme.isDark$ | async) ? 1 : 0.8"
+                              >
                               <div 
                                 class="line-label line-label-detail"
                                 [style.background]="getLegColor(leg)"
@@ -136,7 +140,7 @@ Main component HTML template file for the itinerary used in the planner module.
                       <!-- Access/egress/transfer walking leg with duration -->
                       @else {
                         <div class="faint-text">
-                          <img class="transfer-walk-img" [src]="'./planner/walk-light.svg'" alt="">
+                          <img class="transfer-walk-img" [src]="'./planner/walk-light.svg'">
                           <span>{{ leg.duration | duration }}</span>
                         </div>
                       }
@@ -196,7 +200,11 @@ Main component HTML template file for the itinerary used in the planner module.
 
                             <!-- Mode used for the leg and possibly the route identifier if its defined -->
                             <div class="leg-mode-box">
-                              <img class="detail-mode-img" [src]="`./planner/${leg.mode.toLowerCase()}-white.svg`" >
+                              <img 
+                                class="detail-mode-img" 
+                                [src]="`./planner/${leg.mode.toLowerCase()}-${(theme.isDark$ | async) ? 'white' : 'dark'}.svg`" 
+                                [style.opacity]="(theme.isDark$ | async) ? 1 : 0.8"
+                              >
                               <div 
                                 class="line-label line-label-detail"
                                 [style.background]="getLegColor(leg)"
@@ -256,7 +264,7 @@ Main component HTML template file for the itinerary used in the planner module.
                 @if (windowWidth > 700) {
                   <div class="export-div">
                     <button class="export-btn" (click)="exportTrip(option)">
-                      <img class="export-img" [src]="'./planner/export.svg'">
+                      <i class="pi pi-download export-img"></i>
                       {{ "planner.itinerary.export" | translate }}
                     </button>
                   </div>

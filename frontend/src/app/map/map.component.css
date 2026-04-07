@@ -63,6 +63,8 @@
 .zoom-btn {
     color: var(--zoom-btn-color);
     opacity: var(--zoom-btn-opacity);
+    text-align: left;
+    padding-left: 10px;
 }
 
 .zoom-btn:hover {
@@ -207,6 +209,57 @@
     flex-direction: column;
     row-gap: 0.25em;
     margin: auto;
+}
+
+.map-toggle-div {
+    background-color: var(--planner-background);
+    width: 120px;
+    height: 60px;
+    border: var(--planner-main-border);
+    border-width: 1px;
+    border-radius: 5px;
+    margin: 0;
+    margin-top: 5px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 8px;
+    gap: 6px;
+}
+
+.map-toggle-icon {
+    font-size: 10px;
+    color: var(--p-green-700);
+}
+
+.map-choice-div {
+    background-size: 100%;
+    border: var(--planner-main-border);
+    border-width: 1px;
+    height: 100%;
+    width: 100%;
+    border-radius: 10px;
+    transition: 0.5s;
+    cursor: pointer;
+}
+
+.map-choice-div:hover {
+    opacity: 1;
+}
+
+.map-selected {
+    opacity: 1 !important;
+    border-width: 3px;
+}
+
+.map-choice-div-dark {
+    background-image: url('../../../public/map-dark.png');
+    opacity: 0.6;
+}
+
+.map-choice-div-light {
+    background-image: url('../../../public/map-light.png');
+    opacity: 0.2;
 }
 
 @media only screen and (max-width: 1500px) {

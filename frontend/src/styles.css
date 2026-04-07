@@ -73,6 +73,8 @@
     --planner-sidebar-text-color: var(--p-gray-400);
     --planner-select-disabled-background-color: var(--p-gray-900);
     --planner-select-disabled-color: var(--p-gray-800);
+    --setting-img-mobile-opacity: 1;
+    --mobile-btn-text-color: var(--p-gray-50);
 }
 
 body.light-theme {
@@ -130,6 +132,8 @@ body.light-theme {
     --planner-sidebar-text-color: var(--p-gray-600);
     --planner-select-disabled-background-color: var(--p-green-50);
     --planner-select-disabled-color: var(--p-gray-200);
+    --setting-img-mobile-opacity: 0.8;
+    --mobile-btn-text-color: var(--p-gray-800);
 }
 
 * {
@@ -336,9 +340,9 @@ button:disabled, button:disabled:hover {
     display: none;
     justify-content: space-around;
     left: 0;
-    border-top: 0.15em solid var(--p-gray-800);
+    border-top: 0.15em solid var(--header-border-color);
     z-index: 20001;
-    background-color: var(--background);
+    background-color: var(--header-background);
 }
 
 .mobile-submenu {
@@ -438,6 +442,7 @@ app-page-not-found {
     .mobile-btn-text {
         font-size: 0.75em;
         margin: 0;
+        color: var(--mobile-btn-text-color);
     }
 
     button {

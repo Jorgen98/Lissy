@@ -79,6 +79,11 @@
 
 .setting-img-mobile {
   height: 18px;
+  opacity: var(--setting-img-mobile-opacity);
+}
+
+.mobile-setting-btn-icon {
+  color: var(--mobile-btn-text-color);
 }
 
 .number-input-div {
@@ -235,6 +240,13 @@ h3 {
     width: 100%;
     max-height: calc(100% - 3em);
     z-index: 1000;
+  }
+
+  .mobile-btn-header {
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .side-control-content {

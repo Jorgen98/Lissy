@@ -412,7 +412,7 @@ Main component HTML template file for the planner module.
       <!-- Homepage navigation button -->
       <div class="mobile-header-item">
         <button type="button" class="mobile-btn-header" routerLink="/">
-          <i class="pi pi-home"></i>
+          <i class="pi pi-home mobile-setting-btn-icon"></i>
           <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
         </button>
       </div>
@@ -420,7 +420,10 @@ Main component HTML template file for the planner module.
       <!-- Walking preferences settings button -->
       <div class="mobile-header-item">
         <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(1)">
-          <img [src]="'./planner/pedestrian.svg'" class="setting-img-mobile">
+          <img 
+            [src]="(theme.isDark$ | async) ? './planner/pedestrian.svg' : './planner/walk-dark.svg'"
+            class="setting-img-mobile"
+          >
           <p class="mobile-btn-text">{{ 'planner.settings.walkingPreferences' | translate }}</p>
         </button>
       </div>
@@ -428,7 +431,10 @@ Main component HTML template file for the planner module.
       <!-- Public transport preferences settings button -->
       <div class="mobile-header-item">
         <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(2)">
-          <img [src]="'./planner/pt-white.svg'" class="setting-img-mobile">
+          <img 
+            [src]="(theme.isDark$ | async) ? './planner/pt-white.svg' : './planner/bus-dark.svg'"
+            class="setting-img-mobile"
+          >
           <p class="mobile-btn-text">{{ 'planner.settings.publicTransportPreferences' | translate }}</p>
         </button>
       </div>
@@ -436,16 +442,19 @@ Main component HTML template file for the planner module.
       <!-- Car preferences settings button -->
       <div class="mobile-header-item">
         <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(4)">
-          <img [src]="'./planner/car-white.svg'" class="setting-img-mobile">
+          <img 
+            [src]="(theme.isDark$ | async) ? './planner/car-white.svg' : './planner/car-dark.svg'"  
+            class="setting-img-mobile"
+          >
           <p class="mobile-btn-text">{{ 'planner.settings.carPreferences' | translate }}</p>
         </button>
       </div>
 
       <!-- Public transport preferences settings button -->
       <div class="mobile-header-item">
-        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(3)">
-          <img [src]="'./planner/import.svg'" class="setting-img-mobile">
-          <p class="mobile-btn-text">{{ 'planner.settings.tripImport' | translate }}</p>
+        <button type="button" class="mobile-btn-header mobile-btn-header" (click)="switchModuleVisibility(3)">
+          <i class="pi pi-upload import-btn-mobile mobile-setting-btn-icon"></i>
+          <p class="mobile-btn-text mobile-btn-text-margin">{{ 'planner.settings.tripImport' | translate }}</p>
         </button>
       </div>
     </div>

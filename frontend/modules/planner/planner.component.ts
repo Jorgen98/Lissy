@@ -164,14 +164,14 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
     ngOnInit(): void {
 
+        // Store flag if the device is touchscreen or not
+        this.isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+
         // Initialize themes, so they can be used in this module
         this.theme.init();
     }
 
     async ngAfterViewInit(): Promise<void> {
-
-        // Store flag if the device is touchscreen or not
-        this.isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
 
         // Check if API is running and connected
         if(!await this.apiService.isConnected()) {

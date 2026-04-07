@@ -155,7 +155,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         private apiService: APIService,
         private msgService: UIMessagesService,
         private translate: TranslateService,
-        private theme: ThemeService
+        public theme: ThemeService
     ) {
 
         // Subscribe to map mouse clicks

@@ -68,6 +68,11 @@
     --planner-select-option-background-color: var(--p-gray-900);
     --planner-button-small-background-color: var(--p-gray-800);
     --planner-button-small-color: var(--p-gray-400);
+    --planner-sidebar-button-color: var(--p-gray-50);
+    --planner-sidebar-subtitle-color: var(--p-gray-400);
+    --planner-sidebar-text-color: var(--p-gray-400);
+    --planner-select-disabled-background-color: var(--p-gray-900);
+    --planner-select-disabled-color: var(--p-gray-800);
 }
 
 body.light-theme {
@@ -113,13 +118,18 @@ body.light-theme {
     --planner-trip-header-fastest-tag-border: 2px solid #60a5fa;
     --planner-trip-header-cheapest-tag-border: 2px solid #4ade80;
     --planner-itinerary-faint-text-color: var(--p-gray-600);
-    --planner-select-background: var(--p-green-50);
-    --planner-select-border-color: 0;
+    --planner-select-background: var(--p-green-100);
+    --planner-select-border-color: var(--p-gray-300);
     --planner-select-color: var(--p-gray-700);
     --planner-select-focus-color: var(--p-gray-500);
     --planner-select-option-background-color: var(--p-green-200);
     --planner-button-small-background-color: var(--p-green-200);
     --planner-button-small-color: var(--p-gray-900);
+    --planner-sidebar-button-color: var(--p-gray-900);
+    --planner-sidebar-subtitle-color: var(--p-gray-800);
+    --planner-sidebar-text-color: var(--p-gray-600);
+    --planner-select-disabled-background-color: var(--p-green-50);
+    --planner-select-disabled-color: var(--p-gray-200);
 }
 
 * {

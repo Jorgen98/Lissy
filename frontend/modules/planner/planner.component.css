@@ -7,22 +7,23 @@
 
 :host {
   --p-inputnumber-button-width: 25px;
-  --p-inputtext-background: var(--p-gray-800);
-  --p-inputtext-color: var(--p-gray-400);
-  --p-inputtext-border-color: var(--p-gray-700);
-  --p-inputtext-disabled-background: var(--p-gray-900);
-  --p-inputtext-disabled-color: var(--p-gray-800);
-  --p-inputnumber-button-border-color: var(--p-gray-700);
+  --p-inputtext-background: var(--planner-select-background);
+  --p-inputtext-color: var(--planner-select-color);
+  --p-inputtext-border-color: var(--planner-select-border-color);
+  --p-inputtext-disabled-background: var(--planner-select-disabled-background-color);
+  --p-inputtext-disabled-color: var(--planner-select-disabled-color);
+  --p-inputnumber-button-border-color: var(--planner-select-border-color);
   --p-inputtext-focus-border-color: var(--p-gray-500);
-  --p-select-background: var(--p-gray-800);
-  --p-select-border-color: var(--p-gray-700);
-  --p-select-color: var(--p-gray-400);
-  --p-select-overlay-background: var(--p-gray-800);
-  --p-select-overlay-border-color: var(--p-gray-800);
+  --p-select-background: var(--planner-select-background);
+  --p-select-border-color: var(--planner-select-border-color);
+  --p-select-color: var(--planner-select-color);
+  --p-select-overlay-background: var(--planner-select-background);
+  --p-select-overlay-border-color: 0;
   --p-select-overlay-color: var(--p-gray-400);
-  --p-inputnumber-button-hover-background: var(--p-gray-400);
-  --p-select-option-focus-color: var(--p-gray-300);
+  --p-inputnumber-button-hover-background: var(--planner-select-background);
+  --p-select-option-focus-color: var(--planner-select-focus-color);
   --p-select-checkmark-color: var(--p-gray-300);
+  --p-inputnumber-button-color: var(--planner-select-color);
   --p-inputnumber-button-hover-border-color: var(--p-gray-700);
 }
 
@@ -34,6 +35,10 @@
   display: none;
 }
 
+.main {
+  background-color: var(--header-background);
+}
+
 .side-btn-div {
   width: 100%;
   display: flex;
@@ -41,16 +46,35 @@
   padding: 0;
 }
 
+.side-control {
+  border-right: 0.15em solid var(--header-border-color);
+}
+
 .side-control-modules {
   width: 100%;
 }
 
+.side-control-head {
+  background-color: var(--planner-main-outline);
+  color: var(--planner-title-color);
+}
+
 .btn-side-menu {
   width: 100%;
+  opacity: 0.4;
+}
+
+.btn-side-menu:hover {
+  opacity: 0.9;
 }
 
 .setting-img {
   width: 25px;
+}
+
+.import-btn {
+  color: var(--planner-sidebar-button-color);
+  font-size: 23px;
 }
 
 .setting-img-mobile {
@@ -82,10 +106,33 @@
 }
 
 .upload-btn {
-  --p-button-primary-background: var(--p-gray-800);
-  --p-button-primary-hover-background: var(--p-gray-800);
-  --p-button-primary-border-color: var(--background);
-  --p-button-primary-hover-border-color: var(--background);
+  --p-button-primary-background: var(--planner-button-small-background-color);
+  --p-button-primary-hover-background: var(--planner-button-small-background-color);
+  --p-button-primary-border-color: 0;
+  --p-button-primary-hover-border-color: 0;
+  --p-button-primary-color: var(--planner-button-small-color);
+  --p-button-primary-hover-color: var(--planner-button-small-color);
+}
+
+.upload-btn ::ng-deep .p-button {
+  opacity: 0.7 !important;
+}
+
+.upload-btn ::ng-deep .p-button:hover {
+  opacity: 1 !important;
+}
+
+::ng-deep .side-control-select .p-select-option {
+  background-color: var(--planner-select-option-background-color);
+  color: var(--planner-select-color);
+  opacity: 0.8;
+}
+
+::ng-deep .p-checkbox-box {
+  border-color: var(--p-gray-500) !important;
+  --p-checkbox-checked-border-color: var(--p-gray-800);
+  opacity: 0.8;
+  background-color: var(--p-gray-100);
 }
 
 .point-from-map-tooltip {
@@ -143,6 +190,12 @@
 .side-control-content {
   width: fit-content;
   min-width: 0;
+  background-color: var(--header-background);
+  border-right: 0.15em solid var(--header-border-color);
+}
+
+.sidebar-close-btn {
+  color: var(--planner-title-color);
 }
 
 .side-control-selection-div {
@@ -151,18 +204,20 @@
 
 .side-control-select {
   max-width: fit-content;
+  background-color: var(--planner-select-background);
+  
 }
 
 .side-control-checkbox-head {
-  color: var(--p-gray-400);
+  color: var(--planner-sidebar-text-color);
 }
 
 h3 {
-  color: var(--p-gray-300);
+  color: var(--planner-sidebar-subtitle-color);
 }
 
 .settings-unit {
-  color: var(--p-gray-400);
+  color: var(--planner-sidebar-text-color);
 }
 
 .attribution {

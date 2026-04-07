@@ -94,7 +94,8 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  background-color: var(--p-gray-800);
+  background-color: var(--planner-main-outline);
+  color: var(--planner-title-color);
   align-items: center;
   height: 70px;
   font-weight: 600;
@@ -105,10 +106,10 @@
   z-index: 1001;
   width: 100%;
   padding: 10px;
-  background: var(--background);
-  border: 2px solid var(--p-gray-800);
+  background: var(--planner-background);
+  border: var(--planner-main-border);
   font-weight: bold;
-  color: var(--p-gray-300);
+  color: var(--planner-trip-header-active-color);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -117,13 +118,14 @@
 .horizontal-line {
   margin-left: -10px;
   margin-right: -10px;
-  background-color: var(--p-gray-800);
+  background-color: var(--planner-main-outline);
   height: 2px;
   margin-bottom: -10px;
 }
 
 .back-to-detail-btn {
-  background-color: var(--p-gray-800);
+  background-color: var(--planner-button-small-background-color);
+  color: var(--planner-button-small-color);
   border-radius: 5px;
   font-size: 13px;
   display: inline-flex;

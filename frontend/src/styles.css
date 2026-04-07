@@ -86,7 +86,7 @@ body.light-theme {
     --planner-autocomplete-option-background-color: var(--p-gray-50);
     --planner-autocomplete-option-color: var(--p-gray-900);
     --planner-autocomplete-option-border: var(--p-gray-300);
-    --planner-main-outline: var(--p-green-100);
+    --planner-main-outline: var(--p-green-200);
     --planner-main-border: 1px solid var(--p-green-200);
     --planner-title-color: var(--p-gray-600);
     --planner-faint-label-color: var(--p-gray-600);

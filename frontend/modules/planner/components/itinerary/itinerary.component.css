@@ -5,17 +5,13 @@
  * CSS styles file for the itinerary component used in the planner.
  */
 
-/* Main itinerary div and sections ********************/
+/* Main itinerary div ********************/
 .itinerary {
     width: 100%;
     border: var(--planner-main-border);
     display: flex;
     flex-direction: column;
     max-height: 75vh; 
-}
-
-.form-section {
-    background: linear-gradient(var(--p-gray-800), var(--p-gray-800)) top center / 96% 0.15em no-repeat, var(--background);
 }
 /**************************************************/
 
@@ -152,8 +148,8 @@
 
 @media (hover: none) and (pointer: coarse) {
     .p-accordion-header {
-        --p-accordion-header-hover-color: var(--p-gray-300);
-        --p-accordion-header-active-hover-color: var(--p-gray-300);
+        --p-accordion-header-hover-color: var(--planner-trip-header-color);
+        --p-accordion-header-active-hover-color: var(--planner-trip-header-active-color);
     }
 }
 

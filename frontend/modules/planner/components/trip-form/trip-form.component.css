@@ -37,7 +37,7 @@ button {
 }
 
 .form-section {
-    background: linear-gradient(var(--planner-main-outline), var(--planner-main-outline)) top center / 96% 0.15em no-repeat, var(--planner-background);
+    background: linear-gradient(var(--planner-main-outline), var(--planner-main-outline)) top center / 96% 0.5px no-repeat, var(--planner-background);
 }
 
 .form-collapse-wrapper {
@@ -427,7 +427,7 @@ input[type="checkbox"]
 
 /* Submit button **************************/
 .submit {
-    height: 40px;
+    height: 46px;
     font-size: 15px;
     display: flex;
     justify-content: center;
@@ -436,11 +436,20 @@ input[type="checkbox"]
 }
 
 .submit-btn {
-    color: var(--planner-large-button-color);
+    color: var(--planner-submit-button-color);
+    background-color: var(--planner-submit-button-background-color);
+    width: 80%;
+}
+
+.submit-btn:hover {
+    color: var(--planner-submit-button-hover-color);
+    background-color: var(--planner-submit-button-hover-background-color);
 }
 
 .submit-btn[disabled] {
-    opacity: 0.2;
+    color: var(--planner-submit-button-disabled-color);
+    background-color: var(--planner-submit-button-disabled-background-color);
+    cursor: default;
 }
 /********************************************/
 

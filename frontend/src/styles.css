@@ -75,11 +75,17 @@
     --planner-select-disabled-color: var(--p-gray-800);
     --setting-img-mobile-opacity: 1;
     --mobile-btn-text-color: var(--p-gray-50);
+    --planner-submit-button-disabled-background-color: var(--p-gray-600);
+    --planner-submit-button-disabled-color: var(--p-gray-700);
+    --planner-submit-button-background-color: var(--p-gray-800);
+    --planner-submit-button-color: var(--p-gray-300);
+    --planner-submit-button-hover-background-color: var(--p-gray-900);
+    --planner-submit-button-hover-color: var(--p-gray-500);
 }
 
 body.light-theme {
-    --header-background: var(--p-green-50);
-    --header-border-color: var(--p-green-100);
+    --header-background: rgba(243, 247, 243);
+    --header-border-color: var(--p-green-200);
     --header-link-item-opacity: 0.85;
     --header-bars-menu-color: black;
     --leaflet-attribution-background-color: var(--p-gray-100);
@@ -134,6 +140,12 @@ body.light-theme {
     --planner-select-disabled-color: var(--p-gray-200);
     --setting-img-mobile-opacity: 0.8;
     --mobile-btn-text-color: var(--p-gray-800);
+    --planner-submit-button-disabled-background-color: var(--p-gray-300);
+    --planner-submit-button-disabled-color: var(--p-gray-400);
+    --planner-submit-button-background-color: var(--p-green-300);
+    --planner-submit-button-color: var(--p-gray-800);
+    --planner-submit-button-hover-background-color: var(--p-green-500);
+    --planner-submit-button-hover-color: var(--p-gray-900);
 }
 
 * {

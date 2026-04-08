@@ -14,6 +14,9 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class ThemeService {
 
+    // Name of item key for storing the latest theme in local storage
+    private LOCAL_STORAGE_ITEM_NAME = "lissyTheme";
+
     // Whether themes are currently in use by the shown module
     private useThemes = false;
 
@@ -36,16 +39,19 @@ export class ThemeService {
     // Initialization function, enabled usage of themes when called
     public init() {
         this.useThemes = true;
-    }
 
-    // Function to toggle the theme to the opposite value
-    public toggle() {
-        this.isDark.next(!this.isDark.value);
+        // If the light theme is stored in local storage, initialize with light theme instead, otherwise default to dark
+        const storageTheme = localStorage.getItem(this.LOCAL_STORAGE_ITEM_NAME);
+        if (storageTheme === "light")
+            Promise.resolve().then(() => this.isDark.next(false));  // Postpone until angular change detection cycle completes
     }
 
     // Function setting the value of the isDark Subject
     public setIsDark(value: boolean) {
         this.isDark.next(value);
+
+        // Store the selected theme in local storage
+        localStorage.setItem(this.LOCAL_STORAGE_ITEM_NAME, value ? "dark" : "light");
     }
 
     // Function reseting the theme service to default dark theme

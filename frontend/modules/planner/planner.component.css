@@ -133,11 +133,20 @@
   opacity: 0.8;
 }
 
+::ng-deep .p-checkbox {
+  --p-checkbox-checked-background: white;
+  --p-checkbox-checked-border-color: var(--p-gray-500);
+  --p-checkbox-border-color: var(--p-gray-500);
+  --p-checkbox-background: white;
+  -webkit-tap-highlight-color: transparent;
+}
+
 ::ng-deep .p-checkbox-box {
-  border-color: var(--p-gray-500) !important;
-  --p-checkbox-checked-border-color: var(--p-gray-800);
-  opacity: 0.8;
-  background-color: var(--p-gray-100);
+  -webkit-tap-highlight-color: transparent;
+}
+
+::ng-deep .p-checkbox-checked .p-checkbox-box {
+  transition: opacity 0.5s;
 }
 
 .point-from-map-tooltip {

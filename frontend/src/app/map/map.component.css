@@ -227,6 +227,10 @@
     gap: 6px;
 }
 
+.map-toggle-div-mobile {
+    display: none;
+}
+
 .map-toggle-icon {
     font-size: 10px;
     color: var(--p-green-700);
@@ -304,5 +308,26 @@
 
     ::ng-deep .leaflet-bottom {
         bottom: 4em;
+    }
+
+    .map-toggle-div-mobile {
+        background-color: var(--planner-background);
+        width: 50px;
+        height: 100px;
+        border: var(--planner-main-border);
+        border-width: 1px;
+        border-radius: 5px;
+        margin: 0;
+        margin-top: 5px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        align-items: center;
+        padding: 2px;
+        gap: 2px;
+        position: absolute;
+        bottom: 3.2em;
+        left: 5px;
+        z-index: 500;
     }
 }

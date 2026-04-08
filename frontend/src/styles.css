@@ -493,10 +493,13 @@ app-page-not-found {
     
     .leaflet-bottom {
         z-index: 499 !important;
+        right: 0 !important;
     }
 
     .leaflet-control-scale {
-        margin-bottom: 20px !important;
+        position: absolute !important;
+        bottom: 13px;
+        right: 5px;
     }
 }
 

@@ -94,4 +94,5 @@ export type TripOption = {
         section: TripSectionOption | null | "not available"
         hasShape: boolean,
     }
+    imported: boolean,              // Whether the trip option was imported as a JSON file
 };

@@ -395,6 +395,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
             ...option,
             endDatetime: new Date(option.endDatetime),
             startDatetime: new Date(option.startDatetime),
+            imported: false,
         }));
 
         // Implicitly sort by departure time
@@ -789,7 +790,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
                 // Store the trip option
                 // Dont want ranking tags when the trip option is imported
-                this.tripOptions = [{...tripObject, cheapest: false, fastest: false, best: false}];
+                this.tripOptions = [{ ...tripObject, cheapest: false, fastest: false, best: false, imported: true }];
 
                 // Collapse import side panel
                 this.switchModuleVisibility(3);

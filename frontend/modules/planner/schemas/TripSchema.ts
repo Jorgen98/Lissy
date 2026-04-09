@@ -84,4 +84,5 @@ export const TripSchema = z.object({
         section: SectionSchema.or(z.literal("not available")).nullable(),
         hasShape: z.boolean(),
     }),
+    imported: z.boolean(),
 });

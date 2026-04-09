@@ -93,9 +93,9 @@ Main component HTML template file for the itinerary used in the planner module.
                       @if (leg.mode !== "WALK" || legCount === 1) {
                         <div class="leg-box-wrapper">
                           <div 
-                            class="reroute-btn reroute-btn-left" 
+                            class="reroute-btn" 
                             [style.borderLeft]="`3px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`"
-                            [style.visibility]="leg.isTransitLeg ? 'visible' : 'hidden'"
+                            [style.visibility]="leg.isTransitLeg && !option.imported ? 'visible' : 'hidden'"
                             [title]="'planner.itinerary.previousConnection' | translate"
                             (click)="rerouteRequest.emit({ tripIdx: selectedOptionIdx, sectionIdx, legIdx, direction: 'previous' })"
                           >
@@ -148,7 +148,7 @@ Main component HTML template file for the itinerary used in the planner module.
                           <div 
                             class="reroute-btn"
                             [style.borderRight]="`3px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`"
-                            [style.visibility]="leg.isTransitLeg ? 'visible' : 'hidden'"
+                            [style.visibility]="leg.isTransitLeg && !option.imported ? 'visible' : 'hidden'"
                             [title]="'planner.itinerary.nextConnection' | translate"
                             (click)="rerouteRequest.emit({ tripIdx: selectedOptionIdx, sectionIdx, legIdx, direction: 'next' })"
                           >

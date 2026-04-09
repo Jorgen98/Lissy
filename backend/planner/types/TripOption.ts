@@ -20,6 +20,7 @@ export type TripSectionLeg = {
         placeName: string | null,   // Name of the place where the leg starts, can be null
         isTransportStop: boolean,   // Whether the point is a transport system stop or not
         isParking: boolean,         // Whether the point is a parking spot 
+        latLng: LatLng, 
     },
 
     // List of coordinates of points giving the shape of the leg on a map

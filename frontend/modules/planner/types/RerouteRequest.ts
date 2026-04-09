@@ -5,11 +5,11 @@
  * Custom type with information about a requested transit leg reroute.
  */
 
-import { TransportMode } from "./TransportMode";
+import { TripDataExtended } from "./TripDataExtended";
 import { TripOption } from "./TripOption";
 
 export type RerouteRequest = {
-    sectionModes: Record<TransportMode, boolean>[], 
+    originalRequest: TripDataExtended, 
     sectionIdx: number, 
     legIdx: number,
     originalTrip: TripOption,

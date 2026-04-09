@@ -27,6 +27,7 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
             $walkingSpeed: Speed!
             $afterCursor: String,
             $beforeCursor: String,
+            $walkReluctance: Reluctance
         ) {
             planConnection(
                 origin: { 
@@ -61,6 +62,7 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                     street: {
                         walk: {
                             speed: $walkingSpeed
+                            reluctance: $walkReluctance
                         }
                     }
                 }
@@ -101,6 +103,8 @@ export function getPlanConnectionQuery(datetimeOption: "arrival" | "departure"):
                                 stop {
                                     name
                                 }
+                                lat
+                                lon
                             }
                             legGeometry {
                                 length

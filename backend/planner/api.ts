@@ -12,6 +12,7 @@ import env from '../../frontend/modules/planner/config.json';
 
 import { TripRequest } from './types/TripRequest';
 import { planTrip } from './tripOrchestrator';
+import { rerouteLegInTrip } from './tripOrchestrator';
 import { RoutePlanner } from './RoutePlanner';
 import { reverseGeocodeNominatim } from './geo';
 import { LatLng } from './types/LatLng';
@@ -103,7 +104,7 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
 
         // Endpoint for rerouting public transport leg
         case 'reroute': {
-            res.send(true);
+            res.send(await rerouteLegInTrip(adapter, req.body));
             break;
         }
 

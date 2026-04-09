@@ -252,25 +252,42 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
             return;
 
         // Get a copy of the rerouted trip and empty the points array (so the request body is much smaller) 
-        const originalTrip = { ...this.tripOptions[rerouteInfo.tripIdx] };
-        originalTrip.sections.forEach(section => {
+        const tripCopy = JSON.parse(JSON.stringify(this.tripOptions[rerouteInfo.tripIdx])) as TripOption;
+        tripCopy.sections.forEach(section => {
             section.legs.forEach(leg => {
                 leg.points = [];
             });
         });
-
-        // Get the modes used on the request that was used for the current itinerary
-        const modes = this.activeRequest!.modes; 
     
         // Build reroute request object
         const request: RerouteRequest = {
             ...rerouteInfo,
-            originalTrip,
-            sectionModes: modes.sections.length !== 0 ? modes.sections : [modes.global],
+            originalTrip: tripCopy,
+            originalRequest: this.activeRequest!,
         }
 
-        // Call backend to get new adjusted trip options with rerouted leg
-        const reroutedOption = await this.apiService.genericPost(`${config.apiPrefix}/reroute`, request) as TripOption | null;
+        this.msgService.turnOnLoadingScreenWithoutPercentage();
+
+        // Call backend to get new adjusted trip option with rerouted leg
+        // Also returns the difference in the number of legs that might have been
+        // introduced in the reroute, needed so the emptied points arrays can be inserted back in the correct place
+        const rerouteResponse = 
+            await this.apiService.genericPost(`${config.apiPrefix}/reroute`, request) as { trip: TripOption, legDiff: number } | null;
+
+        this.msgService.turnOffLoadingScreen();
+
+        if (!rerouteResponse) {
+            this.msgService.showMessage('error', 'UIMessagesService.toasts.rerouteError.head', 'UIMessagesService.toasts.rerouteError.body');
+            return;
+        }
+
+        // Rebuild points array
+        this.rebuildPointsPostReroute(rerouteResponse.trip, this.tripOptions[rerouteInfo.tripIdx], rerouteResponse.legDiff, rerouteInfo);
+
+        // Overwrite the trip at the requested index with new rerouted one
+        this.tripOptions[rerouteInfo.tripIdx] = rerouteResponse.trip;
+
+        this.renderTrip(rerouteInfo.tripIdx);
     }
 
     // Function called when a marker in the form is clicked
@@ -623,6 +640,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         // Reset routes and stops layers before rendering
         this.mapService.clearLayer('routes');
         this.mapService.clearLayer('stops');
+        this.mapService.clearLayer('returnTrip');
         this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
         this.mapService.addNewLayer({ name: 'stops', palette: {}, layer: undefined, paletteItemName: '' });
     
@@ -936,5 +954,67 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
         // Otherwise return formatted hex color
         return `#${leg.route.color}`; 
+    }
+
+    // Function used after rerouting, to fill back the shapes from the original trip to the new one
+    private rebuildPointsPostReroute(
+        reroutedTrip: TripOption, 
+        originalTrip: TripOption, 
+        diff: number, 
+        rerouteInfo: { tripIdx: number, sectionIdx: number, legIdx: number, direction: "next" | "previous" },
+    ): void {
+        reroutedTrip.sections.forEach((section, sectionIdx) => {
+
+            // If the section isnt the one the reroute happens in, just copy everything over
+            if (sectionIdx !== rerouteInfo.sectionIdx) {
+                section.legs.forEach((leg, legIdx) => {
+                    leg.points = originalTrip.sections[sectionIdx]!.legs[legIdx]!.points; 
+                });
+            }
+
+            // This is the section where the reroute happened and it was a reroute to the next connection
+            else if (rerouteInfo.direction === "next") {
+
+                // Copy over leg points until the index of the rereouted leg is reached
+                for (let i = 0; i < rerouteInfo.legIdx; i++)
+                    section.legs[i].points = originalTrip.sections[sectionIdx]!.legs[i]!.points;
+
+                // Use the difference between the number of legs in the original and the rerouted to correctly copy the original shape where needed
+                for (let i = rerouteInfo.legIdx + diff + 1; i < section.legs.length; i++)
+                    section.legs[i].points = originalTrip.sections[sectionIdx]!.legs[i - diff]!.points;
+            }
+            else {
+                // TODO
+            }
+        });
+
+        // The reroute might have created two walking legs right next to each other, those can be joined
+        const reroutedSection = reroutedTrip.sections[rerouteInfo.sectionIdx];
+        this.joinAdjacentWalkingLegs(reroutedSection);
+    }
+
+    private joinAdjacentWalkingLegs(section: TripSectionOption) {
+
+        // Find pairs of legs that are adjacent and replace them with their combination in the sections leg array
+        // Iterate backwards so the splice() calls arent affected by the ongoing mutations in the array
+        for (let i = section.legs.length - 2; i >= 0; i--) {
+            if (section.legs[i].mode === "WALK" && section.legs[i+1].mode === "WALK") {
+                const firstLeg = section.legs[i];
+                const secondLeg = section.legs[i + 1];
+                const newLeg: TripSectionLeg = {
+                    distance: firstLeg.distance + secondLeg.distance,
+                    duration: firstLeg.duration + secondLeg.duration,
+                    from: firstLeg.from,
+                    isTransitLeg: false,
+                    mode: "WALK",
+                    points: firstLeg.points.concat(secondLeg.points),
+                    route: null,
+                    stops: null,
+                    to: secondLeg.to,
+                    trip: null,
+                }
+                section.legs.splice(i, 2, newLeg);
+            }
+        }
     }
 }

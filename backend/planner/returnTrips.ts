@@ -91,6 +91,7 @@ async function findReturnTripCarOnly(planner: RoutePlanner, request: TripRequest
         datetime: { datetime: request.return.datetime, option: request.return.datetimeOption },
         modes: { car: true, walk: false, publicTransport: false },
         preferences: request.preferences,
+        isReroute: false,
     });
     if (!carSections || carSections[0] === undefined)
         return "not available";
@@ -132,6 +133,7 @@ async function findReturnTripCarPT(
             datetime: { datetime: sectionClosestToParking.endDatetime.toISOString(), option: "departure" },
             modes: { car: true, walk: false, publicTransport: false },
             preferences: request.preferences,
+            isReroute: false,
         });
         if (!carSections || carSections.length === 0)
             return "not available";
@@ -151,6 +153,7 @@ async function findReturnTripCarPT(
             datetime: { datetime: request.return.datetime, option: "arrival" },
             modes: { car: true, walk: false, publicTransport: false },
             preferences: request.preferences,
+            isReroute: false,
         });
         if (!carSections || carSections.length === 0)
             return "not available";
@@ -193,6 +196,7 @@ async function getFilteredPtSections(
         datetime: { datetime: datetime.toISOString(), option: datetimeOption },
         modes: { car: false, walk: false, publicTransport: true },
         preferences: request.preferences,
+        isReroute: false,
     });
     if (!ptSections || ptSections.length === 0)
         return null;

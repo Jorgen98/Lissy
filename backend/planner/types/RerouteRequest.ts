@@ -6,10 +6,10 @@
  */
 
 import { TripOption } from "./TripOption";
-import { TransportMode } from "../../../frontend/modules/planner/types/TransportMode";
+import { TripRequest } from "./TripRequest";
 
 export type RerouteRequest = {
-    sectionModes: Record<TransportMode, boolean>[], 
+    originalRequest: TripRequest, 
     sectionIdx: number, 
     legIdx: number,
     originalTrip: TripOption,

@@ -25,6 +25,8 @@ export type Leg = {
         stop: {
             name: string    // GTFS name of the stop
         } | null,
+        lat: number,
+        lon: number,
     },
 
     // Google polyline encoded string representing coordinates of points on the leg

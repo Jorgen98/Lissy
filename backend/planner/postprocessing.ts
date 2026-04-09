@@ -82,10 +82,12 @@ function dominates(tripA: TripOption, tripB: TripOption): boolean {
 }
 
 // Function performing postprocessing operations on trip sections
-export async function postprocessTripSections(options: TripSectionOption[], preferences: UserPreferences): Promise<void> {
+export async function postprocessTripSections(options: TripSectionOption[], preferences: UserPreferences, pricing: boolean = true): Promise<void> {
     for (const option of options) {
+        
         // Add cost information to sections
-        await addPricing(option.legs, option, preferences);
+        if (pricing)
+            await addPricing(option.legs, option, preferences);
 
         // Add emission levels to sections
         addEmissions(option);
@@ -142,8 +144,8 @@ async function calculatePublicTransportPrice(legs: TripSectionLeg[], ticketType:
         return 0;
 
     // Get time when transit begins, and when it ends
-    const transitStartTime = firstTransitLeg.from.departureTime;
-    const transitEndTime = lastTransitLeg.to.arrivalTime;
+    const transitStartTime = new Date(firstTransitLeg.from.departureTime);
+    const transitEndTime = new Date(lastTransitLeg.to.arrivalTime);
 
     // Create a list of unique transport system zones used in the section
     const uniqueZones = new Set<string>();
@@ -238,7 +240,7 @@ function addEmissions(section: TripSectionOption) {
 }
 
 // Function calculating the number of transfers for one trip option
-function addNumberOfTransfers(legs: TripSectionLeg[], object: TripSectionOption | TripOption): void {
+export function addNumberOfTransfers(legs: TripSectionLeg[], object: TripSectionOption | TripOption): void {
 
     // Count number of transfers
     let numTransitLegs = 0;

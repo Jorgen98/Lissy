@@ -18,4 +18,5 @@ export type TripSectionInfo = {
         option: "departure" | "arrival"
     },
     preferences: UserPreferences,
+    isReroute: boolean,                     // Whether the section request is for a reroute
 }

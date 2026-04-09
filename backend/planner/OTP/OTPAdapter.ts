@@ -68,6 +68,10 @@ export class OTPAdapter implements RoutePlanner {
             walkingSpeed: sectionInfo.preferences.walk.avgSpeed,
             afterCursor: null,
             beforeCursor: null,
+
+            // If this is a reroute request, add a high walk reluctance, so the reroute actually happens between the original stops
+            // Otherwise, some long access or egress leg might be taken instead
+            walkReluctance: sectionInfo.isReroute ? 25 : null,
         }
         
         // Query OTP and use the built-in paging mechanism when necessary
@@ -298,6 +302,7 @@ export class OTPAdapter implements RoutePlanner {
                 placeName: leg.from.stop?.name ?? null,
                 isTransportStop: leg.from.stop !== null, 
                 isParking: false,
+                latLng: { lat: leg.from.lat, lng: leg.from.lon }
             },
             to: {
                 arrivalTime: new Date(leg.to.arrival.scheduledTime),

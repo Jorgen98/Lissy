@@ -22,4 +22,5 @@ export type PlanConnectionParams = {
     walkingSpeed: number,
     afterCursor: string | null,   
     beforeCursor: string | null,
+    walkReluctance: number | null,
 };

@@ -17,9 +17,16 @@ import { getSectionOptions } from "./sectionOrchestrator";
 import { UserPreferences } from "../../frontend/modules/planner/types/TripDataExtended";
 import { fillInTripShape } from "./shaping";
 import { findReturnTrips } from "./returnTrips";
-import { getParetoOptimalTrips, postprocessTripOptions, postprocessTripSections, rateOptions } from "./postprocessing";
 import { PlannerConfig } from "./types/PlannerConfig";
 import { MAX_RETURNED_OPTIONS } from "./utils/systemConstants";
+import { RerouteRequest } from "./types/RerouteRequest";
+import { 
+    addNumberOfTransfers, 
+    getParetoOptimalTrips, 
+    postprocessTripOptions, 
+    postprocessTripSections, 
+    rateOptions 
+} from "./postprocessing";
 
 function log(type: string, msg: string): void {
     logService.write(process.env.BE_PLANNER_MODULE_NAME, type, msg);
@@ -124,7 +131,8 @@ async function getTripOptions(request: TripRequest, planner: RoutePlanner): Prom
             datetime: {
                 datetime: followingDatetime,
                 option: datetime.datetimeOption,
-            }
+            },
+            isReroute: false,
         }
         
         // Request options for this section with created request object
@@ -222,7 +230,8 @@ async function getTripOptionsWithOneMidpoint(request: TripRequest, planner: Rout
         datetime: {
             datetime: datetime.tripDatetime,
             option: datetime.datetimeOption,
-        }
+        },
+        isReroute: false,
     });
     if (firstSections.length === 0) return null;
 
@@ -252,7 +261,8 @@ async function getTripOptionsWithOneMidpoint(request: TripRequest, planner: Rout
             datetime: {
                 datetime: nextDatetime,
                 option: datetime.datetimeOption,
-            }
+            },
+            isReroute: false,
         });
 
         // No need to exit the function here, only silently ignore the current first section
@@ -410,4 +420,75 @@ function findLeaders(candidates: (TripOption & { id: number })[], datetimeOption
     });
 
     return Object.values(leaders);
+}
+
+// Function rerouting a single section in a trip, returns a new adjusted trip object (or null if rerouting fails)
+export async function rerouteLegInTrip(planner: RoutePlanner, rerouteRequest: RerouteRequest): Promise<{ trip: TripOption, legDiff: number } | null> {
+    
+    // Handle case where the reroute request is for the next connection
+    if (rerouteRequest.direction === "next") {
+
+        // The original trip object the request was put into
+        const originalTrip = rerouteRequest.originalTrip;
+
+        // Section of the original trip which contains the rerouted leg
+        const originalSection = originalTrip.sections[rerouteRequest.sectionIdx]; 
+
+        // The to be rerouted leg
+        const originalLeg = originalSection?.legs[rerouteRequest.legIdx];
+        if (!originalLeg)
+            return null;
+
+        // Original emissions value in the section
+        const originalEmissions = originalSection?.emissions;
+
+        // Count the number of legs in the original trip before reroute
+        const originalLegCount = originalTrip.sections.flatMap(section => section.legs).length;
+
+        // Get new options for the leg with same origin and destination points, only at least one minute later than the departure time of the original
+        const newLegOptions = await planner.getTripSection({
+            pointA: originalLeg.from.latLng,
+            pointB: originalLeg.to.latLng,
+            modes: { car: false, publicTransport: true, walk: false },
+            preferences: rerouteRequest.originalRequest.preferences,
+            datetime: {
+                option: "departure",
+                datetime: new Date(new Date(originalLeg.from.departureTime).getTime() + 1 * 1000 * 60).toISOString(), 
+            },
+            isReroute: true, 
+        });
+        if (newLegOptions === null || newLegOptions.length === 0)
+            return null;
+
+        // Find the best of the found options by rating
+        await postprocessTripSections(newLegOptions, rerouteRequest.originalRequest.preferences);
+        rateOptions(newLegOptions);
+        newLegOptions.sort((a, b) => b.score! - a.score!);
+        const bestOption = newLegOptions[0]!;
+
+        // Replace the original leg with the new leg (or legs)
+        originalSection.legs.splice(rerouteRequest.legIdx, 1, ...bestOption.legs);
+
+        // Recalculate distance, emissions and number of transfers in the section
+        originalSection.distance = originalSection.distance - originalLeg.distance + bestOption.distance; 
+        originalSection.emissions = null;
+        await postprocessTripSections([originalSection], rerouteRequest.originalRequest.preferences, false);
+
+        // Recalculate distance, emissions and number of transfers in the full trip
+        originalTrip.distance = originalTrip.distance - originalLeg.distance + bestOption.distance;
+        originalTrip.emissions = originalTrip.emissions! - originalEmissions! + originalSection.emissions!;
+        addNumberOfTransfers(rerouteRequest.originalTrip.sections.flatMap(section => section.legs), rerouteRequest.originalTrip);  
+
+        // Recalculate trip shape
+        await fillInTripShape(rerouteRequest.originalTrip);
+
+        // Return the rereouted trip with difference in legs against the original
+        return { trip: originalTrip, legDiff: originalTrip.sections.flatMap(section => section.legs).length - originalLegCount };
+    }
+    else {
+
+        // TODO
+        return null;
+    }
+
 }

@@ -333,6 +333,10 @@
             "configUnavailable": {
                 "head": "Configuration unavailable",
                 "body": "Failed to load planner configuration from the server. Please set fuel price and consumption values manually in the car settings."
+            },
+            "rerouteError": {
+                "head": "Rerouting error",
+                "body": "No other alternative was found for the connection which was requested to be rerouted."
             }
         }
     }

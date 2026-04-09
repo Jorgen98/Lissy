@@ -574,7 +574,7 @@ async function addTrip(trip) {
 async function getGtfsTrip(gtfs_trip_id, route_id) {
     try {
         const result = await db_postgis.query(
-            `SELECT id, trip_id, shape_id, gtfs_trip_id FROM trips WHERE route_id_id = $1 AND gtfs_trip_id = $2`,
+            `SELECT id, trip_id, shape_id, gtfs_trip_id FROM trips WHERE route_id_id = $1 AND gtfs_trip_id = $2 AND is_active=true`,
             [route_id, gtfs_trip_id]
         );
 

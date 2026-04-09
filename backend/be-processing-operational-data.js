@@ -118,7 +118,8 @@ async function processRoute(route) {
     let lineIdString = route.route_id.split(/L|D/)[1];
 
     let startTime = performance.now();
-    let inputOperationData = await downloadData(lineIdString, 0, 0, 'ben');
+    let inputOperationData = await downloadData(lineIdString, 0);
+
     dbStats.updateROProcessingStats('downloading_time', performance.now() - startTime);
     let testOutput = [];
 
@@ -127,21 +128,20 @@ async function processRoute(route) {
     dbStats.updateROProcessingStats('downloaded_records', inputOperationData.length);
     let dataToProcess = {};
     for (const record of inputOperationData) {
-        if (record.isinactive === 'false') {
-            if (dataToProcess[record.routeid] === undefined) {
-                dataToProcess[record.routeid] = [];
-            }
+        record.ben.timestamp = (new Date(record.ben.timestamp)).valueOf();
+        if (dataToProcess[record.RouteID] === undefined) {
+            dataToProcess[record.RouteID] = [];
+        }
 
-            if (dataToProcess[record.routeid].length < 1 ||
-                (dataToProcess[record.routeid][dataToProcess[record.routeid].length - 1].time -
-                    record.lastupdate) < (parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)) {
-                dataToProcess[record.routeid].push({
-                    lat: record.lat,
-                    lng: record.lng,
-                    time: record.lastupdate,
-                    delay: record.delay
-                })
-            }
+        if (dataToProcess[record.RouteID].length < 1 ||
+            (dataToProcess[record.RouteID][dataToProcess[record.RouteID].length - 1].time -
+                record.ben.timestamp) < (parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)) {
+            dataToProcess[record.RouteID].push({
+                lat: record.Latitude,
+                lng: record.Longitude,
+                time: record.ben.timestamp,
+                delay: record.DelayInMins
+            })
         }
     }
 
@@ -235,26 +235,15 @@ async function processRoute(route) {
 }
 
 // Function for downloading data from Brno ArcGIS DB
-async function downloadData(lineId, objectId, attempt, source) {
-    // ArcGIS DB
-    // https://gis.brno.cz/ags1/rest/services/Hosted/ODAE_public_transit_positional_feature_service/FeatureServer/0/query?f=json&where=(%22lineid%22=1)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000
-    const arcGISSetUp = {
-        hostname: "gis.brno.cz",
-        path: `/ags1/rest/services/Hosted/ODAE_public_transit_positional_feature_service/FeatureServer/0/query?f=json&where=(%22"lastupdate">${yesterdayMidNight.getTime()}%22AND%22"lineid"=${lineId}%22AND%22"lastupdate"<${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}%22AND%22objectid>${objectId})&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=10000`
-    }
-
-    // Websocket data from Ben
-    // https://walter.fit.vutbr.cz/ben/records?object_id=1&line_id=1&from=1758015083523&to=1758306424823
-    const walterSetUp = {
-        hostname: "walter.fit.vutbr.cz",
-        path: `/ben/delayRecords?object_id=${objectId}&line_id=${lineId}&from=${yesterdayMidNight.getTime()}&to=${lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000}`,
-        headers: {
-            authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
-        }
-    }
-
+async function downloadData(lineId, objectId) {
+    // Vehicle positions data from Ben
     return new Promise(async (resolve) => {
-        https.get(source === 'ben' ? walterSetUp : arcGISSetUp, async res => {
+        https.get({
+            hostname: "walter.fit.vutbr.cz",
+            path: `/new-ben/records/vehiclePositions?uidFrom=${objectId}&key=${lineId}&dateFrom=${yesterdayMidNight.toISOString()}&dateTo=${(new Date(lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)).toISOString()}&fields=[%22ben%22,%20%22RouteID%22,%22Latitude%22,%22Longitude%22,%22DelayInMins%22]`,
+            headers: {
+                authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
+        }}, async res => {
             let { statusCode } = res;
             let contentType = res.headers['content-type'];
 
@@ -279,15 +268,10 @@ async function downloadData(lineId, objectId, attempt, source) {
                 try {
                     const parsedData = JSON.parse(rawData);
 
-                    if (source === 'arcGIS') {
-                        // To Do: Change to normalized format
-                        parsedData = [];
-                    }
-
                     if (parsedData === undefined || parsedData.length < 1) {
-                        resolve(await downloadData(lineId, 0, 0, 'arcGIS'));
+                        resolve(nextData.concat(parsedData));
                     } else {
-                        let nextData = await downloadData(lineId, parsedData[parsedData.length - 1].objectid, 0, source);
+                        let nextData = await downloadData(lineId, parsedData[parsedData.length - 1].ben.record_uid + 1);
                         resolve(nextData.concat(parsedData));
                     }
                 } catch (e) {
@@ -297,11 +281,7 @@ async function downloadData(lineId, objectId, attempt, source) {
         })
         .on('error', async error => {
             log('error', error);
-            if (attempt < 5) {
-                resolve(await downloadData(lineId, objectId, attempt + 1, source));
-            } else {
-                resolve([]);
-            }
+            resolve([]);
         });
     });
 }
@@ -311,7 +291,7 @@ async function isDBAlive() {
     return new Promise(async (resolve) => {
         https.get({
             hostname: "walter.fit.vutbr.cz",
-            path: `/ben/records?object_id=0`,
+            path: `/new-ben/stats`,
             headers: {
                 authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
             },

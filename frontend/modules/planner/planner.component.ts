@@ -284,6 +284,9 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         // Rebuild points array
         this.rebuildPointsPostReroute(rerouteResponse.trip, this.tripOptions[rerouteInfo.tripIdx], rerouteResponse.legDiff, rerouteInfo);
 
+        // Mark as rerouted
+        rerouteResponse.trip.rerouted = true;
+
         // Overwrite the trip at the requested index with new rerouted one
         this.tripOptions[rerouteInfo.tripIdx] = rerouteResponse.trip;
 
@@ -396,6 +399,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
             endDatetime: new Date(option.endDatetime),
             startDatetime: new Date(option.startDatetime),
             imported: false,
+            rerouted: false,
         }));
 
         // Implicitly sort by departure time

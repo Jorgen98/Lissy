@@ -68,3 +68,10 @@ Component HTML template file for the header component describing a single trip o
   <span class="header-info"><i class="pi pi-arrows-h"></i>{{ option()!.numTransfers }}</span>
   <span class="header-info"><i class="pi pi-wallet"></i>{{ `${option()!.cost | number:'1.0-0'} Kč` }}</span>
 </div>
+
+<!-- Disclaimer about possibility of innacuarate data if the option was rerouted -->
+@if (option()!.rerouted) {
+  <div class="reroute-disclaimer">
+    {{ "planner.itinerary.rerouteDisclaimer" | translate }}
+  </div>
+}

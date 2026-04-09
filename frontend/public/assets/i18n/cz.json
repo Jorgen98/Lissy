@@ -218,7 +218,8 @@
             "returnTripNotFound": "Zpáteční cesta nebyla nalezena",
             "hide": "Skrýt",
             "nextConnection": "Následující spoj",
-            "previousConnection": "Předchozí spoj"
+            "previousConnection": "Předchozí spoj",
+            "rerouteDisclaimer": "Proběhlo přesměrování. Data mohou být nepřesná."
         },
         "settings": {
             "walkingPreferences": "Chůze",

@@ -95,4 +95,5 @@ export type TripOption = {
         hasShape: boolean,
     }
     imported: boolean,              // Whether the trip option was imported as a JSON file
+    rerouted: boolean,              // Whether the trip option was rerouted (at least one of its legs)
 };

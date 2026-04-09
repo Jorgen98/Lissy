@@ -85,4 +85,5 @@ export const TripSchema = z.object({
         hasShape: z.boolean(),
     }),
     imported: z.boolean(),
+    rerouted: z.boolean(),
 });

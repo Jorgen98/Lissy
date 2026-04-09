@@ -152,3 +152,9 @@
     align-items: center;
     gap: 5px;
 }
+
+.reroute-disclaimer {
+    font-size: 11.2px;
+    margin-top: 5px;
+    color: brown;
+}

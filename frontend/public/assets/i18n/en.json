@@ -217,7 +217,8 @@
             "returnTripNotFound": "Return trip was not found",
             "hide": "Hide",
             "nextConnection": "Next connection",
-            "previousConnection": "Previous connection"
+            "previousConnection": "Previous connction",
+            "rerouteDisclaimer": "Trip rerouted. Some data may be inaccurate."
         },
         "settings": {
             "walkingPreferences": "Walking",

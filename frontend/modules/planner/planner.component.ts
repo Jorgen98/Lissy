@@ -28,6 +28,7 @@ import { TripHeaderComponent } from './components/trip-header/trip-header.compon
 import { TripSortField } from './types/TripSortField';
 import { PlannerConfig } from './types/PlannerConfig';
 import { ThemeService } from '../../src/app/services/theme';
+import { RerouteRequest } from './types/RerouteRequest';
 import { 
     MAX_WALK_DISTANCE_DEFAULT, 
     MAX_TRANSFERS_DEFAULT, 
@@ -150,6 +151,9 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
     // Planner configuration from database
     private plannerConfig: PlannerConfig | null = null;
 
+    // The trip data object used for the currently displayed itinerary
+    private activeRequest: TripDataExtended | null = null;
+
     constructor(
         private mapService: MapService,
         private apiService: APIService,
@@ -242,6 +246,33 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         this.theme.setDefault();
     }
 
+    // Function reacting to an emit from the itinerary child component, requesting a public tranport leg reroute
+    public async rerouteRequest(rerouteInfo: { tripIdx: number, sectionIdx: number, legIdx: number, direction: "next" | "previous" }): Promise<void> {
+        if (!this.tripOptions)
+            return;
+
+        // Get a copy of the rerouted trip and empty the points array (so the request body is much smaller) 
+        const originalTrip = { ...this.tripOptions[rerouteInfo.tripIdx] };
+        originalTrip.sections.forEach(section => {
+            section.legs.forEach(leg => {
+                leg.points = [];
+            });
+        });
+
+        // Get the modes used on the request that was used for the current itinerary
+        const modes = this.activeRequest!.modes; 
+    
+        // Build reroute request object
+        const request: RerouteRequest = {
+            ...rerouteInfo,
+            originalTrip,
+            sectionModes: modes.sections.length !== 0 ? modes.sections : [modes.global],
+        }
+
+        // Call backend to get new adjusted trip options with rerouted leg
+        const reroutedOption = await this.apiService.genericPost(`${config.apiPrefix}/reroute`, request) as TripOption | null;
+    }
+
     // Function called when a marker in the form is clicked
     public markerClick(marker: { type: MarkerType, position: number }): void {
 
@@ -280,6 +311,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
         // Clear trip options when a new trip is being requested
         this.tripOptions = null;
+        this.activeRequest = null;
         this.mapService.clearLayer('routes');
         this.mapService.clearLayer('returnTrip');
         this.mapService.clearLayer('stops');
@@ -325,6 +357,9 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
                 }
             }
         }
+
+        // Store the request for rerouting
+        this.activeRequest = tripDataPreferences;
 
         // Call backend endpoint for planning trip with emitted trip data from the form
         const tripOptions = await this.apiService.genericPost(`${config.apiPrefix}/planTrip`, tripDataPreferences) as TripOption[] | null;
@@ -472,6 +507,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         this.formForceAction.next("open");
 
         this.tripOptions = null;
+        this.activeRequest = null;
         this.mapService.clearLayer('routes');
         this.mapService.clearLayer('returnTrip');
         this.mapService.clearLayer('stops');

@@ -78,7 +78,7 @@ Main component HTML template file for the itinerary used in the planner module.
                   }
                   <span class="faint-text">{{ option.startDatetime | date: "d. M. yyyy" }}</span>
                   @for (section of option.sections; track $index; let firstSection = $first; let lastSection = $last; let sectionCount = $count; let sectionIdx = $index) {
-                    @for (leg of section.legs; track $index; let firstLeg = $first; let lastLeg = $last; let legCount = $count) {
+                    @for (leg of section.legs; track $index; let firstLeg = $first; let lastLeg = $last; let legCount = $count; let legIdx = $index) {
 
                       <!-- Origin point with departure time -->
                       @if (firstSection && firstLeg) {
@@ -97,6 +97,7 @@ Main component HTML template file for the itinerary used in the planner module.
                             [style.borderLeft]="`3px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`"
                             [style.visibility]="leg.isTransitLeg ? 'visible' : 'hidden'"
                             [title]="'planner.itinerary.previousConnection' | translate"
+                            (click)="rerouteRequest.emit({ tripIdx: selectedOptionIdx, sectionIdx, legIdx, direction: 'previous' })"
                           >
                             <i class="pi pi-chevron-left"></i>
                           </div>
@@ -149,6 +150,7 @@ Main component HTML template file for the itinerary used in the planner module.
                             [style.borderRight]="`3px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`"
                             [style.visibility]="leg.isTransitLeg ? 'visible' : 'hidden'"
                             [title]="'planner.itinerary.nextConnection' | translate"
+                            (click)="rerouteRequest.emit({ tripIdx: selectedOptionIdx, sectionIdx, legIdx, direction: 'next' })"
                           >
                             <i class="pi pi-chevron-right"></i>
                           </div>

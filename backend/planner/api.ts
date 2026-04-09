@@ -101,6 +101,12 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
             break;
         }
 
+        // Endpoint for rerouting public transport leg
+        case 'reroute': {
+            res.send(true);
+            break;
+        }
+
         // Unexpected endpoint
         default: {
             log('error', `Endpoint with this url (${url[0]}) does not exist`);

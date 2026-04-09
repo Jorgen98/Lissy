@@ -96,6 +96,9 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
     // Whether a return trip is currently rendered
     public returnTripRendered = false;
 
+    // Output emitting to parent planner component when a transit leg reroute has been requested in the detail
+    public rerouteRequest = output<{ tripIdx: number, sectionIdx: number, legIdx: number, direction: "next" | "previous" }>();
+
     public isTouchDevice = input<boolean>(false);
 
     // List of field values and labels the trip options array can get sorted by

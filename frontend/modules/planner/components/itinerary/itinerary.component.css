@@ -236,8 +236,9 @@
 }
 
 .leg-box {
-    margin: 0 10px;
+    margin: 0;
     color: var(--planner-title-color);
+    width: 100%;
 }
 
 .detail-mode-img {
@@ -285,8 +286,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 200px;
-    display: flex;
+    max-width: 175px;
     align-items: center;
     gap: 2px;
 }
@@ -361,6 +361,32 @@ button {
     gap: 5px;
     align-items: center;
     flex-direction: column;
+}
+
+.leg-box-wrapper {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    gap: 3px;
+    padding: 0 3px;
+}
+
+.reroute-btn {
+    padding: 0 2px;
+    height: 38px;
+    background-color: var(--planner-main-outline);
+    border-radius: 6px;
+    color: var(--planner-title-color);
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    opacity: 0.5;
+    transition: 0.5s;
+    cursor: pointer;
+}
+
+.reroute-btn:hover {
+    opacity: 1;
 }
 /**************************************************/
 

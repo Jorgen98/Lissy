@@ -216,7 +216,9 @@
             "fastest": "Nejrychlejší",
             "returnTrip": "Zpáteční cesta",
             "returnTripNotFound": "Zpáteční cesta nebyla nalezena",
-            "hide": "Skrýt"
+            "hide": "Skrýt",
+            "nextConnection": "Následující spoj",
+            "previousConnection": "Předchozí spoj"
         },
         "settings": {
             "walkingPreferences": "Chůze",

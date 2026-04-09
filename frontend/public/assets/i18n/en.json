@@ -215,7 +215,9 @@
             "fastest": "Fastest",
             "returnTrip": "Return trip",
             "returnTripNotFound": "Return trip was not found",
-            "hide": "Hide"
+            "hide": "Hide",
+            "nextConnection": "Next connection",
+            "previousConnection": "Previous connection"
         },
         "settings": {
             "walkingPreferences": "Walking",

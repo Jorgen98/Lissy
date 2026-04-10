@@ -215,48 +215,62 @@ Main component HTML template file for the itinerary used in the planner module.
                       <!-- Legs between two points -->
                       <!-- Do not show boxes for walking lex that are access/egress/transfers walks -->
                       @if (leg.mode !== "WALK" || legCount === 1) {
-                        <div class="box leg-box" [style.borderLeft]="`4px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`">
-                          <div class="leg-box-left">
+                        <div class="leg-box-wrapper">
+                          <div 
+                            class="reroute-btn" 
+                            [style.visibility]="'hidden'"
+                          >
+                            <i class="pi pi-chevron-left"></i>
+                          </div>
+                          <div class="box leg-box" [style.borderLeft]="`4px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`">
+                            <div class="leg-box-left">
 
-                            <!-- Mode used for the leg and possibly the route identifier if its defined -->
-                            <div class="leg-mode-box">
-                              <img 
-                                class="detail-mode-img" 
-                                [src]="`./planner/${leg.mode.toLowerCase()}-${(theme.isDark$ | async) ? 'white' : 'dark'}.svg`" 
-                                [style.opacity]="(theme.isDark$ | async) ? 1 : 0.8"
-                              >
-                              <div 
-                                class="line-label line-label-detail"
-                                [style.background]="getLegColor(leg)"
-                                [style.color]="getLegTextColor(leg)"
-                              >
-                                @if (leg.route?.lineId) {
-                                  <span>{{ leg.route?.lineId }}</span>
-                                } 
+                              <!-- Mode used for the leg and possibly the route identifier if its defined -->
+                              <div class="leg-mode-box">
+                                <img 
+                                  class="detail-mode-img" 
+                                  [src]="`./planner/${leg.mode.toLowerCase()}-${(theme.isDark$ | async) ? 'white' : 'dark'}.svg`" 
+                                  [style.opacity]="(theme.isDark$ | async) ? 1 : 0.8"
+                                >
+                                <div 
+                                  class="line-label line-label-detail"
+                                  [style.background]="getLegColor(leg)"
+                                  [style.color]="getLegTextColor(leg)"
+                                >
+                                  @if (leg.route?.lineId) {
+                                    <span>{{ leg.route?.lineId }}</span>
+                                  } 
+                                </div>
+                              </div>
+
+                              <!-- Origin and destination of leg names -->
+                              <div class="two-column-text two-column-text-left">
+                                <span class="leg-text">
+                                  {{ leg.from.placeName ?? "planner.itinerary.legOrigin" | translate }}
+                                  @if (leg.from.isParking) {
+                                    <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
+                                  }
+                                </span>
+                                <span class="leg-text">
+                                  {{ leg.to.placeName ?? "planner.itinerary.legDestination" | translate }}
+                                  @if (leg.to.isParking) {
+                                    <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
+                                  }
+                                </span>
                               </div>
                             </div>
 
-                            <!-- Origin and destination of leg names -->
-                            <div class="two-column-text two-column-text-left">
-                              <span class="leg-text">
-                                {{ leg.from.placeName ?? "planner.itinerary.legOrigin" | translate }}
-                                @if (leg.from.isParking) {
-                                  <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
-                                }
-                              </span>
-                              <span class="leg-text">
-                                {{ leg.to.placeName ?? "planner.itinerary.legDestination" | translate }}
-                                @if (leg.to.isParking) {
-                                  <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
-                                }
-                              </span>
+                            <!-- For transit - departure time and arrival time of leg, for direct (walk | car) - distance and duration of leg -->
+                            <div class="two-column-text">
+                              <span class="base-text">{{ !leg.isTransitLeg ? (leg.distance | distance) : leg.from.departureTime | date: "HH:mm" }}</span>
+                              <span class="base-text">{{ !leg.isTransitLeg ? (leg.duration | duration) : leg.to.arrivalTime | date: "HH:mm" }}</span>
                             </div>
                           </div>
-
-                          <!-- For transit - departure time and arrival time of leg, for direct (walk | car) - distance and duration of leg -->
-                          <div class="two-column-text">
-                            <span class="base-text">{{ !leg.isTransitLeg ? (leg.distance | distance) : leg.from.departureTime | date: "HH:mm" }}</span>
-                            <span class="base-text">{{ !leg.isTransitLeg ? (leg.duration | duration) : leg.to.arrivalTime | date: "HH:mm" }}</span>
+                          <div 
+                            class="reroute-btn" 
+                            [style.visibility]="'hidden'"
+                          >
+                            <i class="pi pi-chevron-right"></i>
                           </div>
                         </div>
                       }

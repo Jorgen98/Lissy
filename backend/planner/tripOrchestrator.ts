@@ -425,70 +425,92 @@ function findLeaders(candidates: (TripOption & { id: number })[], datetimeOption
 // Function rerouting a single section in a trip, returns a new adjusted trip object (or null if rerouting fails)
 export async function rerouteLegInTrip(planner: RoutePlanner, rerouteRequest: RerouteRequest): Promise<{ trip: TripOption, legDiff: number } | null> {
     
-    // Handle case where the reroute request is for the next connection
-    if (rerouteRequest.direction === "next") {
+    // The original trip object the request was put into
+    const originalTrip = rerouteRequest.originalTrip;
 
-        // The original trip object the request was put into
-        const originalTrip = rerouteRequest.originalTrip;
+    // Section of the original trip which contains the rerouted leg
+    const originalSection = originalTrip.sections[rerouteRequest.sectionIdx]; 
 
-        // Section of the original trip which contains the rerouted leg
-        const originalSection = originalTrip.sections[rerouteRequest.sectionIdx]; 
-
-        // The to be rerouted leg
-        const originalLeg = originalSection?.legs[rerouteRequest.legIdx];
-        if (!originalLeg)
-            return null;
-
-        // Original emissions value in the section
-        const originalEmissions = originalSection?.emissions;
-
-        // Count the number of legs in the original trip before reroute
-        const originalLegCount = originalTrip.sections.flatMap(section => section.legs).length;
-
-        // Get new options for the leg with same origin and destination points, only at least one minute later than the departure time of the original
-        const newLegOptions = await planner.getTripSection({
-            pointA: originalLeg.from.latLng,
-            pointB: originalLeg.to.latLng,
-            modes: { car: false, publicTransport: true, walk: false },
-            preferences: rerouteRequest.originalRequest.preferences,
-            datetime: {
-                option: "departure",
-                datetime: new Date(new Date(originalLeg.from.departureTime).getTime() + 1 * 1000 * 60).toISOString(), 
-            },
-            isReroute: true, 
-        });
-        if (newLegOptions === null || newLegOptions.length === 0)
-            return null;
-
-        // Find the best of the found options by rating
-        await postprocessTripSections(newLegOptions, rerouteRequest.originalRequest.preferences);
-        rateOptions(newLegOptions);
-        newLegOptions.sort((a, b) => b.score! - a.score!);
-        const bestOption = newLegOptions[0]!;
-
-        // Replace the original leg with the new leg (or legs)
-        originalSection.legs.splice(rerouteRequest.legIdx, 1, ...bestOption.legs);
-
-        // Recalculate distance, emissions and number of transfers in the section
-        originalSection.distance = originalSection.distance - originalLeg.distance + bestOption.distance; 
-        originalSection.emissions = null;
-        await postprocessTripSections([originalSection], rerouteRequest.originalRequest.preferences, false);
-
-        // Recalculate distance, emissions and number of transfers in the full trip
-        originalTrip.distance = originalTrip.distance - originalLeg.distance + bestOption.distance;
-        originalTrip.emissions = originalTrip.emissions! - originalEmissions! + originalSection.emissions!;
-        addNumberOfTransfers(rerouteRequest.originalTrip.sections.flatMap(section => section.legs), rerouteRequest.originalTrip);  
-
-        // Recalculate trip shape
-        await fillInTripShape(rerouteRequest.originalTrip);
-
-        // Return the rereouted trip with difference in legs against the original
-        return { trip: originalTrip, legDiff: originalTrip.sections.flatMap(section => section.legs).length - originalLegCount };
-    }
-    else {
-
-        // TODO
+    // The to be rerouted leg
+    const originalLeg = originalSection?.legs[rerouteRequest.legIdx];
+    if (!originalLeg)
         return null;
-    }
 
+    // Original emissions value in the section
+    const originalEmissions = originalSection?.emissions;
+
+    // Count the number of legs in the original trip before reroute
+    const originalLegCount = originalTrip.sections.flatMap(section => section.legs).length;
+
+    // Get direction of the reroute request
+    const direction = rerouteRequest.direction;
+
+    // Get the datetime that should be used for the new leg, either moved one minute forward or backward based on the direction
+    const datetime = new Date(
+        new Date(
+            direction === "next" ? originalLeg.from.departureTime : originalLeg.to.arrivalTime
+        ).getTime() + 1000 * 60 * (direction === "next" ? 1 : -1)
+    ).toISOString()
+
+    // Get new options for the leg with same origin and destination points
+    // For direction === "next", at least one minute later departure than the original
+    // For direction === "next", at least one minute eariler arrival than the original
+    const newLegOptions = await planner.getTripSection({
+        pointA: originalLeg.from.latLng,
+        pointB: originalLeg.to.latLng,
+        modes: { car: false, publicTransport: true, walk: false },
+        preferences: rerouteRequest.originalRequest.preferences,
+        datetime: {
+            option: direction === "next" ? "departure" : "arrival",
+            datetime, 
+        },
+        isReroute: true, 
+    });
+    if (newLegOptions === null || newLegOptions.length === 0)
+        return null;
+
+    // Filter out routes that have a walking leg longer than the selected maximum
+    const filtered = filterReroutesWalkDistance(newLegOptions, rerouteRequest.originalRequest.preferences.walk.maxDistance);
+    if (filtered.length === 0)
+        return null;
+
+    // Sort by earliest or latest arrival based on the reroute direction and get first
+    if (direction === "next")
+        filtered.sort((a, b) => a.startDatetime.getTime() - b.startDatetime.getTime());
+    else
+        filtered.sort((a, b) => b.startDatetime.getTime() - a.startDatetime.getTime());
+    const newOption = filtered[0]!;
+
+    // Replace the original leg with the new leg (or legs)
+    originalSection.legs.splice(rerouteRequest.legIdx, 1, ...newOption.legs);
+
+    // Recalculate distance, emissions and number of transfers in the section
+    originalSection.distance = originalSection.distance - originalLeg.distance + newOption.distance; 
+    originalSection.emissions = null;
+    await postprocessTripSections([originalSection], rerouteRequest.originalRequest.preferences, false);
+
+    // Recalculate distance, emissions and number of transfers in the full trip
+    originalTrip.distance = originalTrip.distance - originalLeg.distance + newOption.distance;
+    originalTrip.emissions = originalTrip.emissions! - originalEmissions! + originalSection.emissions!;
+    addNumberOfTransfers(rerouteRequest.originalTrip.sections.flatMap(section => section.legs), rerouteRequest.originalTrip);  
+
+    // Recalculate trip shape
+    await fillInTripShape(rerouteRequest.originalTrip);
+
+    // Return the rereouted trip with difference in legs against the original
+    return { trip: originalTrip, legDiff: originalTrip.sections.flatMap(section => section.legs).length - originalLegCount };
+}
+
+// Function filtering out found sections in rerouting that have walking legs longer than the maximum
+function filterReroutesWalkDistance(options: TripSectionOption[], maxWalkDistance: number | null): TripSectionOption[] {
+    if (maxWalkDistance === null)
+        return options;
+
+    return options.filter(option => {
+        for (const leg of option.legs) {
+            if (leg.mode === "WALK" && leg.distance > maxWalkDistance)
+                return false;
+        }
+        return true;
+    });
 }

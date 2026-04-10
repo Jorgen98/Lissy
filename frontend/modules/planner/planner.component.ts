@@ -977,8 +977,8 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
                 });
             }
 
-            // This is the section where the reroute happened and it was a reroute to the next connection
-            else if (rerouteInfo.direction === "next") {
+            // This is the section where the reroute happened 
+            else {
 
                 // Copy over leg points until the index of the rereouted leg is reached
                 for (let i = 0; i < rerouteInfo.legIdx; i++)
@@ -987,9 +987,6 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
                 // Use the difference between the number of legs in the original and the rerouted to correctly copy the original shape where needed
                 for (let i = rerouteInfo.legIdx + diff + 1; i < section.legs.length; i++)
                     section.legs[i].points = originalTrip.sections[sectionIdx]!.legs[i - diff]!.points;
-            }
-            else {
-                // TODO
             }
         });
 

@@ -3,8 +3,8 @@
   @if (theme.themesEnabled) {
     <div class="map-toggle-div">
       <i class="pi pi-map map-toggle-icon"></i>
-      <div class="map-choice-div map-choice-div-dark" [class.map-selected]="this.theme.isDarkTheme" (click)="this.theme.setIsDark(true)"></div>
-      <div class="map-choice-div map-choice-div-light" [class.map-selected]="!this.theme.isDarkTheme" (click)="this.theme.setIsDark(false)"></div>
+      <div class="map-choice-div map-choice-div-dark" [class.map-selected]="this.theme.isDarkTheme" (click)="this.theme.setTheme('dark')"></div>
+      <div class="map-choice-div map-choice-div-light" [class.map-selected]="!this.theme.isDarkTheme" (click)="this.theme.setTheme('light')"></div>
     </div>
   }
   <!-- Zoom In -->
@@ -34,6 +34,6 @@
 <!-- Switch map and theme button mobile version -->
 <div class="map-toggle-div-mobile">
   <i class="pi pi-map map-toggle-icon"></i>
-  <div class="map-choice-div map-choice-div-dark" [class.map-selected]="this.theme.isDarkTheme" (click)="this.theme.setIsDark(true)"></div>
-  <div class="map-choice-div map-choice-div-light" [class.map-selected]="!this.theme.isDarkTheme" (click)="this.theme.setIsDark(false)"></div>
+  <div class="map-choice-div map-choice-div-dark" [class.map-selected]="this.theme.isDarkTheme" (click)="this.theme.setTheme('dark')"></div>
+  <div class="map-choice-div map-choice-div-light" [class.map-selected]="!this.theme.isDarkTheme" (click)="this.theme.setTheme('light')"></div>
 </div>

@@ -615,10 +615,34 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
                 // Add faint outline to map from given geoJSON
                 if (object.metadata.polygon) {
-                    L.geoJSON(object.metadata.polygon, {
+
+                    // Get polygon ring around the regions
+                    const polygon = object.metadata.polygon;
+                    const ring = polygon.coordinates[0][0];
+
+                    // World bounds in lat/lng 
+                    const outer = [
+                        [-90, -180],
+                        [-90, 180],
+                        [90, 180],
+                        [90, -180]
+                    ];
+
+                    // Reverse geojson lng/lat to lat/lng needed by leaflet
+                    const latLngRing = ring.map(([lng, lat]: [number, number]) => [lat, lng]);
+
+                    // Create and render opaque mask over whole map with the cut-out region bounds
+                    L.polygon([outer, latLngRing], {
+                        fillColor: "#000000",
+                        fillOpacity: 0.2,
+                        stroke: false
+                    }).addTo(this.layers[object.layerName].layer!);
+
+                    // Render a faint outline of the region
+                    L.geoJSON(polygon, {
                         style: {
                             color: "#777",
-                            weight: 1,
+                            weight: 0.5,
                             fill: false
                         }
                     }).addTo(this.layers[object.layerName].layer!);

@@ -31,6 +31,7 @@ export type UserPreferences = {
     car: {
         avgFuelConsumption: number,
         fuelPrice: number,
+        extraCosts: number,
     }
 }
 

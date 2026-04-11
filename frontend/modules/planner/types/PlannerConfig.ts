@@ -8,5 +8,6 @@
 export type PlannerConfig = {
     fuel_price_default: number,
     avg_fuel_consumption_default: number,
+    car_maintenance_factor: number,
     region_geom: any,   // Geometry of region outline
 }

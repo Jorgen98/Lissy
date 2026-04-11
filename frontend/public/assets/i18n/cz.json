@@ -247,7 +247,8 @@
             "maxTransfers": "Maximální počet přestupů",
             "fuelConsumption": "Průměrná spotřeba paliva",
             "fuelPrice": "Cena paliva",
-            "fuelPriceAttribution": "Zdroj dat pro základní hodnotu"
+            "fuelPriceAttribution": "Zdroj dat pro základní hodnotu",
+            "extraCarCosts": "Další náklady na provoz"
         }
     },
     "map" : {

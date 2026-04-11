@@ -111,10 +111,11 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
     public selectedMaxNumberOfTransfers = MAX_TRANSFERS_DEFAULT;
     public maxNumberOfTransfersUnlimited = true;     // Whether the maximum number of transfers should be limited (unlimited by default)
 
-    // Fuel price and average fuel consumption values from user settings with defaults
+    // Fuel price, average fuel consumption and extra car costs values from user settings with defaults
     // Actual default values are stored in DB, values are kept at 0 when loading them fails
     public selectedFuelConsumption = 0;
     public selectedFuelPrice = 0;
+    public selectedExtraCarCosts = 0;
 
     // Average walking speed from user preferences input
     public selectedWalkingSpeedKmh = AVG_WALK_SPEED_DEFAULT;
@@ -207,6 +208,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         // Set default values for user settings and store the config
         this.selectedFuelConsumption = plannerConfig.avg_fuel_consumption_default;
         this.selectedFuelPrice = plannerConfig.fuel_price_default;
+        this.selectedExtraCarCosts = plannerConfig.car_maintenance_factor;
         this.plannerConfig = plannerConfig;
 
         // Show map scale
@@ -374,6 +376,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
                 car: {
                     avgFuelConsumption: this.selectedFuelConsumption,
                     fuelPrice: this.selectedFuelPrice,
+                    extraCosts: this.selectedExtraCarCosts
                 }
             }
         }
@@ -488,7 +491,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
     }
 
     // Function called when a number input is blurred
-    public setDefaultIfEmpty(input: 'walkDistance' | 'fuelConsumption' | 'maxTransfers' | 'walkSpeed' | 'fuelPrice'): void {
+    public setDefaultIfEmpty(input: 'walkDistance' | 'fuelConsumption' | 'maxTransfers' | 'walkSpeed' | 'fuelPrice' | 'extraCosts'): void {
 
         // Check if the blurred input has an invalid value, if so, set to default
         switch (input) {
@@ -519,6 +522,14 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
                 }
                 if (this.selectedFuelPrice === null)
                     this.selectedFuelPrice = this.plannerConfig.fuel_price_default;
+                break;
+            case 'extraCosts': 
+                if (!this.plannerConfig) {
+                    this.selectedExtraCarCosts = 0;
+                    return;
+                }
+                if (this.selectedExtraCarCosts === null)
+                    this.selectedExtraCarCosts = this.plannerConfig.car_maintenance_factor;
                 break;
         }
     } 

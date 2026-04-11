@@ -106,7 +106,7 @@ async function addPricing(legs: TripSectionLeg[], object: TripSectionOption | Tr
     const publicTransportPrice = await calculatePublicTransportPrice(legs, preferences.publicTransport.ticketType);
 
     // Calculate the price of using car
-    const carPrice = calculateCarPrice(legs, preferences.car.avgFuelConsumption, preferences.car.fuelPrice);
+    const carPrice = calculateCarPrice(legs, preferences);
 
     // Adjust object with total estimated cost
     object.cost = publicTransportPrice + carPrice;
@@ -114,7 +114,7 @@ async function addPricing(legs: TripSectionLeg[], object: TripSectionOption | Tr
 
 // Function calculating the price of using the car from a list of legs
 // Usable for both a trip section and a full trip option with multiple sections, since a list of legs is passed in
-function calculateCarPrice(legs: TripSectionLeg[], avgConsumption: number, fuelPrice: number) {
+function calculateCarPrice(legs: TripSectionLeg[], preferences: UserPreferences) {
 
     // Get total distance of legs using the car
     let carDistanceMeters = 0;
@@ -128,8 +128,8 @@ function calculateCarPrice(legs: TripSectionLeg[], avgConsumption: number, fuelP
 
     // Formula to calculate total car price of section
     // (km * 100l/km * czk/l) / 100 ==> czk 
-    const sectionFuelCost = (carDistanceKm * avgConsumption * fuelPrice) / 100;
-    const sectionMaintenanceCost = carDistanceKm * parseFloat(plannerConfig!.car_maintenance_factor);
+    const sectionFuelCost = (carDistanceKm * preferences.car.avgFuelConsumption * preferences.car.fuelPrice) / 100;
+    const sectionMaintenanceCost = carDistanceKm * preferences.car.extraCosts;
     return sectionFuelCost + sectionMaintenanceCost; 
 }
 

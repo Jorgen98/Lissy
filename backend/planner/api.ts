@@ -96,6 +96,7 @@ async function processRequest(url: any, req: any, res: any): Promise<void> {
                 res.send({ 
                     fuel_price_default: parseFloat(plannerConfig.fuel_price_default), 
                     avg_fuel_consumption_default: parseFloat(plannerConfig.avg_fuel_consumption_default), 
+                    car_maintenance_factor: parseFloat(plannerConfig.car_maintenance_factor),
                     region_geom: plannerConfig.region_geom 
                 });
             }

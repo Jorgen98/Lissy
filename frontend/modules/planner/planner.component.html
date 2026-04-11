@@ -291,6 +291,25 @@ Main component HTML template file for the planner module.
               </div>
             </div>
             <p class="attribution">{{ 'planner.settings.fuelPriceAttribution' | translate }}: <a href="https://www.kurzy.cz/">kurzy.cz</a></p>
+
+            <!-- Extra car operation costs -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.extraCarCosts' | translate }}</h3>
+              <div class="number-input-div">
+                <p-inputnumber 
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [(ngModel)]="selectedExtraCarCosts" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [min]="0"
+                  [max]="1000"
+                  [step]="0.1"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="setDefaultIfEmpty('extraCosts')"
+                /><span class="settings-unit">Kč/km</span>
+              </div>
+            </div>
           </div>
         </div>
       }

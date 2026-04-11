@@ -246,7 +246,8 @@
             "maxTransfers": "Maximum number of transfers",
             "fuelConsumption": "Average fuel consumption",
             "fuelPrice": "Fuel price",
-            "fuelPriceAttribution": "Default value data source"
+            "fuelPriceAttribution": "Default value data source",
+            "extraCarCosts": "Other operational expenses"
         }
     },
     "map" : {

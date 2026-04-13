@@ -634,7 +634,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
                     // Create and render opaque mask over whole map with the cut-out region bounds
                     L.polygon([outer, latLngRing], {
                         fillColor: "#000000",
-                        fillOpacity: 0.2,
+                        fillOpacity: 0.1,
                         stroke: false
                     }).addTo(this.layers[object.layerName].layer!);
 

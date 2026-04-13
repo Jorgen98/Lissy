@@ -25,31 +25,36 @@ async function updateFuelPrice() {
         return;
     }
 
-    // Call the given URL and get price data in the last couple days 
-    const response = await fetchWithRetry(fuelPriceUrl, {
-        method: "GET",
-    }, 3, 5000);
-    if (!response) {
-        log("warning", `Failed to fetch latest fuel prices from ${fuelPriceUrl}`);
-        return;
+    try {
+        // Call the given URL and get price data in the last couple days 
+        const response = await fetchWithRetry(fuelPriceUrl, {
+            method: "GET",
+        }, 3, 5000);
+        if (!response) {
+            log("warning", `Failed to fetch latest fuel prices from ${fuelPriceUrl}`);
+            return;
+        }
+        const data = await response.json();
+
+        // Find the petrol and diesel price comodities
+        const petrol = data.find(comodity => comodity.kod === "benzin-cz");
+        const diesel = data.find(comodity => comodity.kod === "motorova-nafta");
+        const petrolPrices = petrol.data.map(entry => entry.hodnota); 
+        const dieselPrices = diesel.data.map(entry => entry.hodnota); 
+
+        // Get average price across both
+        const prices = [...petrolPrices, ...dieselPrices];
+        const avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+
+        // Update the currently selected config with the calculated average fuel price
+        if (!await dbPostgis.updateFuelPrice(plannerConfigName, parseFloat(avgPrice.toFixed(2))))
+            log("warning", "Failed to update default fuel price in DB");
+        else
+            log("info", "Default fuel price in DB succesfully updated");
     }
-    const data = await response.json();
-
-    // Find the petrol and diesel price comodities
-    const petrol = data.find(comodity => comodity.kod === "benzin-cz");
-    const diesel = data.find(comodity => comodity.kod === "motorova-nafta");
-    const petrolPrices = petrol.data.map(entry => entry.hodnota); 
-    const dieselPrices = diesel.data.map(entry => entry.hodnota); 
-
-    // Get average price across both
-    const prices = [...petrolPrices, ...dieselPrices];
-    const avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-
-    // Update the currently selected config with the calculated average fuel price
-    if (!await dbPostgis.updateFuelPrice(process.env.BE_PLANNER_CONFIG_NAME, parseFloat(avgPrice.toFixed(2))))
-        log("warning", "Failed to update default fuel price in DB");
-    else
-        log("info", "Default fuel price in DB succesfully updated");
+    catch (e) {
+        log("warning", "Failed to update fuel price: " + e);
+    }
 }
 
 // Function for finding nearby parking near active transport systems stations with Overpass API

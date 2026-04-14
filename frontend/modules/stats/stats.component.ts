@@ -443,6 +443,14 @@ export class StatsModule implements OnInit {
             }
         )
 
+        // Sort dates
+        this.queryData = Object.keys(this.queryData)
+        .sort()
+        .reduce((Obj: any, key: any) => {
+            Obj[key] = this.queryData[key];
+            return Obj;
+        }, {});
+
         // Parse data
         for (const day in this.queryData) {
             let date = (timeStamp.getDate(day)).toLocaleDateString(this.translate.currentLang === 'cz' ? 'cs-CZ' : 'en-GB', {dateStyle: 'medium'});

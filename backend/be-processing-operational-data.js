@@ -240,10 +240,11 @@ async function downloadData(lineId, objectId) {
     return new Promise(async (resolve) => {
         https.get({
             hostname: "walter.fit.vutbr.cz",
-            path: `/new-ben/records/vehiclePositions?uidFrom=${objectId}&key=${lineId}&dateFrom=${yesterdayMidNight.toISOString()}&dateTo=${(new Date(lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)).toISOString()}&fields=[%22ben%22,%20%22RouteID%22,%22Latitude%22,%22Longitude%22,%22DelayInMins%22]`,
+            path: `/ben/records/vehiclePositions?uidFrom=${objectId}&key=${lineId}&dateFrom=${yesterdayMidNight.toISOString()}&dateTo=${(new Date(lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)).toISOString()}&fields=[%22ben%22,%20%22RouteID%22,%22Latitude%22,%22Longitude%22,%22DelayInMins%22]`,
             headers: {
                 authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
         }}, async res => {
+            //console.log(res.statusCode, res.statusMessage, res.req.getHeader('host'), res.req.path);
             let { statusCode } = res;
             let contentType = res.headers['content-type'];
 
@@ -291,7 +292,7 @@ async function isDBAlive() {
     return new Promise(async (resolve) => {
         https.get({
             hostname: "walter.fit.vutbr.cz",
-            path: `/new-ben/stats`,
+            path: `/ben/stats`,
             headers: {
                 authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
             },

@@ -53,6 +53,9 @@ async function processRequest(url, req, res) {
 
                         for (const item in expectedStateData) {
                             let date = timeStamp.getTimeStamp(item);
+                            if (response[date] === undefined) {
+                                response[date] = {};
+                            }
                             for (const stat in expectedStateData[item]) {
                                 response[date][stat] = expectedStateData[item][stat];
                             }

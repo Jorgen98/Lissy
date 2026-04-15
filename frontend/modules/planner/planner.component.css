@@ -167,7 +167,7 @@
   z-index: 1001;
   width: 100%;
   padding: 10px;
-  background: var(--planner-background);
+  background: var(--planner-background-filled);
   border: var(--planner-main-border);
   font-weight: bold;
   color: var(--planner-trip-header-active-color);

@@ -1,0 +1,115 @@
+@if (config.enabled) {
+  <main class="main">
+    <!-- Side menu -->
+    <div class="side-control">
+      <span class="side-control-modules">
+        <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button type="button" [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+            <i class="fa fa-route"></i>
+          </button>
+        </div>
+      </span>
+      <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+        <button type="button" [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+          (click)="switchSettingsModuleVisibility()" [disabled]="!isSettingsEnabled">
+          <i class="pi pi-cog"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Mobile menu -->
+    <div class="mobile-header">
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" routerLink="/">
+          <i class="pi pi-home"></i>
+          <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
+        </button>
+      </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchMobileOptionsVisibility()">
+          <i class="pi pi-bars"></i>
+          <p class="mobile-btn-text">{{ 'common.visualizationMenu' | translate }}</p>
+        </button>
+      </div>
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchSettingsModuleVisibility()">
+          <i class="pi pi-cog"></i>
+          <p class="mobile-btn-text">{{ 'common.settingsMenu' | translate }}</p>
+        </button>
+      </div>
+    </div>
+    <!-- Mobile menu submenu -->
+    @if (moduleFocus === -2) {
+      <div class="mobile-submenu">
+        <span class="mobile-head">
+          <h3>{{ 'common.visualizationMenu' | translate }}</h3>
+          <button type="button" (click)="switchMobileOptionsVisibility()">
+            <i class="pi pi-times"></i>
+          </button>
+        </span>
+        <div>
+          <button type="button" class="mobile-menu-btn" (click)="switchRouteSelectModuleVisibility()" [disabled]="!isRouteSelectionEnabled">
+            <i class="fa fa-route mobile-icon"></i>
+            <p class="mobile-menu-text">{{ 'common.route' | translate }}</p>
+          </button>
+        </div>
+      </div>
+    }
+    <!-- Module content -->
+    <div class="content">
+      <!-- Shape selection -->
+      @if (moduleFocus == 1) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'common.route' | translate }}</h4>
+            <button type="button" (click)="switchRouteSelectModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+            <div class="side-control-selection-inner-div" style="max-height: 100%;">
+              <h3>{{ 'shapes.route' | translate }}</h3>
+              <route-selector [routes]="routes" (routeSelected)="routeSelected($event)"></route-selector>
+              <h3>{{ 'delay.shape' | translate }}</h3>
+              <p-select [options]="routeTrips" [(ngModel)]="selectedTripGroup" optionLabel="stops" filter="true"
+                filterBy="stops" (onChange)="tripGroupSelected()"/>
+              <h3>{{ 'delay.trip' | translate }}</h3>
+              <trip-selector [trips]="selectedTripGroup?.trips" (tripSelected)="tripSelected($event)"></trip-selector>
+            </div>
+          </div>
+        </div>
+      }
+      <!-- Visualization settings -->
+      @if (moduleFocus == 2) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'common.settings' | translate }}</h4>
+            <button type="button" (click)="switchSettingsModuleVisibility()">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+            <div class="side-control-selection-inner-div">
+              <div class="mobile-header-item">
+                @if (translate.currentLang === 'cz') {
+                  <button type="button" class="mobile-menu-btn" (click)="translate.use('en')">
+                    <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
+                    <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
+                  </button>
+                }
+                @if (translate.currentLang === 'en') {
+                  <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')">
+                    <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
+                    <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+      <!-- Map -->
+      <map></map>
+    </div>
+  </main>
+}

@@ -655,8 +655,8 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
             try {
                 decRecord = decRecord[0].split(' ');
-                decRecord[3] = decRecord[3].split('/')[1];
-                actualApiEndpoints[decRecord[5]] = decRecord[3];
+                decRecord[4] = decRecord[4].split('/')[1];
+                actualApiEndpoints[decRecord[6]] = decRecord[4];
             } catch(error) {
                 continue;
             }

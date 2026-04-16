@@ -244,7 +244,6 @@ async function downloadData(lineId, objectId) {
             headers: {
                 authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
         }}, async res => {
-            //console.log(res.statusCode, res.statusMessage, res.req.getHeader('host'), res.req.path);
             let { statusCode } = res;
             let contentType = res.headers['content-type'];
 

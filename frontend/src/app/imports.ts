@@ -16,6 +16,8 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { StepperModule } from 'primeng/stepper';
 import { ImageModule } from 'primeng/image';
+import { RouteSelector } from '../../components/routeSelector';
+import { TripSelector } from '../../components/tripSelector';
 
 @NgModule({
     imports: [
@@ -36,7 +38,9 @@ import { ImageModule } from 'primeng/image';
         DatePickerModule,
         SelectModule,
         StepperModule,
-        ImageModule
+        ImageModule,
+        RouteSelector,
+        TripSelector
     ],
     exports: [
         RouterOutlet,
@@ -56,7 +60,9 @@ import { ImageModule } from 'primeng/image';
         DatePickerModule,
         SelectModule,
         StepperModule,
-        ImageModule
+        ImageModule,
+        RouteSelector,
+        TripSelector
     ]
 })
 export class ImportsModule {}

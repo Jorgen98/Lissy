@@ -212,5 +212,8 @@
                 "body": "Pro vybraný časový interval nejsou k dispozici žádná data. Zkuste prosím změnit časový interval."
             }
         }
+    },
+    "prediction": {
+        "name": "Predikce zpoždění"
     }
 }

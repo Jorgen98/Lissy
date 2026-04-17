@@ -4,7 +4,7 @@ WORKDIR /dist/src/app
 
 RUN npm cache clean --force
 COPY ./frontend/ .
-COPY ./env/.env .env
+COPY ./env/.env.prod .env
 
 RUN npm install
 RUN npm run build

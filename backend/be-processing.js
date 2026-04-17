@@ -23,6 +23,9 @@ function log(type, msg) {
     logService.write(process.env.BE_PROCESSING_MODULE_NAME, type, msg)
 }
 
+// Is data processing global variable
+isProcessing = false;
+
 // Try to run processing service
 let server = app.listen(null, async () => {
     log('success', 'Processing service is running');
@@ -47,17 +50,29 @@ server.on('listening', async () => {
 // Regular job functions
 // Main data processing function
 cron.schedule('1 3 * * *', async () => {
-    log('info', 'Running scheduled actualization job. Processing real operation data and actualizing transit system');
-    if (await processData()) {
-        log('success', 'Actualization procedure is done');
-    };
+    if (!isProcessing) {
+        isProcessing = true;
+
+        log('info', 'Running scheduled actualization job. Processing real operation data and actualizing transit system');
+        if (await processData()) {
+            log('success', 'Actualization procedure is done');
+        };
+
+        isProcessing = false;
+    }
 });
 // Run another attempt of processing function in case of error of the first attempt
 cron.schedule('59 4 * * *', async () => {
-    log('info', 'Running backup scheduled actualization job. Processing real operation data and actualizing transit system');
-    if (await processData()) {
-        log('success', 'Actualization procedure is done');
-    };
+    if (!isProcessing) {
+        isProcessing = true;
+
+        log('info', 'Running backup scheduled actualization job. Processing real operation data and actualizing transit system');
+        if (await processData()) {
+            log('success', 'Actualization procedure is done');
+        };
+
+        isProcessing = false;
+    }
 });
 
 // Processing function

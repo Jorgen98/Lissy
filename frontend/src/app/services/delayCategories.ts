@@ -56,7 +56,7 @@ export class delayCategoriesService {
     }
 
     // Set delay category values on selected index
-    public setDelayCategory(idx: number, category: delayCategory) {
+    public setDelayCategory(idx: number, category: { minValue: number, maxValue: number, color?: string }) {
         if (idx < 0 || idx > (this.delayCategories.length - 1)) {
             return;
         }
@@ -66,7 +66,7 @@ export class delayCategoriesService {
         }
 
         // Color
-        this.delayCategories[idx].color = category.color;
+        this.delayCategories[idx].color = category.color ?? this.delayCategories[idx].color;
 
         // Minimal value
         if (idx !== 0) {

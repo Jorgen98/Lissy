@@ -210,7 +210,16 @@
             "noAvailableDataForSelection" : {
                 "head": "No Available Data",
                 "body": "There are no available data for your selected date range. Please try to change the date range."
+            },
+            "noAvailablePrediction": {
+                "head": "The prediction failed",
+                "body": "There is insufficient data for this trip to make a reliable prediction."
             }
         }
+    },
+    "prediction": {
+        "name": "Delay prediction",
+        "mapLabel": "Predicated delay",
+        "showValues": "Show predicated delay values"
     }
 }

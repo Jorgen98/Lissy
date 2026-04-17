@@ -8,6 +8,6 @@ RUN npm install
 
 COPY ./backend/ ./
 COPY ../frontend/modules/ ../frontend/modules/
-ADD ./env/.env ./
+ADD ./env/.env.prod ./.env
 
 CMD npm run be-api-docker

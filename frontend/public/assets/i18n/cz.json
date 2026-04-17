@@ -210,10 +210,16 @@
             "noAvailableDataForSelection" : {
                 "head": "Nejsou k dispozici žádná data",
                 "body": "Pro vybraný časový interval nejsou k dispozici žádná data. Zkuste prosím změnit časový interval."
+            },
+            "noAvailablePrediction": {
+                "head": "Predikce se nepovedla",
+                "body": "Pro daný spoj není k dispozici dostatek dat pro spolehlivou predikci."
             }
         }
     },
     "prediction": {
-        "name": "Predikce zpoždění"
+        "name": "Predikce zpoždění",
+        "mapLabel": "Predikované zpoždění",
+        "showValues": "Zobrazit hodnoty predikovaného zpoždění"
     }
 }

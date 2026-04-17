@@ -42,7 +42,7 @@ async function processRequest(url, req, res) {
                         route: req.query.route
                     }
                 };
-                fetch('http://lissy-martin-prediction/predict', { //http://127.0.0.1:8000
+                fetch(`${process.env.BE_PREDICTION_URL}/predict`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -58,6 +58,15 @@ async function processRequest(url, req, res) {
                     log('error', err);
                     res.send(false);
                 });
+                break;
+            }
+            // Return full shape with stops and polyline for given shapeId
+            case 'getShape': {
+                if (req.query.shape_id === undefined) {
+                    res.send(false);
+                } else {
+                    res.send(await dbPostGIS.getFullShape(req.query.shape_id));
+                }
                 break;
             }
             default: res.send(false);

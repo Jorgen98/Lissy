@@ -7,6 +7,6 @@ COPY ./backend/package*.json ./
 RUN npm install
 
 COPY ./backend/ ./
-ADD ./env/.env ./
+ADD ./env/.env.prod ./.env
 
 CMD npm run be-processing-docker

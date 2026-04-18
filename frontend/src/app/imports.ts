@@ -18,6 +18,7 @@ import { StepperModule } from 'primeng/stepper';
 import { ImageModule } from 'primeng/image';
 import { RouteSelector } from '../../components/routeSelector';
 import { TripSelector } from '../../components/tripSelector';
+import { DayOfWeekSelector } from '../../components/dayOfWeekSelector';
 
 @NgModule({
     imports: [
@@ -40,7 +41,8 @@ import { TripSelector } from '../../components/tripSelector';
         StepperModule,
         ImageModule,
         RouteSelector,
-        TripSelector
+        TripSelector,
+        DayOfWeekSelector
     ],
     exports: [
         RouterOutlet,
@@ -62,7 +64,8 @@ import { TripSelector } from '../../components/tripSelector';
         StepperModule,
         ImageModule,
         RouteSelector,
-        TripSelector
+        TripSelector,
+        DayOfWeekSelector
     ]
 })
 export class ImportsModule {}

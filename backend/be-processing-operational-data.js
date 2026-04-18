@@ -19,7 +19,7 @@ let progress = 0;
 let lastProgressValue = 0;
 
 let now = timeStamp.getTodayUTC();
-let yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
+let yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
 let lastTripEnd = timeStamp.getDateFromTimeStamp(timeStamp.getTimeStamp(yesterdayMidNight));
 
 const saveTestOutput = process.env.TEST_OUTPUTS === 'true' ? true : false;
@@ -39,7 +39,7 @@ async function processServedTrips() {
 
     let startTime = performance.now();
     now = timeStamp.getTodayUTC();
-    yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
+    yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
     now = timeStamp.getTodayUTC();
     lastTripEnd = timeStamp.getDateFromTimeStamp(timeStamp.getTimeStamp(yesterdayMidNight));
 

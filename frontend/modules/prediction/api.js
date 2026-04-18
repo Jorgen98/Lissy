@@ -17,25 +17,41 @@ function log(type, msg) {
 
 // Main request processing function
 async function processRequest(url, req, res) {
+    const today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
     try {
         switch (url[0]) {
             case 'getRoutes': {
-                res.send(await dbPostGIS.getActiveRoutesToProcess());
+                // Return today routes
+                if (today === req.query.date) {
+                    res.send(await dbPostGIS.getActiveRoutesToProcess());
+                // Return routes from another day
+                } else {
+                    const actualDate = timeStamp.removeDayFromTimeStamp(req.query.date, 7);
+                    res.send(await dbPostGIS.getRoutesDetail(await dbStats.getRoutesIdsInInterval(actualDate, actualDate)));
+                }
                 break;
             }
             case 'getTrips': {
                 if (req.query.route_id === undefined) {
                     res.send(false);
                 } else {
-                    const routeTrips = (await dbPostGIS.getPlannedTrips([{id: parseInt(req.query.route_id)}]))[0].trips;
-                    res.send(await dbPostGIS.getTripsDetail(routeTrips.map((trip) => { return trip.id }), false));
+                    // Return today trips
+                    if (today === req.query.date) {
+                        const routeTrips = (await dbPostGIS.getPlannedTrips([{id: parseInt(req.query.route_id)}]))[0].trips;
+                        res.send(await dbPostGIS.getTripsDetail(routeTrips.map((trip) => { return trip.id }), false));
+                    // Return trips from another day
+                    } else {
+                        const actualDate = timeStamp.removeDayFromTimeStamp(req.query.date, 7);
+                        const trips = await dbStats.getTripIdsInInterval(parseInt(req.query.route_id), actualDate, actualDate);
+                        res.send(await dbPostGIS.getTripsDetail(trips, false));
+                    }
                 }
                 break;
             }
             case 'getPrediction': {
                 const requestBody = {
                     visualization: true,
-                    date: timeStamp.getTimeStamp(timeStamp.getTodayUTC()),
+                    date: req.query.date,
                     depTime: req.query.dep_time,
                     transport: {
                         line: req.query.line,

@@ -8,7 +8,8 @@ import { MapComponent } from '../../src/app/map/map.component';
 import { mapObject, MapService } from '../../src/app/map/map.service';
 import { UIMessagesService } from '../../src/app/services/messages';
 import { routeFromDB, shapeWithTripsFromDB, tripFromDB } from '../../components/types';
-import { delayCategoriesService, delayCategory } from '../../src/app/services/delayCategories';
+import { delayCategoriesService } from '../../src/app/services/delayCategories';
+import * as timeStamp from "../../src/app/services/timeStamps";
 
 @Component({
     selector: 'prediction',
@@ -35,18 +36,14 @@ export class PredictionModule implements OnInit, OnDestroy {
     public isSettingsEnabled: boolean = true;
     public showDelayValueLabel: boolean = true;
 
-    public selectedDate: Date | null = null;
-    public hooverDate: Date | null = null;
-    public startDate: Date = new Date();
-    public disabledDates: Date[] = [];
-    public endDate: Date = new Date();
-
     public routes: routeFromDB[] = [];
     public selectedRoute: routeFromDB | undefined = undefined;
     public routeTrips: shapeWithTripsFromDB[] = [];
-    public selectedTripGroup: shapeWithTripsFromDB | undefined;
+    public selectedTripGroup: shapeWithTripsFromDB | undefined = undefined;
+    public selectedTrip: tripFromDB | undefined = undefined;
     private mapData: {coords: number[][][], stops: any[]} | undefined = undefined;
     private actualPredictionValues: number[] = [];
+    public selectedDate: { idx: number, date: Date } = { idx: (new Date()).getDay(), date: new Date() };
 
     public enableZonesOnMap: boolean = true;
     public enableRouteColor: boolean = true;
@@ -58,22 +55,7 @@ export class PredictionModule implements OnInit, OnDestroy {
 
     // On component creation
     public async ngOnInit() {
-        this.msgService.turnOnLoadingScreenWithoutPercentage();
-        this.routes = await this.apiGet('getRoutes');
-        if (this.routes.length > 0) {
-            const collator = new Intl.Collator(undefined, {
-                numeric: true,
-                sensitivity: "base"
-            });
-
-            this.routes = this.routes.sort((a, b) => collator.compare(a.route_short_name, b.route_short_name));
-            this.selectedTripGroup = undefined;
-            this.routeSelected(this.routes[0]);
-        } else {
-            this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
-        }
-
-        this.msgService.turnOffLoadingScreen();
+        await this.getDayRoutes();
     }
 
     // On component destroy
@@ -82,7 +64,7 @@ export class PredictionModule implements OnInit, OnDestroy {
         this.mapService.removeLayer('stops');
     }
 
-    // Function for calendar module switch
+    // Function for trip selection
     public switchRouteSelectModuleVisibility() {
         if (this.moduleFocus !== 1) {
             this.moduleFocus = 1;
@@ -91,10 +73,19 @@ export class PredictionModule implements OnInit, OnDestroy {
         }
     }
 
-    // Function for settings module switch
-    public switchSettingsModuleVisibility() {
+    // Function for day of week selection
+    public switchCalendarSelectModuleVisibility() {
         if (this.moduleFocus !== 2) {
             this.moduleFocus = 2;
+        } else {
+            this.moduleFocus = 0;
+        }
+    }
+
+    // Function for settings module switch
+    public switchSettingsModuleVisibility() {
+        if (this.moduleFocus !== 3) {
+            this.moduleFocus = 3;
         } else {
             this.moduleFocus = 0;
         }
@@ -118,19 +109,36 @@ export class PredictionModule implements OnInit, OnDestroy {
         }
     }
 
-    public setToday() {
-        this.hooverDate = new Date();
+    // Load routes for selected day
+    public async getDayRoutes() {
+        this.msgService.turnOnLoadingScreenWithoutPercentage();
+        this.selectedTripGroup = undefined;
+        this.routeTrips = [];
+        this.routes = await this.apiGet('getRoutes', { date: timeStamp.getTimeStamp(this.selectedDate.date.getTime()) });
+        if (this.routes.length > 0) {
+            const collator = new Intl.Collator(undefined, {
+                numeric: true,
+                sensitivity: "base"
+            });
+
+            this.routes = this.routes.sort((a, b) => collator.compare(a.route_short_name, b.route_short_name));
+            await this.routeSelected(this.routes[0]);
+        } else {
+            this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailableDataForSelection.head', 'UIMessagesService.toasts.noAvailableDataForSelection.body');
+        }
+
+        this.msgService.turnOffLoadingScreen();
     }
 
     // Put actual route shape on map
     public async routeSelected(route: routeFromDB) {
         this.msgService.turnOnLoadingScreenWithoutPercentage();
         this.selectedRoute = route;
-        this.routeTrips = await this.apiGet("getTrips", {route_id: route.id.toString()});
+        this.routeTrips = await this.apiGet("getTrips", {date: timeStamp.getTimeStamp(this.selectedDate.date.getTime()), route_id: route.id.toString()});
         if (this.routeTrips.length > 0) {
             this.selectedTripGroup = this.routeTrips[0];
             if (this.selectedTripGroup.trips.length > 0) {
-                this.tripSelected(this.selectedTripGroup.trips[0]);   
+                await this.tripSelected(this.selectedTripGroup.trips[0]);   
             }
         } else {
             this.selectedTripGroup = undefined;
@@ -149,16 +157,21 @@ export class PredictionModule implements OnInit, OnDestroy {
         }
     }
 
-    public async tripSelected(selectedTrip: tripFromDB) {
+    public async tripSelected(trip: tripFromDB) {
         if (this.selectedTripGroup === undefined) {
             return;
         }
+
         this.msgService.turnOnLoadingScreenWithoutPercentage();
+        this.selectedTrip = trip;
         const predictionResult = await this.apiGet('getPrediction', {
-            dep_time: selectedTrip.dep_time,
+            dep_time: this.selectedTrip.dep_time,
             line: this.selectedRoute?.route_short_name ?? '',
-            route: this.selectedTripGroup?.stops ?? ''
+            route: this.selectedTripGroup?.stops ?? '',
+            date: timeStamp.getTimeStamp(this.selectedDate.date.getTime())
         });
+
+        console.log(predictionResult);
 
         if (predictionResult.predictionResponse?.shape === undefined || predictionResult.predictionResponse?.shape === undefined ||
             predictionResult.predictionResponse?.prediction === undefined || predictionResult.predictionResponse?.prediction.length < 1
@@ -172,8 +185,6 @@ export class PredictionModule implements OnInit, OnDestroy {
         }
 
         this.mapData = await this.apiGet('getShape', {shape_id: this.selectedTripGroup.shape_id.toString()});
-
-        console.log(predictionResult)
 
         this.actualPredictionValues = Object.values(predictionResult.predictionResponse?.prediction);
         this.delayCategoriesService.resetDelayCategories();
@@ -275,6 +286,21 @@ export class PredictionModule implements OnInit, OnDestroy {
         }
         this.delayCategoriesService.putDelayCategoriesOnMap();
         this.msgService.turnOffLoadingScreen();
+    }
+
+    public async onDaySelected(idx: number) {
+        this.selectedDate.idx = idx;
+
+        const today = new Date();
+        const currentDay = today.getDay();
+        let diff = idx - currentDay;
+        // Always move to the future
+        if (diff <= 0) {
+            diff += 7;
+        }
+        this.selectedDate.date.setDate(today.getDate() + diff);
+
+        await this.getDayRoutes();
     }
 
     public closeRouteModule() {

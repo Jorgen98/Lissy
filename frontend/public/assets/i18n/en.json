@@ -181,6 +181,7 @@
     },
     "common": {
         "calendar": "Selecting a time period",
+        "dayOfWeek": "Day of week selection",
         "route": "Select the displayed route",
         "trip": "Select inspected trip",
         "settings": "Visualization settings",
@@ -194,7 +195,10 @@
         "czech": "Česky",
         "english": "English",
         "404Header": "Error 404!",
-        "404Text": "There is no route to this location. Please try it again."
+        "404Text": "There is no route to this location. Please try it again.",
+        "noRoute": "No lines available",
+        "noRouteGroup": "No routes available ",
+        "noTrip": "No trips available"
     },
     "UIMessagesService": {
         "loading": "Loading Data",

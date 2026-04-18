@@ -746,7 +746,7 @@ async function getTripsWithUniqueShape(tripIds) {
     let routeDetails;
 
     try {
-        routeDetails = (await db_postgis.query(`SELECT id, route_type, route_short_name, route_color FROM routes WHERE id IN (${routeIds})`)).rows;
+        routeDetails = (await db_postgis.query(`SELECT id, route_type, route_short_name, route_color FROM routes WHERE id = ANY($1);`, [routeIds])).rows;
     } catch(error) {
         log('error', error);
         return [];
@@ -779,7 +779,8 @@ async function getTripsWithUniqueShape(tripIds) {
 async function getRoutesDetail(routeIds) {
     let routes = [];
     try {
-        routes = (await db_postgis.query(`SELECT id, route_type, route_short_name FROM routes WHERE id IN (${routeIds})`)).rows;
+        routes = (await db_postgis.query(`SELECT id, route_type, route_id, route_short_name,
+            route_color, route_text_color FROM routes WHERE id = ANY($1);`, [routeIds])).rows;
     } catch(error) {
         log('error', error);
         return [];

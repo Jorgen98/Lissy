@@ -405,7 +405,7 @@ async function getAvailableDates(includeToday = false) {
                 const o = tableMeta.toObject(row);
                 let date = new Date(o._time);
                 if (records.indexOf(timeStamp.getTimeStamp(date)) === -1) {
-                    records.push(timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(date)));
+                    records.push(timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(date)));
                 }
             },
             error(error) {
@@ -415,7 +415,7 @@ async function getAvailableDates(includeToday = false) {
             async complete() {
                 if (includeToday) {
                     let today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
-                    if (Object.keys(await getStats('expected_state', timeStamp.removeOneDayFromTimeStamp(today), today, true)).length > 0) {
+                    if (Object.keys(await getStats('expected_state', timeStamp.removeDayFromTimeStamp(today), today, true)).length > 0) {
                         records.push(today);
                     }
                 }
@@ -439,7 +439,7 @@ async function getAvailableDates(includeToday = false) {
                         if (records.indexOf(actualDate) === -1) {
                             disabledDates.push(actualDate);
                         }
-                        actualDate = timeStamp.addOneDayToTimeStamp(actualDate);
+                        actualDate = timeStamp.addDayToTimeStamp(actualDate);
                     }
                     resolve({
                         start: records[0],
@@ -477,7 +477,7 @@ async function getRoutesIdsInInterval(start, stop) {
     while (timeStamp.compareTimeStamps(start, stop) === -1) {
         max++;
         idx++;
-        start = timeStamp.addOneDayToTimeStamp(start);
+        start = timeStamp.addDayToTimeStamp(start);
     }
 
     return new Promise((resolve) => {
@@ -534,7 +534,7 @@ async function getTripIdsInInterval(route_id, start, stop) {
     while (timeStamp.compareTimeStamps(start, stop) === -1) {
         max++;
         idx++;
-        start = timeStamp.addOneDayToTimeStamp(start);
+        start = timeStamp.addDayToTimeStamp(start);
     }
 
     return new Promise((resolve) => {

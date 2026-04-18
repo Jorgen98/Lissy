@@ -78,14 +78,14 @@ cron.schedule('59 4 * * *', async () => {
 // Processing function
 async function processData() {
     let today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
-    let lastGTFSRecord = await dbStats.getStats('expected_state', timeStamp.removeOneDayFromTimeStamp(today), today, true);
+    let lastGTFSRecord = await dbStats.getStats('expected_state', timeStamp.removeDayFromTimeStamp(today), today, true);
 
     // Main processing switch, depends on actual stateDB data, what will be done
     // 1. Process delay data and actualize system state
     // 2. Actualize system state only
     // 3. Do nothing, we need to wait for next day to process data
     if (Object.keys(lastGTFSRecord).length > 0) {
-        let lastGTFSRecordTime = timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(timeStamp.getTodayUTC()));
+        let lastGTFSRecordTime = timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(timeStamp.getTodayUTC()));
         for (const key of Object.keys(lastGTFSRecord)) {
             if (timeStamp.compareTimeStamps(lastGTFSRecordTime, timeStamp.getTimeStamp(key)) === -1) {
                 lastGTFSRecordTime = timeStamp.getTimeStamp(key);

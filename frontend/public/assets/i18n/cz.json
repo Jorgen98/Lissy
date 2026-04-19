@@ -275,6 +275,7 @@
     },
     "common": {
         "calendar": "Výběr časového období",
+        "dayOfWeek": "Výběr dne v týdnu",
         "route": "Výběr zobrazené trasy",
         "trip": "Výběr spoje",
         "settings": "Nastavení vizualizace",
@@ -288,7 +289,10 @@
         "czech": "Česky",
         "english": "English",
         "404Header": "Chyba 404!",
-        "404Text": "Do této oblasti nevede žádná linka. Zkuste to prosím znovu."
+        "404Text": "Do této oblasti nevede žádná linka. Zkuste to prosím znovu.",
+        "noRoute": "K dispozici nejsou žádné linky",
+        "noRouteGroup": "K dispozici nejsou žádné trasy",
+        "noTrip": "K dispozici nejsou žádné spoje"
     },
     "UIMessagesService": {
         "loading": "Načítání dat",
@@ -340,7 +344,16 @@
             "rerouteError": {
                 "head": "Chyba při přesměrování",
                 "body": "Pro úsek, který měl být přesměrován, nebyla nalezena požadovaná alternativa."
+            },
+            "noAvailablePrediction": {
+                "head": "Predikce se nepovedla",
+                "body": "Pro daný spoj není k dispozici dostatek dat pro spolehlivou predikci."
             }
-        }   
+        }
+    },
+    "prediction": {
+        "name": "Predikce zpoždění",
+        "mapLabel": "Predikované zpoždění",
+        "showValues": "Zobrazit hodnoty predikovaného zpoždění"
     }
 }

@@ -19,7 +19,7 @@ let progress = 0;
 let lastProgressValue = 0;
 
 let now = timeStamp.getTodayUTC();
-let yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
+let yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
 let lastTripEnd = timeStamp.getDateFromTimeStamp(timeStamp.getTimeStamp(yesterdayMidNight));
 
 const saveTestOutput = process.env.TEST_OUTPUTS === 'true' ? true : false;
@@ -39,7 +39,7 @@ async function processServedTrips() {
 
     let startTime = performance.now();
     now = timeStamp.getTodayUTC();
-    yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
+    yesterdayMidNight = timeStamp.getDateFromTimeStamp(timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(now.setUTCHours(0, 0, 0, 0))));
     now = timeStamp.getTodayUTC();
     lastTripEnd = timeStamp.getDateFromTimeStamp(timeStamp.getTimeStamp(yesterdayMidNight));
 
@@ -240,7 +240,7 @@ async function downloadData(lineId, objectId) {
     return new Promise(async (resolve) => {
         https.get({
             hostname: "walter.fit.vutbr.cz",
-            path: `/new-ben/records/vehiclePositions?uidFrom=${objectId}&key=${lineId}&dateFrom=${yesterdayMidNight.toISOString()}&dateTo=${(new Date(lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)).toISOString()}&fields=[%22ben%22,%20%22RouteID%22,%22Latitude%22,%22Longitude%22,%22DelayInMins%22]`,
+            path: `/ben/records/vehiclePositions?uidFrom=${objectId}&key=${lineId}&dateFrom=${yesterdayMidNight.toISOString()}&dateTo=${(new Date(lastTripEnd.getTime() + parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000)).toISOString()}&fields=[%22ben%22,%20%22RouteID%22,%22Latitude%22,%22Longitude%22,%22DelayInMins%22]`,
             headers: {
                 authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
         }}, async res => {
@@ -291,7 +291,7 @@ async function isDBAlive() {
     return new Promise(async (resolve) => {
         https.get({
             hostname: "walter.fit.vutbr.cz",
-            path: `/new-ben/stats`,
+            path: `/ben/stats`,
             headers: {
                 authorization: process.env.BE_OP_DATA_PROCESSING_BEN_TOKEN,
             },

@@ -2,5 +2,5 @@
     "enabled": true,
     "apiPrefix": "shapes",
     "name": "shapes.name",
-    "icon": "fa-route"
+    "icon": "fa fa-route"
 }

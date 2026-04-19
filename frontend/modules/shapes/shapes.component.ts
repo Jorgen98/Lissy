@@ -8,7 +8,6 @@ import { MapComponent } from '../../src/app/map/map.component';
 import { mapObject, MapService } from '../../src/app/map/map.service';
 import { UIMessagesService } from '../../src/app/services/messages';
 import * as timeStamp from "../../src/app/services/timeStamps";
-import { faRoute } from '@fortawesome/free-solid-svg-icons';
 
 interface route {
     route_color: string,
@@ -52,8 +51,6 @@ export class ShapesModule implements OnInit, OnDestroy {
     public selectedRoute: route | undefined = undefined;
     public selectedTrip: { shape_id: string, stops: string} | undefined = undefined;
     private mapData: {coords: number[][][], stops: any[]} | undefined = undefined;
-
-    public faIconRoute = faRoute;
 
     public enableZonesOnMap: boolean = true;
     public enableRouteColor: boolean = true;

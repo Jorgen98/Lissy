@@ -14,7 +14,6 @@ const logService = require('./log.js');
 const gtfsService = require('./gtfs.js');
 const opProcessingService = require('./be-processing-operational-data.js');
 const timeStamp = require('./timeStamp.js');
-const weather = require('./be-weather.js');
 const plannerProcessingService = require('./be-processing-planner.js');
 
 // .env file include
@@ -24,6 +23,9 @@ dotenv.config();
 function log(type, msg) {
     logService.write(process.env.BE_PROCESSING_MODULE_NAME, type, msg)
 }
+
+// Is data processing global variable
+isProcessing = false;
 
 // Try to run processing service
 let server = app.listen(null, async () => {
@@ -49,34 +51,42 @@ server.on('listening', async () => {
 // Regular job functions
 // Main data processing function
 cron.schedule('1 3 * * *', async () => {
-    log('info', 'Running scheduled actualization job. Processing real operation data and actualizing transit system');
-    if (await processData()) {
-        log('success', 'Actualization procedure is done');
-    };
+    if (!isProcessing) {
+        isProcessing = true;
+
+        log('info', 'Running scheduled actualization job. Processing real operation data and actualizing transit system');
+        if (await processData()) {
+            log('success', 'Actualization procedure is done');
+        };
+
+        isProcessing = false;
+    }
 });
 // Run another attempt of processing function in case of error of the first attempt
 cron.schedule('59 4 * * *', async () => {
-    log('info', 'Running backup scheduled actualization job. Processing real operation data and actualizing transit system');
-    if (await processData()) {
-        log('success', 'Actualization procedure is done');
-    };
+    if (!isProcessing) {
+        isProcessing = true;
+
+        log('info', 'Running backup scheduled actualization job. Processing real operation data and actualizing transit system');
+        if (await processData()) {
+            log('success', 'Actualization procedure is done');
+        };
+
+        isProcessing = false;
+    }
 });
-// Get actual weather
-cron.schedule('* * * * *' , async () => {
-    weather.getCurrentData();
-})
 
 // Processing function
 async function processData() {
     let today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
-    let lastGTFSRecord = await dbStats.getStats('expected_state', timeStamp.removeOneDayFromTimeStamp(today), today, true);
+    let lastGTFSRecord = await dbStats.getStats('expected_state', timeStamp.removeDayFromTimeStamp(today), today, true);
 
     // Main processing switch, depends on actual stateDB data, what will be done
     // 1. Process delay data and actualize system state
     // 2. Actualize system state only
     // 3. Do nothing, we need to wait for next day to process data
     if (Object.keys(lastGTFSRecord).length > 0) {
-        let lastGTFSRecordTime = timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(timeStamp.getTodayUTC()));
+        let lastGTFSRecordTime = timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(timeStamp.getTodayUTC()));
         for (const key of Object.keys(lastGTFSRecord)) {
             if (timeStamp.compareTimeStamps(lastGTFSRecordTime, timeStamp.getTimeStamp(key)) === -1) {
                 lastGTFSRecordTime = timeStamp.getTimeStamp(key);

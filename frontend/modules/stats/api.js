@@ -33,7 +33,7 @@ async function processRequest(url, req, res) {
                     // Get data for every date range
                     for (const pair of dates) {
                         // Get raw data
-                        let realOperationData = await dbStats.getStats('operation_data_stats', timeStamp.addOneDayToTimeStamp(pair[0]), timeStamp.addOneDayToTimeStamp(pair[1]));
+                        let realOperationData = await dbStats.getStats('operation_data_stats', timeStamp.addDayToTimeStamp(pair[0]), timeStamp.addDayToTimeStamp(pair[1]));
                         let expectedStateData = await dbStats.getStats('expected_state', pair[0], pair[1]);
 
                         // Couple real operations data and expected state data
@@ -41,7 +41,7 @@ async function processRequest(url, req, res) {
                             continue;
                         }
                         for (const item in realOperationData) {
-                            let date = timeStamp.removeOneDayFromTimeStamp(timeStamp.getTimeStamp(item));
+                            let date = timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(item));
                             response[date] = {};
 
                             for (const stat in realOperationData[item]) {
@@ -53,6 +53,9 @@ async function processRequest(url, req, res) {
 
                         for (const item in expectedStateData) {
                             let date = timeStamp.getTimeStamp(item);
+                            if (response[date] === undefined) {
+                                response[date] = {};
+                            }
                             for (const stat in expectedStateData[item]) {
                                 response[date][stat] = expectedStateData[item][stat];
                             }

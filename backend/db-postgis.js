@@ -546,7 +546,7 @@ async function getActiveRoutes() {
 async function getActiveRoutesToProcess() {
     let result;
     try {
-        result = await db_postgis.query(`SELECT id, route_type, route_id, route_short_name, route_color FROM routes WHERE is_active=true`);
+        result = await db_postgis.query(`SELECT id, route_type, route_id, route_short_name, route_color, route_text_color FROM routes WHERE is_active=true`);
     } catch(error) {
         log('error', error);
         return [];
@@ -623,7 +623,7 @@ async function getPlannedTrips(routes) {
     for (let route of routes) {
         try {
             result = await db_postgis.query(`SELECT id, api, shape_id, stops_info
-                FROM trips WHERE is_active=true AND is_today=true AND route_id_id='${route.id}'`);
+                FROM trips WHERE is_active=true AND is_today=true AND route_id_id=$1`, [route.id]);
         } catch(error) {
             log('error', error);
             return [];
@@ -824,7 +824,7 @@ async function getTripsWithUniqueShape(tripIds) {
     let routeDetails;
 
     try {
-        routeDetails = (await db_postgis.query(`SELECT id, route_type, route_short_name, route_color FROM routes WHERE id IN (${routeIds})`)).rows;
+        routeDetails = (await db_postgis.query(`SELECT id, route_type, route_short_name, route_color FROM routes WHERE id = ANY($1);`, [routeIds])).rows;
     } catch(error) {
         log('error', error);
         return [];
@@ -857,7 +857,8 @@ async function getTripsWithUniqueShape(tripIds) {
 async function getRoutesDetail(routeIds) {
     let routes = [];
     try {
-        routes = (await db_postgis.query(`SELECT id, route_type, route_short_name FROM routes WHERE id IN (${routeIds})`)).rows;
+        routes = (await db_postgis.query(`SELECT id, route_type, route_id, route_short_name,
+            route_color, route_text_color FROM routes WHERE id = ANY($1);`, [routeIds])).rows;
     } catch(error) {
         log('error', error);
         return [];
@@ -892,7 +893,7 @@ async function getTripsDetail(tripIds, fullStopsOrder) {
     }
 
     try {
-        result = await db_postgis.query(`SELECT id, shape_id, stops, stops_info FROM trips WHERE id IN (${tripIds})`);
+        result = await db_postgis.query(`SELECT id, shape_id, stops, stops_info FROM trips WHERE id = ANY($1)`, [tripIds]);
     } catch(error) {
         log('error', error);
         return [];

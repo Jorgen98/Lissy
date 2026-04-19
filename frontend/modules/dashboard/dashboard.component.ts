@@ -22,6 +22,7 @@ import * as configStatsModule from '../stats/config.json';
 import * as configShapesModule from '../shapes/config.json';
 import * as configDelayTripsModule from '../delay-trips/config.json';
 import * as configPlannerModule from '../planner/config.json';
+import * as configPredictionModule from '../prediction/config.json';
 
 @Component({
     selector: 'dashboard',
@@ -50,7 +51,8 @@ export class DashboardModule implements OnInit {
         configStatsModule,
         configShapesModule,
         configDelayTripsModule,
-        configPlannerModule
+        configPlannerModule,
+        configPredictionModule
     ]
 
     public async ngOnInit() {

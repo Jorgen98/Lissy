@@ -1,0 +1,6 @@
+{
+    "enabled": true,
+    "apiPrefix": "prediction",
+    "name": "prediction.name",
+    "icon": "fa fa-clock"
+}

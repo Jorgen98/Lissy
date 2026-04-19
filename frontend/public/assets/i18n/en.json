@@ -274,6 +274,7 @@
     },
     "common": {
         "calendar": "Selecting a time period",
+        "dayOfWeek": "Day of week selection",
         "route": "Select the displayed route",
         "trip": "Select inspected trip",
         "settings": "Visualization settings",
@@ -287,7 +288,10 @@
         "czech": "Česky",
         "english": "English",
         "404Header": "Error 404!",
-        "404Text": "There is no route to this location. Please try it again."
+        "404Text": "There is no route to this location. Please try it again.",
+        "noRoute": "No lines available",
+        "noRouteGroup": "No routes available ",
+        "noTrip": "No trips available"
     },
     "UIMessagesService": {
         "loading": "Loading Data",
@@ -339,7 +343,16 @@
             "rerouteError": {
                 "head": "Rerouting error",
                 "body": "No other alternative was found for the connection which was requested to be rerouted."
+            },
+            "noAvailablePrediction": {
+                "head": "The prediction failed",
+                "body": "There is insufficient data for this trip to make a reliable prediction."
             }
         }
+    },
+    "prediction": {
+        "name": "Delay prediction",
+        "mapLabel": "Predicated delay",
+        "showValues": "Show predicated delay values"
     }
 }

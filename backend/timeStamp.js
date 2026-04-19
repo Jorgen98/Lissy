@@ -38,16 +38,16 @@ function compareTimeStamps(timeStampA, timeStampB) {
 }
 
 // Move time stamp to future
-function addOneDayToTimeStamp(timeStamp) {
+function addDayToTimeStamp(timeStamp, days = 1) {
     let date = new Date(Date.UTC(timeStamp.split('-')[0], timeStamp.split('-')[1], timeStamp.split('-')[2]));
-    date = date.setUTCDate(date.getUTCDate() + 1);
+    date = date.setUTCDate(date.getUTCDate() + days);
     return getTimeStamp(date);
 }
 
 // Move time stamp to past
-function removeOneDayFromTimeStamp(timeStamp) {
+function removeDayFromTimeStamp(timeStamp, days = 1) {
     let date = new Date(Date.UTC(timeStamp.split('-')[0], timeStamp.split('-')[1], timeStamp.split('-')[2]));
-    date = date.setUTCDate(date.getUTCDate() - 1);
+    date = date.setUTCDate(date.getUTCDate() - days);
     return getTimeStamp(date);
 }
 
@@ -61,4 +61,4 @@ function getLocalTimezone() {
     return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
-module.exports = { getTimeStamp, getDateFromTimeStamp, compareTimeStamps, addOneDayToTimeStamp, removeOneDayFromTimeStamp, getTodayUTC, getDateFromISOTimeStamp, getLocalTimezone }
+module.exports = { getTimeStamp, getDateFromTimeStamp, compareTimeStamps, addDayToTimeStamp, removeDayFromTimeStamp, getTodayUTC, getDateFromISOTimeStamp, getLocalTimezone }

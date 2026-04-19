@@ -30,7 +30,8 @@
             "styles": [
               "src/styles.css",
               "primeicons/primeicons.css",
-              "./node_modules/leaflet/dist/leaflet.css"
+              "./node_modules/leaflet/dist/leaflet.css",
+              "node_modules/@fortawesome/fontawesome-free/css/all.css"
             ],
             "scripts": []
           },

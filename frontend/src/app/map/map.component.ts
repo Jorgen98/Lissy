@@ -399,6 +399,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
                             case 'sum': labelHead = this.translate.instant('map.sum'); break;
                             case 'max': labelHead = this.translate.instant('map.max'); break;
                             case 'min': labelHead = this.translate.instant('map.min'); break;
+                            default : labelHead = this.translate.instant(object.metadata.label); break;
                         }
                         lineOnMap.on('click', (event: L.LeafletEvent) => {
                             L.popup()

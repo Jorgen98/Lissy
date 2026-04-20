@@ -8,8 +8,6 @@
 const logService = require('../log.js');
 const dbPostgis = require('../db-postgis.js');
 
-import env from '../../frontend/modules/planner/config.json';
-
 import { TripRequest } from './types/TripRequest';
 import { planTrip } from './tripOrchestrator';
 import { rerouteLegInTrip } from './tripOrchestrator';
@@ -133,4 +131,4 @@ function getPlannerAdapter(selected: string): RoutePlanner | null {
     }
 }
 
-module.exports = { processRequest, env }
+module.exports = { processRequest }

@@ -6,7 +6,7 @@
  */
 
 import { ModuleConfig } from '../../src/app/app.component';
-import * as config from './config.json';
+import { configPlannerModule } from './config';
 import { MapComponent } from '../../src/app/map/map.component';
 import { ImportsModule } from '../../src/app/imports';
 import { TripFormComponent } from './components/trip-form/trip-form.component';
@@ -60,8 +60,8 @@ import {
 export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
     // JSON config file
-    static modulConfig: ModuleConfig = config;
-    public config: ModuleConfig = config;
+    static modulConfig: ModuleConfig = configPlannerModule;
+    public config: ModuleConfig = configPlannerModule;
 
     // Sidebar module choice
     public moduleFocus: Number = 0;
@@ -188,7 +188,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         this.msgService.turnOnLoadingScreenWithoutPercentage();
 
         // Get list of all stops for autocomplete
-        const stops = await this.apiService.genericGet(`${config.apiPrefix}/allStops`) as { stops: Stop[] } | null;
+        const stops = await this.apiService.genericGet(`${configPlannerModule.apiPrefix}/allStops`) as { stops: Stop[] } | null;
         if (!stops) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.stopsUnavailable.head', 'UIMessagesService.toasts.stopsUnavailable.body');
             this.msgService.turnOffLoadingScreen();
@@ -198,7 +198,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         this.allStops = stops.stops;
 
         // Get planner configuration from DB
-        const plannerConfig = await this.apiService.genericGet(`${config.apiPrefix}/getConfig`) as PlannerConfig | null;
+        const plannerConfig = await this.apiService.genericGet(`${configPlannerModule.apiPrefix}/getConfig`) as PlannerConfig | null;
         if (!plannerConfig) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.configUnavailable.head', 'UIMessagesService.toasts.configUnavailable.body');
             this.msgService.turnOffLoadingScreen();
@@ -274,7 +274,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         // Also returns the difference in the number of legs that might have been
         // introduced in the reroute, needed so the emptied points arrays can be inserted back in the correct place
         const rerouteResponse = 
-            await this.apiService.genericPost(`${config.apiPrefix}/reroute`, request) as { trip: TripOption, legDiff: number } | null;
+            await this.apiService.genericPost(`${configPlannerModule.apiPrefix}/reroute`, request) as { trip: TripOption, legDiff: number } | null;
 
         this.msgService.turnOffLoadingScreen();
 
@@ -385,7 +385,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         this.activeRequest = tripDataPreferences;
 
         // Call backend endpoint for planning trip with emitted trip data from the form
-        const tripOptions = await this.apiService.genericPost(`${config.apiPrefix}/planTrip`, tripDataPreferences) as TripOption[] | null;
+        const tripOptions = await this.apiService.genericPost(`${configPlannerModule.apiPrefix}/planTrip`, tripDataPreferences) as TripOption[] | null;
         if (!tripOptions || tripOptions.length === 0) {
             this.msgService.showMessage('error', 'UIMessagesService.toasts.tripsNotFound.head', 'UIMessagesService.toasts.tripsNotFound.body');
             this.msgService.turnOffLoadingScreen();
@@ -711,7 +711,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         // note: hasShape flag is set in the backend
         if (!trip.returnTrip.hasShape) {
             trip.returnTrip = await this.apiService.genericPost(
-                `${config.apiPrefix}/getReturnTripShape`, trip.returnTrip
+                `${configPlannerModule.apiPrefix}/getReturnTripShape`, trip.returnTrip
             );
         }
 
@@ -827,7 +827,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
     // Function reacting to an emit form the trip form, notifying that the given coordinates should be reverse geocoded
     public async reverseGeocodeRequest(coords: { lat: number, lng: number, position: number }): Promise<void> {
-        const placeName = await this.apiService.genericGet(`${config.apiPrefix}/reverseGeocode`, { data: JSON.stringify(coords) }) as { placeName: string | null };
+        const placeName = await this.apiService.genericGet(`${configPlannerModule.apiPrefix}/reverseGeocode`, { data: JSON.stringify(coords) }) as { placeName: string | null };
         
         // Set the variable which the trip form will react to changing
         this.geocodedPlaceName = placeName.placeName ? {

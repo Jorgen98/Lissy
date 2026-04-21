@@ -21,7 +21,7 @@ import * as configAboutModule from '../about/config.json';
 import * as configStatsModule from '../stats/config.json';
 import * as configShapesModule from '../shapes/config.json';
 import * as configDelayTripsModule from '../delay-trips/config.json';
-import { configPlannerModule } from '../planner/config';
+import { env as configPlannerModule } from '../planner/config';
 import * as configPredictionModule from '../prediction/config.json';
 
 @Component({

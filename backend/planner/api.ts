@@ -16,6 +16,7 @@ import { reverseGeocodeNominatim } from './geo';
 import { LatLng } from './types/LatLng';
 import { TripSectionOption } from './types/TripOption';
 import { getLegShape } from './shaping';
+import { env } from '../../frontend/modules/planner/config';
 
 // Implemented adapters and services in TypeScript
 import { OTPAdapter } from './OTP/OTPAdapter';
@@ -131,4 +132,4 @@ function getPlannerAdapter(selected: string): RoutePlanner | null {
     }
 }
 
-module.exports = { processRequest }
+module.exports = { processRequest, env }

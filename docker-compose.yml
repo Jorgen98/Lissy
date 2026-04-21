@@ -38,7 +38,7 @@ services:
         max-size: "200k"
         max-file: "10"
     healthcheck:
-      test: ["CMD", "curl", "--silent", "--fail", "http://lissy-fe/"]
+      test: ["CMD", "curl", "--silent", "--fail", "http://lissy-fe/lissy"]
       interval: 5m
       retries: 3
       start_period: 30s

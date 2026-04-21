@@ -1001,17 +1001,20 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
     // Prepate API data, Brno transit system feature
     if (inputApiFile) {
-        let inputApiData = inputApiFile.data.toString().split('\n');
+        const inputApiData = inputApiFile.data.toString().split('\n');
         inputApiData.shift();
 
         for (const record of inputApiData) {
-            let decRecord = parseOneLineFromInputFile(record);
-
             try {
-                decRecord = decRecord[0].split(' ');
-                decRecord[4] = decRecord[4].split('/')[1];
-                actualApiEndpoints[decRecord[6]] = decRecord[4];
+                const decRecord = (parseOneLineFromInputFile(record)).join();
+                const numbers = decRecord.split(/[^0-9]+/).filter(Boolean);
+                if (numbers.length === 3) {
+                    actualApiEndpoints[numbers[2]] = numbers[1];
+                } else {
+                    continue;
+                }
             } catch(error) {
+                console.log(error);
                 continue;
             }
         }

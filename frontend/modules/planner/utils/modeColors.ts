@@ -20,6 +20,7 @@ export const modeColors: Record<Mode, string> = {
     TROLLEYBUS: "#AA00DD",
     TRAM: "#990000",
     FERRY: "#2299FF",
+    SUBWAY: "#FF8800",
     AIRPLANE: DEFAULT_MODE_COLOR,
     CABLE_CAR: DEFAULT_MODE_COLOR,
     CARPOOL: DEFAULT_MODE_COLOR,
@@ -27,6 +28,5 @@ export const modeColors: Record<Mode, string> = {
     FUNICULAR: DEFAULT_MODE_COLOR,
     GONDOLA: DEFAULT_MODE_COLOR,
     MONORAIL: DEFAULT_MODE_COLOR,
-    SUBWAY: DEFAULT_MODE_COLOR,
     TAXI: DEFAULT_MODE_COLOR,
 }

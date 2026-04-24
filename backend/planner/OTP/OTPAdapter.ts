@@ -158,7 +158,7 @@ export class OTPAdapter implements RoutePlanner {
     }
 
     // Function building a list of object expected by OTP as a paremter from the transit modes allowed in user preferences
-    private getAllowedTransitModes(allowedModes: { bus: boolean, trolleybus: boolean, tram: boolean, train: boolean, ferry: boolean }): PlanTransitModePreferenceInput[] | null {
+    private getAllowedTransitModes(allowedModes: { bus: boolean, trolleybus: boolean, tram: boolean, train: boolean, ferry: boolean, subway: boolean }): PlanTransitModePreferenceInput[] | null {
         let transitModes: PlanTransitModePreferenceInput[] = [];
 
         // Append allowed modes to list
@@ -167,6 +167,7 @@ export class OTPAdapter implements RoutePlanner {
         if (allowedModes.tram) transitModes.push({ mode: "TRAM" });
         if (allowedModes.train) transitModes.push({ mode: "RAIL" });
         if (allowedModes.ferry) transitModes.push({ mode: "FERRY" });
+        if (allowedModes.subway) transitModes.push({ mode: "SUBWAY" });
 
         // No modes allowed by user
         if (transitModes.length === 0)

@@ -17,6 +17,7 @@ export type PlannerConfig = {
     emission_factor_rail: number,
     emission_factor_tram: number,
     emission_factor_trolleybus: number,
+    emission_factor_subway: number,
     clustering_factor: string,
     transfer_hub_score: number,
     park_and_ride_decision_score: number,

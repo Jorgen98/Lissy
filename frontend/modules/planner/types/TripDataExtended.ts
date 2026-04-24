@@ -24,6 +24,7 @@ export type UserPreferences = {
             tram: boolean,
             train: boolean,
             ferry: boolean,
+            subway: boolean,
         }
         ticketType: TicketType,
         maxTransfers: number | null,

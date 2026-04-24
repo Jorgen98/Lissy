@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS planner_config (
     emission_factor_RAIL INT DEFAULT 14,
     emission_factor_TRAM INT DEFAULT 10,
     emission_factor_TROLLEYBUS INT DEFAULT 10,
+    emission_factor_SUBWAY INT DEFAULT 14,
     clustering_factor NUMERIC(4, 3) DEFAULT 0.43,
     transfer_hub_score INT DEFAULT 60,
     park_and_ride_decision_score INT DEFAULT 75,

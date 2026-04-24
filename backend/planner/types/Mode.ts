@@ -5,4 +5,4 @@
  * Union type for transport modes currently in use in the planner.
  */
 
-export type Mode = "WALK" | "CAR" | "BUS" | "FERRY" | "RAIL" | "TRAM" | "TROLLEYBUS";
+export type Mode = "WALK" | "CAR" | "BUS" | "FERRY" | "RAIL" | "TRAM" | "TROLLEYBUS" | "SUBWAY";

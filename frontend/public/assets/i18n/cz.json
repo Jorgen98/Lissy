@@ -236,6 +236,7 @@
             "train": "Vlak",  
             "ferry": "Loď",
             "rail": "Vlak",
+            "subway": "Metro",
             "tripImport": "Import",
             "fileImport": "Import souboru JSON",
             "browse": "Procházet",

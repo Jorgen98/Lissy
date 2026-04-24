@@ -9,4 +9,4 @@
 import { OTPMode } from "./OTPMode";
 
 // Extract wanted modes from the general Mode union type with all modes (for IDS JMK)
-export type PlanTransitModePreferenceInput = { mode: Extract<OTPMode, "RAIL" | "TROLLEYBUS" | "BUS" | "TRAM" | "FERRY"> };
+export type PlanTransitModePreferenceInput = { mode: Extract<OTPMode, "RAIL" | "TROLLEYBUS" | "BUS" | "TRAM" | "FERRY" | "SUBWAY"> };

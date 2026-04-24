@@ -195,6 +195,16 @@ Main component HTML template file for the planner module.
                     </p-checkbox>
                     <p class="side-control-checkbox-head">{{ 'planner.settings.ferry' | translate }}</p>
                   </div>
+
+                  <!-- Subway -->
+                  <div class="checkbox-label-pair">
+                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.subway">
+                      <ng-template pTemplate="icon">
+                        <i class="pi pi-check"></i>
+                      </ng-template>
+                    </p-checkbox>
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.subway' | translate }}</p>
+                  </div>
                 </div>
 
               </span>

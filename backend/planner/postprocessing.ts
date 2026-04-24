@@ -230,6 +230,9 @@ function addEmissions(section: TripSectionOption) {
             case "TROLLEYBUS": 
                 emissionFactor = plannerConfig!.emission_factor_trolleybus;
                 break;
+            case "SUBWAY":
+                emissionFactor = plannerConfig!.emission_factor_subway;
+                break;
         }
 
         totalEmissions += emissionFactor * (leg.distance / 1000);

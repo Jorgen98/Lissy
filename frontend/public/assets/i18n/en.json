@@ -235,6 +235,7 @@
             "train": "Train",  
             "ferry": "Ferry",
             "rail": "Train",
+            "subway": "Subway",
             "tripImport": "Import",
             "fileImport": "JSON file import",
             "browse": "Browse",

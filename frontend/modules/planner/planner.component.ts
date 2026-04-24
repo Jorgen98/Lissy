@@ -127,6 +127,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         tram: true,
         train: true,
         ferry: true,
+        subway: true,
     }
 
     // Changes to these variables notify child components if they should give up space by going into a more compact mode

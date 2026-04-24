@@ -636,7 +636,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
                     L.polygon([outer, latLngRing], {
                         fillColor: "#000000",
                         fillOpacity: 0.1,
-                        stroke: false
+                        stroke: false,
+                        className: 'polygon-mask',
+                        interactive: false,
                     }).addTo(this.layers[object.layerName].layer!);
 
                     // Render a faint outline of the region

@@ -5,19 +5,19 @@
  * Translating adapter class for OpenTripPlanner.
  */
 
-const logService = require('../../log.js');
+const logService = require('../../../log.js');
 
 import { OTPService } from "./OTPService";
 import { RoutePlanner } from "../RoutePlanner";
-import { TripSectionInfo } from "../types/TripSectionInfo";
+import { TripSectionInfo } from "../../types/TripSectionInfo";
 import { PlanConnectionParams } from "./types/PlanConnectionParams";
 import { PlanDirectMode } from "./types/PlanDirectMode";
 import { PlanTransitModePreferenceInput } from "./types/PlanTransitModePreferenceInput";
-import { TripSectionOption, TripSectionLeg } from "../types/TripOption";
+import { TripSectionOption, TripSectionLeg } from "../../types/TripOption";
 import { Edges, Leg, Node, PlanConnectionResponse, RoutingErrorCode } from "./types/PlanConnectionResponse";
-import { Mode } from "../types/Mode";
-import { OTP_MAX_WINDOW_PAGING_ATTEMPTS } from "../utils/systemConstants";
-import { translateGooglePolyline } from "../shaping";
+import { Mode } from "../../types/Mode";
+import { OTP_MAX_WINDOW_PAGING_ATTEMPTS } from "../../utils/systemConstants";
+import { translateGooglePolyline } from "../../shaping";
 
 // Function for logging 
 function log(type: string, msg: string): void {

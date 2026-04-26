@@ -6,7 +6,7 @@
  * Simply calls the instance with given parameters, checks errors and returns plain response JSON.
  */
 
-const logService = require('../../log.js');
+const logService = require('../../../log.js');
 
 import { getPlanConnectionQuery } from "./gqlQueries";
 import { PlanConnectionParams } from "./types/PlanConnectionParams";

@@ -11,7 +11,7 @@ const dbPostgis = require('../db-postgis.js');
 import { TripRequest } from './types/TripRequest';
 import { planTrip } from './tripOrchestrator';
 import { rerouteLegInTrip } from './tripOrchestrator';
-import { RoutePlanner } from './RoutePlanner';
+import { RoutePlanner } from './routing_services/RoutePlanner';
 import { reverseGeocodeNominatim } from './geo';
 import { LatLng } from './types/LatLng';
 import { TripSectionOption } from './types/TripOption';
@@ -19,8 +19,8 @@ import { getLegShape } from './shaping';
 import { env } from '../../frontend/modules/planner/config';
 
 // Implemented adapters and services in TypeScript
-import { OTPAdapter } from './OTP/OTPAdapter';
-import { OTPService } from './OTP/OTPService';
+import { OTPAdapter } from './routing_services/OTP/OTPAdapter';
+import { OTPService } from './routing_services/OTP/OTPService';
 
 // Function for logging 
 function log(type: string, msg: string): void {

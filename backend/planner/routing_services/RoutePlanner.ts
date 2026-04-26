@@ -5,8 +5,8 @@
  * Interface for external route planners to implement.
  */
 
-import { TripSectionInfo } from "./types/TripSectionInfo";
-import { TripSectionOption } from "./types/TripOption";
+import { TripSectionInfo } from "../types/TripSectionInfo";
+import { TripSectionOption } from "../types/TripOption";
 
 /*
 Interface implemented by individual planner adapters

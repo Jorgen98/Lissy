@@ -5,7 +5,7 @@
  * Functions for handling the requesting, building and filtering individual trip sections.
  */
 
-import { RoutePlanner } from "./RoutePlanner";
+import { RoutePlanner } from "./routing_services/RoutePlanner";
 import { TripSectionInfo } from "./types/TripSectionInfo";
 import { TripSectionOption } from "./types/TripOption";
 import { postprocessTripSections, rateOptions } from "./postprocessing";

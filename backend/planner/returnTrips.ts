@@ -5,7 +5,7 @@
  * Functions for executing the search for return trips for trip options.
  */
 
-import { RoutePlanner } from "./RoutePlanner";
+import { RoutePlanner } from "./routing_services/RoutePlanner";
 import { TripOption, TripSectionOption } from "./types/TripOption";
 import { TripRequest } from "./types/TripRequest";
 import { addPlaceNames, postprocessTripSections, rateOptions } from "./postprocessing";

@@ -10,7 +10,7 @@ const dbPostgis = require('../db-postgis.js');
 const logService = require('../log.js');
 
 import { TripRequest } from "./types/TripRequest";
-import { RoutePlanner } from "./RoutePlanner";
+import { RoutePlanner } from "./routing_services/RoutePlanner";
 import { TripOption, TripSectionOption } from "./types/TripOption";
 import { TripSectionInfo } from "./types/TripSectionInfo";
 import { getSectionOptions } from "./sectionOrchestrator";

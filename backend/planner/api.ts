@@ -21,6 +21,8 @@ import { env } from '../../frontend/modules/planner/config';
 // Implemented adapters and services in TypeScript
 import { OTPAdapter } from './routing_services/OTP/OTPAdapter';
 import { OTPService } from './routing_services/OTP/OTPService';
+import { ValhallaService } from './routing_services/Valhalla/ValhallaService';
+import { ValhallaAdapter } from './routing_services/Valhalla/ValhallaAdapter';
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -125,6 +127,10 @@ function getPlannerAdapter(selected: string): RoutePlanner | null {
         case 'otp': {
             const service = new OTPService();
             return new OTPAdapter(service);
+        }
+        case 'valhalla': {
+            const service = new ValhallaService();
+            return new ValhallaAdapter(service);
         }
         default: {
             return null;

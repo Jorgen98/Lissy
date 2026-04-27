@@ -156,6 +156,8 @@ async function calculatePublicTransportPrice(legs: TripSectionLeg[], ticketType:
             });
         }
     });
+    if (uniqueZones.size === 0)
+        return 0;
 
     // Get the minutes and zone count needed on the ticket
     const neededMinutes = Math.ceil((transitEndTime.getTime() - transitStartTime.getTime()) / (1000 * 60));

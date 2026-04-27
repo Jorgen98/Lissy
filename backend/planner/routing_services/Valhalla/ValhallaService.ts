@@ -10,6 +10,7 @@ const logService = require('../../../log.js');
 
 import { buildRouteQuery } from "./queryBuilder";
 import { RouteQueryParams } from "./types/RouteQueryParams";
+import { RouteQueryResponse } from "./types/RouteQueryResponse";
 
 // Function for logging 
 function log(type: string, msg: string): void {
@@ -19,7 +20,7 @@ function log(type: string, msg: string): void {
 export class ValhallaService {
 
     // Get a route between two points using Valhalla /route endpoint
-    async route(params: RouteQueryParams): Promise<any | null> {
+    async route(params: RouteQueryParams): Promise<RouteQueryResponse | null> {
 
         if (!process.env.BE_PLANNER_VALHALLA_URL) {
             log('error', "Missing environment variable with Valhalla instance URL");

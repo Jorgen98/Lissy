@@ -8,6 +8,16 @@
 import { LatLng } from "./LatLng";
 import { Mode } from "./Mode";
 
+// A stop in a transit leg
+export type Stop = {
+    name: string,           // Name of the stop
+    zone: string | null,    // Zone the stop is in
+
+    // Coordinates
+    lat: number, 
+    lng: number,
+};
+
 // One leg of the connection
 export type TripSectionLeg = {
     distance: number,               // Distance in meters
@@ -63,7 +73,7 @@ export type TripSectionLeg = {
     isTransitLeg: boolean,
 
     // List of stops used on the leg, null for non-transit legs
-    stops: { name: string, zone: string, lat: number, lng: number }[] | null,
+    stops: Stop[] | null,
 };
 
 // One option for a requested trip section between two points

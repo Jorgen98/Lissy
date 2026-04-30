@@ -1,5 +1,5 @@
 /*
- * File: Mode.ts
+ * File: Ticket.ts
  * Author: Adam Vcelar (xvcelaa00)
  *
  * Custom type for fare ticket used for trip price calculation.

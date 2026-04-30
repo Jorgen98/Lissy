@@ -17,32 +17,33 @@ function log(type, msg) {
 
 // Main request processing function
 async function processRequest(url, req, res) {
-    const today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
     try {
+        const today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
         switch (url[0]) {
             case 'getRoutes': {
+                const actualDate = timeStamp.removeDayFromTimeStamp(req.query.date, 7);
                 // Return today routes
-                if (today === req.query.date) {
+                if (today === actualDate) {
                     res.send(await dbPostGIS.getActiveRoutesToProcess());
                 // Return routes from another day
                 } else {
-                    const actualDate = timeStamp.removeDayFromTimeStamp(req.query.date, 7);
                     res.send(await dbPostGIS.getRoutesDetail(await dbStats.getRoutesIdsInInterval(actualDate, actualDate)));
                 }
                 break;
             }
             case 'getTrips': {
-                if (req.query.route_id === undefined) {
+                if (req.query.route === undefined) {
                     res.send(false);
                 } else {
+                    req.query.route = JSON.parse(req.query.route);
+                    const actualDate = timeStamp.removeDayFromTimeStamp(req.query.date, 7);
                     // Return today trips
-                    if (today === req.query.date) {
-                        const routeTrips = (await dbPostGIS.getPlannedTrips([{id: parseInt(req.query.route_id)}]))[0].trips;
+                    if (today === actualDate) {
+                        const routeTrips = (await dbPostGIS.getPlannedTrips([req.query.route]))[0].trips;
                         res.send(await dbPostGIS.getTripsDetail(routeTrips.map((trip) => { return trip.id }), false));
                     // Return trips from another day
                     } else {
-                        const actualDate = timeStamp.removeDayFromTimeStamp(req.query.date, 7);
-                        const trips = await dbStats.getTripIdsInInterval(parseInt(req.query.route_id), actualDate, actualDate);
+                        const trips = await dbStats.getTripIdsInInterval(parseInt(req.query.route.id), actualDate, actualDate);
                         res.send(await dbPostGIS.getTripsDetail(trips, false));
                     }
                 }

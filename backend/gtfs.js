@@ -1014,7 +1014,6 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                     continue;
                 }
             } catch(error) {
-                console.log(error);
                 continue;
             }
         }
@@ -1055,25 +1054,15 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
     for (const record of inputTripsData) {
         let decRecord = parseOneLineFromInputFile(record);
 
-        if (decRecord === undefined || decRecord[routeIdIdx] === undefined || decRecord[tripIdIdxTrips] === undefined) {
+        if (decRecord === undefined || decRecord[routeIdIdx] === undefined || decRecord[tripIdIdxTrips] === undefined || todayRouteIds[decRecord[routeIdIdx]] === undefined) {
             continue;
-        }
-
-        if (todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) === -1 || actualStopTimes[decRecord[tripIdIdxTrips]] === undefined ||
-            todayRouteIds[decRecord[routeIdIdx]] === undefined) {
-            if (!useAllServices) {
-                continue;
-            }
         }
 
         tripsToProcess++;
 
-        let internTripId = `${decRecord[routeIdIdx]}?${actualStopTimes[decRecord[tripIdIdxTrips]].stops_info[0].aT}?${JSON.stringify(actualStopTimes[decRecord[tripIdIdxTrips]]?.stops)}`;
-
         let newTrip = {
             route_id: decRecord[routeIdIdx] ? decRecord[routeIdIdx] : '',
             route_id_id: null,
-            trip_id: decRecord[tripIdIdxTrips] ? decRecord[tripIdIdxTrips] : '',
             trip_headsign: decRecord[tripHeadsignIdx] ? decRecord[tripHeadsignIdx] : '',
             trip_short_name: decRecord[tripShortNameIdx] ? decRecord[tripShortNameIdx] : '',
             direction_id: decRecord[directionIdIdx] ? parseInt(decRecord[directionIdIdx]) : 0,
@@ -1081,29 +1070,33 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             wheelchair_accessible: decRecord[wheelchairAccessibleIdx] ? parseInt(decRecord[wheelchairAccessibleIdx]) : 0,
             bikes_allowed: decRecord[bikesAllowedIdx] ? parseInt(decRecord[bikesAllowedIdx]) : 0,
             shape_id: null,
-            stops_info: actualStopTimes[decRecord[tripIdIdxTrips]].stops_info,
-            stops: actualStopTimes[decRecord[tripIdIdxTrips]].stops,
-            api: '',
-            gtfs_trip_id: null
+            stops_info: actualStopTimes[decRecord[tripIdIdxTrips]].stops_info ?? undefined,
+            stops: actualStopTimes[decRecord[tripIdIdxTrips]].stops ?? []
         }
 
-        let actualTrip = actualTrips[internTripId];
+        // Intern trip id consists from Route, departure time and stops
+        const internTripId = `${decRecord[routeIdIdx]}?${actualStopTimes[decRecord[tripIdIdxTrips]].stops_info[0].aT}?${JSON.stringify(actualStopTimes[decRecord[tripIdIdxTrips]]?.stops)}`;
+        // While there can be lot of similar trips with different drop_off_type, there is uniq id for trip service on monday, sunday etc
+        const internUniqTripId = `${internTripId}?${JSON.stringify(actualStopTimes[decRecord[tripIdIdxTrips]].stops_info)}?${newTrip.trip_headsign}?` +
+            `${newTrip.trip_short_name}?${newTrip.direction_id}?${newTrip.block_id}?${newTrip.wheelchair_accessible}?${newTrip.bikes_allowed}`;
+        const gtfsTripID = decRecord[tripIdIdxTrips] ? decRecord[tripIdIdxTrips] : '';
+
+        let actualTrip = actualTrips[internUniqTripId];
         newTrip.route_id_id = actualTrip?.route_id_id ? actualTrip.route_id_id : null;
         newTrip.shape_id = actualTrip?.shape_id ? actualTrip.shape_id : null;
-        newTrip.api = actualApiEndpoints[newTrip.trip_id] ? actualApiEndpoints[newTrip.trip_id] : null;
-        newTrip.gtfs_trip_id = JSON.parse(JSON.stringify(newTrip.trip_id));
-        newTrip.trip_id = internTripId;
 
         let actualTripToCmp = actualTrip ? JSON.parse(JSON.stringify(actualTrip)) : undefined;
         let tripToCmp = JSON.parse(JSON.stringify(newTrip));
 
         tripToCmp['stops_info'] = JSON.stringify(tripToCmp['stops_info']);
         tripToCmp['stops'] = JSON.stringify(tripToCmp['stops']);
+
         if (actualTripToCmp !== undefined) {
             actualTripToCmp['stops_info'] = JSON.stringify(actualTripToCmp['stops_info'] ? actualTripToCmp['stops_info'] : undefined);
             actualTripToCmp['stops'] = JSON.stringify(actualTripToCmp['stops'] ? actualTripToCmp['stops'] : undefined);
             delete actualTripToCmp['id'];
             delete actualTripToCmp['tmp_shape_id'];
+            delete actualTripToCmp['trip_id'];
         }
 
         if (actualTrip === undefined || JSON.stringify(actualTripToCmp) !== JSON.stringify(tripToCmp)) {
@@ -1112,11 +1105,15 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                     return false;
                 }
             }
-
+            if (actualTripToCmp !== undefined) {
+                console.log(actualTripToCmp, tripToCmp)
+            } else {
+                console.log(internUniqTripId)
+            }
             newTrip.route_id_id = todayRouteIds[newTrip.route_id].id;
+            newTrip.trip_id = internTripId;
 
             let newTripToAdd = JSON.parse(JSON.stringify(newTrip));
-            newTripToAdd['stops_info'] = newTripToAdd['stops_info'].map(value => `'${JSON.stringify(value)}'`);
             let newTripId = await dbPostGIS.addTrip(newTripToAdd);
 
             if (newTripId === null) {
@@ -1125,7 +1122,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
             newTrip.id = newTripId;
             dbStats.updateStateProcessingStats('gtfs_trips_added', 1);
-            actualTrips[internTripId] = newTrip;
+            actualTrips[internUniqTripId] = newTrip;
 
             let tmpShapeId = `${todayRouteIds[newTrip.route_id].route_type}?${JSON.stringify(newTrip.stops)}`;
             let tmpShapeActualId = null;
@@ -1133,7 +1130,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             if (actualTrip !== undefined  && actualTrip.tmp_shape_id !== undefined) {
                 if (actualTrip.tmp_shape_id === tmpShapeId) {
                     tmpShapeActualId = actualTrip.shape_id;
-                    actualTrips[internTripId].tmp_shape_id = tmpShapeId;
+                    actualTrips[internUniqTripId].tmp_shape_id = tmpShapeId;
                 }
             }
 
@@ -1172,13 +1169,25 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 await dbPostGIS.updateTripsShapeId([newTripId], tmpShapeActualId);
             }
 
-            if (! await dbPostGIS.setTripAsUnServed(newTripId)) {
-                return false;
+            if ((todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) !== -1 && actualStopTimes[decRecord[tripIdIdxTrips]] !== undefined) || useAllServices) {
+                if (! await dbPostGIS.setTripAsUnServed(newTripId)) {
+                    return false;
+                }
             }
+
+            try {
+                await dbPostGIS.updateTripDetails(newTripId, newTrip.route_id.split(/[^0-9]+/).filter(Boolean)[0], actualApiEndpoints[gtfsTripID], gtfsTripID);
+            } catch (error) {};
         } else {
-            if (! await dbPostGIS.setTripAsUnServed(actualTrip.id)) {
-                return false;
+            if ((todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) !== -1 && actualStopTimes[decRecord[tripIdIdxTrips]] !== undefined) || useAllServices) {
+                if (! await dbPostGIS.setTripAsUnServed(actualTrip.id)) {
+                    return false;
+                }
             }
+
+            try {
+                await dbPostGIS.updateTripDetails(actualTrip.id, actualTrip.route_id.split(/[^0-9]+/).filter(Boolean)[0], actualApiEndpoints[gtfsTripID], gtfsTripID);
+            } catch (error) {};
         }
     }
 
@@ -1190,7 +1199,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 // Function for decoding which services should be operated today
 function getTodayServices(inputCalendarFile, inputDatesFile) {
     todayServiceIDs = [];
-    let today = timeStamp.getTodayUTC();
+    let today = process.env.PROCESSING_YESTERDAY ? timeStamp.getDateFromTimeStamp(timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(timeStamp.getTodayUTC()))) : timeStamp.getTodayUTC();
     today.setUTCHours(0, 0, 0, 0);
     const dayOfWeek = today.getUTCDay() === 0 ? 6 : today.getUTCDay() - 1;
 
@@ -1226,7 +1235,7 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
         }
     }
 
-    // Provide calendar dates data if provided
+    // Process calendar dates data if provided
     // https://gtfs.org/schedule/reference/#calendar_datestxt
     if (inputDatesFile?.data !== undefined) {
         let inputDatesData = inputDatesFile.data.toString().split('\n');
@@ -1385,25 +1394,21 @@ function stopsSort(data) {
 }
 
 // Function, which returns shape based on lineId and tripId
-async function getShapeFromOTP(routeId, tripId) {
-    if (routeId === undefined || tripId === undefined) {
+async function getShapeFromOTP(route_id, trip_id) {
+    if (trip_id === undefined) {
         return undefined;
     }
 
-    // Try to fetch active routes from cache first
-    // If not in cache yet, store in cache
-    const cachedRoutes = await dbCache.getActiveRoutes();
-    const routes = cachedRoutes.data ?? await dbCache.setUpActiveRoutes();
-    const route = routes[routeId.split(':')[1]];
-    if (route) {
-
-        // Get gtfs trip that match route id and gtfs id
-        const trips = await dbPostGIS.getGtfsTrip(tripId.split(':')[1], route["id"]);
-        const trip = trips[tripId.split(':')[1]];
-        if (!trip)
+    const gtfs_route = route_id.split(':')[1]?.split(/[^0-9]+/).filter(Boolean)[0];
+    const gtfs_trip = trip_id.split(':')[1];
+    if (gtfs_route && gtfs_trip) {
+        const actual_trip = await dbPostGIS.getTripIDByGTFS(gtfs_route, gtfs_trip);
+        if (actual_trip) {
+            const actual_trip_id = await dbPostGIS.getTripsDetail([actual_trip.internal_trip_id], false);
+            return await dbPostGIS.getFullShape(actual_trip_id[0]?.shape_id);
+        } else {
             return undefined;
-
-        return await dbPostGIS.getFullShape(trip.shape_id);
+        }
     }
 }
 

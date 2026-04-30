@@ -10,6 +10,7 @@ import { UIMessagesService } from '../../src/app/services/messages';
 import { routeFromDB, shapeWithTripsFromDB, tripFromDB } from '../../components/types';
 import { delayCategoriesService } from '../../src/app/services/delayCategories';
 import * as timeStamp from "../../src/app/services/timeStamps";
+import { ThemeService } from '../../src/app/services/theme';
 
 @Component({
     selector: 'prediction',
@@ -26,7 +27,8 @@ export class PredictionModule implements OnInit, OnDestroy {
         public translate: TranslateService,
         public mapService: MapService,
         private msgService: UIMessagesService,
-        private delayCategoriesService: delayCategoriesService
+        private delayCategoriesService: delayCategoriesService,
+        public theme: ThemeService
     ) {}
 
     public moduleFocus: Number = 0;
@@ -55,13 +57,15 @@ export class PredictionModule implements OnInit, OnDestroy {
 
     // On component creation
     public async ngOnInit() {
-        await this.getDayRoutes();
+        await this.onDaySelected((new Date().getDay()));
+        this.theme.init();
     }
 
     // On component destroy
     public ngOnDestroy() {
         this.mapService.removeLayer('route');
         this.mapService.removeLayer('stops');
+        this.theme.setDefault();
     }
 
     // Function for trip selection
@@ -134,7 +138,13 @@ export class PredictionModule implements OnInit, OnDestroy {
     public async routeSelected(route: routeFromDB) {
         this.msgService.turnOnLoadingScreenWithoutPercentage();
         this.selectedRoute = route;
-        this.routeTrips = await this.apiGet("getTrips", {date: timeStamp.getTimeStamp(this.selectedDate.date.getTime()), route_id: route.id.toString()});
+        this.routeTrips = await this.apiGet("getTrips", {
+            date: timeStamp.getTimeStamp(this.selectedDate.date.getTime()),
+            route: JSON.stringify({
+                id: route.id.toString(),
+                route_id: route.route_id
+            })
+        });
         if (this.routeTrips.length > 0) {
             this.selectedTripGroup = this.routeTrips[0];
             if (this.selectedTripGroup.trips.length > 0) {
@@ -168,7 +178,7 @@ export class PredictionModule implements OnInit, OnDestroy {
             dep_time: this.selectedTrip.dep_time,
             line: this.selectedRoute?.route_short_name ?? '',
             route: this.selectedTripGroup?.stops ?? '',
-            date: timeStamp.getTimeStamp(this.selectedDate.date.getTime())
+            date: timeStamp.getNonJSTimeStamp(this.selectedDate.date.getTime())
         });
 
         console.log(predictionResult);
@@ -215,10 +225,11 @@ export class PredictionModule implements OnInit, OnDestroy {
 
         // Set delay categories according to actual predicated values
         const sorted = [...this.actualPredictionValues].sort((a, b) => a - b);
+        const max = sorted[sorted.length - 1];
 
-        const q1 = sorted[Math.floor(sorted.length * 0.25)];
-        const q2 = sorted[Math.floor(sorted.length * 0.50)];
-        const q3 = sorted[Math.floor(sorted.length * 0.75)];
+        const q1 = sorted[Math.floor(sorted.length * 0.25)] < 1 ? 1 : sorted[Math.floor(sorted.length * 0.25)];
+        const q2 = sorted[Math.floor(sorted.length * 0.50)] < 2 ? 2 : sorted[Math.floor(sorted.length * 0.50)];
+        const q3 = sorted[Math.floor(sorted.length * 0.75)] < 3 ? 3 : sorted[Math.floor(sorted.length * 0.75)];
 
         this.delayCategoriesService.setDelayCategory(0, {
             minValue: -Infinity,
@@ -236,6 +247,16 @@ export class PredictionModule implements OnInit, OnDestroy {
             minValue: q3,
             maxValue: Infinity
         })
+
+        if (max < 3) {
+            this.delayCategoriesService.removeDelayCategory(3);
+        }
+        if (max < 2) {
+            this.delayCategoriesService.removeDelayCategory(2);
+        }
+        if (max < 1) {
+            this.delayCategoriesService.removeDelayCategory(1);
+        }
 
         // Put stops on stops layer
         for (const [idx, stop] of this.mapData.stops.entries()) {
@@ -290,6 +311,7 @@ export class PredictionModule implements OnInit, OnDestroy {
 
     public async onDaySelected(idx: number) {
         this.selectedDate.idx = idx;
+        this.selectedDate.date = new Date();
 
         const today = new Date();
         const currentDay = today.getDay();
@@ -299,7 +321,6 @@ export class PredictionModule implements OnInit, OnDestroy {
             diff += 7;
         }
         this.selectedDate.date.setDate(today.getDate() + diff);
-
         await this.getDayRoutes();
     }
 

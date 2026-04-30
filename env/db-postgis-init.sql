@@ -19,8 +19,10 @@ CREATE TABLE IF NOT EXISTS routes (id SERIAL PRIMARY KEY, route_id TEXT, agency_
     route_url TEXT, route_color TEXT, route_text_color TEXT, route_sort_order INT, continuous_pickup INT, continuous_drop_off INT, network_id TEXT, is_active BOOLEAN);
 CREATE TABLE IF NOT EXISTS shapes (id SERIAL PRIMARY KEY, geom GEOMETRY, route_type TEXT, is_active BOOLEAN);
 CREATE TABLE IF NOT EXISTS trips (id SERIAL PRIMARY KEY, route_id TEXT, route_id_id INT, CONSTRAINT route_id_id FOREIGN KEY(route_id_id) REFERENCES routes(id), trip_id TEXT,
-    trip_headsign TEXT, trip_short_name TEXT, direction_id INT, block_id TEXT, wheelchair_accessible INT, bikes_allowed INT, gtfs_trip_id INT,
-    shape_id INT, CONSTRAINT shape_id FOREIGN KEY(shape_id) REFERENCES shapes(id), stops INT[], stops_info JSON[], api TEXT, is_today BOOLEAN, is_active BOOLEAN);
+    trip_headsign TEXT, trip_short_name TEXT, direction_id INT, block_id TEXT, wheelchair_accessible INT, bikes_allowed INT,
+    shape_id INT, CONSTRAINT shape_id FOREIGN KEY(shape_id) REFERENCES shapes(id), stops INT[], stops_info JSON[], is_today BOOLEAN, is_active BOOLEAN);
+
+CREATE TABLE IF NOT EXISTS trip_details (id SERIAL PRIMARY KEY, internal_trip_id INT, api_route_id INT, api_trip_id INT, gtfs_trip_id INT UNIQUE);
 
 CREATE TABLE IF NOT EXISTS fare_tickets (id SERIAL PRIMARY KEY, code TEXT, zones INT, duration INT, 
     base_price INT, discounted_a_price INT, discounted_b_price INT, is_universal BOOLEAN DEFAULT FALSE);

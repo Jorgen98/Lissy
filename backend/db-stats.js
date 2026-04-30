@@ -217,7 +217,7 @@ async function saveStateProcessingStats() {
         .intField('routing_time', stateProcessingStats['routing_time'])
         .stringField('problematic_routes', JSON.stringify(stateProcessingStats['problematic_routes']))
         .intField('trips_to_process', stateProcessingStats['trips_to_process'])
-        .timestamp(timeStamp.getTodayUTC());
+        .timestamp(process.env.PROCESSING_YESTERDAY ? timeStamp.getDateFromTimeStamp(timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(timeStamp.getTodayUTC()))) : timeStamp.getTodayUTC());
         
     writeApi.writePoint(record)
 

@@ -92,9 +92,9 @@ async function getTripsReadyToProcess() {
     for (let route of tripsToProcess) {
         let idx = 0;
         while (idx < route.trips.length) {
-            let start = new Date(Date.UTC(yesterdayMidNight.getUTCFullYear(), yesterdayMidNight.getUTCMonth(), yesterdayMidNight.getUTCDate(),
+            const start = new Date(Date.UTC(yesterdayMidNight.getUTCFullYear(), yesterdayMidNight.getUTCMonth(), yesterdayMidNight.getUTCDate(),
                 route.trips[idx].stops_info[0].aT.slice(0, 2), route.trips[idx].stops_info[0].aT.slice(3, 5), route.trips[idx].stops_info[0].aT.slice(6, 7), 0));
-            let end = new Date(start.getTime() + (route.trips[idx].stops_info[1].aT  * 1000));
+            const end = new Date(start.getTime() + (route.trips[idx].stops_info[1].aT  * 1000));
 
             if (end.getTime() > (now.getTime() - parseInt(process.env.BE_OP_DATA_PROCESSING_TRIP_END_RESERVE) * 60 * 1000 - (now.getTimezoneOffset() * 60 * 1000))) {
                 route.trips.splice(idx, 1);

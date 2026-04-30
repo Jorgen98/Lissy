@@ -558,11 +558,13 @@ async function getActiveRoutesToProcess() {
 // Add new trip to DB, returns new id
 async function addTrip(trip) {
     try {
-        let id = await db_postgis.query(`INSERT INTO trips (route_id, route_id_id, trip_id, trip_headsign,
-            trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id, stops_info, stops, api, gtfs_trip_id,
-            is_active, is_today) VALUES ('${trip.route_id}',  ${trip.route_id_id}, '${trip.trip_id}', '${trip.trip_headsign}',
-            '${trip.trip_short_name}', ${trip.direction_id}, '${trip.block_id}', ${trip.wheelchair_accessible},
-            ${trip.bikes_allowed}, ${trip.shape_id}, array[${trip.stops_info}]::json[], '{${trip.stops}}', '${trip.api}', '${trip.gtfs_trip_id}', true, false) RETURNING id`);
+        let id = await db_postgis.query(`INSERT INTO trips (route_id, route_id_id, trip_id, trip_headsign, trip_short_name, direction_id,
+            block_id, wheelchair_accessible, bikes_allowed, shape_id, stops_info, stops, is_active, is_today)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true, false) RETURNING id`,
+            [
+                trip.route_id, trip.route_id_id, trip.trip_id, trip.trip_headsign, trip.trip_short_name, trip.direction_id, trip.block_id,
+                trip.wheelchair_accessible, trip.bikes_allowed, trip.shape_id, trip.stops_info, trip.stops
+            ]);
         return id.rows[0].id;
     } catch(error) {
         log('error', error);
@@ -571,18 +573,12 @@ async function addTrip(trip) {
 }
 
 // Get trip in the database based on gtfs id and route id
-async function getGtfsTrip(gtfs_trip_id, route_id) {
+async function getTripIDByGTFS(gtfs_route_id, gtfs_trip_id) {
     try {
-        const result = await db_postgis.query(
-            `SELECT id, trip_id, shape_id, gtfs_trip_id FROM trips WHERE route_id_id = $1 AND gtfs_trip_id = $2 AND is_active=true`,
-            [route_id, gtfs_trip_id]
-        );
-
-        let output = {};
-        for (const row of result.rows)
-            output[row['gtfs_trip_id']] = row;    
-
-        return output;
+        return (await db_postgis.query(
+            `SELECT * FROM trip_details WHERE api_route_id = $1 AND gtfs_trip_id = $2 ORDER BY id LIMIT 1;`,
+            [gtfs_route_id, gtfs_trip_id]
+        )).rows[0];
     } catch(error) {
         log('error', error);
         return null;
@@ -601,7 +597,7 @@ async function getActiveTrips(routeIds) {
     try {
         result = await db_postgis.query(`SELECT id, route_id, route_id_id, trip_id, trip_headsign,
             trip_short_name, direction_id, block_id, wheelchair_accessible, bikes_allowed, shape_id,
-            stops_info, stops, api, gtfs_trip_id FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
+            stops_info, stops FROM trips WHERE is_active=true AND route_id_id IN (${ids})`);
     } catch(error) {
         log('error', error);
         return [];
@@ -610,7 +606,8 @@ async function getActiveTrips(routeIds) {
     let output = {};
 
     for (const row of result.rows) {
-        output[row['trip_id']] = row;
+        output[`${row['trip_id']}?${JSON.stringify(row['stops_info'])}?${row['trip_headsign']}?${row['trip_short_name']}?${row['direction_id']}?` +
+        `${row['block_id']}?${row['wheelchair_accessible']}?${row['bikes_allowed']}`] = row;
     }
 
     return output;
@@ -619,11 +616,21 @@ async function getActiveTrips(routeIds) {
 // Get all trips used in actual transit system state which will be served today
 async function getPlannedTrips(routes) {
     let result;
+    let api_ids;
 
     for (let route of routes) {
         try {
-            result = await db_postgis.query(`SELECT id, api, shape_id, stops_info
-                FROM trips WHERE is_active=true AND is_today=true AND route_id_id=$1`, [route.id]);
+            result = await db_postgis.query(`SELECT id, shape_id, stops_info FROM trips WHERE is_active=true AND is_today=true AND route_id_id=$1`, [route.id]);
+        } catch(error) {
+            log('error', error);
+            return [];
+        }
+
+        const trip_to_save_ids = result.rows.map((trip) => { return trip.id });
+
+        try {
+            api_ids = await db_postgis.query(`SELECT internal_trip_id, api_trip_id FROM trip_details WHERE internal_trip_id = ANY($1) AND api_route_id = $2;`,
+                [trip_to_save_ids, route.route_id.split(/[^0-9]+/).filter(Boolean)[0]]);
         } catch(error) {
             log('error', error);
             return [];
@@ -636,6 +643,7 @@ async function getPlannedTrips(routes) {
             }
 
             trip.stops_info = [trip.stops_info[0], trip.stops_info[trip.stops_info.length - 1]];
+            trip.api = api_ids.rows.find((api) => { return api.internal_trip_id === trip.id })?.api_trip_id;
             trips_to_save.push(trip);
         }
         route.trips = trips_to_save;
@@ -876,6 +884,7 @@ async function getRoutesDetail(routeIds) {
 // Return trips info by given id joined by shape id
 async function getTripsDetail(tripIds, fullStopsOrder) {
     let result;
+    let externalTripIds;
     let stops = {};
 
     if (tripIds.length < 1) {
@@ -894,6 +903,7 @@ async function getTripsDetail(tripIds, fullStopsOrder) {
 
     try {
         result = await db_postgis.query(`SELECT id, shape_id, stops, stops_info FROM trips WHERE id = ANY($1)`, [tripIds]);
+        externalTripIds = await db_postgis.query(`SELECT internal_trip_id, api_trip_id FROM trip_details WHERE internal_trip_id = ANY($1)`, [tripIds]);
     } catch(error) {
         log('error', error);
         return [];
@@ -908,7 +918,11 @@ async function getTripsDetail(tripIds, fullStopsOrder) {
         let tripShapeId = tripGroups.findIndex((inspTrip) => {return inspTrip.shape_id === trip.shape_id});
         if (tripShapeId === -1) {
             tripShapeId = tripGroups.length;
-            tripGroups.push({shape_id: trip.shape_id, stops: `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`, trips: []});
+            tripGroups.push({
+                shape_id: trip.shape_id,
+                stops: `${stops[trip.stops[0]]} -> ${stops[trip.stops[trip.stops.length - 1]]}`,
+                trips: []
+            });
 
             if (fullStopsOrder) {
                 let stopNamesOrder = [];
@@ -924,6 +938,9 @@ async function getTripsDetail(tripIds, fullStopsOrder) {
         delete trip.stops_info;
         delete trip.stops;
         delete trip.shape_id;
+
+        trip.externalTripId = externalTripIds.rows.find((trip_detail) => { return trip_detail.internal_trip_id === trip.id })?.api_trip_id ?? null;
+
         tripGroups[tripShapeId].trips.push(trip);
     }
 
@@ -939,7 +956,7 @@ async function getTripsDetail(tripIds, fullStopsOrder) {
 // Add new shape to DB, returns new id
 async function updateTripsShapeId(tripIds, shapeId) {
     try {
-        await db_postgis.query(`UPDATE trips SET shape_id=${shapeId} WHERE is_active=true AND id IN (${tripIds})`);
+        await db_postgis.query(`UPDATE trips SET shape_id=$1 WHERE is_active=true AND id = ANY($2)`, [shapeId, tripIds]);
         return true;
     } catch(error) {
         log('error', error);
@@ -1003,7 +1020,6 @@ async function getFullShape(id) {
     try {
         result = await db_postgis.query(`SELECT id, ST_AsGeoJSON(geom) FROM shapes WHERE id=${id}`);
         trip = (await db_postgis.query(`SELECT stops FROM trips WHERE shape_id=${id}`)).rows[0];
-
         if (trip === undefined) {
             return {};
         }
@@ -1157,13 +1173,14 @@ async function getShapes() {
                 latLng: stop.latLng
             })
         }
-        if (exists)
+        if (exists) {
             output.push({
                 route: trips[trip].route_id,
                 shape: JSON.parse((await db_postgis.query(`SELECT ST_AsGeoJSON(geom) FROM shapes WHERE id='${trips[trip].shape_id}'`)).rows[0]['st_asgeojson']).coordinates,
                 trip: trips[trip].trip_id.split('?')[2],
                 stops: tripStops
-        });
+            });
+        }
     }
 
     return output;
@@ -1291,9 +1308,24 @@ async function insertRegionOutline(configName, geometry) {
     }
 }
 
+async function updateTripDetails(internal_trip_id, api_route_id, api_trip_id, gtfs_trip_id) {
+    try {
+        await db_postgis.query(
+            `INSERT INTO trip_details (internal_trip_id, api_route_id, api_trip_id, gtfs_trip_id) VALUES ($1, $2, $3, $4)
+            ON CONFLICT (gtfs_trip_id) DO UPDATE SET internal_trip_id = EXCLUDED.internal_trip_id, api_route_id = EXCLUDED.api_route_id, api_trip_id = EXCLUDED.api_trip_id
+            WHERE trip_details.internal_trip_id IS DISTINCT FROM EXCLUDED.internal_trip_id OR trip_details.api_route_id IS DISTINCT FROM EXCLUDED.api_route_id OR trip_details.api_trip_id IS DISTINCT FROM EXCLUDED.api_trip_id;`,
+            [internal_trip_id, api_route_id, api_trip_id, gtfs_trip_id]);
+        return true;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
     getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
-    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getGtfsTrip, getPlannerConfig, updateFuelPrice, insertRegionOutline }
+    getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getTripIDByGTFS, getPlannerConfig, updateFuelPrice,
+    insertRegionOutline, updateTripDetails }

@@ -231,12 +231,12 @@ function deduplicateSections(options: TripSectionOption[], reverseOrder: boolean
 // Function creating an id that is unique to sections that have the same legs
 function buildSectionOptionId(option: TripSectionOption): string {
 
-    // Start with distance and duration of the option
-    let id = `${String(Math.round(option.distance))}_${String(Math.round(option.duration))}`;
+    // Start with number of legs of the option
+    let id = `${option.legs.length}`;
 
     // Append information about each leg to the string
     option.legs.forEach(leg => {
-        id += `_${leg.mode}_${Math.round(leg.distance)}_${Math.round(leg.duration)}_${leg.from.placeName}_${leg.to.placeName}`;
+        id += `_${leg.mode}_${leg.route?.lineId}_${leg.from.placeName}_${leg.to.placeName}`;
     });
 
     return id;

@@ -158,7 +158,7 @@ Main component HTML template file for the itinerary used in the planner module.
                       }
 
                       <!-- Access/egress/transfer walking leg with duration -->
-                      @else {
+                      @else if (leg.duration >= 60) {
                         <div class="faint-text">
                           <img class="transfer-walk-img" [src]="'./planner/walk-light.svg'">
                           <span>{{ leg.duration | duration }}</span>
@@ -276,7 +276,7 @@ Main component HTML template file for the itinerary used in the planner module.
                       }
 
                       <!-- Access/egress/transfer walking leg with duration -->
-                      @else {
+                      @else if (leg.duration >= 60) {
                         <div class="faint-text">
                           <img class="transfer-walk-img" [src]="'./planner/walk-light.svg'" alt="">
                           <span>{{ leg.duration | duration }}</span>

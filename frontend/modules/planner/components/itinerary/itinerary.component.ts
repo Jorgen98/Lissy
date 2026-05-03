@@ -127,28 +127,22 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
 
         // If the tripOptions input changes, reset state of the selected option indicies
         if (changes["tripOptions"]) {
-            this.accordionOptionValue = -1;
-            this.selectedOptionIdx = 0;
-            this.optionDetailActive = false;
+            const singleOption = this.tripOptions()?.length === 1; 
             this.selectedSortField = "startDatetime";
             this.returnTripRendered = false;
+            this.selectedOptionIdx = 0;
+            this.accordionOptionValue = 0;
+            this.accordionOptionValue = singleOption ? 0 : -1;
+            this.optionDetailActive = singleOption;
         }
     }
 
     ngOnInit(): void {
 
-        // Subscribe to changes from parent to collapse/uncollapse the form
+        // Subscribe to changes from parent to collapse/uncollapse the itinerary
         this.forceActionSubscription = this.forceAction.subscribe(action => {
-            if (action === "open"){
+            if (action === "open")
                 this.showCompactView = false;
-
-                // If theres only one trip option available open the detail automatically
-                if (this.tripOptions()?.length === 1) {
-                    this.accordionOptionValue = 0;
-                    this.selectedOptionIdx = 0;
-                    this.optionDetailActive = true;
-                }
-            }
             else if (action === "close") {
                 this.showCompactView = true;
                 this.accordionOptionValue = -1;

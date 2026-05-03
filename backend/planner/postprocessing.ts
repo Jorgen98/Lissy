@@ -335,8 +335,6 @@ export function rateOptions(objects: TripOption[] | TripSectionOption[]): void {
 
     // Calculate score for each trip option with normalization to 0-100 range
     let maxIdx = 0;
-    let fastestSet = false;
-    let cheapestSet = false;
     objects.forEach((object, idx) => {
 
         // Check if the score should be calculated for the object (not calculating for fully direct ones)
@@ -358,14 +356,10 @@ export function rateOptions(objects: TripOption[] | TripSectionOption[]): void {
             const value = object[criteriaKey]!;
 
             // Mark fastest and cheapest trips with flags (only first one if equal)
-            if (!fastestSet && criteriaKey === "duration" && minActual === value) {
-                if (isTripOption) (object as TripOption).fastest = true
-                fastestSet = true;
-            }
-            else if (!cheapestSet && criteriaKey === "cost" && minActual === value) {
-                if (isTripOption) (object as TripOption).cheapest = true
-                cheapestSet = true;
-            }
+            if (criteriaKey === "duration" && minActual === value && isTripOption)
+                (object as TripOption).fastest = true;
+            else if (criteriaKey === "cost" && minActual === value && isTripOption)
+                (object as TripOption).cheapest = true
 
             const normalized = calculateScore ? Math.pow((minRating + 1) / (value + 1), 0.5) * 100 : 0;
 

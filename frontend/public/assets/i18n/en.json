@@ -248,6 +248,7 @@
             "fuelConsumption": "Average fuel consumption",
             "fuelPrice": "Fuel price",
             "fuelPriceAttribution": "Default value data source",
+            "fareInformation": "Fare information source",
             "extraCarCosts": "Other operational expenses"
         }
     },

@@ -249,6 +249,7 @@
             "fuelConsumption": "Průměrná spotřeba paliva",
             "fuelPrice": "Cena paliva",
             "fuelPriceAttribution": "Zdroj dat pro základní hodnotu",
+            "fareInformation": "Zdroj informací o jízdném",
             "extraCarCosts": "Další náklady na provoz"
         }
     },

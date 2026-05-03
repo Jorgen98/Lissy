@@ -595,7 +595,6 @@ app-page-not-found {
     .leaflet-control-scale {
         position: absolute !important;
         bottom: 13px;
-        right: 5px;
     }
 }
 

@@ -274,4 +274,9 @@ input[type="checkbox"] {
     max-width: 100vw;
     padding-bottom: 3.5em;
   }
+
+  :host ::ng-deep .leaflet-bottom {
+    right: auto !important;
+    left: 1px !important;
+  }
 }

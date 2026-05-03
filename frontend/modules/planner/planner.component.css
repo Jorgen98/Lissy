@@ -244,6 +244,12 @@ h3 {
   color: var(--p-gray-400);
 }
 
+input[type="checkbox"] {
+  accent-color: var(--planner-form-accent-color);
+  width: 18px;
+  height: 18px;
+}
+
 @media only screen and (max-width: 700px) {
   .main-components-wrapper {
     width: 100%;

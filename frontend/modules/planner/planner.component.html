@@ -97,11 +97,10 @@ Main component HTML template file for the planner module.
                   (onBlur)="setDefaultIfEmpty('walkDistance')"/><span class="settings-unit">Km</span>
               </div>
               <span class="side-control-checkbox-span">
-                <p-checkbox [binary]="true" [(ngModel)]="walkDistanceUnlimited">
-                  <ng-template pTemplate="icon">
-                    <i class="pi pi-check"></i>
-                  </ng-template>
-                </p-checkbox>
+                <input
+                  type="checkbox"
+                  [(ngModel)]="walkDistanceUnlimited"
+                />
                 <p class="side-control-checkbox-head">{{ 'planner.settings.unlimitedWalkDistance' | translate }}</p>
               </span>
             </div>
@@ -148,61 +147,55 @@ Main component HTML template file for the planner module.
 
                   <!-- Bus -->
                   <div class="checkbox-label-pair">
-                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.bus">
-                      <ng-template pTemplate="icon">
-                        <i class="pi pi-check"></i>
-                      </ng-template>
-                    </p-checkbox>
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.bus"
+                    />
                     <p class="side-control-checkbox-head">{{ 'planner.settings.bus' | translate }}</p>
                   </div>
 
                   <!-- Trolleybus -->
                   <div class="checkbox-label-pair">
-                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.trolleybus">
-                      <ng-template pTemplate="icon">
-                        <i class="pi pi-check"></i>
-                      </ng-template>
-                    </p-checkbox>
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.trolleybus"
+                    />
                     <p class="side-control-checkbox-head">{{ 'planner.settings.trolleybus' | translate }}</p>
                   </div>
 
                   <!-- Tram -->
                   <div class="checkbox-label-pair">
-                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.tram">
-                      <ng-template pTemplate="icon">
-                        <i class="pi pi-check"></i>
-                      </ng-template>
-                    </p-checkbox>
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.tram"
+                    />
                     <p class="side-control-checkbox-head">{{ 'planner.settings.tram' | translate }}</p>
                   </div>
 
                   <!-- Train -->
                   <div class="checkbox-label-pair">
-                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.train">
-                      <ng-template pTemplate="icon">
-                        <i class="pi pi-check"></i>
-                      </ng-template>
-                    </p-checkbox>
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.train"
+                    />
                     <p class="side-control-checkbox-head">{{ 'planner.settings.train' | translate }}</p>
                   </div>
 
                   <!-- Ferry -->
                   <div class="checkbox-label-pair">
-                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.ferry">
-                      <ng-template pTemplate="icon">
-                        <i class="pi pi-check"></i>
-                      </ng-template>
-                    </p-checkbox>
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.ferry"
+                    />
                     <p class="side-control-checkbox-head">{{ 'planner.settings.ferry' | translate }}</p>
                   </div>
 
                   <!-- Subway -->
                   <div class="checkbox-label-pair">
-                    <p-checkbox [binary]="true" [(ngModel)]="allowedPublicTransportModes.subway">
-                      <ng-template pTemplate="icon">
-                        <i class="pi pi-check"></i>
-                      </ng-template>
-                    </p-checkbox>
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.subway"
+                    />
                     <p class="side-control-checkbox-head">{{ 'planner.settings.subway' | translate }}</p>
                   </div>
                 </div>
@@ -225,11 +218,10 @@ Main component HTML template file for the planner module.
                   (onBlur)="setDefaultIfEmpty('maxTransfers')"/>
               </div>
               <span class="side-control-checkbox-span">
-                <p-checkbox [binary]="true" [(ngModel)]="maxNumberOfTransfersUnlimited">
-                  <ng-template pTemplate="icon">
-                    <i class="pi pi-check"></i>
-                  </ng-template>
-                </p-checkbox>
+                <input
+                  type="checkbox"
+                  [(ngModel)]="maxNumberOfTransfersUnlimited"
+                />
                 <p class="side-control-checkbox-head">{{ 'planner.settings.unlimitedTransfers' | translate }}</p>
               </span>
             </div>

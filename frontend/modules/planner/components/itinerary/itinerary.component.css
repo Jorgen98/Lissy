@@ -326,6 +326,7 @@ button {
   align-items: center;
   gap: 10px;
   font-size: 15px;
+  color: var(--planner-itinerary-faint-text-color);
 }
 
 .divider::before,

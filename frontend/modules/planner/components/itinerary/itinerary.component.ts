@@ -258,9 +258,9 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
     }
 
     // Function called when the export button is clicked, exports the given trip option
+    /*********** Function taken from https://www.30secondsofcode.org/js/s/json-to-file/ *************/
     public exportTrip(trip: TripOption): void {
-        // https://www.30secondsofcode.org/js/s/json-to-file/
-
+        
         // Serialize TS object into a string
         const serialized = JSON.stringify(trip);
 
@@ -268,10 +268,30 @@ export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {
         const blob = new Blob([serialized], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
 
-        // Create anchor element, change attributes to the created URL and set filename and click it, invoking the download
+        // Create anchor element, change attribute to the created URL
         const a = document.createElement('a');
         a.href = url;
-        a.download = `trip_${Date.now()}.json`;
+
+        // Get first parts of origin and dsetination names
+        const originName = trip.sections[0].originName?.split(",")[0] ?? "";
+        const destinationName = trip.sections[trip.sections.length - 1].destinationName?.split(",")[0] ?? "";
+
+        // Get date of the trip
+        const startDate = trip.startDatetime.toISOString().split("T")[0];
+
+        // Last 5 digits of now timestamp, for uniqueness of downloaded files
+        const now = Date.now().toString().slice(-5);
+
+        // Replace accents and special characters
+        const filename = `${now}_${originName}_to_${destinationName}_${startDate}`
+            .normalize("NFD")                   
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9_\-]/g, '_')
+            .replace(/_+/g, '_')
+            .toLowerCase();    
+        a.download = `${filename}.json`;
+
+        // Invoke download of file with the created filename
         a.click();
 
         // Release the created URL

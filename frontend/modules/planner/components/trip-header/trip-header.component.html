@@ -63,10 +63,10 @@ Component HTML template file for the header component describing a single trip o
 
 <!-- Distance and duration of option -->
 <div class="header-distance-duration">
-  <span class="header-info"><i class="pi pi-stopwatch"></i>{{ option()!.duration | duration }}</span>
-  <span class="header-info"><i class="pi pi-wave-pulse"></i>{{ option()!.distance | distance }}</span>
-  <span class="header-info"><i class="pi pi-arrows-h"></i>{{ option()!.numTransfers }}</span>
-  <span class="header-info"><i class="pi pi-wallet"></i>{{ `${option()!.cost | number:'1.0-0'} Kč` }}</span>
+  <span class="header-info" [title]="'planner.itinerary.duration' | translate"><i class="pi pi-stopwatch"></i>{{ option()!.duration | duration }}</span>
+  <span class="header-info" [title]="'planner.itinerary.distance' | translate"><i class="pi pi-arrows-h"></i>{{ option()!.distance | distance }}</span>
+  <span class="header-info" [title]="'planner.itinerary.numTransfers' | translate"><i class="pi pi-arrow-right-arrow-left"></i>{{ option()!.numTransfers }}</span>
+  <span class="header-info" [title]="'planner.itinerary.price' | translate"><i class="pi pi-wallet"></i>{{ `${option()!.cost | number:'1.0-0'} Kč` }}</span>
 </div>
 
 <!-- Disclaimer about possibility of innacuarate data if the option was rerouted -->

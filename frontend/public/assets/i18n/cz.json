@@ -219,7 +219,11 @@
             "hide": "Skrýt",
             "nextConnection": "Následující spoj",
             "previousConnection": "Předchozí spoj",
-            "rerouteDisclaimer": "Proběhlo přesměrování. Data mohou být nepřesná."
+            "rerouteDisclaimer": "Proběhlo přesměrování. Data mohou být nepřesná.",
+            "duration": "Doba trvání",
+            "distance": "Vzdálenost",
+            "numTransfers": "Počet přestupů",
+            "price": "Odhadnutá cena"
         },
         "settings": {
             "walkingPreferences": "Chůze",

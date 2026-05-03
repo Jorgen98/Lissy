@@ -196,7 +196,10 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
             return;
         }
 
-        this.allStops = stops.stops;
+        // Deduplicate stops by matching name
+        this.allStops = stops.stops.filter(
+            (stop, index, allStops) => allStops.findIndex(s => s.name === stop.name) === index
+        );
 
         // Get planner configuration from DB
         const plannerConfig = await this.apiService.genericGet(`${config.apiPrefix}/getConfig`) as PlannerConfig | null;

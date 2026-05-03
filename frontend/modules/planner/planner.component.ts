@@ -105,7 +105,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
     // Maximum walking distance from user preferences input
     public selectedWalkDistanceKm = MAX_WALK_DISTANCE_DEFAULT;
-    public walkDistanceUnlimited = false;   // Whether the walking distance should be limited
+    public walkDistanceUnlimited = true;   // Whether the walking distance should be limited
 
     // Maximum number of transfers from user preferences input
     public selectedMaxNumberOfTransfers = MAX_TRANSFERS_DEFAULT;

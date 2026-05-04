@@ -197,7 +197,7 @@
 }
 
 .side-control-selection-div {
-  overflow: hidden;
+  max-height: calc(100dvh - 3.5em);
   overflow-y: auto;
 }
 

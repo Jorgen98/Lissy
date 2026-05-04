@@ -576,12 +576,16 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
 
     // Function updating state due to success in fetching the current device location
     private currentLocationUpdate(position: GeolocationPosition) {
+
+        // Zoom to current location only if it wasnt set before (dont zoom on updates)
+        const focus = this.currentLocation.lat === undefined;
+
         this.locationStatus = "enabled";
         this.mapService.clearLayer("currentLocation");
         this.mapService.addToLayer({
             layerName: "currentLocation",
             type: "location",
-            focus: true,
+            focus,
             latLng: [{ lat: position.coords.latitude, lng: position.coords.longitude }],
             color: "base",
             interactive: false,

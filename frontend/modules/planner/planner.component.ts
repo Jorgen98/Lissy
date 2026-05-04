@@ -703,7 +703,7 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
         this.mapService.addNewLayer({ name: 'routes', palette: {}, layer: undefined, paletteItemName: '' });
         this.mapService.addNewLayer({ name: 'stops', palette: {}, layer: undefined, paletteItemName: '' });
 
-        // If the return trip shouldnt be drawn, draw the actual trip in color and stio rendering
+        // If the return trip shouldnt be drawn, draw the actual trip in color and stop rendering
         if (!params.draw) {
             const legs = trip.sections.flatMap(section => section.legs);
             legs.forEach((leg, legIdx) => {
@@ -732,12 +732,6 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
         // Turn loading screen back off when the trip shape is received
         this.msgService.turnOffLoadingScreen();
-
-        // Render the actual trip in gray
-        const legs = trip.sections.flatMap(section => section.legs);
-        legs.forEach((leg, legIdx) => {
-            this.renderLeg(leg, false, true, 'routes', false, false);
-        });
 
         // Render legs of the return trip in the map in color
         (trip.returnTrip.section as TripSectionOption).legs.forEach((leg, legIdx) => {

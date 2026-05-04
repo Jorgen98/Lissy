@@ -193,6 +193,7 @@
             "bus": "Bus",
             "car": "Car",
             "walk": "Walk",
+            "subway": "Subway",
             "arrival": "Arrive",
             "departure": "Depart",
             "midpoint": "Midpoint",

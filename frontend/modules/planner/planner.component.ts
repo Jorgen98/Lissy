@@ -553,8 +553,10 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
     // Function rendering a single leg on the map via map service
     private renderLeg(leg: TripSectionLeg, shouldFocus: boolean, gray: boolean, layerName: string, renderOrigin: boolean, renderDest: boolean) {
 
+        const originalColor = this.getLegColor(leg);
+
         // Get color of leg on the map, a faint gray color for return trip legs
-        const bgColor = gray ? "#444444" : this.getLegColor(leg);
+        const bgColor = gray ? "#444444" : originalColor;
         this.mapService.addToLayer({
             layerName,
             type: "route",
@@ -570,6 +572,15 @@ export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {
 
                 // Flag if this leg is the last leg, used so the full route can be focused onto in the map
                 isLastLeg: shouldFocus,
+
+                // Data for tooltip
+                originName: leg.from.placeName,
+                destinationName: leg.to.placeName,
+                lineId: leg.route?.lineId,
+                lineColor: originalColor,
+                lineTextColor: `#${leg.route?.textColor ?? (this.isColorLight(originalColor) ? '000000' : 'FFFFFF')}`,
+                mode: leg.mode,
+                distance: leg.distance,
             },
             interactive: true,
             hoover: false,

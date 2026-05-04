@@ -194,6 +194,7 @@
             "bus": "Autobus",
             "car": "Auto",
             "walk": "Chůze",
+            "subway": "Metro",
             "arrival": "Příjezd",
             "departure": "Odjezd",
             "midpoint": "Mezibod",

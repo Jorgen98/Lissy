@@ -12,6 +12,7 @@ import { environment } from '../../environments/environment';
 import { mapLayer, mapObject, MapService } from './map.service';
 import { TranslateService } from '@ngx-translate/core';
 import * as turf from "@turf/turf";
+import { DistancePipe } from '../../../modules/planner/pipes/distance.pipe';
 
 import { DomSanitizer } from '@angular/platform-browser';
 import { delayCategoriesService, delayCategory } from '../services/delayCategories';
@@ -22,7 +23,7 @@ import { Subscription } from 'rxjs';
     selector: 'map',
     templateUrl: './map.component.html',
     styleUrls: ['./map.component.css'],
-    imports: []
+    providers: [DistancePipe]
 })
 export class MapComponent implements AfterViewInit, OnDestroy {
     private map: L.Map | undefined = undefined;
@@ -133,7 +134,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         private translate: TranslateService,
         private sanitizer: DomSanitizer,
         private delayCategoriesService: delayCategoriesService,
-        public theme: ThemeService
+        public theme: ThemeService,
+        private distancePipe: DistancePipe
     ) {
         this.mapService.addNewLayerObj.subscribe((newLayer) => this.addNewLayer(newLayer));
         this.mapService.addToLayerObj.subscribe((object) => this.addToLayer(object));
@@ -461,6 +463,32 @@ export class MapComponent implements AfterViewInit, OnDestroy {
                                 zIndexOffset: 10000,
                             }
                         ).addTo(this.layers[object.layerName].layer!);
+
+                        // Add tooltip for each leg with origin, destination name, used mode and line id (or distance if unavailable)                        
+                        lineOnMap.on('click', (event: L.LeafletMouseEvent) => {
+                            L.popup({ maxWidth: 1500 })
+                            .setLatLng(event.latlng)
+                            .setContent(`
+                                <span class="stop-content">
+                                    <span><b>${object.metadata.originName ?? this.translate.instant("planner.itinerary.legOrigin")} → ${object.metadata.destinationName ?? this.translate.instant("planner.itinerary.legDestination")}</b></span>
+                                    <span>${this.translate.instant(`planner.itinerary.${object.metadata.mode.toLowerCase()}`)} ${object.metadata.lineId ? `<span style="
+                                        background-color: ${object.metadata.lineColor};
+                                        color: ${object.metadata.lineTextColor};
+                                        font-weight: bold;
+                                        padding: 1px;
+                                        border-radius: 3px;
+                                        font-size: 13px
+                                    ">${object.metadata.lineId}</span>` : this.distancePipe.transform(object.metadata.distance)}</span>
+                                </span>
+                            `)
+                            .addTo(this.layers[object.layerName].layer!)
+                            .on('remove', () => {
+                                this.mapService.clearLayerObj.next('hoover');
+                            });
+
+                            L.DomEvent.stopPropagation(event);
+                        });
+                        
                     }
 
                     // If drawing the last leg of a planner trip, getBounds of all contents of the 'routes' layer (all legs)

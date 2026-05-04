@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS planner_config (
 );
 INSERT INTO planner_config DEFAULT VALUES;
 
-CREATE INDEX IF NOT EXISTS idx_trips_route_gtfs
-    ON trips(route_id_id, gtfs_trip_id);
+CREATE INDEX IF NOT EXISTS trip_details_gtfs
+    ON trip_details(gtfs_trip_id);
 CREATE INDEX IF NOT EXISTS idx_trips_shape_id
     ON trips(shape_id);

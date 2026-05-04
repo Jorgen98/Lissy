@@ -15,7 +15,19 @@ function getDateFromTimeStamp(timeStamp) {
 
 // Convert time stamp into JS UTC date
 function getDateFromISOTimeStamp(timeStamp) {
-    return new Date(Date.UTC(parseInt(timeStamp.split('-')[0]), parseInt(timeStamp.split('-')[1]) - 1, parseInt(timeStamp.split('-')[2])));
+    if (/^\d{4}-\d{2}-\d{2}$/.test(timeStamp)) {
+        const [y, m, d] = timeStamp.split("-").map(Number);
+        return new Date(Date.UTC(y, m - 1, d));
+    }
+
+    if (/^\d{8}$/.test(timeStamp)) {
+        const y = Number(timeStamp.slice(0, 4));
+        const m = Number(timeStamp.slice(4, 6));
+        const d = Number(timeStamp.slice(6, 8));
+        return new Date(Date.UTC(y, m - 1, d));
+    }
+console.log(timeStamp)
+    return false;
 }
 
 // Convert time stamp into JS UTC date

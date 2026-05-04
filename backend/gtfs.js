@@ -1215,9 +1215,9 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
             inputCalendarData.shift();
 
             for (const record of inputCalendarData) {
-                const decRecord = record.split(',');
+                const decRecord = parseOneLineFromInputFile(record);
 
-                if (decRecord.length !== 10) {
+                if (decRecord === undefined || decRecord.length !== 11) {
                     continue;
                 }
 
@@ -1251,7 +1251,11 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
 
                 decRecord[2] = decRecord[2].slice(0, 1);
 
-                let date = timeStamp.getDateFromISOTimeStamp(decRecord[1]);
+                const date = timeStamp.getDateFromISOTimeStamp(decRecord[1]);
+                if (!date) {
+                    return false;
+                }
+
                 if (decRecord[2] === '1' && date.getTime() === today.getTime()) {
                     try {
                         if (!todayServiceIDs.find((itm) => { return itm === parseInt(decRecord[0])})) {
@@ -1316,10 +1320,8 @@ async function getNewShapes() {
 // Util functions
 // Try to create JS Date format from GTFS input data
 function parseDateFromGTFS(input) {
-    input = `${input.slice(0, 4)}-${input.slice(4, 6)}-${input.slice(6, 8)}`;
-
     try {
-        return new timeStamp.getDateFromISOTimeStamp(input);
+        return timeStamp.getDateFromISOTimeStamp(input);
     } catch(error) {
         return new Date('1970-01-01');
     }

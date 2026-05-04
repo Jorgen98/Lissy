@@ -355,6 +355,22 @@
             "noAvailablePrediction": {
                 "head": "Predikce se nepovedla",
                 "body": "Pro daný spoj není k dispozici dostatek dat pro spolehlivou predikci."
+            },
+            "predictionRealtime": {
+                "head": "Predikce v reálném čase",
+                "body": "Predikce je založena na datech z aktuálně jedoucího vozu."
+            },
+            "predictionError501": {
+                "head": "Predikce se nepovedla",
+                "body": "Prediktor nenašel správnou linku."
+            },
+            "predictionError502": {
+                "head": "Predikce se nepovedla",
+                "body": "Prediktor nenašel správný spoj."
+            },
+            "predictionError503": {
+                "head": "Predikce se nepovedla",
+                "body": "Prediktor nenašel hodnoty průměrného zpoždění."
             }
         }
     },

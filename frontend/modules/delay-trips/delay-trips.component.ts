@@ -153,6 +153,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             return;
         }
 
+        this.delayCategoriesService.resetDelayCategories();
         this.setUpAggMethods();
 
         this.msgService.turnOnLoadingScreenWithoutPercentage();

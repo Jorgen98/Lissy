@@ -186,7 +186,12 @@ export class PredictionModule implements OnInit, OnDestroy {
         if (predictionResult.predictionResponse?.shape === undefined || predictionResult.predictionResponse?.shape === undefined ||
             predictionResult.predictionResponse?.prediction === undefined || predictionResult.predictionResponse?.prediction.length < 1
         ) {
-            this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailablePrediction.head', 'UIMessagesService.toasts.noAvailablePrediction.body');
+            if (predictionResult.predictionResponse?.code) {
+                this.msgService.showMessage('warning', `UIMessagesService.toasts.predictionError${predictionResult.predictionResponse?.code}.head`,
+                    `UIMessagesService.toasts.predictionError${predictionResult.predictionResponse?.code}.body`);
+            } else {
+                this.msgService.showMessage('warning', 'UIMessagesService.toasts.noAvailablePrediction.head', 'UIMessagesService.toasts.noAvailablePrediction.body');
+            }
             this.mapService.clearLayer('route');
             this.mapService.clearLayer('stops');
             this.delayCategoriesService.removeDelayCategoriesFromMap();
@@ -198,7 +203,11 @@ export class PredictionModule implements OnInit, OnDestroy {
 
         this.actualPredictionValues = Object.values(predictionResult.predictionResponse?.prediction);
         this.delayCategoriesService.resetDelayCategories();
-        this.renderData(true);
+        await this.renderData(true);
+
+        if (predictionResult.predictionResponse.realtime) {
+            this.msgService.showMessage('info', 'UIMessagesService.toasts.predictionRealtime.head', 'UIMessagesService.toasts.predictionRealtime.body');
+        }
     }
 
         // Put actual route shape on map
@@ -317,7 +326,7 @@ export class PredictionModule implements OnInit, OnDestroy {
         const currentDay = today.getDay();
         let diff = idx - currentDay;
         // Always move to the future
-        if (diff <= 0) {
+        if (diff < 0) {
             diff += 7;
         }
         this.selectedDate.date.setDate(today.getDate() + diff);

@@ -54,23 +54,8 @@
   opacity: 0.8;
 }
 
-.side-control-selection-div {
-  overflow: hidden;
-  overflow-y: auto;
-}
-
-.side-control-content {
-  min-width: 0;
-  background-color: var(--header-background);
-  border-right: 0.15em solid var(--header-border-color);
-}
-
 .sidebar-close-btn {
   color: var(--planner-title-color);
-}
-
-.side-control-selection-div {
-  padding-right: 20px;
 }
 
 .side-control-select {
@@ -89,17 +74,4 @@
 
 .btn-side-menu:hover {
   opacity: 0.9;
-}
-
-@media only screen and (max-width: 700px) {
-  .side-control-content {
-    width: 100vw;
-    height: 100vh;
-    margin-bottom: 3.5em;
-  }
-
-  .side-control-selection-div {
-    max-width: 100vw;
-    padding-bottom: 3.5em;
-  }
 }

@@ -176,6 +176,7 @@
             "endPoint": "Destination",
             "midpoint": "Midpoint",
             "addMidpointTooltip": "Add midpoint",
+            "removeMidpointTooltip": "Remove midpoint",
             "switchDirectionTooltip": "Reverse direction",
             "markerTooltip": "Select from map",
             "myLocation": "My location",
@@ -354,6 +355,22 @@
             "noAvailablePrediction": {
                 "head": "The prediction failed",
                 "body": "There is insufficient data for this trip to make a reliable prediction."
+            },
+            "predictionRealtime": {
+                "head": "Realtime prediction",
+                "body": "The prediction is based on realtime vehicle data."
+            },
+            "predictionError501": {
+                "head": "The prediction failed",
+                "body": "Predictor did not found line ID for route."
+            },
+            "predictionError502": {
+                "head": "The prediction failed",
+                "body": "Predictor did not found tripID for prediction."
+            },
+            "predictionError503": {
+                "head": "The prediction failed",
+                "body": "Predictor did not found average delays for trip."
             }
         }
     },

@@ -384,6 +384,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         }
 
         let bounds: L.LatLngBoundsExpression = this.map.getBounds();
+        let boundsMaxZoom = 19;
         let boundsPaddingBottomRight: L.PointTuple | undefined = undefined;
         let boundsPaddingTopLeft: L.PointTuple | undefined = undefined;
 
@@ -624,6 +625,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
                     }
                 )
                 .addTo(this.layers[object.layerName].layer!);
+
+                // Set the bounds to zoom into and a smaller max zoom value
+                bounds = L.latLngBounds(L.latLng(object.latLng[0]), L.latLng(object.latLng[0]));
+                boundsMaxZoom = 12;
                 break;
             }
             case "parking": {
@@ -684,6 +689,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
         if (object.focus) {
             this.map.fitBounds(bounds, {
+                maxZoom: boundsMaxZoom,
                 paddingBottomRight: boundsPaddingBottomRight,
                 paddingTopLeft: boundsPaddingTopLeft,
             });

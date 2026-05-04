@@ -616,7 +616,7 @@ export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnCh
         this.mapService.addToLayer({
             layerName: "currentLocation",
             type: "location",
-            focus: false,
+            focus: true,
             latLng: [{ lat: position.coords.latitude, lng: position.coords.longitude }],
             color: "base",
             interactive: false,

@@ -1,3 +1,10 @@
+/*
+ * Database initialization script
+ *
+ * Author: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ */
+
 CREATE EXTENSION IF NOT EXISTS postgis CASCADE;
 CREATE TABLE IF NOT EXISTS rail (gid SERIAL PRIMARY KEY, geom GEOMETRY, conns INT[]);
 CREATE TABLE IF NOT EXISTS road (gid SERIAL PRIMARY KEY, geom GEOMETRY, conns INT[]);

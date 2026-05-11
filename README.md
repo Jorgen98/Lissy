@@ -42,7 +42,7 @@ The tool needs transport network in custom format for the whole monitored transp
  7. In **.env** set **BE_PLANNER_MODULE_SERVICE** to select an external routing engine in the planner module (Currently supported: `otp`, `valhalla`, Recommended: `otp`) 
  8. In **.env** set **BE_PLANNER_{service-name}_URL** link to a running instance of the selected routing engine
  9. In **.env** set **BE_PLANNER_USER_AGENT_EMAIL** with an email, which will be sent in the `User-Agent` header of HTTP requests to external services (`Nominatim`, `Overpass`)
- 10. Run application with `sudo make run-in-prod` command
+ 10. Run application with `sudo make prod` command for production. For development, see **Development** section below in this file.
  11. Application is running on **server_ip/lissy**
 
 ### Stop application
@@ -54,8 +54,9 @@ The tool needs transport network in custom format for the whole monitored transp
 Run only DBs: `sudo make -f MakefileDev development-dbs-only`
 Run only UI without processing server: `sudo make -f MakefileDev development-ui-only`
 
-Run only some parts of backend:
+Run only some parts:
 
  - Processing server: `cd backend && npm install && npm run be-processing-start`
  - API server: `cd backend && npm install && npm run be-api-start`
- - Client application: `cd frontend && npm start`
+  - Use `npm run be-api-start-watch` instead to run with file change detection
+ - Client application: `cd frontend && npm install && npm start`

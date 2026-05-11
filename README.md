@@ -34,7 +34,7 @@ The tool needs transport network in custom format for the whole monitored transp
 ### Clear run
 
  1. Create new subfolder `/backend/backups` and insert **transport networks** for selected transport modes
- 2. Copy **example.env** and create new file **.env** in `/env` directory
+ 2. Copy **example.env** and create new file **.env** (for development) or **.env.prod** (for production) in `/env` directory
  3. In **.env** file set **DB_POSTGIS_PASSWORD**, **DB_STATS_PASSWORD**, **DB_CACHE_TOKEN** passwords
  4. In **.env** set API token variable **BE_API_MODULE_TOKEN**
  5. In **.env** set **BE_PROCESSING_GTFS_LINK** link to gtfs.zip file discrebing the public transport system

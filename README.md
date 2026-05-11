@@ -58,5 +58,5 @@ Run only some parts:
 
  - Processing server: `cd backend && npm install && npm run be-processing-start`
  - API server: `cd backend && npm install && npm run be-api-start`
-  - Use `npm run be-api-start-watch` instead to run with file change detection
+    - Use `npm run be-api-start-watch` instead to run with file change detection
  - Client application: `cd frontend && npm install && npm start`

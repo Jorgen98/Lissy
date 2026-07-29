@@ -34,14 +34,15 @@ import {
     MAX_TRANSFERS_DEFAULT, 
     AVG_WALK_SPEED_DEFAULT, 
 } from './utils/defaultSettingValues';
-import { 
-    Component, 
-    AfterViewInit, 
-    ViewChild, 
-    ElementRef, 
-    HostListener,
-    OnDestroy,
-    OnInit
+import {
+  Component,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
 @Component({
@@ -55,6 +56,7 @@ import {
         TripHeaderComponent
     ],
     templateUrl: './planner.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './planner.component.css',
 })
 export class PlannerModule implements AfterViewInit, OnDestroy, OnInit {

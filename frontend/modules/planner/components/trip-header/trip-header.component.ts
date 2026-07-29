@@ -5,7 +5,7 @@
  * Class for the header component describing a single trip option.
  */
 
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { TripOption, TripSectionLeg } from '../../types/TripOption';
 import { modeColors } from '../../utils/modeColors';
 import { DatePipe } from '@angular/common';
@@ -18,6 +18,7 @@ import { DistancePipe } from '../../pipes/distance.pipe';
     selector: 'trip-header',
     imports: [DatePipe, TranslatePipe, DurationPipe, DistancePipe, DecimalPipe],
     templateUrl: './trip-header.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './trip-header.component.css',
 })
 export class TripHeaderComponent {

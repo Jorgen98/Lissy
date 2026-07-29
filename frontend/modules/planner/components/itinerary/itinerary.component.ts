@@ -5,7 +5,7 @@
  * Class for the itinerary component used in the planner module.
  */
 
-import { HostListener, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { HostListener, OnDestroy, QueryList, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TripSectionLeg, TripOption } from '../../types/TripOption';
 import { DatePipe } from '@angular/common';
@@ -46,6 +46,7 @@ import {
         AsyncPipe
     ],
     templateUrl: './itinerary.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './itinerary.component.css',
 })
 export class ItineraryComponent implements OnChanges, OnInit, OnDestroy {

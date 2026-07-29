@@ -1,68 +1,76 @@
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { ToastModule } from 'primeng/toast';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { CheckboxModule } from 'primeng/checkbox';
-import { ColorPickerModule } from 'primeng/colorpicker';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { TabsModule } from 'primeng/tabs';
-import { DatePickerModule } from 'primeng/datepicker';
-import { SelectModule } from 'primeng/select';
-import { StepperModule } from 'primeng/stepper';
-import { ImageModule } from 'primeng/image';
+import { ProgressSpinner } from 'primeng/progressspinner';
+import { Toast } from 'primeng/toast';
+import { SelectButton } from 'primeng/selectbutton';
+import { Checkbox } from 'primeng/checkbox';
+import { ColorPicker } from 'primeng/colorpicker';
+import { InputNumber } from 'primeng/inputnumber';
+import { Tabs } from 'primeng/tabs';
+import { DatePicker } from 'primeng/datepicker';
+import { Select } from 'primeng/select';
+import { Image } from 'primeng/image';
 import { RouteSelector } from '../../components/routeSelector';
 import { TripSelector } from '../../components/tripSelector';
 import { DayOfWeekSelector } from '../../components/dayOfWeekSelector';
+import { Stepper, Step, StepList, StepPanels, StepPanel } from 'primeng/stepper';
 
 @NgModule({
     imports: [
         RouterOutlet,
-        TranslateModule,
+        TranslatePipe,
         RouterLink,
         ButtonModule,
         FormsModule,
         CommonModule,
         ChartModule,
-        ProgressSpinnerModule,
-        ToastModule,
-        SelectButtonModule,
-        CheckboxModule,
-        ColorPickerModule,
-        InputNumberModule,
-        TabsModule,
-        DatePickerModule,
-        SelectModule,
-        StepperModule,
-        ImageModule,
+        ProgressSpinner,
+        Toast,
+        SelectButton,
+        Checkbox,
+        ColorPicker,
+        InputNumber,
+        Tabs,
+        DatePicker,
+        Select,
+        Step,
+        Stepper,
+        StepPanel,
+        StepPanels,
+        StepList,
+        Image,
         RouteSelector,
         TripSelector,
         DayOfWeekSelector
     ],
     exports: [
         RouterOutlet,
-        TranslateModule,
+        TranslatePipe,
         RouterLink,
         ButtonModule,
         FormsModule,
         CommonModule,
         ChartModule,
-        ProgressSpinnerModule,
-        ToastModule,
-        SelectButtonModule,
-        CheckboxModule,
-        ColorPickerModule,
-        InputNumberModule,
-        TabsModule,
-        DatePickerModule,
-        SelectModule,
-        StepperModule,
-        ImageModule,
+        ProgressSpinner,
+        Toast,
+        SelectButton,
+        Checkbox,
+        ColorPicker,
+        InputNumber,
+        Tabs,
+        DatePicker,
+        Select,
+        Step,
+        Stepper,
+        StepPanel,
+        StepPanels,
+        StepList,
+        Image,
         RouteSelector,
         TripSelector,
         DayOfWeekSelector

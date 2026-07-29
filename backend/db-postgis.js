@@ -1322,10 +1322,87 @@ async function updateTripDetails(internal_trip_id, api_route_id, api_trip_id, gt
     }
 }
 
+async function getAllTripIds(line, routeFrom, routeTo, date, depTime, weeks) {
+    try {
+        const finalTripData = [];
+        const tripDelayData = {};
+        // Get all trips with correct line and starting time
+        const trips = (await db_postgis.query(`SELECT shape_id, id, route_id_id, stops FROM trips WHERE trip_id LIKE $1`, [`L${line}D99?${depTime}?%`])).rows;
+        let stops = (await db_postgis.query(`SELECT id, stop_name from stops;`)).rows;
+        stops = Object.fromEntries(
+            stops.map(stop => [stop.id, stop.stop_name])
+        );
+
+        // Get delay data for every trip and store them according to shape id
+        for (const trip of trips) {
+            let inspDate = date;
+            // Check if trip has correct start and stop stations
+            if (stops[trip.stops[0]] !== routeFrom || stops[trip.stops[trip.stops.length - 1]] !== routeTo) {
+                continue;
+            }
+
+            if (tripDelayData[trip.shape_id] === undefined) {
+                tripDelayData[trip.shape_id] = {};
+            }
+
+            // For loop for requested number of weeks
+            for (let i = 0; i < parseInt(weeks); i++) {
+                let delayData = await dbStats.getTripDataInInterval(trip.id, inspDate, inspDate);
+
+                // Keep only last delay occurrence for every stop to stop part
+                if (delayData[inspDate]) {
+                    const tripParts = Object.keys(delayData[inspDate]);
+                    for (const part of tripParts) {
+                        if (Object.keys(delayData[inspDate][part]).length > 0) {
+                            delayData[inspDate][part] = delayData[inspDate][part][Math.max(...Object.keys(delayData[inspDate][part]).map(Number))];
+                        } else {
+                            delayData[inspDate][part] = null;
+                        }
+                    }
+                } else {
+                    delayData[inspDate] = {};
+                }
+
+                tripDelayData[trip.shape_id][inspDate] = delayData[inspDate];
+                inspDate = timeStamp.removeDayFromTimeStamp(inspDate, 7);
+            }
+
+            // If there is no data, remove trip
+            const dates = Object.keys(tripDelayData[trip.shape_id]);
+            let remove = true;
+            for (const inspDate of dates) {
+                if (Object.keys(tripDelayData[trip.shape_id][inspDate]).length > 0) {
+                    remove = false;
+                }
+            }
+            if (remove) {
+                delete tripDelayData[trip.shape_id];
+            } else {
+                // Prepare data for response
+                const route = (await db_postgis.query(`SELECT route_type FROM routes WHERE id = $1`, [trip.route_id_id])).rows[0];
+                const trip_details = (await db_postgis.query(`SELECT api_route_id, api_trip_id FROM trip_details WHERE internal_trip_id = $1`, [trip.id])).rows[0];
+                const kordisApi = trip_details ? `${trip_details.api_route_id ?? ''}/${trip_details.api_trip_id ?? ''}` : '';
+                finalTripData.push({
+                    shape_id: trip.shape_id,
+                    data: tripDelayData[trip.shape_id],
+                    vehicle_type: route.route_type,
+                    ben_id: trip.id,
+                    kordis_id: kordisApi
+                })
+            }
+        }
+
+        return finalTripData;
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
     getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
     getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getTripIDByGTFS, getPlannerConfig, updateFuelPrice,
-    insertRegionOutline, updateTripDetails }
+    insertRegionOutline, updateTripDetails, getAllTripIds }

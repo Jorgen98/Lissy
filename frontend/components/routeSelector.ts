@@ -1,12 +1,13 @@
-import { Component, input, output, effect } from '@angular/core';
+import { Component, input, output, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { routeFromDB } from './types';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'route-selector',
     standalone: true,
-    imports: [CommonModule, TranslateModule],
+    imports: [CommonModule, TranslatePipe],
+    changeDetection: ChangeDetectionStrategy.Eager,
     template: `
         @if (displayedRoutes.length > 0) {
             @for (type of displayedRoutes; track $index) {

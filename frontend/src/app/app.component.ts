@@ -5,7 +5,7 @@
  * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ImportsModule } from './imports';
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
@@ -18,6 +18,7 @@ import { Subscription } from 'rxjs';
     selector: 'app-root',
     imports: [ImportsModule],
     templateUrl: './app.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './app.component.css'
 })
 
@@ -44,7 +45,7 @@ export class AppComponent implements OnInit, OnDestroy {
         public theme: ThemeService
     ) {
         this.translate.addLangs(this.langs.map((lang) => {return lang.code}));
-        this.translate.setDefaultLang(this.langs[0].code);
+        this.translate.setFallbackLang(this.langs[0].code);
 
         // Set app language according to user cookies
         const savedLang = localStorage.getItem('userLang');

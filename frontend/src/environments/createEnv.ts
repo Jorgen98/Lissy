@@ -13,7 +13,8 @@ const setEnv = () => {
         apiKey: '${process.env['BE_API_MODULE_TOKEN']}',
         production: true,
         mapCenter: '${process.env['FE_MAP_CENTER']}',
-        mapZoom: '${process.env['FE_MAP_ZOOM']}'
+        mapZoom: '${process.env['FE_MAP_ZOOM']}',
+        primeLicense: '${process.env['PRIMENG_LICENSE_KEY']}',
     };`;
     
     writeFile(targetPath, envConfigFile, () => {});

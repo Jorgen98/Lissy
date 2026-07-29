@@ -104,7 +104,7 @@
               <p-select [options]="routes" [(ngModel)]="selectedRoute" optionLabel="route_short_name" filter="true"
                 filterBy="route_short_name" (onChange)="changeRoute()"/>
               <h3>{{ 'shapes.shape' | translate }}</h3>
-              <p-select [options]="selectedRoute?.trips" [(ngModel)]="selectedTrip" optionLabel="stops" filter="true"
+              <p-select [options]="$safeNavigationMigration(selectedRoute?.trips)" [(ngModel)]="selectedTrip" optionLabel="stops" filter="true"
                 filterBy="stops" (onChange)="changeShape()"/>
             </div>
           </div>
@@ -122,13 +122,13 @@
           <div class="side-control-selection-div">
             <div class="side-control-selection-inner-div">
               <div class="mobile-header-item">
-                @if (translate.currentLang === 'cz') {
+                @if (translate.currentLang() === 'cz') {
                   <button type="button" class="mobile-menu-btn" (click)="translate.use('en')">
                     <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
                     <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
                   </button>
                 }
-                @if (translate.currentLang === 'en') {
+                @if (translate.currentLang() === 'en') {
                   <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')">
                     <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
                     <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>

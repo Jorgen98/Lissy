@@ -6,7 +6,7 @@
  * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
-import { Component, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import * as L from 'leaflet';
 import { environment } from '../../environments/environment';
 import { mapLayer, mapObject, MapService } from './map.service';
@@ -23,6 +23,7 @@ import { Subscription } from 'rxjs';
     selector: 'map',
     templateUrl: './map.component.html',
     styleUrls: ['./map.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     providers: [DistancePipe]
 })
 export class MapComponent implements AfterViewInit, OnDestroy {

@@ -27,19 +27,20 @@ import {
     moveItemInArray, 
     CdkDragHandle, 
 } from '@angular/cdk/drag-drop';
-import { 
-    Component, 
-    AfterViewInit, 
-    OnDestroy, 
-    output, 
-    input, 
-    OnInit, 
-    OnChanges, 
-    SimpleChanges, 
-    Input,
-    ViewChildren,
-    QueryList,
-    ElementRef
+import {
+  Component,
+  AfterViewInit,
+  OnDestroy,
+  output,
+  input,
+  OnInit,
+  OnChanges,
+  SimpleChanges,
+  Input,
+  ViewChildren,
+  QueryList,
+  ElementRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
 @Component({
@@ -56,6 +57,7 @@ import {
         NgScrollbarModule
     ],
     templateUrl: './trip-form.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './trip-form.component.css',
 })
 export class TripFormComponent implements AfterViewInit, OnDestroy, OnInit, OnChanges {

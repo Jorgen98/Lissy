@@ -1,12 +1,13 @@
-import { Component, input, output, effect } from '@angular/core';
+import { Component, input, output, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { tripFromDB } from './types';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'trip-selector',
     standalone: true,
-    imports: [CommonModule, TranslateModule],
+    imports: [CommonModule, TranslatePipe],
+    changeDetection: ChangeDetectionStrategy.Eager,
     template: `
         @if (availableTrips.length > 0) {
             <div class="trip-selector-container">

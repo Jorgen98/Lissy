@@ -6,7 +6,7 @@
  * Main class component for the dashboard module.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { APIService } from '../../src/app/services/api';
 import * as config from './config.json';
 import { ModuleConfig } from '../../src/app/app.component';
@@ -28,6 +28,7 @@ import * as configPredictionModule from '../prediction/config.json';
     selector: 'dashboard',
     imports: [ImportsModule],
     templateUrl: './dashboard.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './dashboard.component.css'
 })
 

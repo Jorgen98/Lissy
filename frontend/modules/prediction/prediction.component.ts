@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { APIService } from '../../src/app/services/api';
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
@@ -16,6 +16,7 @@ import { ThemeService } from '../../src/app/services/theme';
     selector: 'prediction',
     imports: [ImportsModule, MapComponent],
     templateUrl: './prediction.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './prediction.component.css'
 })
 

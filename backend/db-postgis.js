@@ -1391,6 +1391,33 @@ async function getAllTripIds(line, routeFrom, routeTo, date, depTime, weeks) {
                 })
             }
         }
+        finalTripData.sort((trip_a, trip_b) => {
+            return (Object.keys(trip_a.data[date]).length < Object.keys(trip_b.data[date]).length) ? 1 : -1
+        })
+
+        let idx = 0;
+        while (idx < (finalTripData.length - 1)) {
+            const isShapeSame = (await db_postgis.query(`
+                SELECT ST_OrderingEquals(
+                    (SELECT geom FROM shapes WHERE id = $1),
+                    (SELECT geom FROM shapes WHERE id = $2)
+                );`, [finalTripData[idx].shape_id, finalTripData[idx + 1].shape_id])).rows[0].st_orderingequals;
+            
+
+            if (isShapeSame) {
+                // Merge missing delay data
+                const dataKeys = Object.keys(finalTripData[idx].data);
+                for (const key of dataKeys) {
+                    if (Object.keys(finalTripData[idx].data[key]).length < Object.keys(finalTripData[idx + 1].data[key]).length) {
+                        finalTripData[idx].data[key] = finalTripData[idx + 1].data[key];
+                    }
+                }
+
+                finalTripData.splice(idx + 1, 1); 
+            } else {
+                idx++;
+            }
+        }
 
         return finalTripData;
     } catch(error) {

@@ -108,6 +108,16 @@
             <div class="side-control-selection-inner-div" style="max-height: calc(100% - 1em)">
               <h3>{{ 'common.dayOfWeek' | translate }}</h3>
               <day-of-week-selector [inputDayIdx]="selectedDate.idx" (daySelected)="onDaySelected($event)"></day-of-week-selector>
+              <h3>{{ 'prediction.predictionMethods' | translate }}</h3>
+              <p-select [options]="predictionMethods" [(ngModel)]="selectedMethod" optionLabel="label" filter="false"
+              (onChange)="tripSelected(selectedTrip)">
+                <ng-template #item let-method>
+                  {{ method.label | translate }}
+                </ng-template>
+                <ng-template #selectedItem let-method>
+                  {{ method.label | translate }}
+                </ng-template>
+              </p-select>
             </div>
           </div>
         </div>

@@ -33,10 +33,10 @@ Main component HTML template file for the itinerary used in the planner module.
       >
 
         <!-- ng-template for using translate pipe -->
-        <ng-template let-option pTemplate="item">
+        <ng-template let-option #item>
           {{ option.label | translate }}
         </ng-template>
-        <ng-template let-option pTemplate="selectedItem">
+        <ng-template let-option #selectedItem>
           {{ option.label | translate }}
         </ng-template>
       </p-select>

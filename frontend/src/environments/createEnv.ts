@@ -14,7 +14,7 @@ const setEnv = () => {
         production: true,
         mapCenter: '${process.env['FE_MAP_CENTER']}',
         mapZoom: '${process.env['FE_MAP_ZOOM']}',
-        primeLicense: '${process.env['PRIMENG_LICENSE_KEY']}',
+        primeLicense: '${process.env['PRIMENG_LICENSE_KEY']}'
     };`;
     
     writeFile(targetPath, envConfigFile, () => {});

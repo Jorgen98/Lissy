@@ -377,6 +377,13 @@
     "prediction": {
         "name": "Predikce zpoždění",
         "mapLabel": "Predikované zpoždění",
-        "showValues": "Zobrazit hodnoty predikovaného zpoždění"
+        "showValues": "Zobrazit hodnoty predikovaného zpoždění",
+        "predictionMethods": "Predikční metoda",
+        "methods": {
+            "neuralNetwork": "Neuronová síť",
+            "randomForest": "Náhodný les",
+            "linearRegression": "Lineární regrese",
+            "average": "Průměr"
+        }
     }
 }

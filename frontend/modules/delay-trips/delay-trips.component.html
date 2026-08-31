@@ -88,7 +88,7 @@
           </span>
           <p-datepicker class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
             [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
-            <ng-template pTemplate="footer">
+            <ng-template #footer>
               <div class="calendar-btns-div">
                 <button type="button" (click)="downloadRoutesData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
               </div>

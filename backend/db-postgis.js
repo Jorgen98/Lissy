@@ -1324,102 +1324,139 @@ async function updateTripDetails(internal_trip_id, api_route_id, api_trip_id, gt
 
 async function getAllTripIds(line, routeFrom, routeTo, date, depTime, weeks) {
     try {
-        const finalTripData = [];
-        const tripDelayData = {};
+        const tripDelayData = [];
+
         // Get all trips with correct line and starting time
-        const trips = (await db_postgis.query(`SELECT shape_id, id, route_id_id, stops FROM trips WHERE trip_id LIKE $1`, [`L${line}D99?${depTime}?%`])).rows;
-        let stops = (await db_postgis.query(`SELECT id, stop_name from stops;`)).rows;
-        stops = Object.fromEntries(
-            stops.map(stop => [stop.id, stop.stop_name])
-        );
+        const trips = (await db_postgis.query(`SELECT shape_id, id, route_id_id, stops, is_today, is_active FROM trips WHERE trip_id LIKE $1`, [`L${line}D99?${depTime}?%`])).rows;
 
-        // Get delay data for every trip and store them according to shape id
-        for (const trip of trips) {
-            let inspDate = date;
-            // Check if trip has correct start and stop stations
-            if (stops[trip.stops[0]] !== routeFrom || stops[trip.stops[trip.stops.length - 1]] !== routeTo) {
-                continue;
-            }
-
-            if (tripDelayData[trip.shape_id] === undefined) {
-                tripDelayData[trip.shape_id] = {};
-            }
-
-            // For loop for requested number of weeks
-            for (let i = 0; i < parseInt(weeks); i++) {
-                let delayData = await dbStats.getTripDataInInterval(trip.id, inspDate, inspDate);
-
-                // Keep only last delay occurrence for every stop to stop part
-                if (delayData[inspDate]) {
-                    const tripParts = Object.keys(delayData[inspDate]);
-                    for (const part of tripParts) {
-                        if (Object.keys(delayData[inspDate][part]).length > 0) {
-                            delayData[inspDate][part] = delayData[inspDate][part][Math.max(...Object.keys(delayData[inspDate][part]).map(Number))];
-                        } else {
-                            delayData[inspDate][part] = null;
-                        }
-                    }
-                } else {
-                    delayData[inspDate] = {};
-                }
-
-                tripDelayData[trip.shape_id][inspDate] = delayData[inspDate];
-                inspDate = timeStamp.removeDayFromTimeStamp(inspDate, 7);
-            }
-
-            // If there is no data, remove trip
-            const dates = Object.keys(tripDelayData[trip.shape_id]);
-            let remove = true;
-            for (const inspDate of dates) {
-                if (Object.keys(tripDelayData[trip.shape_id][inspDate]).length > 0) {
-                    remove = false;
-                }
-            }
-            if (remove) {
-                delete tripDelayData[trip.shape_id];
-            } else {
-                // Prepare data for response
-                const route = (await db_postgis.query(`SELECT route_type FROM routes WHERE id = $1`, [trip.route_id_id])).rows[0];
-                const trip_details = (await db_postgis.query(`SELECT api_route_id, api_trip_id FROM trip_details WHERE internal_trip_id = $1`, [trip.id])).rows[0];
-                const kordisApi = trip_details ? `${trip_details.api_route_id ?? ''}/${trip_details.api_trip_id ?? ''}` : '';
-                finalTripData.push({
-                    shape_id: trip.shape_id,
-                    data: tripDelayData[trip.shape_id],
-                    vehicle_type: route.route_type,
-                    ben_id: trip.id,
-                    kordis_id: kordisApi
-                })
-            }
+        if (trips.length < 1) {
+            return [];
         }
-        finalTripData.sort((trip_a, trip_b) => {
-            return (Object.keys(trip_a.data[date]).length < Object.keys(trip_b.data[date]).length) ? 1 : -1
-        })
 
+        // Get route stop ids
+        const stopsFrom = ((await db_postgis.query(`SELECT id, stop_name from stops WHERE stop_name = $1;`, [routeFrom])).rows).map((stop) => stop.id);
+        const stopsTo = ((await db_postgis.query(`SELECT id, stop_name from stops WHERE stop_name = $1;`, [routeTo])).rows).map((stop) => stop.id);
+
+        // Align date
+        const todayTimeStamp = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
+        let actualTimeStamp = JSON.parse(JSON.stringify(date));
+        while(timeStamp.compareTimeStamps(todayTimeStamp, actualTimeStamp) < 0) {
+            actualTimeStamp = timeStamp.removeDayFromTimeStamp(actualTimeStamp, 7);
+        }
+
+        // Remove trips with wrong start and stop stations
         let idx = 0;
-        while (idx < (finalTripData.length - 1)) {
-            const isShapeSame = (await db_postgis.query(`
-                SELECT ST_OrderingEquals(
-                    (SELECT geom FROM shapes WHERE id = $1),
-                    (SELECT geom FROM shapes WHERE id = $2)
-                );`, [finalTripData[idx].shape_id, finalTripData[idx + 1].shape_id])).rows[0].st_orderingequals;
-            
-
-            if (isShapeSame) {
-                // Merge missing delay data
-                const dataKeys = Object.keys(finalTripData[idx].data);
-                for (const key of dataKeys) {
-                    if (Object.keys(finalTripData[idx].data[key]).length < Object.keys(finalTripData[idx + 1].data[key]).length) {
-                        finalTripData[idx].data[key] = finalTripData[idx + 1].data[key];
-                    }
-                }
-
-                finalTripData.splice(idx + 1, 1); 
+        while (trips.length > idx) {
+            if (!stopsFrom.indexOf(trips[idx].stops[0]) === -1 || stopsTo.indexOf(trips[idx].stops[trips[idx].stops.length - 1]) === -1) {
+                trips.splice(idx, 1);
             } else {
+                tripDelayData.push({
+                    id: trips[idx].id,
+                    route_id_id: trips[idx].route_id_id,
+                    shape_id: trips[idx].shape_id,
+                    data: []
+                })
                 idx++;
             }
         }
 
-        return finalTripData;
+        if (trips.length < 1) {
+            return [];
+        }
+
+        // Get trips delay records
+        let extraAttempts = 2;
+        for (let i = 0; i < parseInt(weeks); i++) {
+            const data = await Promise.all( trips.map(trip => dbStats.getTripDataInInterval(trip.id, actualTimeStamp, actualTimeStamp)) );
+            let anyData = false;
+
+            for (const [tripIdx, tripRecords] of data.entries()) {
+                if (Object.keys(tripRecords).length > 0) {
+                    anyData = true;
+                    tripDelayData[tripIdx].data.push(tripRecords);
+                }
+            }
+
+            if (!anyData && extraAttempts > 0) {
+                i--;
+                extraAttempts--;
+            }
+            actualTimeStamp = timeStamp.removeDayFromTimeStamp(actualTimeStamp, 7);
+        }
+
+        // Sort delay records, trip with the most actual data goes first
+        tripDelayData.sort((a, b) => {
+            if (!a.data[0]) return 1;
+            if (!b.data[0]) return -1;
+            return timeStamp.compareTimeStamps(Object.keys(a.data[0])[0], Object.keys(b.data[0])[0]) < 0 ? 1 : -1;
+        })
+
+        if (tripDelayData[0].data.length < 1) {
+            return [];
+        }
+
+        // Remove different shapes
+        idx = 0;
+        while (tripDelayData.length > (idx + 1)) {
+            const isShapeSame = (await db_postgis.query(`
+                SELECT ST_OrderingEquals(
+                    (SELECT geom FROM shapes WHERE id = $1),
+                    (SELECT geom FROM shapes WHERE id = $2)
+                );`, [tripDelayData[idx].shape_id, tripDelayData[idx + 1].shape_id])).rows[0].st_orderingequals;
+
+            if (isShapeSame && tripDelayData[idx + 1].data.length > 0) {
+                idx++;
+            } else {
+                tripDelayData.splice(idx + 1, 1);
+            }
+        }
+console.log(tripDelayData)
+        // Reduce delay data
+        for (const trip of tripDelayData) {
+            for (const day of trip.data) {
+                const date = Object.keys(day)[0];
+                const tripParts = Object.keys(day[date]);
+                for (const part of tripParts) {
+                    if (Object.keys(day[date][part]).length > 0) {
+                        day[date][part] = day[date][part][Math.max(...Object.keys(day[date][part]).map(Number))];
+                    } else {
+                        day[date][part] = null;
+                    }
+                }
+            }
+        }
+
+        // Create final data structure to return
+        const finalData = {
+            shape_id: tripDelayData[0].shape_id,
+            route_type: (await db_postgis.query(`SELECT route_type FROM routes WHERE id = $1`, [tripDelayData[0].route_id_id])).rows[0].route_type,
+            data: {}
+        }
+
+        // Merge data
+        for (const trip of tripDelayData) {
+            for (const day of trip.data) {
+                const date = Object.keys(day)[0];
+                if (!finalData.data[date] || Object.keys(finalData.data[date]).length < Object.keys(day[date]).length) {
+                    finalData.data[date] = day[date];
+                }
+            }
+        }
+
+        // If date is today, get Kordis API
+        if (timeStamp.compareTimeStamps(todayTimeStamp, date) < 0) {
+            const todayTrip = (await db_postgis.query(`SELECT id FROM trips WHERE trip_id LIKE $1 AND is_today=true AND is_active=true`, [`L${line}D99?${depTime}?%`])).rows;
+            console.log(todayTrip)
+            if (todayTrip.length === 1) {
+                const trip_details = (await db_postgis.query(`SELECT api_route_id, api_trip_id FROM trip_details WHERE internal_trip_id = $1`, [todayTrip[0].id])).rows[0];
+                console.log(trip_details)
+                if (trip_details && trip_details.api_route_id !== null && trip_details.api_trip_id !== null) {
+                    finalData['kordis_id'] = `${trip_details.api_route_id}/${trip_details.api_trip_id}`;
+                }
+            }
+        }
+
+        return finalData;
     } catch(error) {
         log('error', error);
         return false;

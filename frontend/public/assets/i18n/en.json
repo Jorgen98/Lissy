@@ -377,6 +377,13 @@
     "prediction": {
         "name": "Delay prediction",
         "mapLabel": "Predicated delay",
-        "showValues": "Show predicated delay values"
+        "showValues": "Show predicated delay values",
+        "predictionMethods": "Prediction method",
+        "methods": {
+            "neuralNetwork": "Neural network",
+            "randomForest": "Random forest",
+            "linearRegression": "Linear Regression",
+            "average": "Average"
+        }
     }
 }

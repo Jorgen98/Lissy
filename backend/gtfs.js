@@ -1007,7 +1007,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
         for (const record of inputApiData) {
             try {
                 const decRecord = (parseOneLineFromInputFile(record)).join();
-                const numbers = decRecord.split(/[^0-9]+/).filter(Boolean);
+                const numbers = decRecord.replace(/\u0000/g, '').split(/[^0-9]+/).filter(Boolean);
                 if (numbers.length === 3) {
                     actualApiEndpoints[numbers[2]] = numbers[1];
                 } else {
@@ -1105,11 +1105,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                     return false;
                 }
             }
-            if (actualTripToCmp !== undefined) {
-                console.log(actualTripToCmp, tripToCmp)
-            } else {
-                console.log(internUniqTripId)
-            }
+
             newTrip.route_id_id = todayRouteIds[newTrip.route_id].id;
             newTrip.trip_id = internTripId;
 
@@ -1190,7 +1186,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             } catch (error) {};
         }
     }
-
+console.log(actualApiEndpoints)
     dbStats.updateStateProcessingStats('gtfs_trips', Object.keys(actualTrips).length);
     dbStats.updateStateProcessingStats('trips_to_process', tripsToProcess);
     return true;

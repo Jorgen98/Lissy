@@ -78,7 +78,7 @@
           </span>
           <p-datepicker class="calendar" [(ngModel)]="hooverDate" [inline]="true" selectionMode="single"
             [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
-            <ng-template pTemplate="footer">
+            <ng-template #footer>
               <div class="calendar-btns-div">
                 @if (isTodayFunctionEnabled) {
                   <button type="button" (click)="setToday()">{{ 'shapes.today' | translate }}</button>

@@ -47,6 +47,13 @@ export class PredictionModule implements OnInit, OnDestroy {
     private mapData: {coords: number[][][], stops: any[]} | undefined = undefined;
     private actualPredictionValues: number[] = [];
     public selectedDate: { idx: number, date: Date } = { idx: (new Date()).getDay(), date: new Date() };
+    public predictionMethods: {id: number, label: string, method: string}[] = [
+        {id: 0, label: 'prediction.methods.neuralNetwork', method: 'neuralNetwork'},
+        {id: 1, label: 'prediction.methods.randomForest', method: 'randomForest'},
+        {id: 2, label: 'prediction.methods.linearRegression', method: 'linearRegression'},
+        {id: 3, label: 'prediction.methods.average', method: 'average'}
+    ];
+    public selectedMethod: {id: number, label: string, method: string} = this.predictionMethods[0];
 
     public enableZonesOnMap: boolean = true;
     public enableRouteColor: boolean = true;
@@ -58,6 +65,7 @@ export class PredictionModule implements OnInit, OnDestroy {
 
     // On component creation
     public async ngOnInit() {
+        this.selectedMethod = this.predictionMethods[0];
         await this.onDaySelected((new Date().getDay()));
         this.theme.init();
     }
@@ -168,8 +176,8 @@ export class PredictionModule implements OnInit, OnDestroy {
         }
     }
 
-    public async tripSelected(trip: tripFromDB) {
-        if (this.selectedTripGroup === undefined) {
+    public async tripSelected(trip: tripFromDB | undefined) {
+        if (this.selectedTripGroup === undefined || trip === undefined) {
             return;
         }
 
@@ -179,6 +187,7 @@ export class PredictionModule implements OnInit, OnDestroy {
             dep_time: this.selectedTrip.dep_time,
             line: this.selectedRoute?.route_short_name ?? '',
             route: this.selectedTripGroup?.stops ?? '',
+            method: this.selectedMethod.method,
             date: timeStamp.getNonJSTimeStamp(this.selectedDate.date.getTime())
         });
 

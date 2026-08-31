@@ -54,6 +54,7 @@ async function processRequest(url, req, res) {
                     visualization: true,
                     date: req.query.date,
                     depTime: req.query.dep_time,
+                    method: req.query.method,
                     transport: {
                         line: req.query.line,
                         route: req.query.route

@@ -1,5 +1,8 @@
 /*
  * BE API Main File
+
+ * Author: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
 const express = require('express');
@@ -18,6 +21,7 @@ const modules = [
     require('../frontend/modules/stats/api.js'),
     require('../frontend/modules/shapes/api.js'),
     require('../frontend/modules/delay-trips/api.js'),
+    require('./planner/api.ts'),
     require('../frontend/modules/prediction/api.js')
 ];
 
@@ -31,6 +35,9 @@ function log(type, msg) {
 
 // CORS setup
 app.use(cors());
+
+// Parsing request body middleware for POST requests
+app.use(express.json());
 
 // Function for API Token verification
 async function verifyToken(req, res, next) {

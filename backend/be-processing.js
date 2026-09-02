@@ -1,5 +1,8 @@
 /*
  * BE Processing Main File
+
+ * Author: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
 const express = require('express');
@@ -14,6 +17,7 @@ const logService = require('./log.js');
 const gtfsService = require('./gtfs.js');
 const opProcessingService = require('./be-processing-operational-data.js');
 const timeStamp = require('./timeStamp.js');
+const plannerProcessingService = require('./be-processing-planner.js');
 
 // .env file include
 dotenv.config();
@@ -138,6 +142,19 @@ async function processData() {
         return false;
     }
     await dbStats.saveStateProcessingStats();
+
+    // Find parking spots near all stations in transport system
+    log('info', 'Finding parking near transport system stations');
+    if (!await plannerProcessingService.findParkingNearStations())
+        log('warning', 'Failed to find nearby parking near transport system stations');
+
+    // Get latest gas prices for the planner module and update the config
+    log('info', 'Fetching latest fuel prices from data.kurzy.cz');
+    await plannerProcessingService.updateFuelPrice();
+
+    // Get region bounds for highlighting the region the planner is used for
+    log('info', 'Fetching region bounds for selected region config');
+    await plannerProcessingService.getRegionOutline();
 
     return true;
 }

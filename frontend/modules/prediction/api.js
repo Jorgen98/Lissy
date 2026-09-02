@@ -17,8 +17,8 @@ function log(type, msg) {
 
 // Main request processing function
 async function processRequest(url, req, res) {
-    const today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
     try {
+        const today = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
         switch (url[0]) {
             case 'getRoutes': {
                 // Return today routes
@@ -32,17 +32,18 @@ async function processRequest(url, req, res) {
                 break;
             }
             case 'getTrips': {
-                if (req.query.route_id === undefined) {
+                if (req.query.route === undefined) {
                     res.send(false);
                 } else {
+                    req.query.route = JSON.parse(req.query.route);
                     // Return today trips
                     if (today === req.query.date) {
-                        const routeTrips = (await dbPostGIS.getPlannedTrips([{id: parseInt(req.query.route_id)}]))[0].trips;
+                        const routeTrips = (await dbPostGIS.getPlannedTrips([req.query.route]))[0].trips;
                         res.send(await dbPostGIS.getTripsDetail(routeTrips.map((trip) => { return trip.id }), false));
                     // Return trips from another day
                     } else {
                         const actualDate = timeStamp.removeDayFromTimeStamp(req.query.date, 7);
-                        const trips = await dbStats.getTripIdsInInterval(parseInt(req.query.route_id), actualDate, actualDate);
+                        const trips = await dbStats.getTripIdsInInterval(parseInt(req.query.route.id), actualDate, actualDate);
                         res.send(await dbPostGIS.getTripsDetail(trips, false));
                     }
                 }
@@ -53,6 +54,7 @@ async function processRequest(url, req, res) {
                     visualization: true,
                     date: req.query.date,
                     depTime: req.query.dep_time,
+                    method: req.query.method,
                     transport: {
                         line: req.query.line,
                         route: req.query.route

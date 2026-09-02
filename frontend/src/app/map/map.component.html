@@ -1,11 +1,27 @@
-<div class="legend-base-div zoom-div">
+<!--
+File: map.component.html
+Author: Juraj Lazur (ilazur@fit.vut.cz)
+Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+
+Leaflet map component HTML template file.
+-->
+
+<div class="zoom-div">
+  <!-- Switch map and theme button -->
+  @if (theme.themesEnabled) {
+    <div class="map-toggle-div">
+      <i class="pi pi-map map-toggle-icon"></i>
+      <div class="map-choice-div map-choice-div-dark" [class.map-selected]="this.theme.isDarkTheme" (click)="this.theme.setTheme('dark')"></div>
+      <div class="map-choice-div map-choice-div-light" [class.map-selected]="!this.theme.isDarkTheme" (click)="this.theme.setTheme('light')"></div>
+    </div>
+  }
   <!-- Zoom In -->
-  <button pButton type="button" class="btn-side-menu"
+  <button pButton type="button" class="btn-side-menu zoom-btn"
     (click)="mapService.zoomIn()">
     <i class="pi pi-search-plus"></i>
   </button>
   <!-- Zoom Out -->
-  <button pButton type="button" class="btn-side-menu"
+  <button pButton type="button" class="btn-side-menu zoom-btn"
     (click)="mapService.zoomOut()">
     <i class="pi pi-search-minus"></i>
   </button>
@@ -22,3 +38,12 @@
     <span [innerHtml]="delayLegendData"></span>
   }
 </div>
+
+<!-- Switch map and theme button mobile version -->
+@if (theme.themesEnabled) {
+  <div class="map-toggle-div-mobile">
+    <i class="pi pi-map map-toggle-icon"></i>
+    <div class="map-choice-div map-choice-div-dark" [class.map-selected]="this.theme.isDarkTheme" (click)="this.theme.setTheme('dark')"></div>
+    <div class="map-choice-div map-choice-div-light" [class.map-selected]="!this.theme.isDarkTheme" (click)="this.theme.setTheme('light')"></div>
+  </div>
+}

@@ -1,6 +1,9 @@
 /*
  * App Map
  * Public map service methods
+ *
+ * Authors: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
 import { Injectable } from '@angular/core';
@@ -11,7 +14,7 @@ export interface mapObject {
     // Name of layer to which should be the object placed
     layerName: string,
     // Type of object
-    type: "stop" | "route",
+    type: "stop" | "route" | "location" | "parking" | "regionBound",
     // Focus map on object after render
     focus: boolean,
     // Object latitude and longitude
@@ -82,5 +85,23 @@ export class MapService {
     public fitToLayerObj = new BehaviorSubject<any>(null);
     fitToLayer(layerName: string) {
         this.fitToLayerObj.next(layerName);
+    }
+
+    // Add extra features to the map
+    public mapFeaturesObj = new Subject<any>();
+    configureMapFeatures(features: { showScale?: boolean }) {
+        this.mapFeaturesObj.next(features);
+    }
+
+    // Redraw objects in map layer
+    public redrawLayerObj = new Subject<any>();
+    redrawLayer(redrawMetadata: { layerName: string, data?: any }) {
+        this.redrawLayerObj.next(redrawMetadata);
+    }
+
+    // Subject emitting coordinates of a click on the map
+    public mapClickObj = new Subject<any>();
+    mapClick(coords: L.LatLng) {
+        this.mapClickObj.next(coords);
     }
 }

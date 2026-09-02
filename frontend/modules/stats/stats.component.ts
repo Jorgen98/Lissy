@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { APIService } from '../../src/app/services/api';
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
@@ -16,6 +16,7 @@ interface graphData {
     selector: 'stats',
     imports: [ImportsModule],
     templateUrl: './stats.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './stats.component.css'
 })
 
@@ -453,7 +454,7 @@ export class StatsModule implements OnInit {
 
         // Parse data
         for (const day in this.queryData) {
-            let date = (timeStamp.getDate(day)).toLocaleDateString(this.translate.currentLang === 'cz' ? 'cs-CZ' : 'en-GB', {dateStyle: 'medium'});
+            let date = (timeStamp.getDate(day)).toLocaleDateString(this.translate.currentLang() === 'cz' ? 'cs-CZ' : 'en-GB', {dateStyle: 'medium'});
 
             for (let i = 0; i < this.systemState.length; i++) {
                 this.systemState[i].labels.push(date);

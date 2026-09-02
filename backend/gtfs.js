@@ -1,5 +1,8 @@
 /*
  * GTFS data function file
+ *
+ * Author: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
 const dotenv = require('dotenv');
@@ -83,6 +86,339 @@ async function reloadActualSystemState() {
     });
 }
 
+// Function calculating a transit accessibility score for each stop loaded from GTFS
+async function getStopTransitAccessibilityScores(stopsFile, stopTimesFile, tripsFile, calendarFile, routesFile) {
+
+    // Check valid data in all necessary files
+    if (stopsFile?.data === undefined || stopTimesFile?.data === undefined || tripsFile?.data === undefined || calendarFile?.data === undefined || routesFile?.data === undefined)
+        return false;
+
+    // Get line-by-line data from each CSV file (includes header)
+    let stopsData = stopsFile.data.toString().split('\n');
+    let stopTimesData = stopTimesFile.data.toString().split('\n');
+    let routesData = routesFile.data.toString().split('\n');
+    let tripsData = tripsFile.data.toString().split('\n');
+    let calendarData = calendarFile.data.toString().split('\n');
+
+    // Get header form each CSV file 
+    const stopsHeader = stopsData[0].slice(1, stopsData[0].length - 1).split(','); stopsData.shift();
+    const stopTimesHeader = stopTimesData[0].slice(1, stopTimesData[0].length - 1).split(','); stopTimesData.shift();
+    const routesHeader = routesData[0].slice(1, routesData[0].length - 1).split(','); routesData.shift();
+    const tripsHeader = tripsData[0].slice(1, tripsData[0].length - 1).split(','); tripsData.shift();
+    const calendarHeader = calendarData[0].slice(1, calendarData[0].length - 1).split(','); calendarData.shift();
+
+    // Create lookup tables with Map for fast lookup
+    const mondayActive = createMondayActiveMap(calendarHeader, calendarData);
+    const tripInfo = createTripInfoMap(tripsHeader, tripsData);
+    const routeModes = createRouteModesMap(routesHeader, routesData);
+    const stopTrips = createStopTripsMap(stopTimesHeader, stopTimesData);
+
+    // Get list of tripids for trips passing through every parent station
+    const stopsToTrips = aggregateTripIds(stopsHeader, stopsData, stopTrips);
+
+    // Calculate daily service frequency for all routes passing through each stop
+    const stopRoutesDailyFreq = calculateRouteDailyFrequency(stopsToTrips, mondayActive, tripInfo);
+
+    // Calculate stop scores from route frequencies
+    const stopScores = calculateStopScores(stopRoutesDailyFreq, routeModes);
+
+    // Normalize the scores into a 0-100 range using a logarithmic range in-place
+    normalizeStopScores(stopScores);
+
+    // Update the database with calculated scores
+    for (const data of Object.values(stopScores)) {
+        const stopId = `0:${data.stopName}:${data.lat}:${data.lng}`;
+        await dbPostGIS.updateStopTransitAccessibilityScore(stopId, data.score);
+    }
+
+    return true;
+}
+
+// Function normalizing the calculated stop scores into 0-100 values using a logarithmic range
+function normalizeStopScores(initialScores) {
+
+    // Get maximum and minumum calculated initial values
+    let max = 0;
+    for (const data of Object.values(initialScores)) {
+        if (data.score > max)
+            max = data.score;
+    }
+
+    const logMax = max < 1 ? 1 : Math.log10(max);
+
+    // Go through every score and log-normalize against maximum value
+    for (const data of Object.values(initialScores)) {
+
+        // log(0) undefined, hardcoded 0 value 
+        if (data.score === 0)
+            data.score = 0;
+
+        // Get normalized logarithmic score and clamp to 0 from bottom
+        else {
+            const normedScore = Math.log10(data.score) / logMax;
+            data.score = Math.max(0, Math.round(normedScore * 100));
+        }
+    }
+}
+
+// Function calculating the initial score for every station 
+function calculateStopScores(stopRoutesDailyFreq, routeModes) {
+
+    const stopScores = {};
+
+    // Go through all entries in the previously created map with route frequencies per stop
+    for (const [stopId, data] of Object.entries(stopRoutesDailyFreq)) {
+
+        const modeRouteFrequenices = {};
+
+        // Iterate through all routes that pass through the current stop
+        for (const [routeId, frequency] of Object.entries(data.routes)) {
+
+            // Get mode used on the route from the created map
+            const mode = routeModes.get(routeId);
+            if (mode === undefined)
+                continue;
+
+            // Group the routes by mode they use and keep the frequencies of the routes in a list keyed by the mode
+            if (modeRouteFrequenices[mode] === undefined)
+                modeRouteFrequenices[mode] = [frequency];
+            else 
+                modeRouteFrequenices[mode].push(frequency);
+        }
+
+        const modeScores = [];
+        for (const frequencies of Object.values(modeRouteFrequenices)) {
+
+            // Get index of the maximum frequency for the current mode
+            const maxFreq = Math.max(...frequencies);
+            const maxIdx = frequencies.indexOf(maxFreq);
+
+            // Accumulate score for this mode, the most frequent route is weighted with 1, others with 0.7
+            let modeScore = 0;
+            for (let i = 0; i < frequencies.length; i++) {
+                if (i === maxIdx)
+                    modeScore += frequencies[i];
+                else
+                    modeScore += frequencies[i] * 0.7;
+            }
+
+            // Final score for the current mode on the current stop
+            modeScores.push(modeScore);
+        }
+
+        // Sum scores from all modes
+        stopScores[stopId] = {};
+        stopScores[stopId]["score"] = 0;
+        stopScores[stopId]["stopName"] = data["stopName"];
+        stopScores[stopId]["lat"] = data["lat"];
+        stopScores[stopId]["lng"] = data["lng"];
+        for (const modeAI of modeScores)
+            stopScores[stopId]["score"] += modeAI;
+    }
+
+    return stopScores;
+}
+
+// Function calculating daily service frequency (monday) of routes passing through each station
+function calculateRouteDailyFrequency(stopsToTrips, mondayActive, tripInfo) {
+
+    const routesFrequency = {};
+
+    // Go through all entries in the previously created aggregated map with stations
+    for (const [stopId, data] of Object.entries(stopsToTrips)) {
+
+        // Create empty object with the stop name, coordinates and an empty dictionary of routes
+        routesFrequency[stopId] = {};
+        routesFrequency[stopId]["stopName"] = data.stopName;
+        routesFrequency[stopId]["lat"] = data.lat;
+        routesFrequency[stopId]["lng"] = data.lng;
+        routesFrequency[stopId]["routes"] = {};
+
+        // Go through all tripIds of trips passing through this stop
+        for (const tripId of data.trips) {
+
+            // Get the info with service_id and route_id from prepared map
+            const trip = tripInfo.get(tripId);
+            if (!trip)
+                continue;
+
+            const routeId = trip.routeId;
+            const serviceId = trip.serviceId;
+
+            // Continue only if the service is active on monday (the selected day for scoring)
+            const isOnMonday = mondayActive.get(serviceId);
+            if (!isOnMonday)
+                continue;
+
+            // If an entry with this routeId doesnt exist yet, count first entry, otherwise add another daily trip
+            if (routesFrequency[stopId]["routes"][routeId] === undefined)
+                routesFrequency[stopId]["routes"][routeId] = 1;
+            else 
+                routesFrequency[stopId]["routes"][routeId] += 1;
+        }
+    }
+
+    return routesFrequency;
+}
+
+// Function aggregating trip ids of trips passing through a station/hub from its child stops
+function aggregateTripIds(stopsHeader, stopsData, stopTrips) {
+
+    // Get needed fields from the order of the stops.txt header
+    const stopIdIdx = stopsHeader.findIndex(item => item === 'stop_id');
+    const stopNameIdx = stopsHeader.findIndex(item => item === 'stop_name');
+    const parentIdIdx = stopsHeader.findIndex(item => item === 'parent_station');
+    const latIdx = stopsHeader.findIndex(item => item === 'stop_lat');
+    const lngIdx = stopsHeader.findIndex(item => item === 'stop_lon');
+
+    // Set up dictionary for aggregating parent and child stops
+    const stopTripsAggregated = {};
+
+    for (const stopRecord of stopsData) { 
+        const stop = parseOneLineFromInputFile(stopRecord);
+        if (!stop) continue;
+
+        const stopId = stop[stopIdIdx];
+        const parentId = stop[parentIdIdx] !== '' ? stop[parentIdIdx] : null; 
+        const stopName = stop[stopNameIdx];
+        const lat = stop[latIdx];
+        const lng = stop[lngIdx];
+
+        // If the parent Id is defined, use it as the key, otherwise the normal stop id
+        const stationId = parentId ?? stopId;
+
+        // Get list of ids of trips that pass through the stop from previously built map
+        const tripIds = stopTrips.get(stopId);
+
+        // If the key doesnt exist yet, create it with an empty set of tripIds and the stop name
+        if (stopTripsAggregated[stationId] === undefined)
+            stopTripsAggregated[stationId] = { trips: new Set(), stopName: stopName };
+
+        // Add coordinates of parent station
+        if (parentId === null) {
+            stopTripsAggregated[stationId]["lat"] = lat;
+            stopTripsAggregated[stationId]["lng"] = lng;
+        }
+
+        // Add all the found trip ids to the set
+        const tripSet = stopTripsAggregated[stationId].trips;
+        if (tripIds !== undefined) {
+            for (const tripId of tripIds)
+                tripSet.add(tripId);
+        }
+    }
+
+    return stopTripsAggregated;
+}
+
+// Function creating a lookup table which maps stop_ids from stop_times.txt to a list of trip_ids from stop_times.txt
+function createStopTripsMap(stopTimesHeader, stopTimesData) {
+
+    // Get all necessary indicies from the order of the stop_times.txt header
+    const stopIdIdx = stopTimesHeader.findIndex(item => item === 'stop_id');
+    const tripIdIdx = stopTimesHeader.findIndex(item => item === 'trip_id');
+
+    // Iterate through all stop_times.txt records to build the map
+    const stopTrips = new Map();
+    for (const stopTimesRecord of stopTimesData) {
+        const stopTime = parseOneLineFromInputFile(stopTimesRecord);
+        if (!stopTime) continue;
+        
+        const stopId = stopTime[stopIdIdx];
+        const tripId = stopTime[tripIdIdx];
+        
+        // Create new map entry for given stop id if it does not exist yet and add trip id to map
+        if (!stopTrips.has(stopId))
+            stopTrips.set(stopId, []);
+        stopTrips.get(stopId).push(tripId);
+    }
+
+    return stopTrips;
+}
+
+// Function creating a lookup table which maps route_id from routes.txt to the mode the route uses
+function createRouteModesMap(routesHeader, routesData) {
+
+    // Get all necessary indicies from the order of the routes.txt header
+    const routeTypeIdx = routesHeader.findIndex(item => item === 'route_type');
+    const routeIdIdx = routesHeader.findIndex(item => item === 'route_id');
+
+    // Iterate through all routes.txt records to build the map
+    const routeModes = new Map();
+    for (const routeRecord of routesData) {
+        const route = parseOneLineFromInputFile(routeRecord);
+        if (!route) continue;
+        
+        const routeId = route[routeIdIdx];
+        const mode = Number(route[routeTypeIdx]);
+        
+        // Store the weight in the map keyed by route_id
+        routeModes.set(routeId, mode);
+    }
+
+    return routeModes;
+}
+
+// Function creating a lookup table which maps trip_id from trips.txt to its route_id and service_id
+function createTripInfoMap(tripsHeader, tripsData) {
+
+    // Get all necessary indicies from the order of the trips.txt header
+    const routeIdIdx = tripsHeader.findIndex(item => item === 'route_id');
+    const serviceIdIdx = tripsHeader.findIndex(item => item === 'service_id');
+    const tripIdIdx = tripsHeader.findIndex(item => item === 'trip_id');
+
+    // Iterate through all trips.txt records to build the map
+    const tripInfo = new Map();
+    for (const tripRecord of tripsData) {
+        const trip = parseOneLineFromInputFile(tripRecord);
+        if (!trip) continue;
+        
+        // Store route and service ids into the map keyed by trip_id
+        tripInfo.set(trip[tripIdIdx], {
+            routeId: trip[routeIdIdx],
+            serviceId: trip[serviceIdIdx]
+        });
+    }
+
+    return tripInfo;
+}
+
+// Function creating a lookup table which maps service_id from calendar.txt to a boolean, which indicates whether that service is active on monday
+function createMondayActiveMap(calendarHeader, calendarData) {
+
+    // Get all necessary indicies from the order of the calendar.txt header
+    const serviceIdIdx = calendarHeader.findIndex(item => item === 'service_id');
+    const mondayIdx = calendarHeader.findIndex(item => item === 'monday');
+    const startIdx = calendarHeader.findIndex(item => item === 'start_date');
+    const endIdx = calendarHeader.findIndex(item => item === 'end_date');
+
+    // Iterate through all calendar.txt records to build the map
+    const mondayActiveMap = new Map();
+    for (const calendarRecord of calendarData) {
+        const calendar = parseOneLineFromInputFile(calendarRecord);
+        if (!calendar) continue;
+        
+        // Get start and end days of the service as JS Date objects
+        const start = calendar[startIdx];
+        const end = calendar[endIdx];
+        const startDate = new Date(parseInt(start.slice(0, 4)), parseInt(start.slice(4, 6)) - 1, parseInt(start.slice(6, 8)));
+        const endDate = new Date(parseInt(end.slice(0, 4)), parseInt(end.slice(4, 6)) - 1, parseInt(end.slice(6, 8)));
+        const today = new Date();
+
+        // If the service is not currently active, dont include it in the map
+        if (today < startDate || today > endDate)
+            continue;
+
+        // Get value of monday column
+        const mondayActive = calendar[mondayIdx] === "1"; 
+        
+        // Store in map keyed by the service_id
+        const serviceId = calendar[serviceIdIdx];
+        mondayActiveMap.set(serviceId, mondayActive);
+    }
+
+    return mondayActiveMap;
+}
 
 // Function for downloaded data unzip and parse
 async function unzipAndParseData(response, startTime) {
@@ -97,7 +433,8 @@ async function unzipAndParseData(response, startTime) {
                     if (!inputFiles.find((file) => { return file.path === 'routes.txt'}) ||
                         !inputFiles.find((file) => { return file.path === 'stops.txt'}) ||
                         !inputFiles.find((file) => { return file.path === 'stop_times.txt'}) ||
-                        !inputFiles.find((file) => { return file.path === 'trips.txt'})) {
+                        !inputFiles.find((file) => { return file.path === 'trips.txt'}) || 
+                        !inputFiles.find((file) => { return file.path === 'calendar.txt'})) {
                             log('error', 'GTFS file set is incomplete');
                             dbStats.updateStateProcessingStats('gtfs_file_downloaded', false);
                             try {
@@ -164,6 +501,20 @@ async function unzipAndParseData(response, startTime) {
                         return;
                     }
 
+                    // Calculate transit accessibility scores of each stop for the planner
+                    const stops = inputFiles.find(file => file.path === 'stops.txt');
+                    const stopTimes = inputFiles.find(file => file.path === 'stop_times.txt');
+                    const trips = inputFiles.find(file => file.path === 'trips.txt');
+                    const calendar = inputFiles.find(file => file.path === 'calendar.txt');
+                    const routes = inputFiles.find(file => file.path === 'routes.txt');
+                    log('info', 'Calculating transit score for transport system stops');
+                    if (!await getStopTransitAccessibilityScores(stops, stopTimes, trips, calendar, routes)) {
+                        log('error', 'Failed to calculate stop transit scores from GTFS due to corrupted files');
+                        fs.rmSync(tmpFolderName, { recursive: true });
+                        resolve(false);
+                        return;
+                    }
+
                     fs.rmSync(tmpFolderName, { recursive: true });
                     log('success', 'Processing GTFS data done');
                     dbStats.updateStateProcessingStats('gtfs_processing_time', performance.now() - startTime);
@@ -194,6 +545,9 @@ async function unzipAndParseData(response, startTime) {
                     // Today shapes API endpoint reset
                     await dbCache.clearTodayShapes();
                     await dbCache.setUpTodayShapes();
+
+                    // Clear cached active routes daily
+                    await dbCache.clearActiveRoutes();
 
                     resolve(true);
                 });
@@ -647,16 +1001,18 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
     // Prepate API data, Brno transit system feature
     if (inputApiFile) {
-        let inputApiData = inputApiFile.data.toString().split('\n');
+        const inputApiData = inputApiFile.data.toString().split('\n');
         inputApiData.shift();
 
         for (const record of inputApiData) {
-            let decRecord = parseOneLineFromInputFile(record);
-
             try {
-                decRecord = decRecord[0].split(' ');
-                decRecord[4] = decRecord[4].split('/')[1];
-                actualApiEndpoints[decRecord[6]] = decRecord[4];
+                const decRecord = (parseOneLineFromInputFile(record)).join();
+                const numbers = decRecord.replace(/\u0000/g, '').split(/[^0-9]+/).filter(Boolean);
+                if (numbers.length === 3) {
+                    actualApiEndpoints[numbers[2]] = numbers[1];
+                } else {
+                    continue;
+                }
             } catch(error) {
                 continue;
             }
@@ -698,25 +1054,15 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
     for (const record of inputTripsData) {
         let decRecord = parseOneLineFromInputFile(record);
 
-        if (decRecord === undefined || decRecord[routeIdIdx] === undefined || decRecord[tripIdIdxTrips] === undefined) {
+        if (decRecord === undefined || decRecord[routeIdIdx] === undefined || decRecord[tripIdIdxTrips] === undefined || todayRouteIds[decRecord[routeIdIdx]] === undefined) {
             continue;
-        }
-
-        if (todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) === -1 || actualStopTimes[decRecord[tripIdIdxTrips]] === undefined ||
-            todayRouteIds[decRecord[routeIdIdx]] === undefined) {
-            if (!useAllServices) {
-                continue;
-            }
         }
 
         tripsToProcess++;
 
-        let internTripId = `${decRecord[routeIdIdx]}?${actualStopTimes[decRecord[tripIdIdxTrips]].stops_info[0].aT}?${JSON.stringify(actualStopTimes[decRecord[tripIdIdxTrips]]?.stops)}`;
-
         let newTrip = {
             route_id: decRecord[routeIdIdx] ? decRecord[routeIdIdx] : '',
             route_id_id: null,
-            trip_id: decRecord[tripIdIdxTrips] ? decRecord[tripIdIdxTrips] : '',
             trip_headsign: decRecord[tripHeadsignIdx] ? decRecord[tripHeadsignIdx] : '',
             trip_short_name: decRecord[tripShortNameIdx] ? decRecord[tripShortNameIdx] : '',
             direction_id: decRecord[directionIdIdx] ? parseInt(decRecord[directionIdIdx]) : 0,
@@ -724,27 +1070,33 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             wheelchair_accessible: decRecord[wheelchairAccessibleIdx] ? parseInt(decRecord[wheelchairAccessibleIdx]) : 0,
             bikes_allowed: decRecord[bikesAllowedIdx] ? parseInt(decRecord[bikesAllowedIdx]) : 0,
             shape_id: null,
-            stops_info: actualStopTimes[decRecord[tripIdIdxTrips]].stops_info,
-            stops: actualStopTimes[decRecord[tripIdIdxTrips]].stops,
-            api: ''
+            stops_info: actualStopTimes[decRecord[tripIdIdxTrips]].stops_info ?? undefined,
+            stops: actualStopTimes[decRecord[tripIdIdxTrips]].stops ?? []
         }
 
-        let actualTrip = actualTrips[internTripId];
+        // Intern trip id consists from Route, departure time and stops
+        const internTripId = `${decRecord[routeIdIdx]}?${actualStopTimes[decRecord[tripIdIdxTrips]].stops_info[0].aT}?${JSON.stringify(actualStopTimes[decRecord[tripIdIdxTrips]]?.stops)}`;
+        // While there can be lot of similar trips with different drop_off_type, there is uniq id for trip service on monday, sunday etc
+        const internUniqTripId = `${internTripId}?${JSON.stringify(actualStopTimes[decRecord[tripIdIdxTrips]].stops_info)}?${newTrip.trip_headsign}?` +
+            `${newTrip.trip_short_name}?${newTrip.direction_id}?${newTrip.block_id}?${newTrip.wheelchair_accessible}?${newTrip.bikes_allowed}`;
+        const gtfsTripID = decRecord[tripIdIdxTrips] ? decRecord[tripIdIdxTrips] : '';
+
+        let actualTrip = actualTrips[internUniqTripId];
         newTrip.route_id_id = actualTrip?.route_id_id ? actualTrip.route_id_id : null;
         newTrip.shape_id = actualTrip?.shape_id ? actualTrip.shape_id : null;
-        newTrip.api = actualApiEndpoints[newTrip.trip_id] ? actualApiEndpoints[newTrip.trip_id] : null;
-        newTrip.trip_id = internTripId;
 
         let actualTripToCmp = actualTrip ? JSON.parse(JSON.stringify(actualTrip)) : undefined;
         let tripToCmp = JSON.parse(JSON.stringify(newTrip));
 
         tripToCmp['stops_info'] = JSON.stringify(tripToCmp['stops_info']);
         tripToCmp['stops'] = JSON.stringify(tripToCmp['stops']);
+
         if (actualTripToCmp !== undefined) {
             actualTripToCmp['stops_info'] = JSON.stringify(actualTripToCmp['stops_info'] ? actualTripToCmp['stops_info'] : undefined);
             actualTripToCmp['stops'] = JSON.stringify(actualTripToCmp['stops'] ? actualTripToCmp['stops'] : undefined);
             delete actualTripToCmp['id'];
             delete actualTripToCmp['tmp_shape_id'];
+            delete actualTripToCmp['trip_id'];
         }
 
         if (actualTrip === undefined || JSON.stringify(actualTripToCmp) !== JSON.stringify(tripToCmp)) {
@@ -755,9 +1107,9 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             }
 
             newTrip.route_id_id = todayRouteIds[newTrip.route_id].id;
+            newTrip.trip_id = internTripId;
 
             let newTripToAdd = JSON.parse(JSON.stringify(newTrip));
-            newTripToAdd['stops_info'] = newTripToAdd['stops_info'].map(value => `'${JSON.stringify(value)}'`);
             let newTripId = await dbPostGIS.addTrip(newTripToAdd);
 
             if (newTripId === null) {
@@ -766,7 +1118,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
             newTrip.id = newTripId;
             dbStats.updateStateProcessingStats('gtfs_trips_added', 1);
-            actualTrips[internTripId] = newTrip;
+            actualTrips[internUniqTripId] = newTrip;
 
             let tmpShapeId = `${todayRouteIds[newTrip.route_id].route_type}?${JSON.stringify(newTrip.stops)}`;
             let tmpShapeActualId = null;
@@ -774,7 +1126,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             if (actualTrip !== undefined  && actualTrip.tmp_shape_id !== undefined) {
                 if (actualTrip.tmp_shape_id === tmpShapeId) {
                     tmpShapeActualId = actualTrip.shape_id;
-                    actualTrips[internTripId].tmp_shape_id = tmpShapeId;
+                    actualTrips[internUniqTripId].tmp_shape_id = tmpShapeId;
                 }
             }
 
@@ -813,16 +1165,28 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
                 await dbPostGIS.updateTripsShapeId([newTripId], tmpShapeActualId);
             }
 
-            if (! await dbPostGIS.setTripAsUnServed(newTripId)) {
-                return false;
+            if ((todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) !== -1 && actualStopTimes[decRecord[tripIdIdxTrips]] !== undefined) || useAllServices) {
+                if (! await dbPostGIS.setTripAsUnServed(newTripId)) {
+                    return false;
+                }
             }
+
+            try {
+                await dbPostGIS.updateTripDetails(newTripId, newTrip.route_id.split(/[^0-9]+/).filter(Boolean)[0], actualApiEndpoints[gtfsTripID], gtfsTripID);
+            } catch (error) {};
         } else {
-            if (! await dbPostGIS.setTripAsUnServed(actualTrip.id)) {
-                return false;
+            if ((todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) !== -1 && actualStopTimes[decRecord[tripIdIdxTrips]] !== undefined) || useAllServices) {
+                if (! await dbPostGIS.setTripAsUnServed(actualTrip.id)) {
+                    return false;
+                }
             }
+
+            try {
+                await dbPostGIS.updateTripDetails(actualTrip.id, actualTrip.route_id.split(/[^0-9]+/).filter(Boolean)[0], actualApiEndpoints[gtfsTripID], gtfsTripID);
+            } catch (error) {};
         }
     }
-
+console.log(actualApiEndpoints)
     dbStats.updateStateProcessingStats('gtfs_trips', Object.keys(actualTrips).length);
     dbStats.updateStateProcessingStats('trips_to_process', tripsToProcess);
     return true;
@@ -831,7 +1195,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 // Function for decoding which services should be operated today
 function getTodayServices(inputCalendarFile, inputDatesFile) {
     todayServiceIDs = [];
-    let today = timeStamp.getTodayUTC();
+    let today = process.env.PROCESSING_YESTERDAY ? timeStamp.getDateFromTimeStamp(timeStamp.removeDayFromTimeStamp(timeStamp.getTimeStamp(timeStamp.getTodayUTC()))) : timeStamp.getTodayUTC();
     today.setUTCHours(0, 0, 0, 0);
     const dayOfWeek = today.getUTCDay() === 0 ? 6 : today.getUTCDay() - 1;
 
@@ -847,9 +1211,9 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
             inputCalendarData.shift();
 
             for (const record of inputCalendarData) {
-                const decRecord = record.split(',');
+                const decRecord = parseOneLineFromInputFile(record);
 
-                if (decRecord.length !== 10) {
+                if (decRecord === undefined || decRecord.length !== 11) {
                     continue;
                 }
 
@@ -867,7 +1231,7 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
         }
     }
 
-    // Provide calendar dates data if provided
+    // Process calendar dates data if provided
     // https://gtfs.org/schedule/reference/#calendar_datestxt
     if (inputDatesFile?.data !== undefined) {
         let inputDatesData = inputDatesFile.data.toString().split('\n');
@@ -883,7 +1247,11 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
 
                 decRecord[2] = decRecord[2].slice(0, 1);
 
-                let date = timeStamp.getDateFromISOTimeStamp(decRecord[1]);
+                const date = timeStamp.getDateFromISOTimeStamp(decRecord[1]);
+                if (!date) {
+                    return false;
+                }
+
                 if (decRecord[2] === '1' && date.getTime() === today.getTime()) {
                     try {
                         if (!todayServiceIDs.find((itm) => { return itm === parseInt(decRecord[0])})) {
@@ -948,10 +1316,8 @@ async function getNewShapes() {
 // Util functions
 // Try to create JS Date format from GTFS input data
 function parseDateFromGTFS(input) {
-    input = `${input.slice(0, 4)}-${input.slice(4, 6)}-${input.slice(6, 8)}`;
-
     try {
-        return new timeStamp.getDateFromISOTimeStamp(input);
+        return timeStamp.getDateFromISOTimeStamp(input);
     } catch(error) {
         return new Date('1970-01-01');
     }
@@ -1025,4 +1391,23 @@ function stopsSort(data) {
     return data;
 }
 
-module.exports = { reloadActualSystemState }
+// Function, which returns shape based on lineId and tripId
+async function getShapeFromOTP(route_id, trip_id) {
+    if (trip_id === undefined) {
+        return undefined;
+    }
+
+    const gtfs_route = route_id.split(':')[1]?.split(/[^0-9]+/).filter(Boolean)[0];
+    const gtfs_trip = trip_id.split(':')[1];
+    if (gtfs_route && gtfs_trip) {
+        const actual_trip = await dbPostGIS.getTripIDByGTFS(gtfs_route, gtfs_trip);
+        if (actual_trip) {
+            const actual_trip_id = await dbPostGIS.getTripsDetail([actual_trip.internal_trip_id], false);
+            return await dbPostGIS.getFullShape(actual_trip_id[0]?.shape_id);
+        } else {
+            return undefined;
+        }
+    }
+}
+
+module.exports = { reloadActualSystemState, getShapeFromOTP }

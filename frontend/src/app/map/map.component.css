@@ -1,11 +1,19 @@
+/*
+ * File: map.component.css
+ * Author: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * CSS styles file for the leaflet map component.
+ */
+
 #map {
     height: 100%;
     width: 100%;
 }
 
 ::ng-deep .leaflet-control-attribution {
-    background: var(--background) !important;
-    color: var(--p-gray-50);
+    background: var(--leaflet-attribution-background-color) !important;
+    color: var(--leaflet-attribution-color);
 }
 
 ::ng-deep .color-base {
@@ -36,7 +44,8 @@
     filter: invert(70%) sepia(50%) saturate(1969%) hue-rotate(5deg) brightness(101%) contrast(94%);
 }
 
-.legend-base-div {
+.legend-base-div,
+.zoom-div {
     position: absolute;
     bottom: 1em;
     left: 6em;
@@ -49,6 +58,19 @@
 .zoom-div {
     bottom: auto;
     row-gap: 0;
+}
+
+.zoom-btn {
+    color: var(--zoom-btn-color);
+    opacity: var(--zoom-btn-opacity);
+    text-align: left;
+    padding-left: 10px;
+}
+
+.zoom-btn:hover {
+    transition: .5s;
+    opacity: 1;
+    background-color: transparent;
 }
 
 ::ng-deep .legend-layer-div {
@@ -189,6 +211,61 @@
     margin: auto;
 }
 
+.map-toggle-div {
+    background-color: var(--planner-background);
+    width: 120px;
+    height: 60px;
+    border: var(--planner-main-border);
+    border-width: 1px;
+    border-radius: 5px;
+    margin: 0;
+    margin-top: 5px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 8px;
+    gap: 6px;
+}
+
+.map-toggle-div-mobile {
+    display: none;
+}
+
+.map-toggle-icon {
+    font-size: 10px;
+    color: var(--p-green-700);
+}
+
+.map-choice-div {
+    background-size: 100%;
+    border: var(--planner-main-border);
+    border-width: 1px;
+    height: 100%;
+    width: 100%;
+    border-radius: 10px;
+    transition: 0.5s;
+    cursor: pointer;
+}
+
+.map-choice-div:hover {
+    opacity: 1;
+}
+
+.map-selected {
+    opacity: 1 !important;
+    border-width: 3px;
+}
+
+.map-choice-div-dark {
+    background-image: url('../../../public/map-dark.png');
+    opacity: 0.6;
+}
+
+.map-choice-div-light {
+    background-image: url('../../../public/map-light.png');
+    opacity: 0.2;
+}
+
 @media only screen and (max-width: 1500px) {
     .legend-base-div {
         width: 40vw;
@@ -212,7 +289,7 @@
 @media only screen and (max-width: 700px) {
     #map {
         width: 100vw;
-        height: 100vh;
+        height: 100dvh;
     }
 
     .zoom-div {
@@ -231,5 +308,26 @@
 
     ::ng-deep .leaflet-bottom {
         bottom: 4em;
+    }
+
+    .map-toggle-div-mobile {
+        background-color: var(--planner-background);
+        width: 50px;
+        height: 100px;
+        border: var(--planner-main-border);
+        border-width: 1px;
+        border-radius: 5px;
+        margin: 0;
+        margin-top: 5px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        align-items: center;
+        padding: 2px;
+        gap: 2px;
+        position: absolute;
+        bottom: 3.2em;
+        right: 5px;
+        z-index: 500;
     }
 }

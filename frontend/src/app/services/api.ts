@@ -1,4 +1,8 @@
 /*
+ * File: api.ts
+ * Author: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
  * API handling service
  */
 
@@ -95,6 +99,30 @@ export class APIService {
             }, error => {
                 reject(false);
             });
+        });
+    }
+
+    public genericPost(url: string, body: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.httpClient.post(`${this.whoToAsk}${url}`, body, { headers: this.headers })
+                .pipe(retry(3))
+                .subscribe({
+                    next: async (response) => {
+                        const res = <any>response;
+                        if (!response)
+                            resolve(false);
+                        else if (this.msgService.isLoadingEnabled && res.hasOwnProperty('progress')) {
+                            this.msgService.actualLoadingPercentage.next(res['progress']);
+                            setTimeout(async () => {
+                                resolve(await this.genericPost(url, body))
+                            }, 2000);
+                        }
+                        else {
+                            resolve(res);
+                        }
+                    },
+                    error: () => reject(false),
+                });
         });
     }
 }

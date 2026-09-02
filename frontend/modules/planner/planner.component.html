@@ -1,0 +1,485 @@
+<!--
+File: planner.component.html
+Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+
+Main component HTML template file for the planner module.
+-->
+
+@if (config.enabled) {
+  <main class="main">
+    <!-- Side menu -->
+    <div class="side-control">
+
+      <!-- Span with options from the side menu -->
+      <span class="side-control-modules">
+
+        <!-- Walking preferences settings button -->
+        <div [ngClass]="moduleFocus == 1 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button 
+            type="button" 
+            [ngClass]="moduleFocus == 1 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchModuleVisibility(1)"  
+          >
+            <img 
+              [src]="(theme.isDark$ | async) ? './planner/pedestrian.svg' : './planner/walk-dark.svg'" 
+              class="setting-img"
+            >
+          </button>
+        </div>
+
+        <!-- Public transport preferences settings button -->
+        <div [ngClass]="moduleFocus == 2 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button 
+            type="button" 
+            [ngClass]="moduleFocus == 2 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchModuleVisibility(2)"  
+          >
+            <img 
+              [src]="(theme.isDark$ | async) ? './planner/pt-white.svg' : './planner/bus-dark.svg'" 
+              class="setting-img"
+            >
+          </button>
+        </div>
+
+        <!-- Car preferences settings button -->
+        <div [ngClass]="moduleFocus == 4 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button 
+            type="button" 
+            [ngClass]="moduleFocus == 4 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchModuleVisibility(4)"  
+          >
+            <img 
+              [src]="(theme.isDark$ | async) ? './planner/car-white.svg' : './planner/car-dark.svg'" 
+              class="setting-img"
+            >
+          </button>
+        </div>
+
+        <!-- Import button -->
+        <div [ngClass]="moduleFocus == 3 ? 'side-btn-div side-btn-div-active' : 'side-btn-div'">
+          <button 
+            type="button" 
+            [ngClass]="moduleFocus == 3 ? 'btn-side-menu btn-side-menu-active' : 'btn-side-menu'"
+            (click)="switchModuleVisibility(3)"  
+          >
+            <i class="pi pi-upload import-btn"></i>
+          </button>
+        </div>
+      </span>
+    </div>
+
+    <!-- Module content -->
+    <div class="content">
+
+      <!-- Walking preferences settings -->
+      @if (moduleFocus === 1) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'planner.settings.walkingPreferences' | translate }}</h4>
+            <button type="button" (click)="switchModuleVisibility(1)">
+              <i class="pi pi-times sidebar-close-btn"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+
+            <!-- Max walking distance -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.maxWalkingDistance' | translate }}</h3>
+              <div class="number-input-div">
+                <p-inputnumber 
+                  [(ngModel)]="selectedWalkDistanceKm" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [disabled]="walkDistanceUnlimited"
+                  [min]="0"
+                  [max]="1000"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="setDefaultIfEmpty('walkDistance')"/><span class="settings-unit">Km</span>
+              </div>
+              <span class="side-control-checkbox-span">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="walkDistanceUnlimited"
+                />
+                <p class="side-control-checkbox-head">{{ 'planner.settings.unlimitedWalkDistance' | translate }}</p>
+              </span>
+            </div>
+
+            <!-- Walking speed -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.walkingSpeed' | translate }}</h3>
+              <div class="number-input-div">
+                <p-inputnumber 
+                  [(ngModel)]="selectedWalkingSpeedKmh" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  mode="decimal" 
+                  [minFractionDigits]="1" 
+                  [maxFractionDigits]="1"
+                  [min]="1.0"
+                  [max]="15.0"
+                  [step]="0.1"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="setDefaultIfEmpty('walkSpeed')"/><span class="settings-unit">Km/h</span>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      }
+
+      <!-- Public transport preferences settings -->
+      @else if (moduleFocus === 2) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'planner.settings.publicTransportPreferences' | translate }}</h4>
+            <button type="button" (click)="switchModuleVisibility(2)">
+              <i class="pi pi-times sidebar-close-btn"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+
+            <!-- Selected public transport modes -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.selectedModes' | translate }}</h3>
+              <span class="side-control-checkbox-span">
+                <div class="side-control-checkbox-list">
+
+                  <!-- Bus -->
+                  <div class="checkbox-label-pair">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.bus"
+                    />
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.bus' | translate }}</p>
+                  </div>
+
+                  <!-- Trolleybus -->
+                  <div class="checkbox-label-pair">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.trolleybus"
+                    />
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.trolleybus' | translate }}</p>
+                  </div>
+
+                  <!-- Tram -->
+                  <div class="checkbox-label-pair">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.tram"
+                    />
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.tram' | translate }}</p>
+                  </div>
+
+                  <!-- Train -->
+                  <div class="checkbox-label-pair">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.train"
+                    />
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.train' | translate }}</p>
+                  </div>
+
+                  <!-- Ferry -->
+                  <div class="checkbox-label-pair">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.ferry"
+                    />
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.ferry' | translate }}</p>
+                  </div>
+
+                  <!-- Subway -->
+                  <div class="checkbox-label-pair">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="allowedPublicTransportModes.subway"
+                    />
+                    <p class="side-control-checkbox-head">{{ 'planner.settings.subway' | translate }}</p>
+                  </div>
+                </div>
+
+              </span>
+            </div>
+
+            <!-- Max number of transfers in trip -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.maxTransfers' | translate }}</h3>
+              <div class="number-input-div">
+                <p-inputnumber 
+                  [(ngModel)]="selectedMaxNumberOfTransfers" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [disabled]="maxNumberOfTransfersUnlimited"
+                  [min]="0"
+                  [max]="1000"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="setDefaultIfEmpty('maxTransfers')"/>
+              </div>
+              <span class="side-control-checkbox-span">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="maxNumberOfTransfersUnlimited"
+                />
+                <p class="side-control-checkbox-head">{{ 'planner.settings.unlimitedTransfers' | translate }}</p>
+              </span>
+            </div>
+
+            <!-- Public transport ticket selection -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.ticketType' | translate }}</h3>
+              <p-select 
+                [required]="true" 
+                [checkmark]="true" 
+                [options]="ticketOptions"
+                optionLabel="label"
+                optionValue="type"
+                [(ngModel)]="selectedTicketType"
+                class="side-control-select"
+              />
+            </div>
+            <p class="attribution">{{ 'planner.settings.fareInformation' | translate }}: <a href="https://www.idsjmk.cz/documents/ceny-jizdneho" target="_blank">idsjmk.cz</a></p>
+          </div>
+        </div>
+      }
+
+      <!-- Car preferences settings -->
+      @else if (moduleFocus === 4) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ 'planner.settings.carPreferences' | translate }}</h4>
+            <button type="button" (click)="switchModuleVisibility(4)">
+              <i class="pi pi-times sidebar-close-btn"></i>
+            </button>
+          </span>
+          <div class="side-control-selection-div">
+
+            <!-- Average fuel consumption -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.fuelConsumption' | translate }}</h3>
+              <div class="number-input-div">
+                <p-inputnumber 
+                  [minFractionDigits]="1"
+                  [maxFractionDigits]="1"
+                  [(ngModel)]="selectedFuelConsumption" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [min]="0"
+                  [max]="1000"
+                  [step]="0.1"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="setDefaultIfEmpty('fuelConsumption')"
+                  class="p-input-number"
+                /><span class="settings-unit">l/100km</span>
+              </div>
+            </div>
+
+            <!-- Fuel price -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.fuelPrice' | translate }}</h3>
+              <div class="number-input-div">
+                <p-inputnumber 
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [(ngModel)]="selectedFuelPrice" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [min]="0"
+                  [max]="1000"
+                  [step]="0.1"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="setDefaultIfEmpty('fuelPrice')"
+                /><span class="settings-unit">Kč/l</span>
+              </div>
+            </div>
+            <p class="attribution">{{ 'planner.settings.fuelPriceAttribution' | translate }}: <a href="https://www.kurzy.cz/" target="_blank">kurzy.cz</a></p>
+
+            <!-- Extra car operation costs -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ 'planner.settings.extraCarCosts' | translate }}</h3>
+              <div class="number-input-div">
+                <p-inputnumber 
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [(ngModel)]="selectedExtraCarCosts" 
+                  [inputStyle]="{'width': '70px', 'text-align': 'right'}"
+                  [min]="0"
+                  [max]="1000"
+                  [step]="0.1"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  (onBlur)="setDefaultIfEmpty('extraCosts')"
+                /><span class="settings-unit">Kč/km</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Trip import -->
+      @else if (moduleFocus === 3) {
+        <div class="side-control-content">
+          <span class="side-control-head">
+            <h4>{{ "planner.settings.tripImport" | translate }}</h4>
+            <button type="button" (click)="switchModuleVisibility(3)">
+              <i class="pi pi-times sidebar-close-btn"></i>
+            </button>
+          </span>
+
+          <div class="side-control-selection-div">
+
+            <!-- Import file uploader -->
+            <div class="side-control-selection-inner-div">
+              <h3>{{ "planner.settings.fileImport" | translate }}</h3>
+              <p-fileupload 
+                mode="basic" 
+                chooseIcon="pi pi-upload" 
+                [chooseLabel]="'planner.settings.browse' | translate" 
+                accept="application/json" 
+                [auto]="true" 
+                [maxFileSize]="1048576"   
+                [customUpload]="true"
+                (uploadHandler)="onImportFile($event)"
+                class="upload-btn"
+                [invalidFileSizeMessageSummary]="'planner.settings.invalidFileSizeMessageSummary' | translate"
+                [invalidFileSizeMessageDetail]="'planner.settings.invalidFileSizeMessageDetail' | translate"
+                [invalidFileTypeMessageSummary]="'planner.settings.invalidFileTypeMessageSummary' | translate"
+                [invalidFileTypeMessageDetail]="'planner.settings.invalidFileTypeMessageDetail' | translate"
+              />
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Button to go back when selecting point from map -->
+      @if (markerType !== null && isTouchDevice) {
+        <div class="point-from-map-tooltip">
+          {{ 'planner.clickToCancel' | translate }}
+        </div>
+      }
+
+      <!-- Button to go back when viewing option in map -->
+      @else if (mobileShownOption !== null) {
+        <div class="trip-header-wrapper" (click)="mobileHideMap()">
+          <div class="back-to-detail-btn">
+            <i class="pi pi-arrow-left"></i><span>{{ "planner.itinerary.backToDetail" | translate }}</span>
+          </div>
+          <div class="horizontal-line"></div>
+          <trip-header 
+            [option]="tripOptions![mobileShownOption]"
+            [showTags]="(tripOptions?.length ?? 0) > 2"
+          />
+        </div>
+      }
+
+      <!-- The two components are located in the same column under each other -->
+      <!-- Components notify each other about space requirements for rendering/updating their contents through inputs and outputs -->
+      <!-- Or get notified by this component when new trip options are found -->
+      <div class="main-components-wrapper">
+
+        <!-- Trip input form component -->
+        <trip-form 
+          (markerClick)="markerClick($event)" 
+          (tripSubmit)="tripSubmit($event)" 
+          [stops]="allStops" 
+          [mapClickWithMarkerCursor]="clickedCoordsWithMarker" 
+          [forceAction]="formForceAction"
+          (collapseAction)="formCollapseAction($event)"
+          (reverseGeocode)="reverseGeocodeRequest($event)"
+          [geocodedPlaceName]="geocodedPlaceName"
+          [hidden]="tripOptions !== null && windowWidth < 700"
+          [isTouchDevice]="isTouchDevice"
+        />
+
+        <!-- Itinerary component with trip options -->
+        <itinerary 
+          [tripOptions]="tripOptions" 
+          (redrawTripOption)="renderTrip($event)" 
+          (clearItinerary)="clearItinerary()"
+          [forceAction]="itineraryForceAction"
+          (forceDetail)="itineraryForceOpenDetail()"
+          (mobileShowTripOption)="this.mobileShownOption = $event"
+          [hidden]="mobileShownOption !== null"
+          [isTouchDevice]="isTouchDevice"
+          (sortTripOptions)="sortTripOptions($event)"
+          (toggleReturnTrip)="toggleReturnTrip($event)"
+          (rerouteRequest)="rerouteRequest($event)"
+        />
+      </div>
+
+      <!-- Map -->
+      <map></map>
+
+      <!-- Hidden images for the cursor when a trip point is being selected in the map -->
+      <img
+        #startCursor
+        class="cursor-image"
+        [src]="'./planner/start-marker.svg'"
+      />
+      <img
+        #midpointCursor
+        class="cursor-image"
+        [src]="'./planner/midpoint-marker.svg'"
+      />
+      <img
+        #endCursor
+        class="cursor-image"
+        [src]="'./planner/end-marker.svg'"
+      />
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="mobile-header">
+
+      <!-- Homepage navigation button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" routerLink="/">
+          <i class="pi pi-home mobile-setting-btn-icon"></i>
+          <p class="mobile-btn-text">{{ 'common.mainMenu' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Walking preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(1)">
+          <img 
+            [src]="(theme.isDark$ | async) ? './planner/pedestrian.svg' : './planner/walk-dark.svg'"
+            class="setting-img-mobile"
+          >
+          <p class="mobile-btn-text">{{ 'planner.settings.walkingPreferences' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Public transport preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(2)">
+          <img 
+            [src]="(theme.isDark$ | async) ? './planner/pt-white.svg' : './planner/bus-dark.svg'"
+            class="setting-img-mobile"
+          >
+          <p class="mobile-btn-text">{{ 'planner.settings.publicTransportPreferences' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Car preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header" (click)="switchModuleVisibility(4)">
+          <img 
+            [src]="(theme.isDark$ | async) ? './planner/car-white.svg' : './planner/car-dark.svg'"  
+            class="setting-img-mobile"
+          >
+          <p class="mobile-btn-text">{{ 'planner.settings.carPreferences' | translate }}</p>
+        </button>
+      </div>
+
+      <!-- Public transport preferences settings button -->
+      <div class="mobile-header-item">
+        <button type="button" class="mobile-btn-header mobile-btn-header" (click)="switchModuleVisibility(3)">
+          <i class="pi pi-upload import-btn-mobile mobile-setting-btn-icon"></i>
+          <p class="mobile-btn-text mobile-btn-text-margin">{{ 'planner.settings.tripImport' | translate }}</p>
+        </button>
+      </div>
+    </div>
+  </main>
+}

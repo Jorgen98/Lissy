@@ -126,6 +126,16 @@ async function processRequest(url, req, res) {
                 }
                 break;
             }
+            // Return available data for selected line, direction, date and range
+            case 'getTripDataInRange': {
+                if (req.query.line === undefined || req.query.routeTo === undefined || req.query.routeFrom === undefined ||
+                    req.query.depTime === undefined || req.query.date === undefined || req.query.weeks === undefined ) {
+                    res.send(false);
+                } else {
+                    res.send(await dbPostGIS.getAllTripIds(req.query.line, req.query.routeFrom, req.query.routeTo, req.query.date, req.query.depTime, req.query.weeks));
+                }
+                break;
+            }
             default: res.send(false);
         }
     } catch (error) {

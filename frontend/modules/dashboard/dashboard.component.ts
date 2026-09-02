@@ -1,4 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+/*
+ * File: dashboard.component.ts
+ * Author: Juraj Lazur (ilazur@fit.vut.cz)
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * Main class component for the dashboard module.
+ */
+
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { APIService } from '../../src/app/services/api';
 import * as config from './config.json';
 import { ModuleConfig } from '../../src/app/app.component';
@@ -6,18 +14,21 @@ import { ImportsModule } from '../../src/app/imports';
 import { TranslateService } from '@ngx-translate/core';
 import { faRoute } from '@fortawesome/free-solid-svg-icons';
 import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons';
+import { faMapLocationDot } from '@fortawesome/free-solid-svg-icons';
 
 // Module configs
 import * as configAboutModule from '../about/config.json';
 import * as configStatsModule from '../stats/config.json';
 import * as configShapesModule from '../shapes/config.json';
 import * as configDelayTripsModule from '../delay-trips/config.json';
+import { env as configPlannerModule } from '../planner/config';
 import * as configPredictionModule from '../prediction/config.json';
 
 @Component({
     selector: 'dashboard',
     imports: [ImportsModule],
     templateUrl: './dashboard.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './dashboard.component.css'
 })
 
@@ -31,6 +42,7 @@ export class DashboardModule implements OnInit {
 
     public faIconRoute = faRoute;
     public faIconHourglassHalf = faHourglassHalf;
+    public faIconMapLocation = faMapLocationDot;
 
     public moduleFocus: Number = 0;
 
@@ -40,6 +52,7 @@ export class DashboardModule implements OnInit {
         configStatsModule,
         configShapesModule,
         configDelayTripsModule,
+        configPlannerModule,
         configPredictionModule
     ]
 

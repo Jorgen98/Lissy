@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { APIService } from '../../src/app/services/api';
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
@@ -22,6 +22,7 @@ interface route {
     selector: 'shapes',
     imports: [ImportsModule, MapComponent],
     templateUrl: './shapes.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './shapes.component.css'
 })
 

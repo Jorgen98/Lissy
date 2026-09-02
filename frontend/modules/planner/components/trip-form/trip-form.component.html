@@ -1,0 +1,491 @@
+<!--
+File: trip-form.component.html
+Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+
+Main component HTML template file for the trip form used in the planner module.
+-->
+
+<div class="form">
+  
+  <!-- Form header -->
+  <div class="header">
+
+    <!-- Form collapse button -->
+    <i 
+      class="pi pi-chevron-down collapse-btn" 
+      (click)="collapseBtnClicked()"
+      [style.transform]="formCollapsed ? 'rotate(180deg)' : 'rotate(0deg)'"
+    ></i>
+    <span class="title">{{ "planner.form.title" | translate }}</span>
+    <button 
+      (click)="locationClicked()"
+      [class.blinking]="locationStatus === 'searching'"
+      [class.location-found]="locationStatus === 'enabled'"
+    >
+      <img
+        class="location-btn"
+        [src]="(theme.isDark$ | async) ? './planner/location-light.svg' : './planner/location-dark.svg'"
+      />
+      @if (locationStatus === "disabled") {
+        <img
+          class="location-disabled"
+          [src]="(theme.isDark$ | async) ? './planner/cross-line-light.svg' : './planner/cross-line-dark.svg'"
+        />
+      }
+    </button>
+  </div>
+
+  <!-- Form content -->
+  <div [hidden]="formCollapsed" class="form-collapse-wrapper">
+    
+    <!-- Mode select section -->
+    <div class="mode-select form-section">
+
+      <!-- Public transport mode select -->
+      <button
+        class="mode-button"
+        [class.mode-selected]="tripData.modes.global.publicTransport"
+        (click)="modeToggled('publicTransport')"
+      >
+        <img
+          [src]="(theme.isDark$ | async) ? './planner/pt-light.svg' : './planner/bus-dark.svg'"
+          class="mode-img"
+        />
+        {{ "planner.form.publicTransport" | translate }}
+      </button>
+
+      <!-- Car mode select -->
+      <button
+        class="mode-button"
+        [class.mode-selected]="tripData.modes.global.car"
+        (click)="modeToggled('car')"
+      >
+        <img
+          [src]="(theme.isDark$ | async) ? './planner/car-light.svg' : './planner/car-dark.svg'"
+          class="mode-img"
+        />
+        {{ "planner.form.car" | translate }}
+      </button>
+
+      <!-- Walk mode select -->
+      <button
+        class="mode-button"
+        [class.mode-selected]="tripData.modes.global.walk"
+        (click)="modeToggled('walk')"
+      >
+        <img
+          [src]="(theme.isDark$ | async) ? './planner/walk-light.svg' : './planner/walk-dark.svg'"
+          class="mode-img"
+        />
+        {{ "planner.form.walk" | translate }}
+      </button>
+    </div>
+
+    <!-- Route points -->
+    <ng-scrollbar class="scrollbox" [visibility]="isTouchDevice() ? 'visible' : 'hover'" [appearance]="'compact'" [orientation]="'vertical'">
+      <div class="trip-points form-section" (cdkDropListDropped)="pointDropped($event)" cdkDropListLockAxis="y" cdkDropList>
+
+        <!-- Origin point -->
+        <div class="trip-point" cdkDrag>
+          <div class="drag-chevron" cdkDragHandle>
+            <i class="pi pi-chevron-down drag-chevron-part drag-chevron-part-turned"></i>
+            <i class="pi pi-chevron-down drag-chevron-part"></i>
+          </div>
+          <div class="point-input-wrapper">
+            <input
+              type="text"
+              id="start-point"
+              [placeholder]="'planner.form.startPoint' | translate"
+              [formControl]="pointControls.controls[0]"
+              [matAutocomplete]="autoOrigin"
+              (click)="pointInputFocused(0)"
+              #pointInput
+            />
+            <mat-autocomplete #autoOrigin="matAutocomplete">
+              @if (locationStatus !== "disabled") {
+                <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(0)">
+                  <div class="location-input-option">
+                    <img [src]="'./planner/location-blue.svg'" class="location-img">
+                    {{ 'planner.form.myLocation' | translate }}
+                  </div>
+                </mat-option>
+              }
+              @for (stop of filteredStopsArray[0] | async; track $index) {
+                <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, 0)">{{ stop.name }}</mat-option>
+              }
+            </mat-autocomplete>
+            <div class="point-input-extra">
+              <img
+                [src]="'./planner/start-marker.svg'"
+                class="point-input-pointer"
+                [title]="'planner.form.markerTooltip' | translate"
+                (click)="markerClick.emit({ type: 'start', position: 0 })"
+              />
+              <img
+                [src]="'./planner/cross.svg'"
+                class="point-input-clear"
+                [title]="'planner.form.pointClearTooltip' | translate"
+                (click)="clearTripPoint(0)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Button to add midpoint -->
+        <div class="midpoint-options-wrapper">
+          <button
+            class="circle-button"
+            (click)="addMidpoint(1)"
+            [title]="'planner.form.addMidpointTooltip' | translate"
+            [disabled]="tripData.points.length === MAX_POINTS"
+          >
+            <i class="pi pi-plus"></i>
+          </button>
+
+          <!-- Mode select under origin point if theres at least one midpoint -->
+          @if(tripData.points.length > 2 && selectedModesCount > 1) {
+            <fieldset class="midpoint-mode-select-window">
+
+              <!-- Public transport mode select -->
+              @if(tripData.modes.global.publicTransport) {
+                <button
+                  class="midpoint-mode-button"
+                  [class.mode-selected]="tripData.modes.sections[0].publicTransport"
+                  (click)="modeToggled('publicTransport', 0)"
+                >
+                  <img
+                    [src]="(theme.isDark$ | async) ? './planner/pt-light.svg' : './planner/bus-dark.svg'"
+                    class="midpoint-mode-img"
+                  />
+                </button>
+              }
+
+              <!-- Car mode select -->
+              @if(tripData.modes.global.car) {
+                <button
+                  class="midpoint-mode-button"
+                  [class.mode-selected]="tripData.modes.sections[0].car"
+                  (click)="modeToggled('car', 0)"
+                  [class.mode-disabled]="0 === invalidModesIdx"
+                >
+                  <img
+                    [src]="(theme.isDark$ | async) ? './planner/car-light.svg' : './planner/car-dark.svg'"
+                    class="midpoint-mode-img"
+                  />
+                </button>
+              }
+
+              <!-- Walk mode select -->
+              @if(tripData.modes.global.walk) {
+                <button
+                  class="midpoint-mode-button"
+                  [class.mode-selected]="tripData.modes.sections[0].walk"
+                  (click)="modeToggled('walk', 0)"
+                >
+                  <img
+                    [src]="(theme.isDark$ | async) ? './planner/walk-light.svg' : './planner/walk-dark.svg'"
+                    class="midpoint-mode-img"
+                  />
+                </button>
+              }
+            </fieldset>
+          }
+          @if (invalidModesIdx === 0) {
+            <span class="invalid-modes-warning">
+              {{ 'planner.form.carParkedEarlier' | translate }}
+            </span>
+          }
+        </div>
+
+        <!-- Rendering added midpoints -->
+        @for (control of pointControls.controls; track $index) {
+          @if (!$first && !$last) {
+            @let outerIdx = $index;
+
+            <!-- Midpoint -->
+            <div class="trip-point" cdkDrag>
+              <div class="drag-chevron" cdkDragHandle>
+                <i class="pi pi-chevron-down drag-chevron-part drag-chevron-part-turned"></i>
+                <i class="pi pi-chevron-down drag-chevron-part"></i>
+              </div>
+              <div class="point-input-wrapper">
+                <input
+                  type="text"
+                  [placeholder]="'planner.form.midpoint' | translate"
+                  [formControl]="control"
+                  [matAutocomplete]="autoMid"
+                  (click)="pointInputFocused(outerIdx)"
+                  #pointInput
+                />
+                <mat-autocomplete #autoMid="matAutocomplete">
+                  @if (locationStatus !== "disabled") {
+                    <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked($index)">
+                      <div class="location-input-option">
+                        <img [src]="'./planner/location-blue.svg'" class="location-img">
+                        {{ 'planner.form.myLocation' | translate }}
+                      </div>
+                    </mat-option>
+                  }
+                  @for (stop of filteredStopsArray[$index] | async; track $index) {
+                    <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, outerIdx)">{{ stop.name }}</mat-option>
+                  }
+                </mat-autocomplete>
+                  <div class="point-input-extra">
+                    <img
+                      [src]="'./planner/midpoint-marker.svg'"
+                      class="point-input-pointer"
+                      [title]="'planner.form.markerTooltip' | translate"
+                      (click)="markerClick.emit({ type: 'midpoint', position: outerIdx })"
+                    />
+                    <img
+                      [src]="'./planner/cross.svg'"
+                      class="point-input-clear"
+                      [title]="'planner.form.pointClearTooltip' | translate"
+                      (click)="clearTripPoint(outerIdx)"
+                    />
+                  </div>
+              </div>
+
+              <!-- Remove midpoint button -->
+              <div (click)="removeMidpoint($index)" class="remove-midpoint-wrapper">
+                <i class="pi pi-trash point-input-pointer remove-midpoint"></i>
+              </div>
+            </div>
+
+            <!-- Add midpoint button and mode select between two points-->
+            <div class="midpoint-options-wrapper">
+
+              <!-- Add midpoint button -->
+              <button
+                class="circle-button"
+                (click)="addMidpoint($index + 1)"
+                [title]="'planner.form.addMidpointTooltip' | translate"
+                [disabled]="tripData.points.length === MAX_POINTS"
+              >
+                <i class="pi pi-plus"></i>
+              </button>
+
+              <!-- Mode select between adjacent points -->
+              @if(selectedModesCount > 1) {
+                <fieldset class="midpoint-mode-select-window">
+
+                  <!-- Public transport mode select -->
+                  @if(tripData.modes.global.publicTransport) {
+                    <button
+                      class="midpoint-mode-button"
+                      [class.mode-selected]="tripData.modes.sections[$index].publicTransport"
+                      (click)="modeToggled('publicTransport', $index)"
+                    >
+                      <img
+                        [src]="(theme.isDark$ | async) ? './planner/pt-light.svg' : './planner/bus-dark.svg'"
+                        class="midpoint-mode-img"
+                      />
+                    </button>
+                  }
+
+                  <!-- Car mode select -->
+                  @if(tripData.modes.global.car) {
+                    <button
+                      class="midpoint-mode-button"
+                      [class.mode-selected]="tripData.modes.sections[$index].car"
+                      [class.mode-disabled]="$index === invalidModesIdx"
+                      (click)="modeToggled('car', $index)"
+                    >
+                      <img
+                        [src]="(theme.isDark$ | async) ? './planner/car-light.svg' : './planner/car-dark.svg'"
+                        class="midpoint-mode-img"
+                      />
+                    </button>
+                  }
+
+                  <!-- Walk mode select -->
+                  @if(tripData.modes.global.walk) {
+                    <button
+                      class="midpoint-mode-button"
+                      [class.mode-selected]="tripData.modes.sections[$index].walk"
+                      (click)="modeToggled('walk', $index)"
+                    >
+                      <img
+                        [src]="(theme.isDark$ | async) ? './planner/walk-light.svg' : './planner/walk-dark.svg'"
+                        class="midpoint-mode-img"
+                      />
+                    </button>
+                  }
+                </fieldset>
+              }
+              @if (invalidModesIdx === $index) {
+                <span class="invalid-modes-warning">
+                  {{ 'planner.form.carParkedEarlier' | translate }}
+                </span>
+              }
+            </div>
+          }
+        }
+
+        <!-- Destination point -->
+        <div class="trip-point" cdkDrag>
+          <div class="drag-chevron" cdkDragHandle>
+            <i class="pi pi-chevron-down drag-chevron-part drag-chevron-part-turned"></i>
+            <i class="pi pi-chevron-down drag-chevron-part"></i>
+          </div>
+          <div class="point-input-wrapper">
+            <input
+              type="text"
+              id="end-point"
+              [placeholder]="'planner.form.endPoint' | translate"
+              [formControl]="pointControls.controls[this.tripData.points.length - 1]"
+              [matAutocomplete]="autoDest"
+              (click)="pointInputFocused(this.tripData.points.length - 1)"
+              #pointInput
+            />
+            <mat-autocomplete #autoDest="matAutocomplete">
+              @if (locationStatus !== "disabled") {
+                <mat-option [value]="'planner.form.myLocation' | translate" (onSelectionChange)="locationClicked(this.tripData.points.length - 1)">
+                  <div class="location-input-option">
+                    <img [src]="'./planner/location-blue.svg'" class="location-img">
+                    {{ 'planner.form.myLocation' | translate }}
+                  </div>
+                </mat-option>
+              }
+              @for (stop of filteredStopsArray[this.tripData.points.length - 1] | async; track $index) {
+                <mat-option [value]="stop.name" (onSelectionChange)="stopSelected(stop, this.tripData.points.length - 1)">{{ stop.name }}</mat-option>
+              }
+            </mat-autocomplete>
+              <div class="point-input-extra">
+                <img
+                  [src]="'./planner/end-marker.svg'"
+                  class="point-input-pointer"
+                  [title]="'planner.form.markerTooltip' | translate"
+                  (click)="markerClick.emit({ type: 'end', position: this.tripData.points.length - 1 })"
+                />
+                <img
+                  [src]="'./planner/cross.svg'"
+                  class="point-input-clear"
+                  [title]="'planner.form.pointClearTooltip' | translate"
+                  (click)="clearTripPoint(tripData.points.length - 1)"
+                />
+              </div>
+            </div>
+        </div>
+
+        <div class="last-point-btn">
+
+          <!-- Add midpoint button -->
+          <button
+            class="circle-button"
+            (click)="addMidpoint(tripData.points.length)"
+            [title]="'planner.form.addMidpointTooltip' | translate"
+            [disabled]="tripData.points.length === MAX_POINTS"
+          >
+            <i class="pi pi-plus"></i>
+          </button>
+
+          <!-- Switch midpoint button -->
+          <button
+            class="circle-button"
+            (click)="reverseTripPoints()"
+            [title]="'planner.form.switchDirectionTooltip' | translate"
+          >
+            <i class="pi pi-arrow-right-arrow-left reverse-img"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Date and time picker + return trip -->
+      <div class="trip-timing form-section">
+
+        <!-- Date and time picker -->
+        <div class="datetime">
+          <input type="date" id="dateInput" [(ngModel)]="tripData.datetime.tripDate"/>
+          <input type="time" id="timeInput" [(ngModel)]="tripData.datetime.tripTime"/>
+          <div class="radio-pair">
+            <div class="control-pair departure-radio">
+              <input
+                type="radio"
+                id="departure"
+                name="time-select"
+                value="departure"
+                [(ngModel)]="tripData.datetime.datetimeOption"
+              />
+              <label for="departure">{{
+                "planner.form.departureTime" | translate
+              }}</label
+              ><br />
+            </div>
+            <div class="control-pair">
+              <input
+                type="radio"
+                id="arrival"
+                name="time-select"
+                value="arrival"
+                [(ngModel)]="tripData.datetime.datetimeOption"
+              />
+              <label for="arrival">{{
+                "planner.form.arrivalTime" | translate
+              }}</label
+              ><br />
+            </div>
+          </div>
+        </div>
+
+        <!-- Return trip checkbox-->
+        <div class="control-pair">
+          <input
+            type="checkbox"
+            id="return"
+            [(ngModel)]="tripData.return.active"
+            (change)="returnTripToggled()"
+          />
+          <label for="return">{{ "planner.form.return" | translate }}</label>
+        </div>
+
+        <!-- Date and time picker for return trip time -->
+        @if (tripData.return.active) {
+          <div class="datetime">
+            <input type="date" [(ngModel)]="tripData.return.tripDate" />
+            <input type="time" [(ngModel)]="tripData.return.tripTime" />
+            <div class="radio-pair">
+              <div class="control-pair departure-radio">
+                <input
+                  type="radio"
+                  id="departureReturn"
+                  name="time-select-return"
+                  value="departure"
+                  [(ngModel)]="tripData.return.datetimeOption"
+                />
+                <label for="departure">{{
+                  "planner.form.departureTime" | translate
+                }}</label
+                ><br />
+              </div>
+              <div class="control-pair">
+                <input
+                  type="radio"
+                  id="arrivalReturn"
+                  name="time-select-return"
+                  value="arrival"
+                  [(ngModel)]="tripData.return.datetimeOption"
+                />
+                <label for="arrival">{{
+                  "planner.form.arrivalTime" | translate
+                }}</label
+                ><br />
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </ng-scrollbar>
+
+    <!-- Form submit button -->
+    <div class="submit form-section">
+      <button 
+        [disabled]="!isFormValid()"
+        (click)="tripRequestSubmitted()"
+        class="submit-btn"
+      >
+        {{ "planner.form.submit" | translate }}
+      </button>
+    </div>
+  </div>
+</div>

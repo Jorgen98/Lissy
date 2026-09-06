@@ -14,7 +14,7 @@ const env = require('./config.json');
 function log(type, msg) {
     logService.write(process.env.FE_MODULE_NAME, type, msg)
 }
-
+// Return all shapes with GTFS id for actual day
 // Main request processing function
 async function processRequest(url, req, res) {
     try {
@@ -74,6 +74,28 @@ async function processRequest(url, req, res) {
                     res.send(false);
                 } else {
                     res.send(await dbPostGIS.getFullShape(req.query.shape_id));
+                }
+                break;
+            }
+            // Return full shapes for today
+            case 'getTodayShapes': {
+                if (req.query.gtfs_trips_from === undefined || req.query.gtfs_trips_to === undefined) {
+                    res.send(false);
+                } else {
+                    try {
+                        const from_id = parseInt(req.query.gtfs_trips_from);
+                        const to_id = parseInt(req.query.gtfs_trips_to);
+
+                        // Maximum number of queried trips is 5000
+                        if (from_id > to_id || (Math.abs(from_id - to_id) > 5000)) {
+                            res.send(false);
+                            break;
+                        }
+
+                        res.send(await dbPostGIS.getTodayShapes(from_id, to_id, req.query.switchCoords, req.query.reduceCoords));
+                    } catch (err) {
+                        res.send(false);
+                    }
                 }
                 break;
             }

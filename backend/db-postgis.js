@@ -762,6 +762,63 @@ async function getPlannedTripsWithUniqueShape(routes) {
     return routes;
 }
 
+async function getTodayShapes(from_id, to_id, switchCoords, reduce) {
+    try {
+        const gtfs_trips = (await db_postgis.query(`SELECT internal_trip_id, gtfs_trip_id FROM trip_details WHERE gtfs_trip_id BETWEEN $1 AND $2`, [from_id, to_id])).rows;
+        const active_trips = (await db_postgis.query(`SELECT id, shape_id FROM trips WHERE id=ANY($1) AND is_active=true AND is_today=true`, [gtfs_trips.map((trip) => { return trip.internal_trip_id })])).rows;
+
+        const shape_ids = [];
+        const result = [];
+        for (const trip of gtfs_trips) {
+            const activeTripIdx = active_trips.findIndex((active_trip) => { return active_trip.id === trip.internal_trip_id })
+            if (activeTripIdx !== -1) {
+                const resIdx = result.findIndex((result_trip) => { return result_trip.shape_id === active_trips[activeTripIdx].shape_id });
+
+                if (resIdx === -1) {
+                    result.push({
+                        shape_id: active_trips[activeTripIdx].shape_id,
+                        gtfs_trips: [trip.gtfs_trip_id],
+                        shape: []
+                    })
+
+                    if (active_trips[activeTripIdx].shape_id !== null) {
+                        shape_ids.push(active_trips[activeTripIdx].shape_id);
+                    }
+                } else {
+                    result[resIdx].gtfs_trips.push(trip.gtfs_trip_id);
+                }
+            }
+        }
+
+        const shapes = (await db_postgis.query(`SELECT id, ST_AsGeoJSON(geom) FROM shapes WHERE id=ANY($1)`, [shape_ids])).rows;
+        for (const trip of result) {
+            const shapeIdx = shapes.findIndex((shape) => { return shape.id === trip.shape_id });
+
+            if (shapeIdx !== -1) {
+                let coords = JSON.parse(shapes[shapeIdx].st_asgeojson).coordinates;
+                if (switchCoords || reduce) {
+                    for (let coord of coords) {
+                        for (let i = 0; i < coord.length; i++) {
+                            if (switchCoords) {
+                                coord[i].reverse();
+                            }
+                            if (reduce) {
+                                coord[i] = coord[i].map(x => Number(x.toFixed(5)));
+                            }
+                        }
+                    }
+                }
+                trip.shape = coords;
+            }
+        }
+
+        return(result);
+    } catch(error) {
+        log('error', error);
+        return [];
+    }
+}
+
 // Get all trips according to trip ids and has different shape id
 async function getTripsWithUniqueShape(tripIds) {
     let result;
@@ -1326,16 +1383,16 @@ async function getAllTripIds(line, routeFrom, routeTo, date, depTime, weeks) {
     try {
         const tripDelayData = [];
 
+        // Get route stop ids
+        const stopsFrom = ((await db_postgis.query(`SELECT id, stop_name from stops WHERE stop_name = $1;`, [routeFrom])).rows).map((stop) => stop.id);
+        const stopsTo = ((await db_postgis.query(`SELECT id, stop_name from stops WHERE stop_name = $1;`, [routeTo])).rows).map((stop) => stop.id);
+
         // Get all trips with correct line and starting time
         const trips = (await db_postgis.query(`SELECT shape_id, id, route_id_id, stops, is_today, is_active FROM trips WHERE trip_id LIKE $1`, [`L${line}D99?${depTime}?%`])).rows;
 
         if (trips.length < 1) {
             return [];
         }
-
-        // Get route stop ids
-        const stopsFrom = ((await db_postgis.query(`SELECT id, stop_name from stops WHERE stop_name = $1;`, [routeFrom])).rows).map((stop) => stop.id);
-        const stopsTo = ((await db_postgis.query(`SELECT id, stop_name from stops WHERE stop_name = $1;`, [routeTo])).rows).map((stop) => stop.id);
 
         // Align date
         const todayTimeStamp = timeStamp.getTimeStamp(timeStamp.getTodayUTC());
@@ -1347,9 +1404,7 @@ async function getAllTripIds(line, routeFrom, routeTo, date, depTime, weeks) {
         // Remove trips with wrong start and stop stations
         let idx = 0;
         while (trips.length > idx) {
-            if (!stopsFrom.indexOf(trips[idx].stops[0]) === -1 || stopsTo.indexOf(trips[idx].stops[trips[idx].stops.length - 1]) === -1) {
-                trips.splice(idx, 1);
-            } else {
+            if (stopsFrom.indexOf(trips[idx].stops[0]) !== -1 && stopsTo.indexOf(trips[idx].stops[trips[idx].stops.length - 1]) !== -1) {
                 tripDelayData.push({
                     id: trips[idx].id,
                     route_id_id: trips[idx].route_id_id,
@@ -1357,6 +1412,8 @@ async function getAllTripIds(line, routeFrom, routeTo, date, depTime, weeks) {
                     data: []
                 })
                 idx++;
+            } else {
+                trips.splice(idx, 1);
             }
         }
 
@@ -1410,7 +1467,7 @@ async function getAllTripIds(line, routeFrom, routeTo, date, depTime, weeks) {
                 tripDelayData.splice(idx + 1, 1);
             }
         }
-console.log(tripDelayData)
+
         // Reduce delay data
         for (const trip of tripDelayData) {
             for (const day of trip.data) {
@@ -1446,10 +1503,8 @@ console.log(tripDelayData)
         // If date is today, get Kordis API
         if (timeStamp.compareTimeStamps(todayTimeStamp, date) < 0) {
             const todayTrip = (await db_postgis.query(`SELECT id FROM trips WHERE trip_id LIKE $1 AND is_today=true AND is_active=true`, [`L${line}D99?${depTime}?%`])).rows;
-            console.log(todayTrip)
             if (todayTrip.length === 1) {
                 const trip_details = (await db_postgis.query(`SELECT api_route_id, api_trip_id FROM trip_details WHERE internal_trip_id = $1`, [todayTrip[0].id])).rows[0];
-                console.log(trip_details)
                 if (trip_details && trip_details.api_route_id !== null && trip_details.api_trip_id !== null) {
                     finalData['kordis_id'] = `${trip_details.api_route_id}/${trip_details.api_trip_id}`;
                 }
@@ -1463,10 +1518,89 @@ console.log(tripDelayData)
     }
 }
 
+// For testing purpose only
+async function chooseRandomTrips(trip_ids) {
+    try {
+        const trip_details = (await db_postgis.query(`SELECT id, route_id_id, trip_id FROM trips WHERE id = ANY($1)`, [trip_ids])).rows;
+        const routes = (await db_postgis.query(`SELECT id, route_short_name, route_type FROM routes WHERE id = ANY($1)`, [trip_details.map((trip) => { return trip.route_id_id })])).rows;
+
+        const categoriesCount = {
+            0: 0,
+            2: 0,
+            3: 0,
+            800: 0
+        }
+
+        const afterCategoriesCount = {
+            0: 0,
+            2: 0,
+            3: 0,
+            800: 0
+        }
+
+        for (const trip of trip_details) {
+            const route = routes.find((route) => { return route.id === trip.route_id_id });
+            trip.type = route.route_type;
+            trip.line = route.route_short_name;
+            trip.depTime = trip.trip_id.split('?')[1];
+
+            const stops = JSON.parse(trip.trip_id.split('?')[2]);
+            trip.routeFrom = stops[0];
+            trip.routeTo = stops[stops.length - 1];
+            categoriesCount[route.route_type]++;
+
+            delete trip.trip_id;
+        }
+
+        const targetNumOfTrips = Math.floor(trip_details.length / 7);
+        const ratios = {
+            0: categoriesCount['0'] / trip_details.length,
+            2: categoriesCount['2'] / trip_details.length,
+            3: categoriesCount['3'] / trip_details.length,
+            800: categoriesCount['800'] / trip_details.length
+        };
+
+        const result = [];
+
+        for (const [type, ratio] of Object.entries(ratios)) {
+            const group = trip_details.filter(trip => trip.type === Number(type));
+
+            const amount = Math.round(targetNumOfTrips * ratio);
+
+            // Shuffle group randomly
+            for (let i = group.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [group[i], group[j]] = [group[j], group[i]];
+            }
+
+            result.push(...group.slice(0, amount));
+        }
+
+        const stops = (await db_postgis.query(`SELECT id, stop_name FROM stops WHERE id = ANY($1)`, [result.flatMap(({ routeFrom, routeTo }) => [routeFrom, routeTo])])).rows;
+
+        for (trip of result) {
+            trip.routeFrom = stops.find((stop) => { return stop.id === trip.routeFrom}).stop_name;
+            trip.routeTo = stops.find((stop) => { return stop.id === trip.routeTo}).stop_name;
+
+            afterCategoriesCount[trip.type]++;
+        }
+
+        result.sort((a, b) => { return a.id > b.id ? 1 : -1});
+
+        return {result, stats: {
+            'number_of_trips': trip_details.length,
+            'number_of_selected_trips': targetNumOfTrips
+        }};
+    } catch(error) {
+        log('error', error);
+        return false;
+    }
+}
+
 module.exports = { connectToDB, reloadNetFiles, addAgency, getActiveAgencies, addStop, getStopPositions,
     getActiveStops, addRoute, getActiveRoutes, addTrip, getActiveTrips, makeObjUnActive, addShape, updateTripsShapeId,
     getPointsAroundStation, getSubNet, getShapes, getShortestLine, countShapes, setAllTripAsServed, getPlannedTrips,
     setTripAsServed, setTripAsUnServed, getActiveRoutesToProcess, getActiveShapes, getPlannedTripsWithUniqueShape,
     getFullShape, getTripsWithUniqueShape, getRoutesDetail, getTripsDetail, getActiveStations, updateStopTransitAccessibilityScore,
     getNearbyStations, updateStopNearbyParkingCoords, getAvailableFareTickets, getTripIDByGTFS, getPlannerConfig, updateFuelPrice,
-    insertRegionOutline, updateTripDetails, getAllTripIds }
+    insertRegionOutline, updateTripDetails, getAllTripIds, getTodayShapes, chooseRandomTrips }

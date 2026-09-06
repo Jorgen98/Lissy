@@ -126,4 +126,11 @@ async function clearActiveRoutes() {
     return await db_redis.del(activeRoutesKey);
 }
 
-module.exports = { isDBConnected, setUpValue, setUpTodayShapes, getTodayShapes, clearTodayShapes, setUpActiveRoutes, getActiveRoutes, clearActiveRoutes }
+async function clearCacheByKey(key) {
+    return await db_redis.del(key);
+}
+
+module.exports = {
+    isDBConnected, setUpValue, setUpTodayShapes, getTodayShapes, clearTodayShapes,
+    setUpActiveRoutes, getActiveRoutes, clearActiveRoutes, clearCacheByKey
+}

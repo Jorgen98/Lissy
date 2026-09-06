@@ -31,6 +31,7 @@ async function processRequest(url, req, res) {
                 }
                 break;
             }
+            // Get route trips
             case 'getTrips': {
                 if (req.query.route === undefined) {
                     res.send(false);
@@ -49,6 +50,7 @@ async function processRequest(url, req, res) {
                 }
                 break;
             }
+            // Get prediction for exact trip
             case 'getPrediction': {
                 const requestBody = {
                     visualization: true,
@@ -85,6 +87,85 @@ async function processRequest(url, req, res) {
                 } else {
                     res.send(await dbPostGIS.getFullShape(req.query.shape_id));
                 }
+                break;
+            }
+            // Get random trips for one day for testing purposes
+            case 'getRandomTrips': {
+                const key = req.url.split('&')[0];
+console.log(key);
+                const cache = await dbCache.setUpValue(key, null, null);
+                const routes = await dbStats.getRoutesIdsInInterval(req.query.date, req.query.date);
+                let selectedTrips = [];
+                let stats;
+
+                // Get random served trips
+                if (cache.data !== null) {
+                    ({selectedTrips, stats} = cache.data);
+                } else {
+                    const tripIdArrays = await Promise.all(
+                        routes.map((route) =>
+                            dbStats.getTripIdsInInterval(route, req.query.date, req.query.date)
+                        )
+                    );
+
+                    const recordedTrips = tripIdArrays.flat();
+                    ({result: selectedTrips, stats} = await dbPostGIS.chooseRandomTrips(recordedTrips));
+
+                    dbCache.setUpValue(key, {selectedTrips, stats}, 100);
+                }
+
+                let idIdx = -1;
+
+                try {
+                    const tripIdFrom = parseInt(req.query.tripIdFrom);
+
+                    if (selectedTrips[selectedTrips.length - 1].id < tripIdFrom) {
+                        selectedTrips = [];
+                    } else {
+                        idIdx = selectedTrips.findIndex((trip) => { return trip.id > tripIdFrom });
+                        if (idIdx !== -1) {
+                            selectedTrips.splice(0, idIdx);
+                        }
+                    }
+                } catch(err) {}
+
+                // Only 1000 can be returned at once
+                selectedTrips = selectedTrips.splice(0, 1000);
+
+                // Get trips delay data
+                const delayData = {};
+                for (const route of routes) {
+                    const tripGroup = selectedTrips.filter(trip => trip.route_id_id === route);
+
+                    await Promise.all(
+                        tripGroup.map(async (trip) => {
+                            const tripDelayData = await dbStats.getTripDataInInterval(trip.id, req.query.date, req.query.date, true);
+                            Object.assign(delayData, tripDelayData);
+                        })
+                    );
+                }
+
+                // Remove trips without data
+                let idx = 0;
+                while (idx < selectedTrips.length) {
+                    const data = delayData[selectedTrips[idx].id];
+                    if (data !== undefined) {
+                        delete selectedTrips[idx].route_id_id;
+                        selectedTrips[idx].delayData = Object.fromEntries(Object.entries(data).map(([key, { value }]) => [key, value]));
+                        idx++
+                    } else {
+                        selectedTrips.splice(idx, 1);
+                    }
+                }
+                stats['number_of_selected_trips_with_data'] = selectedTrips.length;
+                res.send({stats: stats, trips: selectedTrips});
+                break;
+            }
+            // Clear random selected trips
+            case 'clearRandomTrips': {
+                const key = req.url.replace("clearRandomTrips", "getRandomTrips").split('&')[0];
+                await dbCache.clearCacheByKey(key);
+                res.send(true);
                 break;
             }
             default: res.send(false);

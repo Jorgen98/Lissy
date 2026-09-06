@@ -14,7 +14,7 @@ const timeStamp = require('./timeStamp.js');
 dotenv.config();
 
 // Stats DB instant
-const db_influx = new InfluxDB({url: `${process.env.DB_STATS_HOST}:8086`, token: process.env.DB_STATS_TOKEN, timeout: 30 * 1000});
+const db_influx = new InfluxDB({url: `${process.env.DB_STATS_HOST}:8086`, token: process.env.DB_STATS_TOKEN, timeout: 90 * 1000});
 
 // Measurement names
 const measurementStats = 'stats';
@@ -565,7 +565,7 @@ async function getTripIdsInInterval(route_id, start, stop) {
     });
 }
 
-async function getTripDataInInterval(trip_id, start, stop) {
+async function getTripDataInInterval(trip_id, start, stop, onlyLastValue = false) {
     let startTime;
     let stopTime;
     try {
@@ -589,16 +589,31 @@ async function getTripDataInInterval(trip_id, start, stop) {
         dbQueryAPI.queryRows(query, {
             next(row, tableMeta) {
                 const o = tableMeta.toObject(row);
-                let dateKey = timeStamp.getTimeStamp(new Date(o._time));
+                let dateKey = onlyLastValue ? o.trip_id : timeStamp.getTimeStamp(new Date(o._time));
                 let primKey = parseInt(o._field.split('-')[0]);
                 let secKey = parseInt(o._field.split('-')[1]);
                 if (records[dateKey] === undefined) {
                     records[dateKey] = {};
                 }
                 if (records[dateKey][primKey] === undefined) {
-                    records[dateKey][primKey] = {};
+                    if (onlyLastValue) {
+                        records[dateKey][primKey] = {
+                            value: o._value,
+                            idx: secKey
+                        };
+                    } else {
+                        records[dateKey][primKey] = {};
+                    }
                 }
-                records[dateKey][primKey][secKey] = o._value;
+
+                if (onlyLastValue) {
+                    if (records[dateKey][primKey].idx < secKey) {
+                        records[dateKey][primKey].idx = secKey;
+                        records[dateKey][primKey].value = o._value;
+                    }
+                } else {
+                    records[dateKey][primKey][secKey] = o._value;
+                }
             },
             error(error) {
                 log('error', error);

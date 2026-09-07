@@ -1552,7 +1552,7 @@ async function chooseRandomTrips(trip_ids) {
             delete trip.trip_id;
         }
 
-        const targetNumOfTrips = Math.floor(trip_details.length / 7);
+        let targetNumOfTrips = Math.floor(trip_details.length / 7);
         const ratios = {
             0: categoriesCount['0'] / trip_details.length,
             2: categoriesCount['2'] / trip_details.length,
@@ -1560,6 +1560,9 @@ async function chooseRandomTrips(trip_ids) {
             800: categoriesCount['800'] / trip_details.length
         };
 
+        const result = trip_details;
+        targetNumOfTrips = result.length;
+        /* Testing requires all trips
         const result = [];
 
         for (const [type, ratio] of Object.entries(ratios)) {
@@ -1574,7 +1577,7 @@ async function chooseRandomTrips(trip_ids) {
             }
 
             result.push(...group.slice(0, amount));
-        }
+        }*/
 
         const stops = (await db_postgis.query(`SELECT id, stop_name FROM stops WHERE id = ANY($1)`, [result.flatMap(({ routeFrom, routeTo }) => [routeFrom, routeTo])])).rows;
 

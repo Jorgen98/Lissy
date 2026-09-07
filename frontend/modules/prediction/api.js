@@ -92,7 +92,7 @@ async function processRequest(url, req, res) {
             // Get random trips for one day for testing purposes
             case 'getRandomTrips': {
                 const key = req.url.split('&')[0];
-console.log(key);
+
                 const cache = await dbCache.setUpValue(key, null, null);
                 const routes = await dbStats.getRoutesIdsInInterval(req.query.date, req.query.date);
                 let selectedTrips = [];

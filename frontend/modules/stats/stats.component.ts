@@ -506,8 +506,8 @@ export class StatsModule implements OnInit {
             this.processingTripsExtra.labels.push(date);
             this.processingTripsExtra.datasets[0].data.push(this.queryData[day]['data_without_trips']);
             if ((parseInt(this.queryData[day]['trips_to_process']) - parseInt(this.queryData[day]['trips_without_data'])) !== 0) {
-                this.processingTripsAll.datasets[0].data[0] += (parseInt(this.queryData[day]['trips_to_process']) - parseInt(this.queryData[day]['trips_without_data']));
-                this.processingTripsAll.datasets[0].data[1] += (parseInt(this.queryData[day]['trips_without_data']) + parseInt(this.queryData[day]['data_without_trips']));
+                this.processingTripsAll.datasets[0].data[0] += (parseInt(this.queryData[day]['trips_to_process']));
+                this.processingTripsAll.datasets[0].data[1] += (parseInt(this.queryData[day]['trips_without_data']));
             }
         }
 

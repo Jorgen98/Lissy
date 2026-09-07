@@ -157,6 +157,7 @@ async function processRoute(route) {
             if (!(await dbStats.saveRealOperationData(trip.id, scoreTable, trip.stops_info[0]))) {
                 return false;
             }
+
             dbStats.updateROProcessingStats('trips_without_data', 1);
             await dbPostGIS.setTripAsServed(trip.id);
             continue;

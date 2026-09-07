@@ -1058,8 +1058,6 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             continue;
         }
 
-        tripsToProcess++;
-
         let newTrip = {
             route_id: decRecord[routeIdIdx] ? decRecord[routeIdIdx] : '',
             route_id_id: null,
@@ -1166,6 +1164,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             }
 
             if ((todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) !== -1 && actualStopTimes[decRecord[tripIdIdxTrips]] !== undefined) || useAllServices) {
+                tripsToProcess++;
                 if (! await dbPostGIS.setTripAsUnServed(newTripId)) {
                     return false;
                 }
@@ -1176,6 +1175,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             } catch (error) {};
         } else {
             if ((todayServiceIDs.indexOf(parseInt(decRecord[serviceIdIdx])) !== -1 && actualStopTimes[decRecord[tripIdIdxTrips]] !== undefined) || useAllServices) {
+                tripsToProcess++;
                 if (! await dbPostGIS.setTripAsUnServed(actualTrip.id)) {
                     return false;
                 }
@@ -1186,7 +1186,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
             } catch (error) {};
         }
     }
-console.log(actualApiEndpoints)
+
     dbStats.updateStateProcessingStats('gtfs_trips', Object.keys(actualTrips).length);
     dbStats.updateStateProcessingStats('trips_to_process', tripsToProcess);
     return true;

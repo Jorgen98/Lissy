@@ -93,6 +93,27 @@ services:
         max-file: "5"
     networks:
       - lissy-network
+
+  lissy-martin-prediction:
+    container_name: lissy-martin-prediction
+    build: ./DelayPredictor/
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Bratislava"
+    depends_on:
+      lissy-db-postgis:
+        condition: service_healthy
+      lissy-db-stats:
+        condition: service_healthy
+      lissy-db-cache:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - lissy-network
   lissy-db-postgis:
     container_name: lissy-db-postgis
     image: postgis/postgis:16-3.7

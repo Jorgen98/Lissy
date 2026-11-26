@@ -1,0 +1,21 @@
+services:
+  lissy-fe:
+    image: dexter.fit.vutbr.cz/lissy/lissy-fe:latest
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+  lissy-be-processing:
+    image: dexter.fit.vutbr.cz/lissy/lissy-be-processing:latest
+    container_name: lissy-be-processing
+    build:
+      context: ./
+      dockerfile: ./backend/Dockerfile
+  lissy-be-api:
+    image: dexter.fit.vutbr.cz/lissy/lissy-be-api:latest
+    build:
+      context: ./
+      dockerfile: ./backend/Dockerfile
+  lissy-martin-prediction:
+    image: dexter.fit.vutbr.cz/lissy/lissy-martin-prediction:latest
+    container_name: lissy-martin-prediction
+    build: ./DelayPredictor/

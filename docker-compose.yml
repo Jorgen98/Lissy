@@ -144,7 +144,7 @@ services:
       - lissy-network
   lissy-db-stats:
     container_name: lissy-db-stats
-    image: influxdb:2.7
+    image: influxdb:2.10.1
     volumes:
         - ./db-stats-data/data/:/var/lib/influxdb2
         - ./db-stats-data/config/:/etc/influxdb2
@@ -171,7 +171,7 @@ services:
       - lissy-network
   lissy-db-cache:
     container_name: lissy-db-cache
-    image: redis:7.4.2
+    image: redis:8.2.11
     restart: unless-stopped
     environment:
       DB_CACHE_TOKEN: ${DB_CACHE_TOKEN:?DB_CACHE_TOKEN is required}

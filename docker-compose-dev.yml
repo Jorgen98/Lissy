@@ -1,12 +1,12 @@
 services:
   lissy-db-postgis:
     container_name: lissy-db-postgis
-    image: postgis/postgis:16-master
+    image: postgis/postgis:16-3.7
     volumes:
       - ./env/db-postgis-init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./db-postgis-data:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: ${DB_POSTGIS_USER}
       POSTGRES_PASSWORD: ${DB_POSTGIS_PASSWORD}
@@ -14,14 +14,12 @@ services:
       PGPORT: 5432
       PGUSER: ${DB_POSTGIS_USER}
       TZ: "Europe/Bratislava"
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     logging:
       driver: "json-file"
       options:
-        max-size: "200k"
-        max-file: "10"
+        max-size: "10m"
+        max-file: "5"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d ${DB_POSTGIS_DATABASE} -U ${DB_POSTGIS_USER}"]
       interval: 5s
@@ -31,10 +29,10 @@ services:
     container_name: lissy-db-stats
     image: influxdb:2.7
     volumes:
-      - ./db-stats-data/data/:/var/lib/influxdb2
-      - ./db-stats-data/config/:/var/lib/influxdb2
+      - ./db-stats-data/data:/var/lib/influxdb2
+      - ./db-stats-data/config:/etc/influxdb2
     ports:
-      - 8086:8086
+      - "127.0.0.1:8086:8086"
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: ${DB_STATS_USER}
@@ -42,16 +40,13 @@ services:
       DOCKER_INFLUXDB_INIT_ORG: ${DB_STATS_ORG}
       DOCKER_INFLUXDB_INIT_BUCKET: ${DB_STATS_BUCKET}
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${DB_STATS_TOKEN}
-      INFLUXDB_BIND_ADDRESS: 0.0.0.0:8088
       TZ: "Europe/Bratislava"
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     logging:
       driver: "json-file"
       options:
-        max-size: "200k"
-        max-file: "10"
+        max-size: "10m"
+        max-file: "5"
     healthcheck:
       test: influx ping
       interval: 5s
@@ -60,14 +55,21 @@ services:
   lissy-db-cache:
     container_name: lissy-db-cache
     image: redis:7.4.2
-    restart: always
+    restart: unless-stopped
+    environment:
+      DB_CACHE_TOKEN: ${DB_CACHE_TOKEN}
     ports:
-      - 6379:6379
+      - "127.0.0.1:6379:6379"
     command: redis-server --save 20 1 --loglevel warning --requirepass ${DB_CACHE_TOKEN}
     volumes: 
       - ./db-cache-data:/data
     healthcheck:
-      test: redis-cli --raw incr ping
+      test: ["CMD-SHELL", "redis-cli -a \"$${DB_CACHE_TOKEN}\" ping | grep -q PONG"]
       interval: 5s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"

@@ -4,8 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "npm run config && ng build --base-href=/lissy/",
-    "config": "node src/environments/createEnv.ts"
+    "build": "ng build --base-href=/lissy/"
   },
   "private": true,
   "dependencies": {

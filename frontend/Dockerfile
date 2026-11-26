@@ -1,15 +1,25 @@
-FROM node:latest AS build
+# Build stage
+FROM node:26-slim AS build
 
-WORKDIR /dist/src/app
+WORKDIR /app
 
-RUN npm cache clean --force
+# Install dependencies
+COPY ./frontend/package*.json ./
+RUN npm ci
+
+# Copy source code
 COPY ./frontend/ .
-COPY ./env/.env.prod .env
 
-RUN npm install
+# Build frontend
 RUN npm run build
 
-FROM nginx:latest AS ng
+# Production stage
+FROM nginx:stable-alpine AS runtime
 
-COPY --from=build /dist/src/app/fe/browser /usr/share/nginx/html/lissy
-COPY ./frontend/nginx.conf  /etc/nginx/conf.d/default.conf
+# Copy built frontend
+COPY --from=build /app/fe/browser /usr/share/nginx/html/lissy
+
+# Configure nginx
+COPY ./frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -6,5 +6,4 @@
 /backend/gtfs.zip
 /frontend/node_modules
 /frontend/.angular
-/env/.env
-/env/.env.prod
+.env*

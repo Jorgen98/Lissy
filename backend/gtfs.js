@@ -7,8 +7,9 @@
 
 const dotenv = require('dotenv');
 const fs = require('fs');
-const decompress = require("decompress");
+const unzipper = require('unzipper');
 const https = require('https');
+const path = require('path');
 const { performance } = require('perf_hooks');
 
 const logService = require('./log.js');
@@ -90,15 +91,15 @@ async function reloadActualSystemState() {
 async function getStopTransitAccessibilityScores(stopsFile, stopTimesFile, tripsFile, calendarFile, routesFile) {
 
     // Check valid data in all necessary files
-    if (stopsFile?.data === undefined || stopTimesFile?.data === undefined || tripsFile?.data === undefined || calendarFile?.data === undefined || routesFile?.data === undefined)
+    if (stopsFile === undefined || stopTimesFile === undefined || tripsFile === undefined || calendarFile === undefined || routesFile === undefined)
         return false;
 
     // Get line-by-line data from each CSV file (includes header)
-    let stopsData = stopsFile.data.toString().split('\n');
-    let stopTimesData = stopTimesFile.data.toString().split('\n');
-    let routesData = routesFile.data.toString().split('\n');
-    let tripsData = tripsFile.data.toString().split('\n');
-    let calendarData = calendarFile.data.toString().split('\n');
+    let stopsData = stopsFile.split('\n');
+    let stopTimesData = stopTimesFile.split('\n');
+    let routesData = routesFile.split('\n');
+    let tripsData = tripsFile.split('\n');
+    let calendarData = calendarFile.split('\n');
 
     // Get header form each CSV file 
     const stopsHeader = stopsData[0].slice(1, stopsData[0].length - 1).split(','); stopsData.shift();
@@ -429,128 +430,136 @@ async function unzipAndParseData(response, startTime) {
             file.on('finish', () => {
                 log('info', 'GTFS file successfully downloaded, parsing content');
 
-                decompress(tmpFileName, tmpFolderName).then(async (inputFiles) => {
-                    if (!inputFiles.find((file) => { return file.path === 'routes.txt'}) ||
-                        !inputFiles.find((file) => { return file.path === 'stops.txt'}) ||
-                        !inputFiles.find((file) => { return file.path === 'stop_times.txt'}) ||
-                        !inputFiles.find((file) => { return file.path === 'trips.txt'}) || 
-                        !inputFiles.find((file) => { return file.path === 'calendar.txt'})) {
-                            log('error', 'GTFS file set is incomplete');
-                            dbStats.updateStateProcessingStats('gtfs_file_downloaded', false);
-                            try {
-                                fs.rmSync(tmpFolderName, { recursive: true });
-                            } catch (error) {
-                                log('error', error);
-                            }
-                            resolve(false);
-                            return;
-                    }
-
-                    // Process agencies data
-                    log('info', 'Processing GTFS agencies data');
-                    if (!await getTodayAgencies(inputFiles.find((file) => { return file.path === 'agency.txt'}))) {
-                        log('error', 'GTFS agencies data are corrupted');
-                        fs.rmSync(tmpFolderName, { recursive: true });
-                        resolve(false);
-                        return;
-                    }
-
-                    // Process stops data
-                    log('info', 'Processing GTFS stops data');
-                    if (!await getTodayStops(inputFiles.find((file) => { return file.path === 'stops.txt'}))) {
-                        log('error', 'GTFS stops data are corrupted');
-                        fs.rmSync(tmpFolderName, { recursive: true });
-                        resolve(false);
-                        return;
-                    }
-
-                    // Process calendar data
-                    log('info', 'Processing GTFS calendar data');
-                    if (!inputFiles.find((file) => { return file.path === 'calendar.txt'}) ||
-                        !inputFiles.find((file) => { return file.path === 'calendar_dates.txt'})) {
-                        useAllServices = true;
-                    } else {
-                        useAllServices = false;
-                        if (!getTodayServices(inputFiles.find((file) => { return file.path === 'calendar.txt'}),
-                            inputFiles.find((file) => { return file.path === 'calendar_dates.txt'}))) {
-                                log('error', 'GTFS calendar data are corrupted');
-                                fs.rmSync(tmpFolderName, { recursive: true });
-                                resolve(false);
-                                return;
-                            }
-                    }
-                    
-                    // Process routes data
-                    log('info', 'Processing GTFS routes data');
-                    if (!await getTodayRoutes(inputFiles.find((file) => { return file.path === 'routes.txt'}))) {
-                        log('error', 'GTFS routes data are corrupted');
-                        fs.rmSync(tmpFolderName, { recursive: true });
-                        resolve(false);
-                        return;
-                    }
-
-                    // Process stop_times & trips data
-                    // Process also api data, specific for Brno transit system
-                    log('info', 'Processing GTFS trips & stop_times data');
-                    if (!await getTodayTrips(inputFiles.find((file) => { return file.path === 'stop_times.txt'}),
-                        inputFiles.find((file) => { return file.path === 'api.txt'}),
-                        inputFiles.find((file) => { return file.path === 'trips.txt'}))) {
-                        log('error', 'GTFS trips & stop_times data are corrupted');
-                        fs.rmSync(tmpFolderName, { recursive: true });
-                        resolve(false);
-                        return;
-                    }
-
-                    // Calculate transit accessibility scores of each stop for the planner
-                    const stops = inputFiles.find(file => file.path === 'stops.txt');
-                    const stopTimes = inputFiles.find(file => file.path === 'stop_times.txt');
-                    const trips = inputFiles.find(file => file.path === 'trips.txt');
-                    const calendar = inputFiles.find(file => file.path === 'calendar.txt');
-                    const routes = inputFiles.find(file => file.path === 'routes.txt');
-                    log('info', 'Calculating transit score for transport system stops');
-                    if (!await getStopTransitAccessibilityScores(stops, stopTimes, trips, calendar, routes)) {
-                        log('error', 'Failed to calculate stop transit scores from GTFS due to corrupted files');
-                        fs.rmSync(tmpFolderName, { recursive: true });
-                        resolve(false);
-                        return;
-                    }
-
-                    fs.rmSync(tmpFolderName, { recursive: true });
-                    log('success', 'Processing GTFS data done');
-                    dbStats.updateStateProcessingStats('gtfs_processing_time', performance.now() - startTime);
-
-                    // If there are new shapes, calculate them
-                    if (Object.keys(shapesToCalc).length > 0) {
-                        log('info', 'Routing new trip shapes');
-                        if (!await getNewShapes()) {
-                            log('error', 'Routing trip shapes has failed');
-                            fs.rmSync(tmpFolderName, { recursive: true });
-                            resolve(false);
-                            shapesToCalc = {};
-                            return;
-                        }
-                        log('success', 'Shapes routing done');
-                        shapesToCalc = {};
-
-                        if (saveTestOutput) {
-                            fs.writeFile(`backups/${(new Date()).toISOString()}_shapes.txt`, JSON.stringify(await dbPostGIS.getShapes()), function(error) {
-                                if (error) {
+                fs.createReadStream(tmpFileName)
+                    .pipe(unzipper.Extract({ path: tmpFolderName }))
+                    .promise()
+                    .then(async () => {
+                        const inputFiles = fs.readdirSync(tmpFolderName);
+                        if (!inputFiles.find((file) => { return file === 'routes.txt'}) ||
+                            !inputFiles.find((file) => { return file === 'stops.txt'}) ||
+                            !inputFiles.find((file) => { return file === 'stop_times.txt'}) ||
+                            !inputFiles.find((file) => { return file === 'trips.txt'}) || 
+                            !inputFiles.find((file) => { return file === 'calendar.txt'})) {
+                                log('error', 'GTFS file set is incomplete');
+                                dbStats.updateStateProcessingStats('gtfs_file_downloaded', false);
+                                try {
+                                    fs.rmSync(tmpFolderName, { recursive: true });
+                                } catch (error) {
                                     log('error', error);
                                 }
-                            });
+                                resolve(false);
+                                return;
                         }
-                    }
-                    dbStats.updateStateProcessingStats('gtfs_shapes', await dbPostGIS.countShapes());
 
-                    // Today shapes API endpoint reset
-                    await dbCache.clearTodayShapes();
-                    await dbCache.setUpTodayShapes();
+                        // Process agencies data
+                        log('info', 'Processing GTFS agencies data');
+                        if (!await getTodayAgencies(await readFileContent(path.join(tmpFolderName, 'agency.txt')))) {
+                            log('error', 'GTFS agencies data are corrupted');
+                            fs.rmSync(tmpFolderName, { recursive: true });
+                            resolve(false);
+                            return;
+                        }
 
-                    // Clear cached active routes daily
-                    await dbCache.clearActiveRoutes();
+                        // Process stops data
+                        log('info', 'Processing GTFS stops data');
+                        if (!await getTodayStops(await readFileContent(path.join(tmpFolderName, 'stops.txt')))) {
+                            log('error', 'GTFS stops data are corrupted');
+                            fs.rmSync(tmpFolderName, { recursive: true });
+                            resolve(false);
+                            return;
+                        }
 
-                    resolve(true);
-                });
+                        // Process calendar data
+                        log('info', 'Processing GTFS calendar data');
+                        if (!inputFiles.find((file) => { return file === 'calendar.txt'}) ||
+                            !inputFiles.find((file) => { return file === 'calendar_dates.txt'})) {
+                            useAllServices = true;
+                        } else {
+                            useAllServices = false;
+                            if (!getTodayServices(await readFileContent(path.join(tmpFolderName, 'calendar.txt')),
+                                await readFileContent(path.join(tmpFolderName, 'calendar_dates.txt')))) {
+                                    log('error', 'GTFS calendar data are corrupted');
+                                    fs.rmSync(tmpFolderName, { recursive: true });
+                                    resolve(false);
+                                    return;
+                                }
+                        }
+                        
+                        // Process routes data
+                        log('info', 'Processing GTFS routes data');
+                        if (!await getTodayRoutes(await readFileContent(path.join(tmpFolderName, 'routes.txt')))) {
+                            log('error', 'GTFS routes data are corrupted');
+                            fs.rmSync(tmpFolderName, { recursive: true });
+                            resolve(false);
+                            return;
+                        }
+
+                        // Process stop_times & trips data
+                        // Process also api data, specific for Brno transit system
+                        log('info', 'Processing GTFS trips & stop_times data');
+                        if (!await getTodayTrips(await readFileContent(path.join(tmpFolderName, 'stop_times.txt')),
+                            await readFileContent(path.join(tmpFolderName, 'api.txt')),
+                            await readFileContent(path.join(tmpFolderName, 'trips.txt')))) {
+                            log('error', 'GTFS trips & stop_times data are corrupted');
+                            fs.rmSync(tmpFolderName, { recursive: true });
+                            resolve(false);
+                            return;
+                        }
+
+                        // Calculate transit accessibility scores of each stop for the planner
+                        const stops = inputFiles.find(file => file === 'stops.txt');
+                        const stopTimes = inputFiles.find(file => file === 'stop_times.txt');
+                        const trips = inputFiles.find(file => file === 'trips.txt');
+                        const calendar = inputFiles.find(file => file === 'calendar.txt');
+                        const routes = inputFiles.find(file => file === 'routes.txt');
+                        log('info', 'Calculating transit score for transport system stops');
+                        if (!await getStopTransitAccessibilityScores(stops, stopTimes, trips, calendar, routes)) {
+                            log('error', 'Failed to calculate stop transit scores from GTFS due to corrupted files');
+                            fs.rmSync(tmpFolderName, { recursive: true });
+                            resolve(false);
+                            return;
+                        }
+
+                        fs.rmSync(tmpFolderName, { recursive: true });
+                        log('success', 'Processing GTFS data done');
+                        dbStats.updateStateProcessingStats('gtfs_processing_time', performance.now() - startTime);
+
+                        // If there are new shapes, calculate them
+                        if (Object.keys(shapesToCalc).length > 0) {
+                            log('info', 'Routing new trip shapes');
+                            if (!await getNewShapes()) {
+                                log('error', 'Routing trip shapes has failed');
+                                fs.rmSync(tmpFolderName, { recursive: true });
+                                resolve(false);
+                                shapesToCalc = {};
+                                return;
+                            }
+                            log('success', 'Shapes routing done');
+                            shapesToCalc = {};
+
+                            if (saveTestOutput) {
+                                fs.writeFile(`backups/${(new Date()).toISOString()}_shapes.txt`, JSON.stringify(await dbPostGIS.getShapes()), function(error) {
+                                    if (error) {
+                                        log('error', error);
+                                    }
+                                });
+                            }
+                        }
+                        dbStats.updateStateProcessingStats('gtfs_shapes', await dbPostGIS.countShapes());
+
+                        // Today shapes API endpoint reset
+                        await dbCache.clearTodayShapes();
+                        await dbCache.setUpTodayShapes();
+
+                        // Clear cached active routes daily
+                        await dbCache.clearActiveRoutes();
+
+                        resolve(true);
+                    })
+                    .catch(err => {
+                        log('error', err);
+                        resolve(false);
+                    });
             })
             .on('error', (error) => {
                 log('error', error);
@@ -565,11 +574,11 @@ async function unzipAndParseData(response, startTime) {
 
 // Function for processing agency file
 async function getTodayAgencies(inputAgencyFile) {
-    if (inputAgencyFile?.data === undefined) {
+    if (inputAgencyFile === undefined) {
         return false;
     }
 
-    let inputAgencyData = inputAgencyFile.data.toString().split('\n');
+    let inputAgencyData = inputAgencyFile.split('\n');
     const header = inputAgencyData[0].slice(1, inputAgencyData[0].length - 1).split(',');
     inputAgencyData.shift();
 
@@ -636,11 +645,11 @@ async function getTodayAgencies(inputAgencyFile) {
 
 // Function for processing stops file
 async function getTodayStops(inputStopFile) {
-    if (inputStopFile?.data === undefined) {
+    if (inputStopFile === undefined) {
         return false;
     }
 
-    let inputStopData = inputStopFile.data.toString().split('\n');
+    let inputStopData = inputStopFile.split('\n');
     const header = inputStopData[0].slice(1, inputStopData[0].length - 1).split(',');
     inputStopData.shift();
 
@@ -798,11 +807,11 @@ async function inspectProcessedStop(stop, replace = false, level) {
 
 // Function for processing routes file
 async function getTodayRoutes(inputRoutesFile) {
-    if (inputRoutesFile?.data === undefined) {
+    if (inputRoutesFile === undefined) {
         return false;
     }
 
-    let inputRoutesData = inputRoutesFile.data.toString().split('\n');
+    let inputRoutesData = inputRoutesFile.split('\n');
     const header = inputRoutesData[0].slice(1, inputRoutesData[0].length - 1).split(',');
     inputRoutesData.shift();
 
@@ -895,12 +904,12 @@ async function getTodayRoutes(inputRoutesFile) {
 
 // Function for processing routes file
 async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
-    if (inputStopTimesFile?.data === undefined) {
+    if (inputStopTimesFile === undefined) {
         return false;
     }
 
     // Prepare stop times data
-    let inputStopTimesData = inputStopTimesFile.data.toString().split('\n');
+    let inputStopTimesData = inputStopTimesFile.split('\n');
     let header = inputStopTimesData[0].slice(1, inputStopTimesData[0].length - 1).split(',');
     inputStopTimesData.shift();
 
@@ -1001,7 +1010,7 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
     // Prepate API data, Brno transit system feature
     if (inputApiFile) {
-        const inputApiData = inputApiFile.data.toString().split('\n');
+        const inputApiData = inputApiFile.split('\n');
         inputApiData.shift();
 
         for (const record of inputApiData) {
@@ -1021,11 +1030,11 @@ async function getTodayTrips(inputStopTimesFile, inputApiFile, inputTripsFile) {
 
     // Parse input trip data
     // https://gtfs.org/schedule/reference/#tripstxt
-    if (inputTripsFile?.data === undefined) {
+    if (inputTripsFile === undefined) {
         return false;
     }
 
-    let inputTripsData = inputTripsFile.data.toString().split('\n');
+    let inputTripsData = inputTripsFile.split('\n');
     header = inputTripsData[0].slice(1, inputTripsData[0].length - 1).split(',');
     inputTripsData.shift();
 
@@ -1199,14 +1208,14 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
     today.setUTCHours(0, 0, 0, 0);
     const dayOfWeek = today.getUTCDay() === 0 ? 6 : today.getUTCDay() - 1;
 
-    if (inputCalendarFile?.data === undefined && inputDatesFile?.data === undefined) {
+    if (inputCalendarFile === undefined && inputDatesFile === undefined) {
         return false;
     }
 
     // Process calendar data if provided
     // https://gtfs.org/schedule/reference/#calendartxt
-    if (inputCalendarFile?.data !== undefined) {
-        let inputCalendarData = inputCalendarFile.data.toString().split('\n');
+    if (inputCalendarFile !== undefined) {
+        let inputCalendarData = inputCalendarFile.split('\n');
         if (inputCalendarData.length > 0) {
             inputCalendarData.shift();
 
@@ -1233,8 +1242,8 @@ function getTodayServices(inputCalendarFile, inputDatesFile) {
 
     // Process calendar dates data if provided
     // https://gtfs.org/schedule/reference/#calendar_datestxt
-    if (inputDatesFile?.data !== undefined) {
-        let inputDatesData = inputDatesFile.data.toString().split('\n');
+    if (inputDatesFile !== undefined) {
+        let inputDatesData = inputDatesFile.split('\n');
         if (inputDatesData.length > 0) {
             inputDatesData.shift();
 
@@ -1408,6 +1417,20 @@ async function getShapeFromOTP(route_id, trip_id) {
             return undefined;
         }
     }
+}
+
+async function readFileContent(filePath) {
+    return new Promise(async (resolve) => {
+        fs.readFile(filePath, 'utf8', (err, content) => {
+            if (err) {
+                log('error', err);
+                resolve(false);
+                return;
+            }
+
+            resolve(content);
+        });
+    });
 }
 
 module.exports = { reloadActualSystemState, getShapeFromOTP }

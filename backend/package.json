@@ -18,7 +18,6 @@
     "@influxdata/influxdb-client-apis": "^1.34.0",
     "@mapbox/polyline": "^1.2.1",
     "cors": "^2.8.5",
-    "decompress": "^4.2.1",
     "dotenv": "^16.3.1",
     "express": "^4.21.1",
     "ml-kmeans": "^7.0.0",
@@ -26,6 +25,7 @@
     "pg": "^8.11.3",
     "proj4": "^2.20.3",
     "redis": "^4.7.0",
+    "unzipper": "^0.12.5",
     "wellknown": "^0.5.0"
   },
   "devDependencies": {

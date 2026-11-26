@@ -1,0 +1,3 @@
+[submodule "DelayPredictor"]
+	path = DelayPredictor
+	url = https://github.com/Kova19/DelayPredictor.git

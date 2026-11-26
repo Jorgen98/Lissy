@@ -88,7 +88,7 @@
           </span>
           <p-datepicker class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
             [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
-            <ng-template pTemplate="footer">
+            <ng-template #footer>
               <div class="calendar-btns-div">
                 <button type="button" (click)="downloadRoutesData()" [disabled]="hooverDates == null">{{ 'stats.loadData' | translate }}</button>
               </div>
@@ -114,7 +114,7 @@
               <p-select [options]="tripGroups" [(ngModel)]="selectedTripGroup" optionLabel="stops" filter="true"
                 filterBy="stops" (onChange)="changeTripGroup()"/>
               <h3>{{ 'delay.trip' | translate }}</h3>
-              <p-select [options]="selectedTripGroup?.trips" [(ngModel)]="selectedTrip" optionLabel="dep_time_lab" filter="true"
+              <p-select [options]="$safeNavigationMigration(selectedTripGroup?.trips)" [(ngModel)]="selectedTrip" optionLabel="dep_time_lab" filter="true"
                 filterBy="dep_time_lab" (onChange)="changeTrip()"/>
             </div>
           </div>
@@ -148,13 +148,13 @@
           <div class="side-control-selection-div">
             <div class="side-control-selection-inner-div">
               <div class="mobile-header-item">
-                @if (translate.currentLang === 'cz') {
+                @if (translate.currentLang() === 'cz') {
                   <button type="button" class="mobile-menu-btn" (click)="translate.use('en')">
                     <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
                     <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
                   </button>
                 }
-                @if (translate.currentLang === 'en') {
+                @if (translate.currentLang() === 'en') {
                   <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')">
                     <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
                     <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
@@ -188,8 +188,8 @@
               @for (category of delayCategories; track category; let i = $index) {
                 <div class="delay-category-row">
                   <!-- Color -->
-                  <p-colorPicker [(ngModel)]="category.color" class="delay-category-color" (onHide)="onDelayCategoryChange(i)"/>
-                  <p-inputNumber inputStyleClass="delay-category-number" [(ngModel)]="category.minValue" [showButtons]="true" buttonLayout="horizontal" [step]="0.25"
+                  <p-color-picker [(ngModel)]="category.color" class="delay-category-color" (onHide)="onDelayCategoryChange(i)"/>
+                  <p-input-number inputStyleClass="delay-category-number" [(ngModel)]="category.minValue" [showButtons]="true" buttonLayout="horizontal" [step]="0.25"
                     decrementButtonClass="delay-category-btn" incrementButtonClass="delay-category-btn" suffix=" min."
                     incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" mode="decimal" (onInput)="onDelayCategoryChange(i)" allowEmpty="false"
                     [min]="i === 0 ? 0 : delayCategories[i - 1].minValue + 0.25" [max]="i < (delayCategories.length - 1) ? category.maxValue - 0.25 : null" [disabled]="i === 0 ? true : false"/>

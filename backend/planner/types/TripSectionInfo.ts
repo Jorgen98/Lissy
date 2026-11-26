@@ -1,0 +1,22 @@
+/*
+ * File: TripSectionInfo.ts
+ * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * Custom type containing information about a single section of a trip between two neighbouring points from the trip request.
+ */
+
+import { TransportMode } from "../../../frontend/modules/planner/types/TransportMode"
+import { UserPreferences } from "../../../frontend/modules/planner/types/TripDataExtended"
+import { LatLng } from "./LatLng"
+
+export type TripSectionInfo = {
+    pointA: LatLng,   // Coordinates of the first point
+    pointB: LatLng,   // Coordinates of the second point
+    modes: Record<TransportMode, boolean>,  // Requested transport modes between the two points
+    datetime: {                             // Earliest departure/latest arrival date and time
+        datetime: string,                   // ISO UTC string
+        option: "departure" | "arrival"
+    },
+    preferences: UserPreferences,
+    isReroute: boolean,                     // Whether the section request is for a reroute
+}

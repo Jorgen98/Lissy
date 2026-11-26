@@ -487,4 +487,4 @@ async function saveNewShape(trip, newShape) {
     return await dbPostGIS.updateTripsShapeId(trip.trip_ids, newShapeId);
 }
 
-module.exports = { computeShape, triangulation, triangulationWithDistControl };
+module.exports = { computeShape, triangulation, triangulationWithDistControl, countDistance };

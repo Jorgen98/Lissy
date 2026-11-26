@@ -57,13 +57,13 @@
           </button>
         </span>
         <div class="mobile-header-item">
-          @if (translate.currentLang === 'cz') {
+          @if (translate.currentLang() === 'cz') {
             <button type="button" class="mobile-menu-btn" (click)="translate.use('en')">
               <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
               <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
             </button>
           }
-          @if (translate.currentLang === 'en') {
+          @if (translate.currentLang() === 'en') {
             <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')">
               <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
               <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
@@ -85,7 +85,7 @@
           </span>
           <p-datepicker class="calendar" [(ngModel)]="hooverDates" [inline]="true" selectionMode="multiple"
             [firstDayOfWeek]="1" [minDate]="startDate" [maxDate]="endDate" [disabledDates]="disabledDates">
-            <ng-template pTemplate="footer">
+            <ng-template #footer>
               <div class="calendar-btns-div">
                 @if (isTodayFunctionEnabled) {
                   <button type="button" (click)="setToday()">{{ 'stats.today' | translate }}</button>

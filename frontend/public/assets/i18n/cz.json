@@ -159,6 +159,105 @@
         "graphAggDate": "Spojit podle datumu",
         "graphAggTrip": "Spojit podle spojů"
     },
+    "planner" : {
+        "name": "Plánovač",
+        "clickToCancel": "Klepnutím zde zrušíte",
+        "form": {
+            "title": "Plán Trasy",
+            "submit": "Naplánovat trasu",
+            "departureTime": "Odjezd po",
+            "arrivalTime": "Příjezd před",
+            "return": "Návrat zpět",
+            "modeSelect": "Vybrané typy dopravy",
+            "publicTransport": "MHD",
+            "car": "Auto",
+            "walk": "Chůze",
+            "startPoint": "Počáteční bod",
+            "endPoint": "Cílový bod",
+            "midpoint": "Mezibod",
+            "addMidpointTooltip": "Přidat mezibod",
+            "removeMidpointTooltip": "Odstranit mezibod",
+            "switchDirectionTooltip": "Otočit směr",
+            "markerTooltip": "Vybrat z mapy",
+            "myLocation": "Moje poloha",
+            "pointClearTooltip": "Obnovit bod",
+            "pointFromMap": "Bod z mapy",
+            "carParkedEarlier": "Cesta autem již ukončena" 
+        },
+        "itinerary": {
+            "title": "Itinerář",
+            "clearItinerary": "Smazat itinerář",
+            "trolleybus": "Trolejbus",  
+            "tram": "Tramvaj",  
+            "ferry": "Loď",
+            "rail": "Vlak",
+            "bus": "Autobus",
+            "car": "Auto",
+            "walk": "Chůze",
+            "subway": "Metro",
+            "arrival": "Příjezd",
+            "departure": "Odjezd",
+            "midpoint": "Mezibod",
+            "origin": "Počátek",
+            "legOrigin": "Počátek úseku",
+            "legDestination": "Konec úseku",
+            "destination": "Cíl",
+            "export": "Exportovat",
+            "parkingSpot": "Parkování",
+            "showOnMap": "Zobrazit na mapě",
+            "backToDetail": "Zpět na detail",
+            "sortBy": "Řadit dle",
+            "sortDefault": "Výchozí",
+            "sortDeparture": "Čas odjezdu",
+            "sortCost": "Odhad ceny",
+            "sortDuration": "Rychlost",
+            "sortNumTransfers": "Počet přestupů",
+            "cheapest": "Nejnižší cena",
+            "best": "Nejlepší",
+            "fastest": "Nejrychlejší",
+            "returnTrip": "Zpáteční cesta",
+            "returnTripNotFound": "Zpáteční cesta nebyla nalezena",
+            "hide": "Skrýt",
+            "nextConnection": "Následující spoj",
+            "previousConnection": "Předchozí spoj",
+            "rerouteDisclaimer": "Proběhlo přesměrování. Data mohou být nepřesná.",
+            "duration": "Doba trvání",
+            "distance": "Vzdálenost",
+            "numTransfers": "Počet přestupů",
+            "price": "Odhadnutá cena"
+        },
+        "settings": {
+            "walkingPreferences": "Chůze",
+            "publicTransportPreferences": "Hromadná doprava",
+            "carPreferences": "Auto",
+            "maxWalkingDistance": "Maximální vzdálenost chůze",
+            "unlimitedWalkDistance": "Neomezovat maximální vzdálenost chůze",
+            "unlimitedTransfers": "Neomezovat maximální počet přestupů",
+            "walkingSpeed": "Průměrná rychlost chůze",
+            "selectedModes": "Povolené dopravní prostředky",
+            "bus": "Autobus",  
+            "trolleybus": "Trolejbus",  
+            "tram": "Tramvaj",  
+            "train": "Vlak",  
+            "ferry": "Loď",
+            "rail": "Vlak",
+            "subway": "Metro",
+            "tripImport": "Import",
+            "fileImport": "Import souboru JSON",
+            "browse": "Procházet",
+            "invalidFileSizeMessageSummary": "Soubor {0} je příliš velký, ",
+            "invalidFileSizeMessageDetail": "maximální velikost je {0}.",
+            "invalidFileTypeMessageSummary": "Formát souboru {0} není podporován, ",
+            "invalidFileTypeMessageDetail": "povolený formát: {0}.",
+            "ticketType": "Typ jízdenky",
+            "maxTransfers": "Maximální počet přestupů",
+            "fuelConsumption": "Průměrná spotřeba paliva",
+            "fuelPrice": "Cena paliva",
+            "fuelPriceAttribution": "Zdroj dat pro základní hodnotu",
+            "fareInformation": "Zdroj informací o jízdném",
+            "extraCarCosts": "Další náklady na provoz"
+        }
+    },
     "map" : {
         "zone": "Zóna",
         "wheelchair": "Zastávka má zvýšenou nástupní hranu",
@@ -168,7 +267,9 @@
         "avg": "Průměrné zpoždění",
         "sum": "Součet zpoždění",
         "max": "Maximální zpoždění",
-        "min": "Minimální zpoždění"
+        "min": "Minimální zpoždění",
+        "departure": "Odjezd",
+        "arrival": "Příjezd"
     },
     "primeng": {
         "dayNames": ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"],
@@ -215,15 +316,74 @@
                 "head": "Nejsou k dispozici žádná data",
                 "body": "Pro vybraný časový interval nejsou k dispozici žádná data. Zkuste prosím změnit časový interval."
             },
+            "locationDenied": {
+                "head": "Přístup k poloze byl odepřen",
+                "body": "Získání informací o poloze selhalo, protože stránka neměla potřebná oprávnění."
+            },
+            "locationUnavailable": {
+                "head": "Poloha není dostupná",
+                "body": "Získání polohy selhalo, protože interní zdroj polohy vrátil chybu."
+            },
+            "locationTimeout": {
+                "head": "Vypršel časový limit pro získání polohy",
+                "body": "Čas vyhrazený pro získání informací o poloze vypršel dříve, než byly údaje získány."
+            },
+            "stopsUnavailable": {
+                "head": "Chyba na straně serveru",
+                "body": "Chyba komunikace se serverem při získávání zastávek."
+            },
+            "tripsNotFound": {
+                "head": "Trasa nenalezena",
+                "body": "Trasa vyhovující parametrům zadaným ve formuláři nebyla nalezena."
+            },
+            "invalidJson": {
+                "head": "Nevalidní JSON",
+                "body": "Struktura nahraného JSON souboru není správná."
+            },
+            "invalidTripObject": {
+                "head": "Nevalidní obsahu souboru",
+                "body": "Obsah nahraného JSON souboru nepopisuje validní trasu."
+            },
+            "configUnavailable": {
+                "head": "Konfigurace není dostupná",
+                "body": "Chyba při načtení konfigurace ze serveru. Prosím nastavte hodnoty pro cenu paliva a spotřebu manuálně v rozšířeném nastavení pro auto."
+            },
+            "rerouteError": {
+                "head": "Chyba při přesměrování",
+                "body": "Pro úsek, který měl být přesměrován, nebyla nalezena požadovaná alternativa."
+            },
             "noAvailablePrediction": {
                 "head": "Predikce se nepovedla",
                 "body": "Pro daný spoj není k dispozici dostatek dat pro spolehlivou predikci."
+            },
+            "predictionRealtime": {
+                "head": "Predikce v reálném čase",
+                "body": "Predikce je založena na datech z aktuálně jedoucího vozu."
+            },
+            "predictionError501": {
+                "head": "Predikce se nepovedla",
+                "body": "Prediktor nenašel správnou linku."
+            },
+            "predictionError502": {
+                "head": "Predikce se nepovedla",
+                "body": "Prediktor nenašel správný spoj."
+            },
+            "predictionError503": {
+                "head": "Predikce se nepovedla",
+                "body": "Prediktor nenašel hodnoty průměrného zpoždění."
             }
         }
     },
     "prediction": {
         "name": "Predikce zpoždění",
         "mapLabel": "Predikované zpoždění",
-        "showValues": "Zobrazit hodnoty predikovaného zpoždění"
+        "showValues": "Zobrazit hodnoty predikovaného zpoždění",
+        "predictionMethods": "Predikční metoda",
+        "methods": {
+            "neuralNetwork": "Neuronová síť",
+            "randomForest": "Náhodný les",
+            "linearRegression": "Lineární regrese",
+            "average": "Průměr"
+        }
     }
 }

@@ -1,0 +1,429 @@
+/*
+ * File: itinerary.component.css
+ * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * CSS styles file for the itinerary component used in the planner.
+ */
+
+/* Main itinerary div ********************/
+.itinerary {
+    width: 100%;
+    border: var(--planner-main-border);
+    display: flex;
+    flex-direction: column;
+    max-height: 75vh; 
+}
+/**************************************************/
+
+/* Itinerary header *****************************/
+.clear-itinerary-btn {
+    cursor: pointer;
+    opacity: 0.8;
+    border: 1px solid var(--p-gray-400);
+    color: var(--planner-button-small-color);
+    background-color: var(--planner-button-small-background-color);
+    font-size: 15px;
+}
+
+.clear-itinerary-btn:hover {
+    opacity: 1;
+}
+
+.header {
+    background-color: var(--planner-main-outline);
+    height: 40px;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding-bottom: 2px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+}
+
+.back-btn {
+    height: 40px;
+    transform: rotate(90deg);
+    cursor: pointer;
+    position: absolute;
+}
+
+.title {
+    color: var(--planner-title-color);
+    font-weight: 550;
+    font-size: medium;
+}
+/**************************************************/
+
+/* Sort select ************************************/
+.sort-div {
+    background-color: var(--planner-main-outline);
+    display: flex;
+    align-items: center;
+    padding: 3px 40px;
+    gap: 10px;
+    height: 35px;
+    min-height: 35px;
+}
+
+.sort-div[hidden] {
+  display: none !important;
+}
+
+.sort-select {
+    flex: 1;
+    height: 100%;
+}
+
+::ng-deep .sort-select .p-select-label {
+    font-size: 14px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+}
+::ng-deep .sort-select .p-select-option {
+    font-size: 13px;
+    padding: 5px 15px;
+    background-color: var(--planner-select-option-background-color);
+    color: var(--planner-select-color);
+    opacity: 0.8;
+}
+.sort-select {
+    --p-select-background: var(--planner-select-background);
+    --p-select-border-color: var(--planner-select-border-color);
+    --p-select-color: var(--planner-select-color);
+    --p-select-overlay-background: var(--planner-select-background);
+    --p-select-option-focus-color: var(--planner-select-focus-color);
+    --p-select-overlay-border-color: 0;
+}
+
+.sort-label {
+    font-size: 14px;
+    color: var(--planner-title-color);
+}
+/**************************************************/
+
+/* List of found trip options in accordion *********/
+.trip-options {
+    display: flex;
+    padding: 8px;
+    gap: 8px;
+    justify-content: center;
+}
+
+.option-button {
+    width: 118px;
+    font-size: 17px;
+    border: 2px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    font-size: 16px;
+    gap: 3px;
+}
+
+.option-distance-duration {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.p-accordion-header {
+    border-radius: 0 !important;
+    background-color: var(--planner-trip-header-background-color);
+    padding: 7px 10px;
+    padding-top: 0;
+    --p-accordion-header-active-background: var(--planner-trip-header-background-color);
+    --p-accordion-header-active-color: var(--planner-trip-header-active-color);
+    --p-accordion-header-color: var(--planner-trip-header-color);
+}
+
+.p-accordion-content {
+    --p-accordion-content-background: var(--planner-background);
+    --p-accordion-content-padding: 0;
+    border-top: 2px solid var(--planner-main-outline);
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .p-accordion-header {
+        --p-accordion-header-hover-color: var(--planner-trip-header-color);
+        --p-accordion-header-active-hover-color: var(--planner-trip-header-active-color);
+    }
+}
+
+.option-selected {
+    border-left: 7px solid var(--planner-selected-background-color) !important;
+    color: var(--planner-trip-header-active-color) !important;
+}
+
+.scrollbox {
+    overflow-y: auto;
+    --scrollbar-track-color: transparent;
+    --scrollbar-thumb-color: var(--planner-scrollbar-thumb-color);
+    --scrollbar-thumb-size: 80;
+    --scrollbar-track-shape: 10px;
+    --scrollbar-track-thickness: 8px;
+    --scrollbar-container-offset: 0px;
+    --scrollbar-thumb-hover-color: var(--planner-scrollbar-thumb-hover-color);
+    --scrollbar-hover-opacity-transition-leave-delay: 0s;
+}
+
+.p-accordion-panel {
+    border-bottom: 0;
+}
+
+.p-accordion-header:hover {
+    background-color: var(--planner-trip-header-background-color) !important;
+}
+
+.trip-detail-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    padding: 5px 15px;
+}
+
+.box {
+    background-color: var(--planner-main-outline);
+    border-radius: 6px;
+    color: var(--planner-title-color);
+    padding: 0 7px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 38px;
+}
+
+.point-box-start {
+    border-left: 6px solid green;
+}
+
+.point-box-mid {
+    border-left: 6px solid yellow;
+}
+
+.point-box-end {
+    border-left: 6px solid red;
+}
+
+.point-title {
+    font-weight: 600;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 223px;
+    color: var(--planner-title-color);
+}
+
+.two-column-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: right;
+}
+
+.two-column-text-left {
+    text-align: left;
+}
+
+.base-text {
+    font-size: 12px;
+}
+
+.leg-box {
+    margin: 0;
+    color: var(--planner-title-color);
+    width: 100%;
+}
+
+.detail-mode-img {
+    height: 18px;
+}
+
+.leg-mode-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.line-label-detail {
+    margin: 0;
+    position: relative;
+    font-weight: 600;
+    font-size: 11px;
+    border-radius: 5px;
+}
+
+.transfer-walk-img {
+    height: 14px;
+}
+
+.faint-text {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--planner-itinerary-faint-text-color);
+    font-size: 13px;
+    width: 100%;
+    justify-content: center;
+}
+
+.leg-box-left {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.leg-text {
+    font-size: 11px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 175px;
+    align-items: center;
+    gap: 2px;
+}
+
+button {
+    cursor: pointer;
+}
+
+.export-div {
+    background: linear-gradient(var(--planner-main-outline), var(--planner-main-outline)) top center / 96% 0.15em no-repeat, var(--planner-background);
+    height: 38px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.export-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    color: var(--planner-large-button-color);
+    opacity: 0.8;
+}
+
+.export-img {
+    height: 20px;
+    color: var(--planner-large-button-color)
+}
+
+.parking-icon {
+    width: 11px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--planner-itinerary-faint-text-color);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+}
+
+.show-return-trip {
+    background-color: var(--planner-button-small-background-color);
+    font-size: 12px;
+    padding: 3px;
+    padding-left: 5px;
+    font-weight: bold;
+    display: flex;
+    gap: 5px;
+    color: var(--planner-button-small-color);
+    opacity: 0.8;
+}
+
+.show-return-trip:hover {
+    opacity: 1;
+}
+
+.show-return-trip[hidden] {
+    display: none;
+}
+
+.return-trip-header {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    flex-direction: column;
+}
+
+.leg-box-wrapper {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    gap: 3px;
+    padding: 0 3px;
+}
+
+.reroute-btn {
+    padding: 0 2px;
+    height: 38px;
+    background-color: var(--planner-main-outline);
+    border-radius: 6px;
+    color: var(--planner-title-color);
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    opacity: 0.5;
+    transition: 0.5s;
+    cursor: pointer;
+}
+
+.reroute-btn:hover {
+    opacity: 1;
+}
+/**************************************************/
+
+/* Classes used only on mobile view elements *******/
+.trip-detail-mobile-btn {
+    background-color: var(--planner-button-small-background-color);
+    font-size: 15px;
+    padding: 4px 8px;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--planner-button-small-color);
+}
+
+.trip-detail-mobile-extras {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--planner-main-outline);
+}
+/*************************************************/
+
+/* Mobile view style overrides ********************/
+@media only screen and (max-width: 700px) {
+  .itinerary {
+    max-height: 100dvh;
+    height: calc(100dvh - 3em);
+    overflow-y: auto;
+    border: 0;
+    background: var(--planner-background-filled);
+  }
+
+  :host {
+    height: 100%;
+  }
+}
+/**************************************************/

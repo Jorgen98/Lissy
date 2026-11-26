@@ -1,10 +1,18 @@
+<!--
+File: app.component.html
+Author: Juraj Lazur (ilazur@fit.vut.cz)
+Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+
+Main app component HTML template file.
+-->
+
 <div class="main">
   <div class="header" [ngClass]="router.url == '/' ? 'header-without-border' : ''">
     <!-- Menu -->
     <div class="header-left">
       @if (router.url != '/') {
         <button type="button" class="btn-header" routerLink="/">
-          <i class="pi pi-bars"></i>
+          <i class="pi pi-bars bars-menu"></i>
         </button>
       }
     </div>
@@ -25,7 +33,10 @@
       }
       @if (router.url != '/') {
         <div class="header-link-item" (click)="goToLink('brno')">
-          <img class="header-link-img" src="./brno.png"/>
+          <img 
+            class="header-link-img" 
+            [src]="(theme.isDark$ | async) ? './brno.png' : './brno-red.png'"
+          />
         </div>
       }
       <div class="header-link-item" (click)="changeLang()">
@@ -41,7 +52,7 @@
     <div class="loadingElem">
       <div class="loadingElemContext">
         <div class="loadingElemCircleDiv">
-          <p-progressSpinner class="loadingElemCircle"/>
+          <p-progress-spinner class="loadingElemCircle"/>
           <span class="loadingElemCircleText">{{ loadingElemPercentage }}</span>
         </div>
         <span class="loadingElemMainText">{{ 'UIMessagesService.loading' | translate }}</span>

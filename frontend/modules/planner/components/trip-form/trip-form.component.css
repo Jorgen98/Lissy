@@ -1,0 +1,466 @@
+/*
+ * File: trip-form.component.css
+ * Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+ *
+ * CSS styles file for the trip form component used in the planner.
+ */
+
+/* General ****************************************/
+input {
+    font-weight: bold;
+    font-size: 13px;
+    background-color: var(--planner-input-background-color);
+    color: var(--planner-input-color);
+    border-radius: 3px;
+    border: 1px solid var(--planner-input-border-color);
+}
+
+button {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0.8;
+}
+
+:host {
+    color-scheme: light;
+}
+/**************************************************/
+
+/* Main form div and sections ********************/
+.form {
+    width: 100%;
+    right: 0;
+    border-left: var(--planner-main-border);
+    border-bottom: var(--planner-main-border);
+    display: flex;
+    flex-direction: column;
+    max-height: 70vh; 
+}
+
+.form-section {
+    background: linear-gradient(var(--planner-main-outline), var(--planner-main-outline)) top center / 96% 0.5px no-repeat, var(--planner-background);
+}
+
+.form-collapse-wrapper {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+/**************************************************/
+
+/* Form header *****************************/
+.header {
+    background-color: var(--planner-main-outline);
+    height: 40px;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding-left: 10px;
+}
+
+.title {
+    color: var(--planner-title-color);
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: 550;
+    font-size: medium;
+}
+
+.collapse-btn {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    color: var(--planner-title-color);
+    font-size: 25px;
+}
+
+.location-btn {
+    height: 30px;
+    cursor: pointer;
+}
+
+.blinking {
+    opacity: 1;
+    animation: blink 1.1s infinite ease-in-out;
+}
+
+.location-found {
+    opacity: 1;
+}
+
+.location-disabled {
+    position: absolute;
+    height: 35px;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.1; 
+  }
+  100% {
+    opacity: 1;
+  }
+}
+/*******************************************/
+
+/* Mode select *****************************/
+.mode-select {
+    height: 40px;
+    padding: 6px 20px;
+    display: flex;
+    gap: 15px;
+    background: linear-gradient(var(--p-gray-800), var(--p-gray-800)) top center / 0% 0.15em no-repeat, var(--planner-background);
+}
+
+.mode-select-window {
+    height: 100%;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    border: 2px solid color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+}
+
+.mode-select-legend {
+    font-size: 12px;
+}
+
+.mode-button {
+    width: 100%;
+    font-size: 16px;
+    color: var(--planner-mode-select-color);
+}
+
+.mode-img {
+    height: 17px;
+    width: 17px;
+}
+
+.mode-selected {
+    background-color: var(--planner-selected-background-color);
+    color: var(--planner-mode-selected-color);
+}
+
+.mode-disabled {
+    opacity: 0.5;
+    outline: 2px solid red;
+}
+
+.mode-disabled:hover {
+    opacity: 0.2 !important;
+}
+
+.invalid-modes-warning {
+    font-size: 11px;
+    max-width: 75px;
+    color: brown;
+    font-weight: bold;
+}
+
+.form-collapse-wrapper[hidden] {
+  display: none !important;
+}
+/*******************************************/
+
+/* Trip points *****************************/
+.trip-points {
+    padding: 8px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    overflow-x: hidden;
+}
+
+.scrollbox {
+    overflow-y: auto;
+    --scrollbar-track-color: var(--planner-background);
+    --scrollbar-thumb-color: var(--planner-scrollbar-thumb-color);
+    --scrollbar-thumb-size: 80;
+    --scrollbar-track-shape: 10px;
+    --scrollbar-track-thickness: 8px;
+    --scrollbar-container-offset: 4px;
+    --scrollbar-thumb-hover-color: var(--planner-scrollbar-thumb-hover-color);
+    --scrollbar-hover-opacity-transition-leave-delay: 0s;
+}
+
+.trip-point {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.point-input-wrapper {
+    width: 100%;
+    position: relative;
+}
+
+input[type="text"] {
+    height: 45px;
+    width: 133%;
+    font-size: 16px;
+    transform: scale(0.75);
+    transform-origin: left center;
+}
+
+.point-input-extra {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 10px;
+}
+
+.point-input-pointer {
+    cursor: pointer;
+    height: 25px;
+}
+
+.last-point-btn {
+    display: flex;
+    gap: 15px;
+}
+
+.remove-midpoint {
+    transition: opacity 0.15s ease;
+    color: var(--planner-remove-midpoint-btn-color);
+    font-size: 21px;
+    margin-top: 4px;
+    margin-right: 3px;
+}
+
+.remove-midpoint-wrapper {
+    padding: 10px 3px;
+}
+
+.circle-button {
+    height: 23px;
+    width: 23px;
+    background-color: transparent;
+    color: var(--planner-circle-button-color);
+    border-radius: 20px;
+    border: var(--planner-circle-button-border);
+    font-size: 13px;
+}
+
+.circle-button[disabled] {
+    cursor: default;
+    opacity: 0.2;
+}
+
+.circle-button[disabled]:hover {
+    opacity: 0.2;
+}
+
+.reverse-img {
+    transform: rotate(90deg);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.2;
+}
+
+.cdk-drag-animating {
+  transition: transform 100ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.midpoint-mode-select-window {
+    height: 100%;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    border: 1px solid var(--planner-midpoint-mode-select-border-color);
+    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    padding: 3px;
+}
+
+.midpoint-mode-select-legend {
+    font-size: 11px;
+}
+
+.midpoint-mode-button {
+    width: 100%;
+}
+
+.midpoint-mode-img {
+    height: 15px;
+}
+
+.midpoint-options-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+mat-option {
+    background-color: var(--planner-autocomplete-option-background-color) !important;
+    color: var(--planner-autocomplete-option-color) !important;
+    min-height: 0;
+    padding: 7px 5px;
+    border: 1px solid var(--planner-autocomplete-option-border);
+    font-weight: 600;
+    font-size: 13px;
+}
+
+::ng-deep .mat-pseudo-checkbox {
+    display: none !important;
+}
+
+.point-input-clear {
+    width: 21px;
+    height: 21px;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .point-input-clear:hover {
+        opacity: 0.9;
+    }
+
+    .remove-midpoint:hover {
+        opacity: 0.8;
+    }
+
+    .mode-selected:hover {
+        opacity: 0.6;
+    }
+}
+
+.location-img {
+    width: 19px;
+}
+
+.location-input-option {
+    display: flex;
+    gap: 10px;
+    margin-left: 8px;
+    align-items: center;
+}
+
+.cdk-drag-preview {
+    overflow: hidden;
+}
+
+.drag-chevron {
+    width: 20px;
+    cursor: grab;
+}
+
+.drag-chevron-part {
+    font-size: 20px;
+    color: var(--planner-drag-chevron-color);
+}
+
+.drag-chevron-part-turned {
+    transform: rotate(180deg);
+}
+/********************************************/
+
+/* Datetime select **************************/
+.trip-timing {
+    padding: 7px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    color: color-mix(in srgb, var(--p-gray-50) 50%, transparent);
+    gap: 5px;
+}
+
+.datetime {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    height: 30px;
+    gap: 5px;
+}
+
+.radio-pair {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+input[type="date"],
+input[type="time"] {
+    font-weight: 500;
+    width: 100%;
+    min-width: 0;
+}
+
+input[type="date"] {
+    flex: 3 1 0;
+}
+
+input[type="time"] {
+    flex: 2 1 0;
+}
+
+.control-pair {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    font-size: 13px;
+}
+
+.control-pair label {
+    white-space: nowrap;
+    color: var(--planner-faint-label-color);
+}
+
+input[type="radio"],
+input[type="checkbox"]
+{
+    accent-color: var(--planner-form-accent-color);
+    transform: scale(1.5);
+    height: 10px;
+}
+/********************************************/
+
+/* Submit button **************************/
+.submit {
+    height: 46px;
+    font-size: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.submit-btn {
+    color: var(--planner-submit-button-color);
+    background-color: var(--planner-submit-button-background-color);
+    width: 80%;
+}
+
+.submit-btn:hover {
+    color: var(--planner-submit-button-hover-color);
+    background-color: var(--planner-submit-button-hover-background-color);
+}
+
+.submit-btn[disabled] {
+    color: var(--planner-submit-button-disabled-color);
+    background-color: var(--planner-submit-button-disabled-background-color);
+    cursor: default;
+}
+/********************************************/
+
+/* Mobile view style overrides ********************/
+@media only screen and (max-width: 700px) {
+  .form {
+    border-left: 0;
+  }
+}
+/**************************************************/

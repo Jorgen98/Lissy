@@ -4,15 +4,21 @@
  * System used time stamp format is YYYY-MM-DD
  */
 
-// Convert JS Date to time
+// Convert time stamp to JS date object
 export function getDate(timeStamp: string) {
     return new Date(`${parseInt(timeStamp.split('-')[0])}/${parseInt(timeStamp.split('-')[1]) + 1}/${parseInt(timeStamp.split('-')[2])}`);
 }
 
-// Convert JS Date to time
+// Convert JS date object to date
 export function getTimeStamp(date: number) {
     let newDate = new Date(date);
     return `${newDate.getUTCFullYear()}-${newDate.getUTCMonth()}-${newDate.getUTCDate()}`;
+}
+
+// Convert JS date object to normal human date
+export function getNonJSTimeStamp(date: number) {
+    let newDate = new Date(date);
+    return `${newDate.getUTCFullYear()}-${newDate.getUTCMonth() + 1}-${newDate.getUTCDate()}`;
 }
 
 // Compare to time stamps

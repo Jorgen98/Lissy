@@ -159,6 +159,105 @@
         "graphAggDate": "Join data by dates",
         "graphAggTrip": "Join data by trips"
     },
+    "planner" : {
+        "name": "Planner",
+        "clickToCancel": "Tap here to cancel",
+        "form": {
+            "title": "Trip Plan",
+            "submit": "Plan trip",
+            "departureTime": "Depart after",
+            "arrivalTime": "Arrive by",
+            "return": "Return trip",
+            "modeSelect": "Selected transport modes",
+            "publicTransport": "PT",
+            "car": "Car",
+            "walk": "Walk",
+            "startPoint": "Origin",
+            "endPoint": "Destination",
+            "midpoint": "Midpoint",
+            "addMidpointTooltip": "Add midpoint",
+            "removeMidpointTooltip": "Remove midpoint",
+            "switchDirectionTooltip": "Reverse direction",
+            "markerTooltip": "Select from map",
+            "myLocation": "My location",
+            "pointClearTooltip": "Clear trip point",
+            "pointFromMap": "Point from map",
+            "carParkedEarlier": "Car was parked earlier" 
+        },
+        "itinerary": {
+            "title": "Itinerary",
+            "clearItinerary": "Clear itinerary",
+            "trolleybus": "Trolleybus",  
+            "tram": "Tram",  
+            "ferry": "Ferry",
+            "rail": "Train",
+            "bus": "Bus",
+            "car": "Car",
+            "walk": "Walk",
+            "subway": "Subway",
+            "arrival": "Arrive",
+            "departure": "Depart",
+            "midpoint": "Midpoint",
+            "origin": "Origin",
+            "legOrigin": "Leg origin",
+            "legDestination": "Leg destination",
+            "destination": "Destination",
+            "export": "Export",
+            "parkingSpot": "Parking spot",
+            "showOnMap": "Show in map",
+            "backToDetail": "Back to detail",
+            "sortBy": "Sort by",
+            "sortDefault": "Default",
+            "sortDeparture": "Departure time",
+            "sortCost": "Price estimate",
+            "sortDuration": "Duration",
+            "sortNumTransfers": "Number of transfers",
+            "cheapest": "Cheapest",
+            "best": "Best",
+            "fastest": "Fastest",
+            "returnTrip": "Return trip",
+            "returnTripNotFound": "Return trip was not found",
+            "hide": "Hide",
+            "nextConnection": "Next connection",
+            "previousConnection": "Previous connction",
+            "rerouteDisclaimer": "Trip rerouted. Some data may be inaccurate.",
+            "duration": "Duration",
+            "distance": "Distance",
+            "numTransfers": "Number of transfers",
+            "price": "Estimated price"
+        },
+        "settings": {
+            "walkingPreferences": "Walking",
+            "publicTransportPreferences": "Public transport",
+            "carPreferences": "Car",
+            "maxWalkingDistance": "Maximum walking distance",
+            "unlimitedWalkDistance": "Do not limit maximum walking distance",
+            "unlimitedTransfers": "Do not limit maximum transfers",
+            "walkingSpeed": "Average walking speed",
+            "selectedModes": "Allowed modes of transport",
+            "bus": "Bus",  
+            "trolleybus": "Trolleybus",  
+            "tram": "Tram",  
+            "train": "Train",  
+            "ferry": "Ferry",
+            "rail": "Train",
+            "subway": "Subway",
+            "tripImport": "Import",
+            "fileImport": "JSON file import",
+            "browse": "Browse",
+            "invalidFileSizeMessageSummary": "File {0} is too large, ",
+            "invalidFileSizeMessageDetail": "the limit is {0}.",
+            "invalidFileTypeMessageSummary": "Format of file {0} is not supported, ",
+            "invalidFileTypeMessageDetail": "allowed format: {0}.",
+            "ticketType": "Ticket type",
+            "maxTransfers": "Maximum number of transfers",
+            "fuelConsumption": "Average fuel consumption",
+            "fuelPrice": "Fuel price",
+            "fuelPriceAttribution": "Default value data source",
+            "fareInformation": "Fare information source",
+            "extraCarCosts": "Other operational expenses"
+        }
+    },
     "map" : {
         "zone": "Zone",
         "wheelchair": "The stop has a raised boarding edge",
@@ -168,7 +267,9 @@
         "avg": "Average delay",
         "sum": "Sum of delay",
         "max": "Maximum delay",
-        "min": "Minimum delay"
+        "min": "Minimum delay",
+        "departure": "Departure",
+        "arrival": "Arrival"
     },
     "primeng": {
         "dayNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
@@ -215,15 +316,74 @@
                 "head": "No Available Data",
                 "body": "There are no available data for your selected date range. Please try to change the date range."
             },
+            "locationDenied": {
+                "head": "Location permission denied",
+                "body": "The acquisition of the geolocation information failed because the page didn't have the necessary permissions."
+            },
+            "locationUnavailable": {
+                "head": "Location unavailable",
+                "body": "Acquisition of location failed because an internal source of position returned an internal error."
+            },
+            "locationTimeout": {
+                "head": "Location timed out",
+                "body": "The time allowed to acquire the location was reached before the information was obtained."
+            },
+            "stopsUnavailable": {
+                "head": "Server Error",
+                "body": "Error in communication with server whilst retrieving transport system stops."
+            },
+            "tripsNotFound": {
+                "head": "Trip not found",
+                "body": "A trip which satisfies parameters entered into the form was not found."
+            },
+            "invalidJson": {
+                "head": "Invalid JSON",
+                "body": "The structure of the uploaded JSON file is not valid."
+            },
+            "invalidTripObject": {
+                "head": "Invalid content",
+                "body": "The contents of the uploaded JSON file do not describe a valid trip."
+            },
+            "configUnavailable": {
+                "head": "Configuration unavailable",
+                "body": "Failed to load planner configuration from the server. Please set fuel price and consumption values manually in the car settings."
+            },
+            "rerouteError": {
+                "head": "Rerouting error",
+                "body": "No other alternative was found for the connection which was requested to be rerouted."
+            },
             "noAvailablePrediction": {
                 "head": "The prediction failed",
                 "body": "There is insufficient data for this trip to make a reliable prediction."
+            },
+            "predictionRealtime": {
+                "head": "Realtime prediction",
+                "body": "The prediction is based on realtime vehicle data."
+            },
+            "predictionError501": {
+                "head": "The prediction failed",
+                "body": "Predictor did not found line ID for route."
+            },
+            "predictionError502": {
+                "head": "The prediction failed",
+                "body": "Predictor did not found tripID for prediction."
+            },
+            "predictionError503": {
+                "head": "The prediction failed",
+                "body": "Predictor did not found average delays for trip."
             }
         }
     },
     "prediction": {
         "name": "Delay prediction",
         "mapLabel": "Predicated delay",
-        "showValues": "Show predicated delay values"
+        "showValues": "Show predicated delay values",
+        "predictionMethods": "Prediction method",
+        "methods": {
+            "neuralNetwork": "Neural network",
+            "randomForest": "Random forest",
+            "linearRegression": "Linear Regression",
+            "average": "Average"
+        }
     }
 }

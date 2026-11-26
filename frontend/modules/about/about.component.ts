@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
 import { TranslateService } from '@ngx-translate/core';
@@ -8,6 +8,7 @@ import { ImportsModule } from '../../src/app/imports';
     selector: 'about',
     imports: [ImportsModule],
     templateUrl: './about.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './about.component.css'
 })
 

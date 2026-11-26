@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { APIService } from '../../src/app/services/api';
 import { ModuleConfig } from '../../src/app/app.component';
 import * as config from './config.json';
@@ -36,6 +36,7 @@ interface graphData {
     selector: 'delay-trips',
     imports: [ImportsModule, MapComponent],
     templateUrl: './delay-trips.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './delay-trips.component.css'
 })
 
@@ -153,6 +154,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             return;
         }
 
+        this.delayCategoriesService.resetDelayCategories();
         this.setUpAggMethods();
 
         this.msgService.turnOnLoadingScreenWithoutPercentage();
@@ -382,7 +384,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
             }
 
             // 24h format
-            if (this.translate.currentLang === 'cz') {
+            if (this.translate.currentLang() === 'cz') {
                 trip.dep_time_lab = trip.dep_time.slice(0, 5);
             // 12h format
             } else {
@@ -508,7 +510,7 @@ export class DelayTripsModule implements OnInit, OnDestroy {
         // Prepare graph categories
         if (this.tripsGraphSelAggFn?.operation === 'date') {
             for (const [keyIdx, key] of Object.keys(this.selectedTripData).entries()) {
-                const graphLabel = timeStamp.getDate(key).toLocaleDateString(this.translate.currentLang);
+                const graphLabel = timeStamp.getDate(key).toLocaleDateString(this.translate.currentLang() ?? 'cz');
                 this.tripsGraphData.datasets.push(
                     {
                         label: graphLabel,

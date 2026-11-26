@@ -1,12 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-page-not-found',
   templateUrl: './page-not-found.component.html',
   styleUrl: './page-not-found.component.css',
-  imports: [ TranslateModule, RouterLink ]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ RouterLink, TranslatePipe ]
 })
 
 export class PageNotFoundComponent {

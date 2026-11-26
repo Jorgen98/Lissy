@@ -29,11 +29,11 @@
             </button>
         </span>
         <div class="mobile-header-item">
-            <button type="button" class="mobile-menu-btn" (click)="translate.use('en')" *ngIf="translate.currentLang === 'cz'">
+            <button type="button" class="mobile-menu-btn" (click)="translate.use('en')" *ngIf="translate.currentLang() === 'cz'">
                 <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg'"/>
                 <p class="mobile-menu-text">{{ 'common.english' | translate }}</p>
             </button>
-            <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')" *ngIf="translate.currentLang === 'en'">
+            <button type="button" class="mobile-menu-btn" (click)="translate.use('cz')" *ngIf="translate.currentLang() === 'en'">
                 <img class="mobile-menu-img" [src]="'http://purecatamphetamine.github.io/country-flag-icons/3x2/CZ.svg'"/>
                 <p class="mobile-menu-text">{{ 'common.czech' | translate }}</p>
             </button>
@@ -57,7 +57,7 @@
                         <ng-template #content>
                             <p>{{ 'about.manual.steps.0_info' | translate }}</p>
                             <span class="stepper-img">
-                                <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_0_cz.png' : './manual/manual_0_en.png'" alt="Image" width="500" [preview]="true" />
+                                <p-image [src]="translate.currentLang() === 'cz' ? './manual/manual_0_cz.png' : './manual/manual_0_en.png'" alt="Image" width="500" [preview]="true" />
                             </span>
                         </ng-template>
                     </p-step-panel>
@@ -65,7 +65,7 @@
                         <ng-template #content>
                             <p>{{ 'about.manual.steps.1_info' | translate }}</p>
                             <span class="stepper-img">
-                                <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_1_cz.png' : './manual/manual_1_en.png'" alt="Image" width="500" [preview]="true" />
+                                <p-image [src]="translate.currentLang() === 'cz' ? './manual/manual_1_cz.png' : './manual/manual_1_en.png'" alt="Image" width="500" [preview]="true" />
                             </span>
                         </ng-template>
                     </p-step-panel>
@@ -73,7 +73,7 @@
                         <ng-template #content>
                             <p>{{ 'about.manual.steps.2_info' | translate }}</p>
                             <span class="stepper-img">
-                                <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_2_cz.png' : './manual/manual_2_en.png'" alt="Image" width="500" [preview]="true" />
+                                <p-image [src]="translate.currentLang() === 'cz' ? './manual/manual_2_cz.png' : './manual/manual_2_en.png'" alt="Image" width="500" [preview]="true" />
                             </span>
                         </ng-template>
                     </p-step-panel>
@@ -81,7 +81,7 @@
                         <ng-template #content>
                             <p>{{ 'about.manual.steps.3_info' | translate }}</p>
                             <span class="stepper-img">
-                                <p-image [src]="translate.currentLang === 'cz' ? './manual/manual_3_cz.png' : './manual/manual_3_en.png'" alt="Image" width="500" [preview]="true" />
+                                <p-image [src]="translate.currentLang() === 'cz' ? './manual/manual_3_cz.png' : './manual/manual_3_en.png'" alt="Image" width="500" [preview]="true" />
                             </span>
                         </ng-template>
                     </p-step-panel>

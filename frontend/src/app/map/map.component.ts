@@ -1,24 +1,32 @@
 /*
  * App Map
  * Map manipulation functions
+ *
+ * Authors: Juraj Lazur (ilazur@fit.vut.cz) 
+ * Contributors: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
  */
 
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import * as L from 'leaflet';
 import { environment } from '../../environments/environment';
 import { mapLayer, mapObject, MapService } from './map.service';
 import { TranslateService } from '@ngx-translate/core';
+import * as turf from "@turf/turf";
+import { DistancePipe } from '../../../modules/planner/pipes/distance.pipe';
 
 import { DomSanitizer } from '@angular/platform-browser';
 import { delayCategoriesService, delayCategory } from '../services/delayCategories';
+import { ThemeService } from '../services/theme';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'map',
     templateUrl: './map.component.html',
     styleUrls: ['./map.component.css'],
-    imports: []
+    changeDetection: ChangeDetectionStrategy.Eager,
+    providers: [DistancePipe]
 })
-export class MapComponent implements AfterViewInit {
+export class MapComponent implements AfterViewInit, OnDestroy {
     private map: L.Map | undefined = undefined;
     private layers: {[name: string]: mapLayer} = {};
     private colorPalette: {[id: number]: string} = {
@@ -35,18 +43,38 @@ export class MapComponent implements AfterViewInit {
     public enableLegend: boolean = false;
     public enableDelayCategories: boolean = false;
 
+    private darkTiles!: L.TileLayer;
+    private lightTiles!: L.TileLayer;
+    private currentTiles!: L.TileLayer;
+
+    // Theme change emit subscription
+    private themeSub!: Subscription;
+
+
     // Init map
     private initMap(): void {
-        const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+
+        // Create dark theme map tiles layer
+        this.darkTiles = L.tileLayer('http://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web_grau/default/WEBMERCATOR/{z}/{y}/{x}.png', {
+            attribution: 'Map data: &copy; <a href="http://www.govdata.de/dl-de/by-2-0">dl-de/by-2-0</a>',
             maxZoom: 20,
             minZoom: 7
         });
 
+        // Create light theme map tiles layer
+        this.lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 20,
+            minZoom: 7
+        });
+
+        // Default dark theme
+        this.currentTiles = this.darkTiles;
+
         this.map = L.map('map', {
             center: JSON.parse(environment.mapCenter),
             zoom: JSON.parse(environment.mapZoom),
-            layers: [tiles],
+            layers: [this.currentTiles],
             zoomControl: false
         });
 
@@ -59,10 +87,16 @@ export class MapComponent implements AfterViewInit {
                         if (t.map) {
                             if (object instanceof L.Marker) {
                                 let icon = object.getIcon();
-                                if (icon.options.className !== 'color-base-shadow') {
-                                    icon.options.iconSize = [t.map.getZoom() * 1.35, t.map.getZoom() * 1.35];
+                                const zoom = t.map.getZoom();
+                                if (icon.options.className === 'trip-point') {
+                                    icon.options.iconSize = [zoom * 2.2, zoom * 2.2];
+                                    icon.options.iconAnchor = [zoom * 2.2 / 2, zoom * 2.2];
+                                } else if (icon.options.className === 'parking-icon') {
+                                    icon.options.iconSize = [zoom * 2.2, zoom * 2.2]
+                                } else if (icon.options.className !== 'color-base-shadow') {
+                                    icon.options.iconSize = [zoom * 1.35, zoom * 1.35];
                                 } else {
-                                    icon.options.iconSize = [t.map.getZoom() * 2, t.map.getZoom() * 2];
+                                    icon.options.iconSize = [zoom * 2, zoom * 2];
                                 }
                                 object.setIcon(icon);
                             }
@@ -72,14 +106,37 @@ export class MapComponent implements AfterViewInit {
             }
         })
 
-        this.map.on('click', () => { this.mapService.clearLayerObj.next('hoover')});
+        this.map.on('click', event => { 
+            this.mapService.clearLayerObj.next('hoover');
+            this.mapService.mapClick(event.latlng);         // Emit coordinates of the click on the map
+        });
+
+        // Subscribe to theme changes so the map tiles can be switched and store the subscription
+        this.themeSub = this.theme.isDark$.subscribe(isDark => {
+            if (!this.map) 
+                return;
+
+            // Get the tiles that should be used based on the toggle
+            const newTiles = isDark ? this.darkTiles : this.lightTiles;
+
+            // Dont spend time adjusting layers if not necessary, just in case
+            if (this.currentTiles === newTiles) 
+                return;
+
+            // Switch out current map tile layer
+            this.map.removeLayer(this.currentTiles);
+            this.map.addLayer(newTiles);
+            this.currentTiles = newTiles;
+        });
     }
 
     constructor(
         public mapService: MapService,
         private translate: TranslateService,
         private sanitizer: DomSanitizer,
-        private delayCategoriesService: delayCategoriesService
+        private delayCategoriesService: delayCategoriesService,
+        public theme: ThemeService,
+        private distancePipe: DistancePipe
     ) {
         this.mapService.addNewLayerObj.subscribe((newLayer) => this.addNewLayer(newLayer));
         this.mapService.addToLayerObj.subscribe((object) => this.addToLayer(object));
@@ -88,6 +145,8 @@ export class MapComponent implements AfterViewInit {
         this.mapService.zoomInObj.subscribe(() => this.map?.zoomIn());
         this.mapService.zoomOutObj.subscribe(() => this.map?.zoomOut());
         this.mapService.fitToLayerObj.subscribe((layerName) => this.fitToLayer(layerName));
+        this.mapService.mapFeaturesObj.subscribe((features) => this.configureMapFeatures(features));
+        this.mapService.redrawLayerObj.subscribe((redrawMetadata) => this.redrawLayer(redrawMetadata));
 
         this.delayCategoriesService.showDelayCategories.subscribe((categories) => {
             this.actualizeDelayCategories(categories);
@@ -108,6 +167,12 @@ export class MapComponent implements AfterViewInit {
         });
     }
 
+    ngOnDestroy(): void {
+
+        // Unsubscribe from theme changes
+        this.themeSub.unsubscribe();
+    }
+
     // Create stop icon object
     private createStopIcon(object: mapObject) {
         if (!this.map) {
@@ -124,6 +189,23 @@ export class MapComponent implements AfterViewInit {
                 this.actualizeColorLegend();
             }
             objectClass = objectLayer.palette[object.metadata.zone_id];
+        }
+
+        // Circle icon with custom color (for planner)
+        else if (object.metadata.is_planner_stop) {
+            const size = this.map.getZoom();
+            return L.divIcon({
+                html: `<div style="
+                    width: ${size}px;
+                    height: ${size}px;
+                    background-color: ${object.metadata.color};
+                    border-radius: 50%;
+                    border: 2px solid black;
+                "></div>`,
+                iconSize: [size, size],
+                iconAnchor: [size / 2, size / 2],
+                className: ''
+            })
         }
 
         return L.icon({
@@ -165,7 +247,8 @@ export class MapComponent implements AfterViewInit {
             return undefined;
         }
 
-        if (object.color === 'provided' && object.metadata.color === '#000000') {
+        // Invert color only for dark theme
+        if (object.color === 'provided' && object.metadata.color === '#000000' && this.theme.isDarkTheme) {
             object.metadata.color = '#FFFFFF';
         }
 
@@ -174,7 +257,8 @@ export class MapComponent implements AfterViewInit {
             { 
                 color: object.color === 'provided' ? `${object.metadata.color}` : '#FFFFFF',
                 weight: 5,
-                interactive: object.interactive
+                interactive: object.interactive,
+                dashArray: object.metadata.dashed ? [10, 10] : undefined
             }
         )
     }
@@ -301,6 +385,9 @@ export class MapComponent implements AfterViewInit {
         }
 
         let bounds: L.LatLngBoundsExpression = this.map.getBounds();
+        let boundsMaxZoom = 19;
+        let boundsPaddingBottomRight: L.PointTuple | undefined = undefined;
+        let boundsPaddingTopLeft: L.PointTuple | undefined = undefined;
 
         switch (object.type) {
             // Polyline
@@ -345,7 +432,77 @@ export class MapComponent implements AfterViewInit {
                         })
                     }
 
-                    bounds = lineOnMap.getBounds();
+                    // Put a circle in the middle of the polyline with an image highligting the mode used on that route
+                    if (object.metadata.modeImg !== undefined) {
+
+                        // Build a GeoJSON linestring from the latlng list
+                        const line = turf.lineString(object.latLng.map(ll => [ll.lng, ll.lat]));
+
+                        // Get the true length of the polyline in meters and get center point
+                        const length = turf.length(line, { units: "meters" });
+                        const center = turf.along(line, length / 2, { units: "meters" }); 
+                        const centerCoords = center.geometry.coordinates;
+
+                        // Create circle icon with background color given by the mode and image of the used mode
+                        const size = 21;
+                        const circle = L.divIcon({
+                            html: `
+                                <svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="50" cy="50" r="50" fill="${object.metadata.color}" opacity="1"/>
+                                    <image href="./planner/${object.metadata.modeImg}" x="15" y="15" width="70" height="70"/>
+                                </svg>
+                            `,
+                            iconSize: [size, size],
+                            iconAnchor: [size / 2, size / 2],
+                            className: 'leaflet-div-icon-clean',
+                        });
+
+                        // Place marker with custom circle icon to the center of the route
+                        L.marker(
+                            [centerCoords[1], centerCoords[0]], 
+                            { 
+                                icon: circle, 
+                                zIndexOffset: 10000,
+                            }
+                        ).addTo(this.layers[object.layerName].layer!);
+
+                        // Add tooltip for each leg with origin, destination name, used mode and line id (or distance if unavailable)                        
+                        lineOnMap.on('click', (event: L.LeafletMouseEvent) => {
+                            L.popup({ maxWidth: 1500 })
+                            .setLatLng(event.latlng)
+                            .setContent(`
+                                <span class="stop-content">
+                                    <span><b>${object.metadata.originName ?? this.translate.instant("planner.itinerary.legOrigin")} → ${object.metadata.destinationName ?? this.translate.instant("planner.itinerary.legDestination")}</b></span>
+                                    <span>${this.translate.instant(`planner.itinerary.${object.metadata.mode.toLowerCase()}`)} ${object.metadata.lineId ? `<span style="
+                                        background-color: ${object.metadata.lineColor};
+                                        color: ${object.metadata.lineTextColor};
+                                        font-weight: bold;
+                                        padding: 1px;
+                                        border-radius: 3px;
+                                        font-size: 13px
+                                    ">${object.metadata.lineId}</span>` : this.distancePipe.transform(object.metadata.distance)}</span>
+                                </span>
+                            `)
+                            .addTo(this.layers[object.layerName].layer!)
+                            .on('remove', () => {
+                                this.mapService.clearLayerObj.next('hoover');
+                            });
+
+                            L.DomEvent.stopPropagation(event);
+                        });
+                        
+                    }
+
+                    // If drawing the last leg of a planner trip, getBounds of all contents of the 'routes' layer (all legs)
+                    if (object.metadata.isLastLeg === true){
+                        bounds = this.layers[object.layerName].layer!.getBounds();
+
+                        // Adjust padding based on mobile/desktop view
+                        boundsPaddingBottomRight = window.innerWidth > 700 ? [400, 0] : undefined as L.PointTuple | undefined;
+                        boundsPaddingTopLeft = window.innerWidth > 700 ? undefined : [0, 100] as L.PointTuple | undefined;
+                    }
+                    else
+                        bounds = lineOnMap.getBounds();
                 }
                 break;
             }
@@ -395,14 +552,16 @@ export class MapComponent implements AfterViewInit {
                     }
                 }
 
-                L.marker(
-                    L.latLng(object.latLng[0]),
-                    {
-                        icon: this.createStopIconShadow(),
-                        interactive: false
-                    }
-                )
-                .addTo(this.layers[object.layerName].layer!);
+                if (object.color !== "provided") {
+                    L.marker(
+                        L.latLng(object.latLng[0]),
+                        {
+                            icon: this.createStopIconShadow(),
+                            interactive: false
+                        }
+                    )
+                    .addTo(this.layers[object.layerName].layer!);
+                }
                 L.marker(
                     L.latLng(object.latLng[0]),
                     {
@@ -421,6 +580,8 @@ export class MapComponent implements AfterViewInit {
                             ${object.metadata.zone_id ? "<span><b>" + this.translate.instant("map.zone") + ":</b> " + object.metadata.zone_id + "</span>": ""}
                             ${object.metadata.order ? "<span><b>" + this.translate.instant("map.order") + ":</b> " + object.metadata.order + "</span>": ""}
                             ${object.metadata.wheelchair_boarding === 1 ? "<span>" + this.translate.instant("map.wheelchair") + "</span>": ""}
+                            ${object.metadata.departure ? `<span><b>${this.translate.instant("map.departure")}: </b>${object.metadata.departure}</span>`: ""}
+                            ${object.metadata.arrival ? `<span><b>${this.translate.instant("map.arrival")}: </b>${object.metadata.arrival}</span>`: ""}
                             ${object.metadata.delays ? "<span><b>" + this.translate.instant("map.delayStats") + "</b></span>": ""}
                             ${
                                 object.metadata.delays && delayCategories.length > 0 ?
@@ -449,10 +610,90 @@ export class MapComponent implements AfterViewInit {
                 bounds = L.latLngBounds(L.latLng(object.latLng[0]), L.latLng(object.latLng[0]));
                 break;
             }
+            case "location": {
+
+                // Add circle marker to map at current location
+                L.circleMarker(
+                    L.latLng(object.latLng[0]),
+                    {
+                        radius: 6,
+                        color: "#ffffff",
+                        weight: 2,
+                        fill: true,
+                        fillColor: "#3333ff",
+                        fillOpacity: 1,
+                        interactive: false,
+                    }
+                )
+                .addTo(this.layers[object.layerName].layer!);
+
+                // Set the bounds to zoom into and a smaller max zoom value
+                bounds = L.latLngBounds(L.latLng(object.latLng[0]), L.latLng(object.latLng[0]));
+                boundsMaxZoom = 12;
+                break;
+            }
+            case "parking": {
+
+                L.marker(
+                    L.latLng(object.latLng[0]),
+                    {
+                        icon: L.icon({ 
+                            iconUrl: `planner/parking.svg`,
+                            iconSize: [this.map.getZoom() * 2.2, this.map.getZoom() * 2.2],
+                            className: "parking-icon",
+                        }),
+                    }
+                ).addTo(this.layers[object.layerName].layer!);
+                break;
+            }
+            case "regionBound": {
+
+                // Add faint outline to map from given geoJSON
+                if (object.metadata.polygon) {
+
+                    // Get polygon ring around the regions
+                    const polygon = object.metadata.polygon;
+                    const ring = polygon.coordinates[0][0];
+
+                    // World bounds in lat/lng 
+                    const outer = [
+                        [-90, -180],
+                        [-90, 180],
+                        [90, 180],
+                        [90, -180]
+                    ];
+
+                    // Reverse geojson lng/lat to lat/lng needed by leaflet
+                    const latLngRing = ring.map(([lng, lat]: [number, number]) => [lat, lng]);
+
+                    // Create and render opaque mask over whole map with the cut-out region bounds
+                    L.polygon([outer, latLngRing], {
+                        fillColor: "#000000",
+                        fillOpacity: 0.1,
+                        stroke: false,
+                        className: 'polygon-mask',
+                        interactive: false,
+                    }).addTo(this.layers[object.layerName].layer!);
+
+                    // Render a faint outline of the region
+                    L.geoJSON(polygon, {
+                        style: {
+                            color: "#777",
+                            weight: 0.5,
+                            fill: false
+                        }
+                    }).addTo(this.layers[object.layerName].layer!);
+                }
+                break;
+            }
         }
 
         if (object.focus) {
-            this.map.fitBounds(bounds);
+            this.map.fitBounds(bounds, {
+                maxZoom: boundsMaxZoom,
+                paddingBottomRight: boundsPaddingBottomRight,
+                paddingTopLeft: boundsPaddingTopLeft,
+            });
         }
     }
 
@@ -484,6 +725,52 @@ export class MapComponent implements AfterViewInit {
 
         if (layer !== undefined && layer.layer) {
             this.map?.fitBounds(layer.layer.getBounds());
+        }
+    }
+
+    // Add extra features to the map
+    private configureMapFeatures(features: { showScale?: boolean }) {
+        if (features?.showScale) {
+            L.control.scale({ maxWidth: 170, imperial: false }).addTo(this.map!);
+        }
+    }
+
+    // Redraw objects in map layer based on data
+    private redrawLayer(redrawMetadata: { layerName: string, data?: any }) {
+
+        // Get the layer and check its existence
+        const layer = this.layers[redrawMetadata.layerName];
+        if (layer === undefined || layer.layer === undefined)
+            return;
+
+        // Perform redraw operation based on layer
+        if (redrawMetadata.layerName === "tripPoints" && redrawMetadata.data !== undefined) {
+            
+            // Iterate over the trip points (latitudes and longitudes)
+            (redrawMetadata.data as { lat?: number, lng?: number }[]).forEach((point, index) => {
+
+                if (point.lat === undefined || point.lng === undefined)
+                    return;
+
+                // Get point type based on its position in the trip points array
+                const pointType = index === 0 ? "start" : (index === redrawMetadata.data.length - 1 ? "end" : "midpoint"); 
+
+                const zoom = this.map!.getZoom();
+
+                // Place new marker at the layer for this point
+                L.marker(
+                    L.latLng({ lat: point.lat, lng: point.lng }),
+                    {
+                        icon: L.icon({ 
+                            iconUrl: `planner/${pointType}-marker.svg`,
+                            className: 'trip-point',
+                            iconAnchor: [zoom * 2.2 / 2, zoom * 2.2],
+                            iconSize: [zoom * 2.2, zoom * 2.2],
+                        }),
+                        zIndexOffset: 10001,
+                    }
+                ).addTo(layer.layer!);
+            });
         }
     }
 }

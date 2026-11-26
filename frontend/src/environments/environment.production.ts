@@ -3,5 +3,6 @@ export const environment = {
         apiKey: 'undefined',
         production: true,
         mapCenter: 'undefined',
-        mapZoom: 'undefined'
+        mapZoom: 'undefined',
+        primeLicense: 'test'
     };

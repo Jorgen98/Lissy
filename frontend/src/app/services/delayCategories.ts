@@ -95,7 +95,7 @@ export class delayCategoriesService {
 
         this.delayCategories.splice(idx, 1);
 
-        if (idx !== 0) {
+        if (idx !== 0 && this.delayCategories.length > idx) {
             this.delayCategories[idx - 1].maxValue = this.delayCategories[idx].minValue;
         }
 

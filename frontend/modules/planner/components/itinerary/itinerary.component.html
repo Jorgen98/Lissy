@@ -1,0 +1,313 @@
+<!--
+File: itinerary.component.html
+Author: Adam Vcelar (xvcelaa00@stud.fit.vut.cz)
+
+Main component HTML template file for the itinerary used in the planner module.
+-->
+
+<!-- Show itinerary only if trip options are currently defined and stored -->
+@if (tripOptions() !== null) {
+  <div class="itinerary">
+
+    <!-- Itinerary header -->
+    <div class="header">
+      <span class="title">{{ "planner.itinerary.title" | translate }}</span>
+
+      <!-- Button to clear itinerary -->
+      <button class="clear-itinerary-btn" (click)="clearItineraryState()">
+        {{ 'planner.itinerary.clearItinerary' | translate }}
+      </button>
+    </div>
+
+    <!-- Sort select -->
+    <div class="sort-div" [hidden]="showCompactView || optionDetailActive || (this.tripOptions()?.length ?? 0) <= 1">
+      <span class="sort-label">{{ 'planner.itinerary.sortBy' | translate }}: </span>
+      <p-select 
+        [(ngModel)]="selectedSortField"
+        class="sort-select" 
+        [checkmark]="true" 
+        [options]="sortSelectOptions" 
+        [optionLabel]="'label'" 
+        [optionValue]="'value'" 
+        (onChange)="sortTripOptions.emit(selectedSortField)"
+      >
+
+        <!-- ng-template for using translate pipe -->
+        <ng-template let-option #item>
+          {{ option.label | translate }}
+        </ng-template>
+        <ng-template let-option #selectedItem>
+          {{ option.label | translate }}
+        </ng-template>
+      </p-select>
+    </div>
+
+    <!-- PrimeNG accordion with the found options -->
+    <ng-scrollbar class="scrollbox" [visibility]="isTouchDevice() ? 'visible' : 'hover'" [appearance]="'compact'" [orientation]="'vertical'">
+      <p-accordion expandIcon="none" collapseIcon="none" [(value)]="accordionOptionValue">
+        @for (option of tripOptions(); track $index) {
+
+          <!-- If the detail of an option is being shown or the itinerary is in compact view mode, show only the currently selected option -->
+          @if ((optionDetailActive || showCompactView) ? (selectedOptionIdx === $index) : true) {
+
+            <!-- Option panel with header and content -->
+            <p-accordion-panel [value]="$index" class="p-accordion-panel" #scrollbarPanel>
+
+              <!-- Option header containing start and end times, distance, duration and a timeline -->
+              <p-accordion-header class="p-accordion-header" [class.option-selected]="selectedOptionIdx === $index" (click)="changeTripOption($index)">
+                <trip-header 
+                  [option]="option"
+                  [showTags]="(tripOptions()?.length ?? 0) > 2"
+                />
+              </p-accordion-header>
+
+              <!-- Option content with detail -->
+              <p-accordion-content class="p-accordion-content">
+                <div class="trip-detail-main">
+
+                  <!-- Show on map and export buttons in mobile view -->
+                  @if (windowWidth <= 700) {
+                    <div class="trip-detail-mobile-extras">
+                      <button class="trip-detail-mobile-btn" (click)="mobileShowTripOption.emit($index)">
+                        <i class="pi pi-map"></i>{{ "planner.itinerary.showOnMap" | translate }}
+                      </button>
+                      <button class="trip-detail-mobile-btn" (click)="exportTrip(option)">
+                        <i class="pi pi-file-export"></i>{{ "planner.itinerary.export" | translate }}
+                      </button>
+                    </div>
+                  }
+                  <span class="faint-text">{{ option.startDatetime | date: "d. M. yyyy" }}</span>
+                  @for (section of option.sections; track $index; let firstSection = $first; let lastSection = $last; let sectionCount = $count; let sectionIdx = $index) {
+                    @for (leg of section.legs; track $index; let firstLeg = $first; let lastLeg = $last; let legCount = $count; let legIdx = $index) {
+
+                      <!-- Origin point with departure time -->
+                      @if (firstSection && firstLeg) {
+                        <div class="box point-box-start">
+                          <span class="point-title">{{ section.originName ?? "planner.itinerary.origin" | translate }}</span>
+                          <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${section.startDatetime | date: " HH:mm"}` }}</span>
+                        </div>
+                      }
+
+                      <!-- Legs between two points -->
+                      <!-- Do not show boxes for walking lex that are access/egress/transfers walks -->
+                      @if (leg.mode !== "WALK" || legCount === 1) {
+                        <div class="leg-box-wrapper">
+                          <div 
+                            class="reroute-btn" 
+                            [style.borderLeft]="`3px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`"
+                            [style.visibility]="leg.isTransitLeg && !option.imported ? 'visible' : 'hidden'"
+                            [title]="'planner.itinerary.previousConnection' | translate"
+                            (click)="rerouteRequest.emit({ tripIdx: selectedOptionIdx, sectionIdx, legIdx, direction: 'previous' })"
+                          >
+                            <i class="pi pi-chevron-left"></i>
+                          </div>
+                          <div class="box leg-box" [style.borderLeft]="`4px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`">
+                            <div class="leg-box-left">
+
+                              <!-- Mode used for the leg and possibly the route identifier if its defined -->
+                              <div class="leg-mode-box">
+                                <img 
+                                  class="detail-mode-img" 
+                                  [src]="`./planner/${leg.mode.toLowerCase()}-${(theme.isDark$ | async) ? 'white' : 'dark'}.svg`" 
+                                  [style.opacity]="(theme.isDark$ | async) ? 1 : 0.8"
+                                >
+                                <div 
+                                  class="line-label line-label-detail"
+                                  [style.background]="getLegColor(leg)"
+                                  [style.color]="getLegTextColor(leg)"
+                                >
+                                  @if (leg.route?.lineId) {
+                                    <span>{{ leg.route?.lineId }}</span>
+                                  } 
+                                </div>
+                              </div>
+
+                              <!-- Origin and destination of leg names -->
+                              <div class="two-column-text two-column-text-left">
+                                <span class="leg-text">
+                                  {{ leg.from.placeName ?? "planner.itinerary.legOrigin" | translate }}
+                                  @if (leg.from.isParking) {
+                                    <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
+                                  }
+                                </span>
+                                <span class="leg-text">
+                                  {{ leg.to.placeName ?? "planner.itinerary.legDestination" | translate }}
+                                  @if (leg.to.isParking) {
+                                    <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
+                                  }
+                                </span>
+                              </div>
+                            </div>
+
+                            <!-- For transit - departure time and arrival time of leg, for direct (walk | car) - distance and duration of leg -->
+                            <div class="two-column-text">
+                              <span class="base-text">{{ !leg.isTransitLeg ? (leg.distance | distance) : leg.from.departureTime | date: "HH:mm" }}</span>
+                              <span class="base-text">{{ !leg.isTransitLeg ? (leg.duration | duration) : leg.to.arrivalTime | date: "HH:mm" }}</span>
+                            </div>
+                          </div>
+                          <div 
+                            class="reroute-btn"
+                            [style.borderRight]="`3px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`"
+                            [style.visibility]="leg.isTransitLeg && !option.imported ? 'visible' : 'hidden'"
+                            [title]="'planner.itinerary.nextConnection' | translate"
+                            (click)="rerouteRequest.emit({ tripIdx: selectedOptionIdx, sectionIdx, legIdx, direction: 'next' })"
+                          >
+                            <i class="pi pi-chevron-right"></i>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- Access/egress/transfer walking leg with duration -->
+                      @else if (leg.duration >= 60) {
+                        <div class="faint-text">
+                          <img class="transfer-walk-img" [src]="'./planner/walk-light.svg'">
+                          <span>{{ leg.duration | duration }}</span>
+                        </div>
+                      }
+
+                      <!-- Midpoint with departure and arrival time -->
+                      @if (!lastSection && lastLeg && sectionCount > 1) {
+                        <div class="box point-box-mid">
+                          <span class="point-title">{{ section.destinationName ?? `${"planner.itinerary.midpoint" | translate} ${sectionIdx + 1}` }}</span>
+                          <div class="two-column-text">
+                            <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${section.endDatetime | date: " HH:mm"}` }}</span>
+                            <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${option.sections[sectionIdx+1].startDatetime | date: " HH:mm"}` }}</span>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- Destination point with arrival time -->
+                      @if (lastSection && lastLeg) {
+                        <div class="box point-box-end">
+                          <span class="point-title">{{ section.destinationName ?? "planner.itinerary.destination" | translate }}</span>
+                          <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${section.endDatetime | date: " HH:mm"}` }}</span>
+                        </div>
+                      }
+                    }
+                  }
+
+                  @if (option.returnTrip.section !== null) {
+                    <div class="divider">{{ "planner.itinerary.returnTrip" | translate }}</div>
+                  }
+                  @if (option.returnTrip.section === "not available") {
+                    <div class="faint-text">{{ "planner.itinerary.returnTripNotFound" | translate }}</div>
+                  }
+                  @else if (option.returnTrip.section !== null) {
+                    <span class="faint-text return-trip-header">
+                      {{ option.returnTrip.section.startDatetime | date: "d. M. yyyy" }}
+                      <button class="show-return-trip" (click)="returnTripToggled({ idx: $index, draw: !returnTripRendered })" [hidden]="returnTripRendered">
+                        <i class="pi pi-map"></i>{{ 'planner.itinerary.showOnMap' | translate }}
+                      </button>
+                      <button class="show-return-trip" (click)="returnTripToggled({ idx: $index, draw: !returnTripRendered })" [hidden]="!returnTripRendered">
+                        {{ 'planner.itinerary.hide' | translate }}
+                      </button>
+                    </span>
+                    @for (leg of option.returnTrip.section.legs; track $index; let firstLeg = $first; let lastLeg = $last; let legCount = $count) {
+
+                      <!-- Origin point with departure time -->
+                      @if (firstLeg) {
+                        <div class="box point-box-start">
+                          <span class="point-title">{{ option.returnTrip.section.originName ?? "planner.itinerary.origin" | translate }}</span>
+                          <span class="base-text">{{ `${"planner.itinerary.departure" | translate}${option.returnTrip.section.startDatetime | date: " HH:mm"}` }}</span>
+                        </div>
+                      }
+
+                      <!-- Legs between two points -->
+                      <!-- Do not show boxes for walking lex that are access/egress/transfers walks -->
+                      @if (leg.mode !== "WALK" || legCount === 1) {
+                        <div class="leg-box-wrapper">
+                          <div 
+                            class="reroute-btn" 
+                            [style.visibility]="'hidden'"
+                          >
+                            <i class="pi pi-chevron-left"></i>
+                          </div>
+                          <div class="box leg-box" [style.borderLeft]="`4px ${!leg.isTransitLeg ? 'dashed' : 'solid'} ${getLegColor(leg)}`">
+                            <div class="leg-box-left">
+
+                              <!-- Mode used for the leg and possibly the route identifier if its defined -->
+                              <div class="leg-mode-box">
+                                <img 
+                                  class="detail-mode-img" 
+                                  [src]="`./planner/${leg.mode.toLowerCase()}-${(theme.isDark$ | async) ? 'white' : 'dark'}.svg`" 
+                                  [style.opacity]="(theme.isDark$ | async) ? 1 : 0.8"
+                                >
+                                <div 
+                                  class="line-label line-label-detail"
+                                  [style.background]="getLegColor(leg)"
+                                  [style.color]="getLegTextColor(leg)"
+                                >
+                                  @if (leg.route?.lineId) {
+                                    <span>{{ leg.route?.lineId }}</span>
+                                  } 
+                                </div>
+                              </div>
+
+                              <!-- Origin and destination of leg names -->
+                              <div class="two-column-text two-column-text-left">
+                                <span class="leg-text">
+                                  {{ leg.from.placeName ?? "planner.itinerary.legOrigin" | translate }}
+                                  @if (leg.from.isParking) {
+                                    <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
+                                  }
+                                </span>
+                                <span class="leg-text">
+                                  {{ leg.to.placeName ?? "planner.itinerary.legDestination" | translate }}
+                                  @if (leg.to.isParking) {
+                                    <img [src]="'./planner/parking.svg'" class="parking-icon" [title]="'planner.itinerary.parkingSpot' | translate">
+                                  }
+                                </span>
+                              </div>
+                            </div>
+
+                            <!-- For transit - departure time and arrival time of leg, for direct (walk | car) - distance and duration of leg -->
+                            <div class="two-column-text">
+                              <span class="base-text">{{ !leg.isTransitLeg ? (leg.distance | distance) : leg.from.departureTime | date: "HH:mm" }}</span>
+                              <span class="base-text">{{ !leg.isTransitLeg ? (leg.duration | duration) : leg.to.arrivalTime | date: "HH:mm" }}</span>
+                            </div>
+                          </div>
+                          <div 
+                            class="reroute-btn" 
+                            [style.visibility]="'hidden'"
+                          >
+                            <i class="pi pi-chevron-right"></i>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- Access/egress/transfer walking leg with duration -->
+                      @else if (leg.duration >= 60) {
+                        <div class="faint-text">
+                          <img class="transfer-walk-img" [src]="'./planner/walk-light.svg'" alt="">
+                          <span>{{ leg.duration | duration }}</span>
+                        </div>
+                      }
+
+                      <!-- Destination point with arrival time -->
+                      @if (lastLeg) {
+                        <div class="box point-box-end">
+                          <span class="point-title">{{ option.returnTrip.section.destinationName ?? "planner.itinerary.destination" | translate }}</span>
+                          <span class="base-text">{{ `${"planner.itinerary.arrival" | translate}${option.returnTrip.section.endDatetime | date: " HH:mm"}` }}</span>
+                        </div>
+                      }
+                    }
+                  }
+                </div>
+
+                <!-- Export button (elsewhere in mobile view) -->
+                @if (windowWidth > 700) {
+                  <div class="export-div">
+                    <button class="export-btn" (click)="exportTrip(option)">
+                      <i class="pi pi-download export-img"></i>
+                      {{ "planner.itinerary.export" | translate }}
+                    </button>
+                  </div>
+                }
+              </p-accordion-content>
+            </p-accordion-panel>
+          }
+        }
+      </p-accordion>
+    </ng-scrollbar>
+  </div>
+}

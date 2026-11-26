@@ -1,0 +1,185 @@
+services:
+  lissy-proxy-server:
+    container_name: lissy-proxy-server
+    image: nginx:stable-alpine
+    depends_on:
+      lissy-fe:
+        condition: service_healthy
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - lissy-network
+      - edge
+  lissy-fe:
+    container_name: lissy-fe
+    image: dexter.fit.vutbr.cz/lissy/lissy-fe:latest
+    depends_on:
+      lissy-db-postgis:
+        condition: service_healthy
+      lissy-db-stats:
+        condition: service_healthy
+    environment:
+      TZ: "Europe/Bratislava"
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/lissy"]
+      interval: 5m
+      retries: 3
+      start_period: 30s
+      timeout: 5s
+    networks:
+      - lissy-network
+  lissy-be-processing:
+    container_name: lissy-be-processing
+    image: dexter.fit.vutbr.cz/lissy/lissy-be-processing:latest
+    command: ["npm", "run", "be-processing-docker"]
+    depends_on:
+      lissy-db-postgis:
+        condition: service_healthy
+      lissy-db-stats:
+        condition: service_healthy
+    environment:
+      TZ: "Europe/Bratislava"
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - lissy-network
+  lissy-be-api:
+    container_name: lissy-be-api
+    image: dexter.fit.vutbr.cz/lissy/lissy-be-api:latest
+    command: ["npm", "run", "be-api-docker"]
+    depends_on:
+      lissy-db-postgis:
+        condition: service_healthy
+      lissy-db-stats:
+        condition: service_healthy
+      lissy-db-cache:
+        condition: service_healthy
+    environment:
+      TZ: "Europe/Bratislava"
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - lissy-network
+
+  lissy-martin-prediction:
+    container_name: lissy-martin-prediction
+    image: dexter.fit.vutbr.cz/lissy/lissy-martin-prediction:latest
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Bratislava"
+    depends_on:
+      lissy-db-postgis:
+        condition: service_healthy
+      lissy-db-stats:
+        condition: service_healthy
+      lissy-db-cache:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - lissy-network
+  lissy-db-postgis:
+    container_name: lissy-db-postgis
+    image: postgis/postgis:16-3.7
+    volumes:
+      - ./db-postgis-init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db-postgis-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_POSTGIS_USER}
+      POSTGRES_PASSWORD: ${DB_POSTGIS_PASSWORD}
+      POSTGRES_DB: ${DB_POSTGIS_DATABASE}
+      PGPORT: 5432
+      PGUSER: ${DB_POSTGIS_USER}
+      TZ: "Europe/Bratislava"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -h localhost -p 5432 -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lissy-network
+  lissy-db-stats:
+    container_name: lissy-db-stats
+    image: influxdb:2.10.1
+    volumes:
+        - ./db-stats-data/data/:/var/lib/influxdb2
+        - ./db-stats-data/config/:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${DB_STATS_USER}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${DB_STATS_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${DB_STATS_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${DB_STATS_BUCKET}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${DB_STATS_TOKEN}
+      TZ: "Europe/Bratislava"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    healthcheck:
+      test: influx ping
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lissy-network
+  lissy-db-cache:
+    container_name: lissy-db-cache
+    image: redis:8.2.11
+    restart: unless-stopped
+    environment:
+      DB_CACHE_TOKEN: ${DB_CACHE_TOKEN:?DB_CACHE_TOKEN is required}
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${DB_CACHE_TOKEN}
+    volumes:
+      - ./db-cache-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${DB_CACHE_TOKEN}\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lissy-network
+networks:
+  lissy-network:
+    name: lissy-network
+  edge:
+    name: lissy-edge
